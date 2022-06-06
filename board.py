@@ -133,10 +133,11 @@ class Board:
         Takes a Move
         Returns whether the move is legal
         """
-        if move.mtype == "p":
+        # Place
+        if move.mtype:
             return self.can_place(move.row1, move.col1, move.ptype)
-        if move.mtype == "m":
-            return self.can_move(move.row1, move.col1, move.row2, move.col2)
+        # Move
+        return self.can_move(move.row1, move.col1, move.row2, move.col2)
 
     def do_move(self, move):
         """
@@ -145,12 +146,14 @@ class Board:
         Does the move, if it is legal
         """
         if self.is_legal_move(move):
-            if move.mtype == "p":
+            # Place
+            if move.mtype:
                 self.spaces[move.ptype][move.row1][move.col1] = 1
 
                 self.frozen.fill(0)
                 self.frozen[move.row1][move.col1] = 1
-            if move.mtype == "m":
+            # Move
+            else:
                 self.spaces[:, move.row2, move.col2] = (
                     self.spaces[:, move.row2, move.col2]
                     + self.spaces[:, move.row1, move.col1]

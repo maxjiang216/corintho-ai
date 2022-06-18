@@ -10,10 +10,8 @@ class Game:
         self.to_play = 0
         # Number of pieces for each player
         self.pieces = [[4, 4, 4], [4, 4, 4]]
-        # If game is done
-        self.done = False
-        # Outcome when game is done. 1 is first player win
-        self.outcome = 0
+        # Outcome when game is done. 1 is first player win. None means the game is ongoing
+        self.outcome = None
 
     def __string__(self):
         return str(self.board)
@@ -86,19 +84,16 @@ class Game:
         Current player loses if move is illegal
         Returns if game is done and the outcome
         """
-        if not self.done:
-            # Illegal move
-            if not self.is_legal(move):
-                self.outcome = 1 - self.to_play
-                self.done = True
-                return True, self.outcome
-            # Place, remove piece from arsenal
-            if move.mtype:
-                self.pieces[self.to_play][move.ptype] -= 1
-            self.board.do_move(move)
-            self.to_play = 1 - self.to_play
-            return False, 0
-        return True, 0
+        # Illegal move
+        if not self.is_legal(move):
+            self.outcome = 1 - self.to_play
+            return self.outcome
+        # Place, remove piece from arsenal
+        if move.mtype:
+            self.pieces[self.to_play][move.ptype] -= 1
+        self.board.do_move(move)
+        self.to_play = 1 - self.to_play
+        return None
 
     def get_canonical(self):
         """

@@ -204,134 +204,64 @@ class Board:
         """
         # first, get array of tops, split by type
         tops = self.get_tops()
-        lines = []
+        lines = np.zeros(12)
         if tops[0, 1] == tops[0, 2]:
             if tops[0, 1] == tops[0, 0] == tops[0, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[0, 1] == tops[0, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[0, 1] == tops[0, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[0] = 2
+            elif tops[0, 1] == tops[0, 0] or tops[0, 1] == tops[0, 3]:
+                lines[0] = 1
         if tops[1, 1] == tops[1, 2]:
             if tops[1, 1] == tops[1, 0] == tops[1, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 1] == tops[1, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 1] == tops[1, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[1] = 2
+            elif tops[1, 1] == tops[1, 0] or tops[1, 1] == tops[1, 3]:
+                lines[1] = 1
         if tops[2, 1] == tops[2, 2]:
             if tops[2, 1] == tops[2, 0] == tops[2, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[2, 1] == tops[2, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[2, 1] == tops[2, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[2] = 2
+            elif tops[2, 1] == tops[2, 0] or tops[2, 1] == tops[2, 3]:
+                lines[2] = 1
         if tops[3, 1] == tops[3, 2]:
             if tops[3, 1] == tops[3, 0] == tops[3, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[3, 1] == tops[3, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[3, 1] == tops[3, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[3] = 2
+            elif tops[3, 1] == tops[3, 0] or tops[3, 1] == tops[3, 3]:
+                lines[3] = 1
         if tops[1, 0] == tops[2, 0]:
             if tops[1, 0] == tops[0, 0] == tops[3, 0]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 0] == tops[0, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 0] == tops[3, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[4] = 2
+            elif tops[1, 0] == tops[0, 0] or tops[1, 0] == tops[3, 0]:
+                lines[4] = 1
         if tops[1, 1] == tops[2, 1]:
             if tops[1, 1] == tops[0, 1] == tops[3, 1]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 1] == tops[0, 1]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 1] == tops[3, 1]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[5] = 2
+            elif tops[1, 1] == tops[0, 1] or tops[1, 1] == tops[3, 1]:
+                lines[5] = 1
         if tops[1, 2] == tops[2, 2]:
             if tops[1, 2] == tops[0, 2] == tops[3, 2]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 2] == tops[0, 2]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 2] == tops[3, 2]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[6] = 2
+            elif tops[1, 2] == tops[0, 2] or tops[1, 2] == tops[3, 2]:
+                lines[6] = 1
         if tops[1, 3] == tops[2, 3]:
             if tops[1, 3] == tops[0, 3] == tops[3, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 3] == tops[0, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 3] == tops[3, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[7] = 2
+            elif tops[1, 3] == tops[0, 3] or tops[1, 3] == tops[3, 3]:
+                lines[7] = 1
         if tops[1, 1] == tops[2, 2]:
             if tops[1, 1] == tops[0, 0] == tops[3, 3]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 1] == tops[0, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 1] == tops[3, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[8] = 2
+            elif tops[1, 1] == tops[0, 0] or tops[1, 1] == tops[3, 3]:
+                lines[8] = 1
         if tops[1, 2] == tops[2, 1]:
             if tops[1, 2] == tops[0, 3] == tops[3, 0]:
-                lines.extend([2, 2])
-            else:
-                if tops[1, 2] == tops[0, 3]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
-                if tops[1, 2] == tops[3, 0]:
-                    lines.append(1)
-                else:
-                    lines.append(0)
+                lines[9] = 2
+            elif tops[1, 2] == tops[0, 3] or tops[1, 2] == tops[3, 0]:
+                lines[9] = 1
         if tops[0, 1] == tops[1, 2] == tops[2, 3]:
-            lines.append(1)
+            lines[10] = 1
         if tops[1, 0] == tops[2, 1] == tops[3, 2]:
-            lines.append(1)
+            lines[11] = 1
         if tops[0, 2] == tops[1, 1] == tops[2, 0]:
-            lines.append(1)
+            lines[12] = 1
         if tops[1, 3] == tops[2, 2] == tops[3, 1]:
-            lines.append(1)
+            lines[13] = 1
 
         return lines

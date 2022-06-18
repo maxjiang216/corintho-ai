@@ -1,3 +1,4 @@
+import numpy as np
 from copy import deepcopy
 from board import Board
 from move import Move
@@ -88,6 +89,10 @@ class Game:
         if move.mtype:
             self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
+        # Previous player win
+        if len(self.get_legal_moves()) == 0 and np.max(self.board.get_lines()) > 0:
+            self.outcome = 1 - self.to_play
+            return self.outcome
         self.to_play = 1 - self.to_play
         return None
 

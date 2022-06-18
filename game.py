@@ -16,10 +16,6 @@ class Game:
     def __string__(self):
         return str(self.board)
 
-    def do_turn(self):
-        """ """
-        pass
-
     def is_legal(self, move):
         """
         Move -> bool
@@ -98,6 +94,7 @@ class Game:
     def get_canonical(self):
         """
         -> Game
+        Get canonical form of board (from perspective of current player)
         """
         canonical_game = deepcopy(self)
         canonical_game.to_play = 0

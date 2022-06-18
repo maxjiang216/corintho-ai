@@ -9,12 +9,19 @@ class Board:
 
     def __init__(self):
         # Three 4x4 boards
-        self.spaces = np.zeros((3, 4, 4))
-        # 4x4 board filled with 1s
-        self.frozen = np.zeros((4, 4)) + 1
-        self.frozen[0][0] = 0
-        self.frozen[0][1] = 0
-        self.frozen[1][1] = 0
+        self.spaces = []
+        for row in range(4):
+            temp_row = []
+            for col in range(4):
+                temp_row.append([False] * 3)
+            self.spaces.append(temp_row)
+        # Frozen spaces, defult to only give 3 spaces to prevent symmetry
+        self.frozen = []
+        for row in range(4):
+            self.frozen.append([True] * 4)
+        self.frozen[0][0] = False
+        self.frozen[0][1] = False
+        self.frozen[1][1] = False
 
     def __str__(self):
         """
@@ -25,17 +32,17 @@ class Board:
         for i in range(4):
             for j in range(4):
                 # Base
-                if self.spaces[0][i][j]:
+                if self.spaces[i][j][0]:
                     output += "B"
                 else:
                     output += "_"
                 # Column
-                if self.spaces[1][i][j]:
+                if self.spaces[i][j][1]:
                     output += "C"
                 else:
                     output += "_"
                 # Capital
-                if self.spaces[2][i][j]:
+                if self.spaces[i][j][2]:
                     output += "A"
                 else:
                     output += "_"
@@ -43,19 +50,17 @@ class Board:
                 if self.frozen[i][j]:
                     output += "#"
                 else:
-                    output += "!"
+                    output += " "
         return output
 
-    def is_empty(self, row, col, ptype=None):
+    def is_empty(self, row, col):
         """
         int,int(,int) -> bool
         Takes a row and column number
         Returns whether the corresponding space is empty
         If ptype is specified, only considers that slot
         """
-        if ptype is None:
-            return np.max(self.spaces[:, row, col]) == 0
-        return self.spaces[ptype, row, col] == 0
+        return not any(ptype for ptype in self.spaces[row][col])
 
     def clear(self, row, col):
         """
@@ -63,7 +68,7 @@ class Board:
         Takes a row and column number
         Clears the corresponding space
         """
-        self.spaces[:, row, col] = 0
+        self.spaces[row][col] = [False] * 3
 
     def bottom(self, row, col):
         """
@@ -73,7 +78,7 @@ class Board:
         Returns -1 if space is empty
         """
         for i in range(3):
-            if self.spaces[i][row][col]:
+            if self.spaces[row][col][i]:
                 return i
         return -1
 
@@ -85,7 +90,7 @@ class Board:
         Returns -1 if space is empty
         """
         for i in reversed(range(3)):
-            if self.spaces[i][row][col]:
+            if self.spaces[row][col][i]:
                 return i
         return -1
 
@@ -101,14 +106,14 @@ class Board:
         # Base
         if ptype == 0:
             # Only if space is empty
-            return np.max(self.spaces[:, row, col]) == 0
+            return self.is_empty(row, col)
         # Column
         if ptype == 1:
             # Check for absence of column and capital
-            return self.spaces[1][row][col] == 0 and self.spaces[2][row][col] == 0
+            return not self.spaces[row][col][1] and not self.spaces[row][col][2]
         # Capital
         # Check for column and absence of capital
-        return self.spaces[1][row][col] == 1 and self.spaces[2][row][col] == 0
+        return self.spaces[row][col][1] and not self.spaces[row][col][2]
 
     def can_move(self, row1, col1, row2, col2):
         """
@@ -145,23 +150,28 @@ class Board:
         Takes a Move
         Does the move, if it is legal
         """
-        if self.is_legal_move(move):
-            # Place
-            if move.mtype:
-                self.spaces[move.ptype][move.row1][move.col1] = 1
-
-                self.frozen.fill(0)
-                self.frozen[move.row1][move.col1] = 1
-            # Move
-            else:
-                self.spaces[:, move.row2, move.col2] = (
-                    self.spaces[:, move.row2, move.col2]
-                    + self.spaces[:, move.row1, move.col1]
-                )
-                self.clear(move.row1, move.col1)
-
-                self.frozen.fill(0)
-                self.frozen[move.row2][move.col2] = 1
+        # Reset which space is frozen
+        for row in range(4):
+            self.frozen[row] = [False] * 4
+        # Place
+        if move.mtype:
+            self.spaces[move.row1][move.col1][move.ptype] = True
+            self.frozen[move.row1][move.col1] = True
+        # Move
+        else:
+            self.spaces[move.row2][move.col2][0] = (
+                self.spaces[move.row1][move.col1][0]
+                or self.spaces[move.row2][move.col2][0]
+            )
+            self.spaces[move.row2][move.col2][1] = (
+                self.spaces[move.row1][move.col1][1]
+                or self.spaces[move.row2][move.col2][1]
+            )
+            self.spaces[move.row2][move.col2][2] = (
+                self.spaces[move.row1][move.col1][2]
+                or self.spaces[move.row2][move.col2][2]
+            )
+            self.frozen[move.row2][move.col2] = True
 
     def get_tops(self):
         """
@@ -187,76 +197,141 @@ class Board:
                 bottoms[i][j] = self.bottom(i, j)
         return tops, bottoms
 
-    def count_lines(self, space=None):
+    def get_lines(self):
         """
-        (int,(int,int)) -> int
-        Returns the number of 3 or 4 unit lines
-        If a space is specified, only counts lines including the space
+        Board -> array
+        Returns an array of bools for which lines are made
         """
         # first, get array of tops, split by type
-        raw_tops = self.get_tops()
-        count = 0
-        if space is None:
-            # loop for each piece type
-            for i in range(3):
-                tops = raw_tops == i
-                # check rows and columns
-                for j in range(4):
-                    if (tops[j, 1] and tops[j, 2]) and (tops[j, 0] or tops[j, 3]):
-                        count += 1
-                    if (tops[1, j] and tops[2, j]) and (tops[0, j] or tops[3, j]):
-                        count += 1
-                # test long diagonals
-                if (tops[1, 1] and tops[2, 2]) and (tops[0, 0] or tops[3, 3]):
-                    count += 1
-                if (tops[1, 2] and tops[2, 1]) and (tops[0, 3] or tops[3, 0]):
-                    count += 1
-                # short diagonals
-                if tops[0, 1] and tops[1, 2] and tops[2, 3]:
-                    count += 1
-                if tops[1, 0] and tops[2, 1] and tops[3, 2]:
-                    count += 1
-                if tops[0, 2] and tops[1, 1] and tops[2, 0]:
-                    count += 1
-                if tops[1, 3] and tops[2, 2] and tops[3, 1]:
-                    count += 1
-            return count
-        row, col = space[0], space[1]
-        ptype = raw_tops[row][col]
-        if ptype < 0:
-            return 0
-        tops = raw_tops == ptype
-        # row and column
-        if (tops[row, 1] and tops[row, 2]) and (
-            (tops[row, 0] and col != 3) or (tops[row, 3] and col != 0)
-        ):
-            count += 1
-        if (tops[1, col] and tops[2, col]) and (
-            (tops[0, col] and row != 3) or (tops[3, col] and row != 0)
-        ):
-            count += 1
-        # test diagonals
-        if row == col:
-            if (tops[1, 1] and tops[2, 2]) and (
-                (tops[0, 0] and row != 3) or (tops[3, 3] and row != 0)
-            ):
-                count += 1
-        if row + col == 3:
-            if (tops[1, 2] and tops[2, 1]) and (
-                (tops[0, 3] and row != 3) or (tops[3, 0] and row != 0)
-            ):
-                count += 1
-        # short diagonals
-        if row + 1 == col:
-            if tops[0, 1] and tops[1, 2] and tops[2, 3]:
-                count += 1
-        if row == col + 1:
-            if tops[1, 0] and tops[2, 1] and tops[3, 2]:
-                count += 1
-        if row + col == 2:
-            if tops[0, 2] and tops[1, 1] and tops[2, 0]:
-                count += 1
-        if row + col == 4:
-            if tops[1, 3] and tops[2, 2] and tops[3, 1]:
-                count += 1
-        return count
+        tops = self.get_tops()
+        lines = []
+        if tops[0, 1] == tops[0, 2]:
+            if tops[0, 1] == tops[0, 0] == tops[0, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[0, 1] == tops[0, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[0, 1] == tops[0, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 1] == tops[1, 2]:
+            if tops[1, 1] == tops[1, 0] == tops[1, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 1] == tops[1, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 1] == tops[1, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[2, 1] == tops[2, 2]:
+            if tops[2, 1] == tops[2, 0] == tops[2, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[2, 1] == tops[2, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[2, 1] == tops[2, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[3, 1] == tops[3, 2]:
+            if tops[3, 1] == tops[3, 0] == tops[3, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[3, 1] == tops[3, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[3, 1] == tops[3, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 0] == tops[2, 0]:
+            if tops[1, 0] == tops[0, 0] == tops[3, 0]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 0] == tops[0, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 0] == tops[3, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 1] == tops[2, 1]:
+            if tops[1, 1] == tops[0, 1] == tops[3, 1]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 1] == tops[0, 1]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 1] == tops[3, 1]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 2] == tops[2, 2]:
+            if tops[1, 2] == tops[0, 2] == tops[3, 2]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 2] == tops[0, 2]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 2] == tops[3, 2]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 3] == tops[2, 3]:
+            if tops[1, 3] == tops[0, 3] == tops[3, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 3] == tops[0, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 3] == tops[3, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 1] == tops[2, 2]:
+            if tops[1, 1] == tops[0, 0] == tops[3, 3]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 1] == tops[0, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 1] == tops[3, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[1, 2] == tops[2, 1]:
+            if tops[1, 2] == tops[0, 3] == tops[3, 0]:
+                lines.extend([2, 2])
+            else:
+                if tops[1, 2] == tops[0, 3]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+                if tops[1, 2] == tops[3, 0]:
+                    lines.append(1)
+                else:
+                    lines.append(0)
+        if tops[0, 1] == tops[1, 2] == tops[2, 3]:
+            lines.append(1)
+        if tops[1, 0] == tops[2, 1] == tops[3, 2]:
+            lines.append(1)
+        if tops[0, 2] == tops[1, 1] == tops[2, 0]:
+            lines.append(1)
+        if tops[1, 3] == tops[2, 2] == tops[3, 1]:
+            lines.append(1)
+
+        return lines

@@ -1,25 +1,83 @@
 from board import Board
+from move import Move
+from copy import deepcopy
 
 
 class Game:
     def __init__(self):
         self.board = Board()
-        self.players = [Player(), Player()]
+        # Which player is playing
+        self.to_play = 0
+        # Number of pieces for each player
+        self.pieces = [[4, 4, 4], [4, 4, 4]]
+        # If game is done
+        self.done = False
+        # Outcome when game is done. 1 is first player win
+        self.outcome = 0
 
-    def stringRepresentation(self):
-        return (
-            self.board.stringRepresentation()
-            + self.players[0].stringRepresentation()
-            + self.players[1].stringRepresentation()
-        )
+    def __string__(self):
+        return str(self.board)
 
-    def getActionSize(self):
-        return 96
+    def do_turn(self):
+        """ """
+        pass
 
-    def print(self):
-        self.board.print()
-        self.players[0].print()
-        self.players[1].print()
+    def is_legal(self, move):
+        """
+        Move -> bool
+        Checks if move is legal
+        """
+        lines = self.board.get_lines()
+        # Place
+        if move.mtype:
+            if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
+                move.row1, move.col1, move.ptype
+            ):
+                return False
+        # Move
+        else:
+            if self.board.can_move(move.row1, move.col1, move.row2, move.col2):
+                return False
+
+        # Check that all lines are broken or extended
+        temp_board = deepcopy(self.board)
+        temp_board.do_move(move)
+        new_lines = temp_board.get_lines()
+        for count, line in enumerate(lines):
+            if line == new_lines[count] == 1:
+                return False
+            elif line == 2 and new_lines[count] != 0:
+                return False
+        return True
+
+    def get_legal_moves(self):
+        """
+        -> array
+        Returns a list of all legal moves
+        """
+        moves = []
+        # Place
+        for ptype in range(3):
+            if self.pieces[self.to_play][ptype] == 0:
+                continue
+            for row in range(4):
+                for col in range(4):
+                    moves.append(Move(True, row, col, ptype))
+        # Move
+        for row1 in range(4):
+            for row2 in range(4):
+                if abs(row1 - row2) > 1:
+                    continue
+                for col1 in range(4):
+                    for col2 in range(4):
+                        moves.append(Move(True, row, col, ptype))
+
+        legal_moves = []
+        for move in moves:
+            if self.is_legal(move):
+                legal_moves.append(move)
+
+        return legal_moves
 
     def turn(self, move, toplay):
         """

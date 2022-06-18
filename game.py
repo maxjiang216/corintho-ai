@@ -1,6 +1,6 @@
+from copy import deepcopy
 from board import Board
 from move import Move
-from copy import deepcopy
 
 
 class Game:
@@ -79,48 +79,23 @@ class Game:
 
         return legal_moves
 
-    def turn(self, move, toplay):
+    def do_move(self, move):
         """
-        move,int ->
-        Does a move, if possible
-        player=0 or 1
+        Move -> bool,float
+        Does move
+        Current player loses if move is illegal
+        Returns if game is done and the outcome
         """
-        if self.players[toplay].canPlay(move) and self.board.legalMove(move):
-            self.players[toplay].play(move)
-            self.board.doMove(move)
-        else:
-            self.board.print()
-            self.players[toplay].print()
-            move.print()
-            print("Invalid move!")
-
-    def nextState(self, move, toplay):
-        """
-        move,int -> board,player
-        Simulates a move, if possible
-        Returns the new board and player
-        """
-        tempGame = copy.deepcopy(self)
-
-        if tempGame.players[toplay].canPlay(move) and tempGame.board.legalMove(move):
-            tempGame.players[toplay].play(move)
-            tempGame.board.doMove(move)
-        else:
-            tempGame.board.print()
-            tempGame.players[toplay].print()
-            move.print()
-            print("Invalid move!")
-
-        return tempGame
-
-    def getGameEnded(self, toplay):
-        """
-         -> bool
-        Returns whether the game is won if the player moves next
-        """
-        nextMoves = self.getValidMoves(toplay)
-        if len(nextMoves) == 0:
-            if self.board.countLines() == 0:
-                return 1e-8
-            return -1
-        return 0
+        if not self.done:
+            # Illegal move
+            if not self.is_legal(move):
+                self.outcome = 1 - self.to_play
+                self.done = True
+                return True, self.outcome
+            # Place, remove piece from arsenal
+            if move.mtype:
+                self.pieces[self.to_play][move.ptype] -= 1
+            self.board.do_move(move)
+            self.to_play = 1 - self.to_play
+            return False, 0
+        return True, 0

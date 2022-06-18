@@ -14,8 +14,8 @@ class Game:
         # Outcome when game is done. 1 is first player win. None means the game is ongoing
         self.outcome = None
 
-    def __string__(self):
-        return str(self.board)
+    def __str__(self):
+        return str(self.board) + "\n" + str(self.pieces)
 
     def is_legal(self, move):
         """
@@ -31,7 +31,7 @@ class Game:
                 return False
         # Move
         else:
-            if self.board.can_move(move.row1, move.col1, move.row2, move.col2):
+            if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
                 return False
         # Check that all lines are broken or extended
         temp_board = deepcopy(self.board)
@@ -64,7 +64,7 @@ class Game:
                     continue
                 for col1 in range(4):
                     for col2 in range(4):
-                        moves.append(Move(True, row, col, ptype))
+                        moves.append(Move(False, row1, col1, 0, row2, col2))
 
         legal_moves = []
         for move in moves:
@@ -89,13 +89,13 @@ class Game:
             self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
         # Previous player win
+        self.to_play = 1 - self.to_play
         if len(self.get_legal_moves()) == 0:
             if np.max(self.board.get_lines()) > 0:
                 self.outcome = 1 - self.to_play
             else:
                 self.outcome = 0.5
             return self.outcome
-        self.to_play = 1 - self.to_play
         return None
 
     def get_canonical(self):

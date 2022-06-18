@@ -51,6 +51,7 @@ class Board:
                     output += "#"
                 else:
                     output += " "
+            output += "\n"
         return output
 
     def is_empty(self, row, col):
@@ -103,14 +104,15 @@ class Board:
         # Check if space is frozen
         if self.frozen[row][col]:
             return False
+        if self.is_empty(row, col):
+            return True
         # Base
         if ptype == 0:
-            # Only if space is empty
-            return self.is_empty(row, col)
+            return False
         # Column
         if ptype == 1:
-            # Check for absence of column and capital
-            return not self.spaces[row][col][1] and not self.spaces[row][col][2]
+            # Check for base
+            return self.spaces[row][col][0] and not self.spaces[row][col][1]
         # Capital
         # Check for column and absence of capital
         return self.spaces[row][col][1] and not self.spaces[row][col][2]
@@ -124,11 +126,11 @@ class Board:
         # Frozen spaces
         if self.frozen[row1][col1] or self.frozen[row2][col2]:
             return False
-        # Empty spaces
-        if self.is_empty(row1, col1) or self.is_empty(row2, col2):
-            return False
         # Orthogonally adjacent spaces
         if abs(row1 - row2) + abs(col1 - col2) != 1:
+            return False
+        # Empty spaces
+        if self.is_empty(row1, col1) or self.is_empty(row2, col2):
             return False
         return self.bottom(row1, col1) - self.top(row2, col2) == 1
 

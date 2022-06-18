@@ -24,6 +24,7 @@ class Move:
         output = ""
         # Place
         if self.mtype:
+            output += "P"
             if self.ptype == 0:
                 output += "B"
             elif self.ptype == 1:
@@ -34,6 +35,7 @@ class Move:
             output += str(self.col1)
         # Move
         else:
+            output += "M"
             output += str(self.row1)
             output += str(self.col1)
             if self.row2 - self.row1 == 1:

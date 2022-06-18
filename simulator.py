@@ -12,8 +12,8 @@ class Simulator:
         returns winner
         """
         while True:
-            move = self.players[self.game.to_play].get_move(
-                self.game.get_canonical())
+            move = self.players[self.game.to_play].get_move(self.game.get_canonical())
             result = self.game.do_move(move)
+            print(str(self.game))
             if result is not None:
                 return result

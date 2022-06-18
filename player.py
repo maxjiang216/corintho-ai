@@ -19,5 +19,5 @@ class RandomPlayer(Player):
 
     def get_move(self, game):
         legal_moves = game.get_legal_moves()
-        # print(legal_moves)
-        return random.choice(legal_moves)
+        move = random.choice(legal_moves)
+        return move

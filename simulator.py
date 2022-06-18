@@ -11,11 +11,9 @@ class Simulator:
         Plays game with player1 and player2
         returns winner
         """
-        to_play = 0
         while True:
-            move = self.players[to_play].get_move(self.game)
+            move = self.players[self.game.to_play].get_move(
+                self.game.get_canonical())
             result = self.game.do_move(move)
             if result is not None:
                 return result
-            to_play = 1 - to_play
-            # flip board perspective

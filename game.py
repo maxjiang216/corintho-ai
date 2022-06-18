@@ -33,7 +33,6 @@ class Game:
         else:
             if self.board.can_move(move.row1, move.col1, move.row2, move.col2):
                 return False
-
         # Check that all lines are broken or extended
         temp_board = deepcopy(self.board)
         temp_board.do_move(move)

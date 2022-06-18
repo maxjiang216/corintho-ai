@@ -99,3 +99,15 @@ class Game:
             self.to_play = 1 - self.to_play
             return False, 0
         return True, 0
+
+    def get_canonical(self):
+        """
+        -> Game
+        """
+        canonical_game = deepcopy(self)
+        canonical_game.to_play = 0
+        canonical_game.pieces = [
+            self.pieces[self.to_play],
+            self.pieces[1 - self.to_play],
+        ]
+        return canonical_game

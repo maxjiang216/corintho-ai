@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from board import Board
+from game import Game
+import random
 
 
 class Player(ABC):
@@ -8,5 +9,14 @@ class Player(ABC):
         pass
 
     @abstractmethod
-    def getMove(self, board):
+    def get_move(self, game):
         pass
+
+
+class RandomPlayer(Player):
+    def __init__(self):
+        pass
+
+    def get_move(self, game):
+        legal_moves = game.get_legal_moves()
+        return random.choice(legal_moves)

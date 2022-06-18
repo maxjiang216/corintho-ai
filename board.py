@@ -204,7 +204,7 @@ class Board:
         """
         # first, get array of tops, split by type
         tops = self.get_tops()
-        lines = np.zeros(12)
+        lines = np.zeros(14)
         if tops[0, 1] == tops[0, 2]:
             if tops[0, 1] == tops[0, 0] == tops[0, 3]:
                 lines[0] = 2

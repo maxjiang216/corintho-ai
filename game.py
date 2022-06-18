@@ -90,7 +90,7 @@ class Game:
             self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
         # Previous player win
-        if len(self.get_legal_moves()) == 0
+        if len(self.get_legal_moves()) == 0:
             if np.max(self.board.get_lines()) > 0:
                 self.outcome = 1 - self.to_play
             else:

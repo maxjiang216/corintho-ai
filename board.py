@@ -173,6 +173,7 @@ class Board:
                 self.spaces[move.row1][move.col1][2]
                 or self.spaces[move.row2][move.col2][2]
             )
+            self.spaces[move.row1][move.col1] = [0, 0, 0]
             self.frozen[move.row2][move.col2] = True
 
     def get_tops(self):

@@ -150,7 +150,7 @@ class Board:
         Checks if space (row,col) has top ptype
         """
         # Piece above
-        if any(self.spaces[row][col][ptype + 1 :]):
+        if any(self.spaces[row][col][ptype + 1:]):
             return False
         if self.spaces[row][col][ptype]:
             return True
@@ -231,98 +231,108 @@ class Board:
         tops = self.get_tops()
         self.lines = []
         if tops[0, 1] == tops[0, 2] > -1:
+            line_type = tops[0, 1]
             if tops[0, 1] == tops[0, 0]:
                 if tops[0, 1] == tops[0, 3]:
-                    self.lines.append(("r0b", tops[0, 1]))
+                    self.lines.append(("r0b", line_type))
                 else:
-                    self.lines.append(("r0l", tops[0, 1]))
+                    self.lines.append(("r0l", line_type))
             elif tops[0, 1] == tops[0, 3]:
-                self.lines.append(("r0r", tops[0, 1]))
+                self.lines.append(("r0r", line_type))
         if tops[1, 1] == tops[1, 2] > -1:
+            line_type = tops[1, 1]
             if tops[1, 1] == tops[1, 0]:
                 if tops[1, 1] == tops[1, 3]:
-                    self.lines.append("r1b")
+                    self.lines.append(("r1b", line_type))
                 else:
-                    self.lines.append("r1l")
+                    self.lines.append(("r1l", line_type))
             elif tops[1, 1] == tops[1, 3]:
-                self.lines.append("r1r")
+                self.lines.append(("r1r", line_type))
         if tops[2, 1] == tops[2, 2] > -1:
+            line_type = tops[2, 1]
             if tops[2, 1] == tops[2, 0]:
                 if tops[2, 1] == tops[2, 3]:
-                    self.lines.append("r2b")
+                    self.lines.append(("r2b", line_type))
                 else:
-                    self.lines.append("r2l")
+                    self.lines.append(("r2l", line_type))
             elif tops[2, 1] == tops[2, 3]:
-                self.lines.append("r2r")
+                self.lines.append(("r2r", line_type))
         if tops[3, 1] == tops[3, 2] > -1:
+            line_type = tops[3, 1]
             if tops[3, 1] == tops[3, 0]:
                 if tops[3, 1] == tops[3, 3]:
-                    self.lines.append("r3b")
+                    self.lines.append(("r3b", line_type))
                 else:
-                    self.lines.append("r3l")
+                    self.lines.append(("r3l", line_type))
             elif tops[3, 1] == tops[3, 3]:
-                self.lines.append("r3r")
+                self.lines.append(("r3r", line_type))
         if tops[1, 0] == tops[2, 0] > -1:
+            line_type = tops[1, 0]
             if tops[1, 0] == tops[0, 0]:
                 if tops[1, 0] == tops[3, 0]:
-                    self.lines.append("c0b")
+                    self.lines.append(("c0b", line_type))
                 else:
-                    self.lines.append("c0u")
+                    self.lines.append(("c0u", line_type))
             elif tops[1, 0] == tops[3, 0]:
-                self.lines.append("c0d")
+                self.lines.append(("c0d", line_type))
         if tops[1, 1] == tops[2, 1] > -1:
+            line_type = tops[1, 1]
             if tops[1, 1] == tops[0, 1]:
                 if tops[1, 1] == tops[3, 1]:
-                    self.lines.append("c1b")
+                    self.lines.append(("c1b", line_type))
                 else:
-                    self.lines.append("c1u")
+                    self.lines.append(("c1u", line_type))
             elif tops[1, 1] == tops[3, 1]:
-                self.lines.append("c1d")
+                self.lines.append(("c1d", line_type))
         if tops[1, 2] == tops[2, 2] > -1:
+            line_type = tops[1, 2]
             if tops[1, 2] == tops[0, 2]:
                 if tops[1, 2] == tops[3, 2]:
-                    self.lines.append("c2b")
+                    self.lines.append(("c2b", line_type))
                 else:
-                    self.lines.append("c2u")
+                    self.lines.append(("c2u", line_type))
             elif tops[1, 2] == tops[3, 2]:
-                self.lines.append("c2d")
+                self.lines.append(("c2d", line_type))
         if tops[1, 3] == tops[2, 3] > -1:
+            line_type = tops[1, 3]
             if tops[1, 3] == tops[0, 3]:
                 if tops[1, 3] == tops[3, 3]:
-                    self.lines.append("c3b")
+                    self.lines.append(("c3b", line_type))
                 else:
-                    self.lines.append("c3u")
+                    self.lines.append(("c3u", line_type))
             elif tops[1, 3] == tops[3, 3]:
-                self.lines.append("c3d")
+                self.lines.append(("c3d", line_type))
         # Upper left to lower right long diagonal
         if tops[1, 1] == tops[2, 2] > -1:
+            line_type = tops[1, 1]
             if tops[1, 1] == tops[0, 0]:
                 if tops[1, 1] == tops[3, 3]:
-                    self.lines.append("d0b")
+                    self.lines.append(("d0b", line_type))
                 else:
-                    self.lines.append("d0u")
+                    self.lines.append(("d0u", line_type))
             elif tops[1, 1] == tops[3, 3]:
-                self.lines.append("d0d")
+                self.lines.append(("d0d", line_type))
         # Upper right to lower left long diagonal
         if tops[1, 2] == tops[2, 1] > -1:
+            line_type = tops[1, 2]
             if tops[1, 2] == tops[0, 3]:
                 if tops[1, 2] == tops[3, 0]:
-                    self.lines.append("d1b")
+                    self.lines.append(("d1b", line_type))
                 else:
-                    self.lines.append("d1u")
+                    self.lines.append(("d1u", line_type))
             elif tops[1, 2] == tops[3, 0]:
-                self.lines.append("d1d")
+                self.lines.append(("d1d", line_type))
         # Top left short diagonal
         if tops[0, 2] == tops[1, 1] == tops[2, 0] > -1:
-            self.lines.append("s0")
+            self.lines.append(("s0", tops[0, 2]))
         # Top right short diagonal
         if -1 < tops[0, 1] == tops[1, 2] == tops[2, 3]:
-            self.lines.append("s1")
+            self.lines.append(("s1", tops[0, 1]))
         # Bottom right short diagonal
         if tops[1, 3] == tops[2, 2] == tops[3, 1] > -1:
-            self.lines.append("s2")
+            self.lines.append(("s2", tops[1, 3]))
         # Bottom left short diagonal
         if tops[1, 0] == tops[2, 1] == tops[3, 2] > -1:
-            self.lines.append("s3")
+            self.lines.append(("s3", tops[1, 0]))
 
         Board.GetLinesTime += time.time() - t

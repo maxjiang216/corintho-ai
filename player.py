@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from game import Game
 import random
 
 
@@ -14,6 +13,10 @@ class Player(ABC):
 
 
 class RandomPlayer(Player):
+    """
+    Chooses uniformly between legal moves
+    """
+
     def __init__(self):
         pass
 

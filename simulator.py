@@ -13,6 +13,7 @@ class Simulator:
         """
         while True:
             move = self.players[self.game.to_play].get_move(self.game.get_canonical())
+            self.players[1 - self.game.to_play].receive_opp_move(move)
             result = self.game.do_move(move)
             print(str(self.game))
             if result is not None:

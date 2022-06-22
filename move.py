@@ -1,4 +1,8 @@
 class Move:
+    """
+    Represents a move in Corintho
+    """
+
     def __init__(self, mtype, row1, col1, ptype=0, row2=0, col2=0):
         """
         bool,int,int(,int,int,int)

@@ -5,6 +5,11 @@ from move import Move
 
 
 class Game:
+    """
+    Represents Coritho game
+    A board with player pieces, current player, and outcome
+    """
+
     def __init__(self):
         self.board = Board()
         # Which player is playing

@@ -32,7 +32,7 @@ class MonteCarlo:
     Monte Carlo Search Tree with user-defined position evaulator
     """
 
-    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=800):
+    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=600):
         self.root = root
         self.evaluator = evaluator
         self.move_guider = move_guider

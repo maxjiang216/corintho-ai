@@ -21,15 +21,15 @@ class Game:
 
     def __str__(self):
         return (
-            str(self.board) + "\n" + str(self.pieces) + "\n" + str(self.to_play) + "\n"
+            str(self.board) + "\n" + str(self.pieces) +
+            "\n" + str(self.to_play) + "\n"
         )
 
-    def is_legal(self, move):
+    def is_legal(self, move, lines):
         """
         Move -> bool
         Checks if move is legal
         """
-        lines = self.board.get_lines()
         # Place
         if move.mtype:
             if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
@@ -41,9 +41,12 @@ class Game:
             if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
                 return False
         # Check that all lines are broken or extended
+        if len(lines) == 0:
+            return True
         temp_board = deepcopy(self.board)
         temp_board.do_move(move)
         new_lines = temp_board.get_lines()
+
         for count, line in enumerate(lines):
             if line == new_lines[count] == 1:
                 return False
@@ -74,8 +77,9 @@ class Game:
                         moves.append(Move(False, row1, col1, 0, row2, col2))
 
         legal_moves = []
+        lines = self.board.get_lines()
         for move in moves:
-            if self.is_legal(move):
+            if self.is_legal(move, lines):
                 legal_moves.append(move)
 
         return legal_moves
@@ -88,9 +92,9 @@ class Game:
         Returns if game is done and the outcome
         """
         # Illegal move
-        if not self.is_legal(move):
-            self.outcome = 1 - self.to_play
-            return self.outcome
+        # if not self.is_legal(move):
+        #     self.outcome = 1 - self.to_play
+        #     return self.outcome
         # Place, remove piece from arsenal
         if move.mtype:
             self.pieces[self.to_play][move.ptype] -= 1

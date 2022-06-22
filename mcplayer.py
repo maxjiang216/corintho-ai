@@ -9,10 +9,11 @@ class MonteCarloPlayer(Player):
     Player using Monte Carlo Search Tree with used defined evaluator
     """
 
-    def __init__(self):
+    def __init__(self, iterations=600):
         self.tree = None
         self.evaluator = RandomEvaluator()
         self.move_guider = UniformGuider()
+        self.iterations = iterations
 
     def get_move(self, game, legal_moves):
         # first query or new game
@@ -21,6 +22,7 @@ class MonteCarloPlayer(Player):
                 Node(game, self.evaluator.evaluate(game)),
                 self.evaluator,
                 self.move_guider,
+                iterations=self.iterations,
             )
         return self.tree.choose_move()
 
@@ -28,5 +30,9 @@ class MonteCarloPlayer(Player):
         """
         Move tree down
         """
-        if self.tree is not None and move in self.tree.root.moves:
+        if (
+            self.tree is not None
+            and self.tree.root.moves is not None
+            and move in self.tree.root.moves
+        ):
             self.tree.force_move(self.tree.root.moves.index(move))

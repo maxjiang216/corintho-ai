@@ -63,12 +63,12 @@ class HumanPlayer(Player):
     def __init__(self):
         pass
 
-    def get_move(self, game):
+    def get_move(self, game, legal_moves):
         move = decode_move(input(str(game)))
         print(move)
-        legal = move and game.is_legal(move)
+        legal = move and move in legal_moves
         while not legal:
             print("Illegal move!")
-            move = move and decode_move(input(str(game)))
-            legal = game.is_legal(move)
+            move = decode_move(input(str(game)))
+            legal = move and move in legal_moves
         return move

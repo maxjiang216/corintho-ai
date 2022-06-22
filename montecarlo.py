@@ -1,4 +1,3 @@
-import random
 import numpy as np
 
 
@@ -22,11 +21,71 @@ class MonteCarlo:
     Monte Carlo Search Tree with user-defined position evaulator
     """
 
-    def __init__(self, root, evaluator, move_guider, c_puct=1):
+    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=1600):
         self.root = root
         self.evaluator = evaluator
         self.move_guider = move_guider
         self.c_puct = c_puct
+        self.iterations = iterations
+
+    def choose_move(self):
+        """
+        Evaluate position based on self.iteration number of searches
+        Moves down in tree based on chosen move
+        Outputs move choice
+        """
+        for i in range(self.iterations):
+            self.search(self.root)
+        max_value = 0
+        move_choice = -1
+        for i in range(len(self.root.moves)):
+            u = 0
+            # If not visited, set action value to 0
+            if self.root.children[i] is None:
+                u = (
+                    self.c_puct
+                    * self.root.probabilities[i]
+                    * np.sqrt(self.root.searches - 1)
+                )
+            else:
+                u = self.root.children[i].evaluation / self.root.children[
+                    i
+                ].searches + (
+                    self.c_puct
+                    * self.root.probabilities[i]
+                    * np.sqrt(self.root.searches - 1)
+                    / self.root.children[i].searches
+                )
+            if u > max_value:
+                max_value = u
+                move_choice = i
+        # Unexplored state (should not happen)
+        if self.root.children[move_choice] is None:
+            new_game = self.root.game.do_move(
+                self.root.moves[move_choice]
+            ).get_canonical()
+            self.root = Node(
+                new_game,
+                self.evaluator(new_game),
+            )
+        else:
+            self.root = self.root.children[move_choice]
+        return move_choice
+
+    def force_move(self, move_choice):
+        """
+        Force choose a move
+        Used for opponent's moves
+        """
+        # Unexplored state
+        if self.root.children[move_choice] is None:
+            new_game = self.root.game.do_move(
+                self.root.moves[move_choice]
+            ).get_canonical()
+            self.root = Node(
+                new_game,
+                self.evaluator(new_game),
+            )
 
     def search(self, node):
         """
@@ -78,4 +137,4 @@ class MonteCarlo:
         else:
             new_evaluation = node.evaluation
 
-        return new_evaluation
+        return -1 * new_evaluation

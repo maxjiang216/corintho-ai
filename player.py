@@ -8,7 +8,11 @@ class Player(ABC):
         pass
 
     @abstractmethod
-    def get_move(self, game):
+    def get_move(self, game, legal_moves):
+        pass
+
+    @abstractmethod
+    def receive_opp_move(self, move):
         pass
 
 
@@ -20,7 +24,6 @@ class RandomPlayer(Player):
     def __init__(self):
         pass
 
-    def get_move(self, game):
-        legal_moves = game.get_legal_moves()
+    def get_move(self, game, legal_moves):
         move = random.choice(legal_moves)
         return move

@@ -27,4 +27,4 @@ class RandomEvaluator(Evaluator):
         pass
 
     def evaluate(self, game):
-        return random.uniform()
+        return random.uniform(0, 1)

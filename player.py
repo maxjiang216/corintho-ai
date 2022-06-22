@@ -60,6 +60,9 @@ class RandomPlayer(Player):
         move = random.choice(legal_moves)
         return move
 
+    def receive_opp_move(self, move):
+        return super().receive_opp_move(move)
+
 
 class HumanPlayer(Player):
     """
@@ -75,6 +78,9 @@ class HumanPlayer(Player):
         legal = move and move in legal_moves
         while not legal:
             print("Illegal move!")
-            move = decode_move(input(str(game)))
+            move = decode_move(input())
             legal = move and move in legal_moves
         return move
+
+    def receive_opp_move(self, move):
+        return super().receive_opp_move(move)

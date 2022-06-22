@@ -97,9 +97,9 @@ class Game:
         self.to_play = 1 - self.to_play
         if len(self.get_legal_moves()) == 0:
             if np.max(self.board.get_lines()) > 0:
-                self.outcome = 1 - self.to_play
+                self.outcome = 2 * self.to_play - 1
             else:
-                self.outcome = 0.5
+                self.outcome = 0
             return self.outcome
         return None
 

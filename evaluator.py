@@ -27,4 +27,6 @@ class RandomEvaluator(Evaluator):
         pass
 
     def evaluate(self, game):
-        return random.uniform(0, 1)
+        if game.outcome is not None:
+            return -1 * game.outcome
+        return random.uniform(-1, 1)

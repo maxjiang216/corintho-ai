@@ -28,5 +28,5 @@ class MonteCarloPlayer(Player):
         """
         Move tree down
         """
-        if self.tree is None and move < len(self.tree.root.moves):
-            self.tree.force_move(move)
+        if self.tree is not None and move in self.tree.root.moves:
+            self.tree.force_move(self.tree.root.moves.index(move))

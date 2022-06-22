@@ -20,6 +20,23 @@ class Move:
             self.row2 = row2
             self.col2 = col2
 
+    def __eq__(self, obj):
+        if self.mtype != obj.mtype:
+            return False
+        # Place
+        if self.mtype:
+            return (
+                self.ptype == obj.ptype
+                and self.row1 == obj.row1
+                and self.col1 == obj.col1
+            )
+        return (
+            self.row1 == obj.row1
+            and self.col1 == obj.col1
+            and self.row2 == obj.row2
+            and self.col2 == obj.col2
+        )
+
     def __str__(self):
         """
         -> str

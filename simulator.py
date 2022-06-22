@@ -12,7 +12,9 @@ class Simulator:
         returns winner
         """
         while True:
-            move = self.players[self.game.to_play].get_move(self.game.get_canonical())
+            move = self.players[self.game.to_play].get_move(
+                self.game.get_canonical(), self.game.get_legal_moves()
+            )
             self.players[1 - self.game.to_play].receive_opp_move(move)
             result = self.game.do_move(move)
             print(str(self.game))

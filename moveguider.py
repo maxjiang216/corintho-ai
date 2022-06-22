@@ -28,4 +28,6 @@ class UniformGuider(MoveGuider):
 
     def generate(self, game):
         n = len(game.get_legal_moves())
-        return np.fill(n, 1 / n)
+        if n == 0:
+            return []
+        return np.full(n, 1 / n)

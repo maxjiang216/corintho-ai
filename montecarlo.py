@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 
 
 class Node:
@@ -15,13 +16,22 @@ class Node:
         self.children = None
         self.visits = None
 
+    def string(self, n):
+        out = "(" + str(self.evaluation)
+        if self.children is not None:
+            for child in self.children:
+                if child is not None:
+                    out += "\n" + " " * n + child.string(n + 1)
+        out += ")"
+        return out
+
 
 class MonteCarlo:
     """
     Monte Carlo Search Tree with user-defined position evaulator
     """
 
-    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=1600):
+    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=80):
         self.root = root
         self.evaluator = evaluator
         self.move_guider = move_guider
@@ -40,37 +50,17 @@ class MonteCarlo:
         move_choice = -1
         for i in range(len(self.root.moves)):
             u = 0
-            # If not visited, set action value to 0
-            if self.root.children[i] is None:
-                u = (
-                    self.c_puct
-                    * self.root.probabilities[i]
-                    * np.sqrt(self.root.searches - 1)
-                )
-            else:
-                u = self.root.children[i].evaluation / self.root.children[
-                    i
-                ].searches + (
-                    self.c_puct
-                    * self.root.probabilities[i]
-                    * np.sqrt(self.root.searches - 1)
-                    / self.root.children[i].searches
-                )
+            if self.root.children[i] is not None:
+                u = self.root.visits[i]
             if u > max_value:
                 max_value = u
                 move_choice = i
-        # Unexplored state (should not happen)
-        if self.root.children[move_choice] is None:
-            new_game = self.root.game.do_move(
-                self.root.moves[move_choice]
-            ).get_canonical()
-            self.root = Node(
-                new_game,
-                self.evaluator(new_game),
-            )
-        else:
-            self.root = self.root.children[move_choice]
-        return move_choice
+
+        move = self.root.moves[move_choice]
+        self.root = self.root.children[move_choice]
+        print(self.root.string(1))
+
+        return move
 
     def force_move(self, move_choice):
         """
@@ -79,12 +69,13 @@ class MonteCarlo:
         """
         # Unexplored state
         if self.root.children[move_choice] is None:
-            new_game = self.root.game.do_move(
-                self.root.moves[move_choice]
-            ).get_canonical()
-            self.root = Node(
+            new_game = deepcopy(self.root.game)
+            new_game.do_move(self.root.moves[move_choice])
+            new_game = new_game.get_canonical()
+            new_evaluation = self.evaluator.evaluate(new_game)
+            self.root.children[move_choice] = Node(
                 new_game,
-                self.evaluator(new_game),
+                new_evaluation,
             )
 
     def search(self, node):
@@ -101,7 +92,7 @@ class MonteCarlo:
         new_evaluation = 0
         # Not terminal node
         if len(node.moves) > 0:
-            max_value = 0
+            max_value = -1
             move_choice = -1
             for i in range(len(node.moves)):
                 u = 0
@@ -109,11 +100,11 @@ class MonteCarlo:
                 if node.children[i] is None:
                     u = self.c_puct * node.probabilities[i] * np.sqrt(node.searches - 1)
                 else:
-                    u = node.children[i].evaluation / node.children[i].searches + (
+                    u = -1 * node.children[i].evaluation / node.children[i].searches + (
                         self.c_puct
                         * node.probabilities[i]
                         * np.sqrt(node.searches - 1)
-                        / node.children[i].searches
+                        / (node.children[i].searches + 1)
                     )
                 if u > max_value:
                     max_value = u
@@ -121,8 +112,10 @@ class MonteCarlo:
 
             # Exploring new node
             if node.children[move_choice] is None:
-                new_game = node.game.do_move(node.moves[move_choice]).get_canonical()
-                new_evaluation = self.evaluator(new_game)
+                new_game = deepcopy(node.game)
+                new_game.do_move(node.moves[move_choice])
+                new_game = new_game.get_canonical()
+                new_evaluation = self.evaluator.evaluate(new_game)
                 node.children[move_choice] = Node(
                     new_game,
                     new_evaluation,
@@ -130,7 +123,7 @@ class MonteCarlo:
             else:
                 new_evaluation = self.search(node.children[move_choice])
 
-            node.evauation += new_evaluation
+            node.evaluation += new_evaluation
             node.searches += 1
             node.visits[move_choice] += 1
         # Terminal node

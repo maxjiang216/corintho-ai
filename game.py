@@ -20,7 +20,9 @@ class Game:
         self.outcome = None
 
     def __str__(self):
-        return str(self.board) + "\n" + str(self.pieces)
+        return (
+            str(self.board) + "\n" + str(self.pieces) + "\n" + str(self.to_play) + "\n"
+        )
 
     def is_legal(self, move):
         """

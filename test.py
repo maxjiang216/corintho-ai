@@ -5,7 +5,7 @@ from mcplayer import MonteCarloPlayer
 sum = 0
 for i in range(1):
     player1 = MonteCarloPlayer()
-    player2 = HumanPlayer()
+    player2 = MonteCarloPlayer()
     sim = Simulator(player1, player2)
     sum += sim.play_game()
 

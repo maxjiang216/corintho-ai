@@ -29,4 +29,4 @@ class RandomEvaluator(Evaluator):
     def evaluate(self, game):
         if game.outcome is not None:
             return -1 * game.outcome
-        return random.uniform(-1, 1)
+        return 0

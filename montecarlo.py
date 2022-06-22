@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+import random
 
 
 class Node:
@@ -31,7 +32,7 @@ class MonteCarlo:
     Monte Carlo Search Tree with user-defined position evaulator
     """
 
-    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=80):
+    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=1600):
         self.root = root
         self.evaluator = evaluator
         self.move_guider = move_guider
@@ -47,19 +48,25 @@ class MonteCarlo:
         for i in range(self.iterations):
             self.search(self.root)
         max_value = 0
-        move_choice = -1
+        move_choices = []
         for i in range(len(self.root.moves)):
             u = 0
             if self.root.children[i] is not None:
                 u = self.root.visits[i]
             if u > max_value:
                 max_value = u
-                move_choice = i
+                move_choices = [i]
+            elif u == max_value:
+                move_choices.append(i)
 
+        move_choice = random.choice(move_choices)
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-        print(self.root.string(1))
-
+        print(
+            "{0} {1} {2}".format(
+                str(move), self.root.evaluation / self.root.searches, self.root.searches
+            )
+        )
         return move
 
     def force_move(self, move_choice):

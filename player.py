@@ -6,26 +6,32 @@ from move import Move
 def decode_move(move):
     if len(move) != 3:
         return False
-    char_to_num = {'A': 2, 'C': 1, 'B': 0}
-    if move[0] in ['A', 'B', 'C']:
-        if not(move[1] in "0123" and move[2] in "0123"):
+    char_to_num = {"A": 2, "C": 1, "B": 0}
+    if move[0] in ["A", "B", "C"]:
+        if not (move[1] in "0123" and move[2] in "0123"):
             return False
         return Move(True, int(move[1]), int(move[2]), ptype=char_to_num[move[0]])
     else:
-        if not(move[0] in "0123" and move[1] in "0123"):
+        if not (move[0] in "0123" and move[1] in "0123"):
             return False
         dx = dy = 0
-        if move[2] == 'U':
+        if move[2] == "U":
             dy = -1
-        elif move[2] == 'D':
+        elif move[2] == "D":
             dy = 1
-        elif move[2] == 'L':
+        elif move[2] == "L":
             dx = -1
-        elif move[2] == 'R':
+        elif move[2] == "R":
             dx = 1
         else:
             return False
-        return Move(False, int(move[0]), int(move[1]), row2=int(move[0])+dy, col2=int(move[1])+dx)
+        return Move(
+            False,
+            int(move[0]),
+            int(move[1]),
+            row2=int(move[0]) + dy,
+            col2=int(move[1]) + dx,
+        )
 
 
 class Player(ABC):

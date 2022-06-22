@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from copy import deepcopy
 from board import Board
 from move import Move
@@ -10,19 +11,23 @@ class Game:
     A board with player pieces, current player, and outcome
     """
 
+    GetLegalMovesTime = 0
+    IsLegalTime = 0
+    DeepCopyTime = 0
+    DoMoveTime = 0
+
     def __init__(self):
         self.board = Board()
         # Which player is playing
         self.to_play = 0
         # Number of pieces for each player
-        self.pieces = [[4, 4, 4], [4, 4, 4]]
+        self.pieces = np.full(6, 4)
         # Outcome when game is done. 1 is first player win. None means the game is ongoing
         self.outcome = None
 
     def __str__(self):
         return (
-            str(self.board) + "\n" + str(self.pieces) +
-            "\n" + str(self.to_play) + "\n"
+            str(self.board) + "\n" + str(self.pieces) + "\n" + str(self.to_play) + "\n"
         )
 
     def is_legal(self, move, lines):
@@ -30,28 +35,40 @@ class Game:
         Move -> bool
         Checks if move is legal
         """
+        t = time.time()
         # Place
         if move.mtype:
-            if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
-                move.row1, move.col1, move.ptype
-            ):
+            if self.pieces[
+                self.to_play * 3 + move.ptype
+            ] == 0 or not self.board.can_place(move.row1, move.col1, move.ptype):
+                Game.IsLegalTime += time.time() - t
                 return False
         # Move
         else:
             if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
+                Game.IsLegalTime += time.time() - t
                 return False
         # Check that all lines are broken or extended
-        if len(lines) == 0:
+        if lines is None:
+            Game.IsLegalTime += time.time() - t
             return True
+
+        t2 = time.time()
         temp_board = deepcopy(self.board)
+        Game.DeepCopyTime += time.time() - t2
+        t3 = time.time()
         temp_board.do_move(move)
+        Game.DoMoveTime += time.time() - t3
         new_lines = temp_board.get_lines()
 
         for count, line in enumerate(lines):
             if line == new_lines[count] == 1:
+                Game.IsLegalTime += time.time() - t
                 return False
             elif line == 2 and new_lines[count] != 0:
+                Game.IsLegalTime += time.time() - t
                 return False
+        Game.IsLegalTime += time.time() - t
         return True
 
     def get_legal_moves(self):
@@ -59,10 +76,11 @@ class Game:
         -> array
         Returns a list of all legal moves
         """
+        t = time.time()
         moves = []
         # Place
         for ptype in range(3):
-            if self.pieces[self.to_play][ptype] == 0:
+            if self.pieces[self.to_play * 3 + ptype] == 0:
                 continue
             for row in range(4):
                 for col in range(4):
@@ -77,11 +95,19 @@ class Game:
                         moves.append(Move(False, row1, col1, 0, row2, col2))
 
         legal_moves = []
-        lines = self.board.get_lines()
+        lines = self.board.lines
+        # More than 2 lines, no legal moves
+        if len(lines) > 2:
+            return []
+        # Need to break / extend lines
+        if len(lines) > 0:
+            line_breakers = []
+            if 
         for move in moves:
             if self.is_legal(move, lines):
                 legal_moves.append(move)
 
+        Game.GetLegalMovesTime += time.time() - t
         return legal_moves
 
     def do_move(self, move):
@@ -97,7 +123,7 @@ class Game:
         #     return self.outcome
         # Place, remove piece from arsenal
         if move.mtype:
-            self.pieces[self.to_play][move.ptype] -= 1
+            self.pieces[self.to_play * 3 + move.ptype] -= 1
         self.board.do_move(move)
         # Previous player win
         self.to_play = 1 - self.to_play
@@ -116,8 +142,10 @@ class Game:
         """
         canonical_game = deepcopy(self)
         canonical_game.to_play = 0
-        canonical_game.pieces = [
-            self.pieces[self.to_play],
-            self.pieces[1 - self.to_play],
-        ]
+        canonical_game.pieces = np.concatenate(
+            (
+                self.pieces[self.to_play * 3 : self.to_play * 3 + 3],
+                self.pieces[(1 - self.to_play) * 3 : (1 - self.to_play) * 3 + 3],
+            ),
+        )
         return canonical_game

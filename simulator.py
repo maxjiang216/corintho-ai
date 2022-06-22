@@ -17,6 +17,6 @@ class Simulator:
             )
             self.players[1 - self.game.to_play].receive_opp_move(move)
             result = self.game.do_move(move)
-            print(str(self.game))
+            # print(str(self.game))
             if result is not None:
                 return result

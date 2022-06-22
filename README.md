@@ -6,4 +6,5 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm).
 
 - [x] Implement Corintho's rules
 - [x] Implement MCTS
+- [ ] Optimize legal move generator
 - [ ] Add neural network for evaluation

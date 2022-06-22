@@ -64,7 +64,8 @@ class MonteCarlo:
         self.root = self.root.children[move_choice]
         print(
             "{0} {1} {2}".format(
-                str(move), self.root.evaluation / self.root.searches, self.root.searches
+                str(move), self.root.evaluation /
+                self.root.searches, self.root.searches
             )
         )
         return move
@@ -105,7 +106,8 @@ class MonteCarlo:
                 u = 0
                 # If not visited, set action value to 0
                 if node.children[i] is None:
-                    u = self.c_puct * node.probabilities[i] * np.sqrt(node.searches - 1)
+                    u = self.c_puct * \
+                        node.probabilities[i] * np.sqrt(node.searches - 1)
                 else:
                     u = -1 * node.children[i].evaluation / node.children[i].searches + (
                         self.c_puct

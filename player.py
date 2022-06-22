@@ -74,7 +74,6 @@ class HumanPlayer(Player):
 
     def get_move(self, game, legal_moves):
         move = decode_move(input(str(game)))
-        print(move)
         legal = move and move in legal_moves
         while not legal:
             print("Illegal move!")

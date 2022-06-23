@@ -10,15 +10,18 @@ class Move:
         self.mtype = mtype
         # Place
         if mtype:
-            self.ptype = ptype
+            self.ptype = int(ptype)
             self.row1 = row1
             self.col1 = col1
+            self.row2 = 0
+            self.col2 = 0
         # Move
         else:
             self.row1 = row1
             self.col1 = col1
             self.row2 = row2
             self.col2 = col2
+            self.ptype = 0
 
     def __eq__(self, obj):
         if self.mtype != obj.mtype:
@@ -36,6 +39,37 @@ class Move:
             and self.row2 == obj.row2
             and self.col2 == obj.col2
         )
+
+    def __key(self):
+        return (self.mtype, self.row1, self.col1, self.ptype, self.row2, self.col2)
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __lt__(self, obj):
+        if self.mtype and not obj.mtype:
+            return True
+        if not self.mtype and obj.mtype:
+            return False
+        if self.row1 < obj.row1:
+            return True
+        if self.row1 > obj.row1:
+            return False
+        if self.col1 < obj.col1:
+            return True
+        if self.col1 > obj.col1:
+            return False
+        if self.mtype:
+            if self.ptype < obj.ptype:
+                return True
+            return False
+        if self.row2 < obj.row2:
+            return True
+        if self.row2 > obj.row2:
+            return False
+        if self.col2 < obj.col2:
+            return True
+        return False
 
     def __str__(self):
         """

@@ -8,15 +8,18 @@ class Board:
     There are three 2D arrays indicating whether a piece is present
     """
 
-    GetLinesTime = 0
-    CanMoveTime = 0
-    CanPlaceTime = 0
-
     def __init__(self):
         # Three 4x4 boards
-        self.spaces = np.full((4, 4, 3), False)
+        self.spaces = []
+        for row in range(4):
+            temp_row = []
+            for col in range(4):
+                temp_row.append([False] * 3)
+            self.spaces.append(temp_row)
         # Frozen spaces, defult to only give 3 spaces to prevent symmetry
-        self.frozen = np.full((4, 4), True)
+        self.frozen = []
+        for row in range(4):
+            self.frozen.append([True] * 4)
         self.frozen[0][0] = False
         self.frozen[0][1] = False
         self.frozen[1][1] = False
@@ -77,7 +80,7 @@ class Board:
         Returns the lowest piece on the space
         Returns -1 if space is empty
         """
-        for i in range(3):
+        for i in [0, 1, 2]:
             if self.spaces[row][col][i]:
                 return i
         return -1
@@ -89,7 +92,7 @@ class Board:
         Returns the highest piece on the space
         Returns -1 if space is empty
         """
-        for i in reversed(range(3)):
+        for i in [2, 1, 0]:
             if self.spaces[row][col][i]:
                 return i
         return -1
@@ -100,26 +103,20 @@ class Board:
         Returns whether a piece of ptype
         can be placed at (row, col)
         """
-        t = time.time()
         # Check if space is frozen
         if self.frozen[row][col]:
-            Board.CanPlaceTime += time.time() - t
             return False
         if self.is_empty(row, col):
-            Board.CanPlaceTime += time.time() - t
             return True
         # Base
         if ptype == 0:
-            Board.CanPlaceTime += time.time() - t
             return False
         # Column
         if ptype == 1:
-            Board.CanPlaceTime += time.time() - t
             # Check for base
             return self.spaces[row][col][0] and not self.spaces[row][col][1]
         # Capital
         # Check for column and absence of capital
-        Board.CanPlaceTime += time.time() - t
         return self.spaces[row][col][1] and not self.spaces[row][col][2]
 
     def can_move(self, row1, col1, row2, col2):
@@ -128,20 +125,15 @@ class Board:
         Returns whether it is legal to move
         the stack at (row1,col1) to (row2,col2)
         """
-        t = time.time()
         # Frozen spaces
         if self.frozen[row1][col1] or self.frozen[row2][col2]:
-            Board.CanMoveTime += time.time() - t
             return False
         # Orthogonally adjacent spaces
         if abs(row1 - row2) + abs(col1 - col2) != 1:
-            Board.CanMoveTime += time.time() - t
             return False
         # Empty spaces
-        if self.is_empty(row1, col1) or self.is_empty(row2, col2):
-            Board.CanMoveTime += time.time() - t
+        if self.is_empty(row2, col2):
             return False
-        Board.CanMoveTime += time.time() - t
         return self.bottom(row1, col1) - self.top(row2, col2) == 1
 
     def is_top(self, row, col, ptype):
@@ -150,7 +142,7 @@ class Board:
         Checks if space (row,col) has top ptype
         """
         # Piece above
-        if any(self.spaces[row][col][ptype + 1:]):
+        if any(self.spaces[row][col][ptype + 1 :]):
             return False
         if self.spaces[row][col][ptype]:
             return True
@@ -174,7 +166,8 @@ class Board:
         Does the move, if it is legal
         """
         # Reset which space is frozen
-        self.frozen = np.full((4, 4), False)
+        for row in range(4):
+            self.frozen[row] = [False] * 4
         # Place
         if move.mtype:
             self.spaces[move.row1][move.col1][move.ptype] = True
@@ -226,7 +219,6 @@ class Board:
         Board ->
         Returns an array of bools for which lines are made
         """
-        t = time.time()
         # first, get array of tops, split by type
         tops = self.get_tops()
         self.lines = []
@@ -334,5 +326,3 @@ class Board:
         # Bottom left short diagonal
         if tops[1, 0] == tops[2, 1] == tops[3, 2] > -1:
             self.lines.append(("s3", tops[1, 0]))
-
-        Board.GetLinesTime += time.time() - t

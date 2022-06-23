@@ -11,15 +11,12 @@ class Game:
     A board with player pieces, current player, and outcome
     """
 
-    GetLegalMovesTime = 0
-    IsLegalTime = 0
-
     def __init__(self):
         self.board = Board()
         # Which player is playing
         self.to_play = 0
         # Number of pieces for each player
-        self.pieces = np.full((2, 3), 4)
+        self.pieces = [[4, 4, 4], [4, 4, 4]]
         # Outcome when game is done. 1 is first player win. None means the game is ongoing
         self.outcome = None
 
@@ -28,42 +25,34 @@ class Game:
             str(self.board) + "\n" + str(self.pieces) + "\n" + str(self.to_play) + "\n"
         )
 
-    def is_legal(self, move, lines):
+    def is_legal(self, move):
         """
         Move -> bool
         Checks if move is legal
         """
-        t = time.time()
         # Place
         if move.mtype:
-            if self.pieces[self.to_play][
-                int(move.ptype)
-            ] == 0 or not self.board.can_place(move.row1, move.col1, move.ptype):
-                Game.IsLegalTime += time.time() - t
+            if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
+                move.row1, move.col1, move.ptype
+            ):
                 return False
+            return True
         # Move
-        else:
-            if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
-                Game.IsLegalTime += time.time() - t
-                return False
-        return True
+        return self.board.can_move(move.row1, move.col1, move.row2, move.col2)
 
     def get_legal_moves(self):
         """
         -> array
         Returns a list of all legal moves
         """
-        t = time.time()
 
         lines = self.board.lines
         # More than 2 lines, no legal moves
         if len(lines) > 2:
             return []
-
         moves = []
         # Need to break / extend lines
         if len(lines) > 0:
-            line_breakers = None
             for line in lines:
                 cur = []
                 if line[0][0] == "r":
@@ -266,7 +255,6 @@ class Game:
                             Move(False, s(1), f(0), 0, s(1), f(1)),
                             Move(False, s(1), f(0), 0, s(2), f(0)),
                             Move(False, s(2), f(1), 0, s(2), f(0)),
-                            Move(False, s(3), f(0), 0, s(2), f(0)),
                             Move(False, s(0), f(2), 0, s(0), f(3)),
                             Move(False, s(0), f(2), 0, s(1), f(2)),
                             Move(False, s(0), f(2), 0, s(0), f(1)),
@@ -276,9 +264,22 @@ class Game:
                             Move(False, s(1), f(1), 0, s(1), f(0)),
                             Move(False, s(2), f(0), 0, s(1), f(0)),
                             Move(False, s(2), f(0), 0, s(2), f(1)),
-                            Move(False, s(2), f(0), 0, s(3), f(0)),
                         ]
                     )
+                    if line[0][1] in ["2", "3"]:
+                        cur.extend(
+                            [
+                                Move(False, 1, f(2), 0, 0, f(2)),
+                                Move(False, 0, f(2), 0, 1, f(2)),
+                            ]
+                        )
+                    else:
+                        cur.extend(
+                            [
+                                Move(False, 3, f(0), 0, 2, f(0)),
+                                Move(False, 2, f(0), 0, 3, f(0)),
+                            ]
+                        )
                     # Place moves, not capitals
                     if line[1] < 2:
                         cur.extend(
@@ -289,13 +290,10 @@ class Game:
                             ]
                         )
                 # First line
-                if line_breakers is None:
-                    line_breakers = cur
+                if len(moves) == 0:
+                    moves = cur
                 else:
-                    line_breakers = list(set(line_breakers) & set(cur))
-                    if len(line_breakers) == 0:
-                        return []
-            moves = line_breakers
+                    moves = list(set(moves) & set(cur))
         else:
             # Place
             for ptype in range(3):
@@ -314,9 +312,8 @@ class Game:
                             moves.append(Move(False, row1, col1, 0, row2, col2))
         legal_moves = []
         for move in moves:
-            if self.is_legal(move, lines):
+            if self.is_legal(move):
                 legal_moves.append(move)
-        Game.GetLegalMovesTime += time.time() - t
         return legal_moves
 
     def do_move(self, move):
@@ -337,7 +334,7 @@ class Game:
         # Previous player win
         self.to_play = 1 - self.to_play
         if len(self.get_legal_moves()) == 0:
-            if np.max(self.board.get_lines()) > 0:
+            if len(self.board.lines) > 0:
                 self.outcome = 2 * self.to_play - 1
             else:
                 self.outcome = 0

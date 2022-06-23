@@ -13,15 +13,13 @@ class Game:
 
     GetLegalMovesTime = 0
     IsLegalTime = 0
-    DeepCopyTime = 0
-    DoMoveTime = 0
 
     def __init__(self):
         self.board = Board()
         # Which player is playing
         self.to_play = 0
         # Number of pieces for each player
-        self.pieces = np.full(6, 4)
+        self.pieces = np.full((2, 3), 4)
         # Outcome when game is done. 1 is first player win. None means the game is ongoing
         self.outcome = None
 
@@ -38,8 +36,8 @@ class Game:
         t = time.time()
         # Place
         if move.mtype:
-            if self.pieces[
-                self.to_play * 3 + move.ptype
+            if self.pieces[self.to_play][
+                int(move.ptype)
             ] == 0 or not self.board.can_place(move.row1, move.col1, move.ptype):
                 Game.IsLegalTime += time.time() - t
                 return False
@@ -48,27 +46,6 @@ class Game:
             if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
                 Game.IsLegalTime += time.time() - t
                 return False
-        # Check that all lines are broken or extended
-        if lines is None:
-            Game.IsLegalTime += time.time() - t
-            return True
-
-        t2 = time.time()
-        temp_board = deepcopy(self.board)
-        Game.DeepCopyTime += time.time() - t2
-        t3 = time.time()
-        temp_board.do_move(move)
-        Game.DoMoveTime += time.time() - t3
-        new_lines = temp_board.get_lines()
-
-        for count, line in enumerate(lines):
-            if line == new_lines[count] == 1:
-                Game.IsLegalTime += time.time() - t
-                return False
-            elif line == 2 and new_lines[count] != 0:
-                Game.IsLegalTime += time.time() - t
-                return False
-        Game.IsLegalTime += time.time() - t
         return True
 
     def get_legal_moves(self):
@@ -77,36 +54,268 @@ class Game:
         Returns a list of all legal moves
         """
         t = time.time()
-        moves = []
-        # Place
-        for ptype in range(3):
-            if self.pieces[self.to_play * 3 + ptype] == 0:
-                continue
-            for row in range(4):
-                for col in range(4):
-                    moves.append(Move(True, row, col, ptype))
-        # Move
-        for row1 in range(4):
-            for row2 in range(4):
-                if abs(row1 - row2) > 1:
-                    continue
-                for col1 in range(4):
-                    for col2 in range(4):
-                        moves.append(Move(False, row1, col1, 0, row2, col2))
 
-        legal_moves = []
         lines = self.board.lines
         # More than 2 lines, no legal moves
         if len(lines) > 2:
             return []
+
+        moves = []
         # Need to break / extend lines
         if len(lines) > 0:
-            line_breakers = []
-            if 
+            line_breakers = None
+            for line in lines:
+                cur = []
+                if line[0][0] == "r":
+                    target = int(line[0][1])
+                    sources = []
+                    if target == 0:
+                        sources = [1]
+                    elif target == 1:
+                        sources = [0, 2]
+                    elif target == 2:
+                        sources = [1, 3]
+                    # 3
+                    else:
+                        sources = [2]
+                    # Move moves
+                    for source in sources:
+                        cur.extend(
+                            [
+                                Move(False, target, 1, 0, source, 1),
+                                Move(False, target, 2, 0, source, 2),
+                                Move(False, source, 1, 0, target, 1),
+                                Move(False, source, 2, 0, target, 2),
+                            ]
+                        )
+                        if line[0][2] == "l":
+                            cur.extend(
+                                [
+                                    Move(False, target, 0, 0, source, 0),
+                                    Move(False, source, 0, 0, target, 0),
+                                ]
+                            )
+                            # Extend
+                            if self.board.top(source, 3) == line[1]:
+                                cur.append(Move(False, source, 3, 0, target, 3))
+                        elif line[0][2] == "r":
+                            cur.extend(
+                                [
+                                    Move(False, target, 3, 0, source, 3),
+                                    Move(False, source, 3, 0, target, 3),
+                                ]
+                            )
+                            # Extend
+                            if self.board.top(source, 0) == line[1]:
+                                cur.append(Move(False, source, 0, 0, target, 0))
+                    # Place moves, not capitals
+                    if line[1] < 2:
+                        cur.extend(
+                            [
+                                Move(True, target, 1, line[1] + 1),
+                                Move(True, target, 2, line[1] + 1),
+                            ]
+                        )
+                        if line[0][2] == "l":
+                            cur.append(Move(True, target, 0, line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, target, 3, line[1]))
+                        elif line[0][2] == "r":
+                            cur.append(Move(True, target, 3, line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, target, 0, line[1]))
+                if line[0][0] == "c":
+                    target = int(line[0][1])
+                    sources = []
+                    if target == 0:
+                        sources = [1]
+                    elif target == 1:
+                        sources = [0, 2]
+                    elif target == 2:
+                        sources = [1, 3]
+                    # 3
+                    else:
+                        sources = [2]
+                    # Move moves
+                    for source in sources:
+                        cur.extend(
+                            [
+                                Move(False, 1, target, 0, 1, source),
+                                Move(False, 2, target, 0, 2, source),
+                                Move(False, 1, source, 0, 1, target),
+                                Move(False, 2, source, 0, 2, target),
+                            ]
+                        )
+                        if line[0][2] == "u":
+                            cur.extend(
+                                [
+                                    Move(False, 0, target, 0, 0, source),
+                                    Move(False, 0, source, 0, 0, target),
+                                ]
+                            )
+                            # Extend
+                            if self.board.top(3, source) == line[1]:
+                                cur.append(Move(False, 3, source, 0, 3, target))
+                        elif line[0][2] == "d":
+                            cur.extend(
+                                [
+                                    Move(False, 3, target, 0, 3, source),
+                                    Move(False, 3, source, 0, 3, target),
+                                ]
+                            )
+                            # Extend
+                            if self.board.top(0, source) == line[1]:
+                                cur.append(Move(False, 0, source, 0, 0, target))
+                    # Place moves, not capitals
+                    if line[1] < 2:
+                        cur.extend(
+                            [
+                                Move(True, 1, target, line[1] + 1),
+                                Move(True, 2, target, line[1] + 1),
+                            ]
+                        )
+                        if line[0][2] == "u":
+                            cur.append(Move(True, 0, target, line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, 3, target, line[1]))
+                        elif line[0][2] == "d":
+                            cur.append(Move(True, 3, target, line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, 0, target, line[1]))
+                if line[0][0] == "d":
+                    # Flip column if necessary
+                    f = lambda x: x
+                    if line[0][1] == "1":
+                        f = lambda x: 3 - x
+                    # Move moves
+                    cur.extend(
+                        [
+                            Move(False, 1, f(1), 0, 0, f(1)),
+                            Move(False, 1, f(1), 0, 1, f(2)),
+                            Move(False, 1, f(1), 0, 2, f(1)),
+                            Move(False, 1, f(1), 0, 1, f(0)),
+                            Move(False, 0, f(1), 0, 1, f(1)),
+                            Move(False, 1, f(2), 0, 1, f(1)),
+                            Move(False, 2, f(1), 0, 1, f(1)),
+                            Move(False, 1, f(0), 0, 1, f(1)),
+                        ]
+                    )
+                    if line[0][2] == "u":
+                        cur.extend(
+                            [
+                                Move(False, 0, f(0), 0, 0, f(1)),
+                                Move(False, 0, f(0), 0, 1, f(0)),
+                                Move(False, 0, f(1), 0, 0, f(0)),
+                                Move(False, 1, f(0), 0, 0, f(0)),
+                            ]
+                        )
+                        # Extend
+                        if self.board.top(2, f(3)) == line[1]:
+                            cur.append(Move(False, 2, f(3), 0, 3, f(3)))
+                        if self.board.top(3, f(2)) == line[1]:
+                            cur.append(Move(False, 3, f(2), 0, 3, f(3)))
+                    elif line[0][2] == "d":
+                        cur.extend(
+                            [
+                                Move(False, 3, f(3), 0, 2, f(3)),
+                                Move(False, 3, f(3), 0, 3, f(2)),
+                                Move(False, 2, f(3), 0, 3, f(3)),
+                                Move(False, 3, f(2), 0, 3, f(3)),
+                            ]
+                        )
+                        # Extend
+                        if self.board.top(0, f(1)) == line[1]:
+                            cur.append(Move(False, 0, f(1), 0, 0, f(0)))
+                        if self.board.top(1, f(0)) == line[1]:
+                            cur.append(Move(False, 1, f(0), 0, 0, f(0)))
+                    # Place moves, not capitals
+                    if line[1] < 2:
+                        cur.extend(
+                            [
+                                Move(True, 1, f(1), line[1] + 1),
+                                Move(True, 2, f(2), line[1] + 1),
+                            ]
+                        )
+                        if line[0][2] == "u":
+                            cur.append(Move(True, 0, f(0), line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, 3, f(3), line[1]))
+                        elif line[0][2] == "d":
+                            cur.append(Move(True, 3, f(3), line[1] + 1))
+                            # Extend
+                            cur.append(Move(True, 0, f(0), line[1]))
+                # Short diagonals
+                else:
+                    # Flip column if necessary
+                    f = lambda x: x
+                    if line[0][1] in ["1", "3"]:
+                        f = lambda x: 3 - x
+                    # Shift down if necessary
+                    s = lambda x: x
+                    if line[0][1] in ["2", "3"]:
+                        s = lambda x: x + 1
+                    # Move moves
+                    cur.extend(
+                        [
+                            Move(False, s(0), f(3), 0, s(0), f(2)),
+                            Move(False, s(1), f(2), 0, s(0), f(2)),
+                            Move(False, s(0), f(1), 0, s(0), f(2)),
+                            Move(False, s(0), f(1), 0, s(1), f(1)),
+                            Move(False, s(1), f(2), 0, s(1), f(1)),
+                            Move(False, s(2), f(1), 0, s(1), f(1)),
+                            Move(False, s(1), f(0), 0, s(1), f(1)),
+                            Move(False, s(1), f(0), 0, s(2), f(0)),
+                            Move(False, s(2), f(1), 0, s(2), f(0)),
+                            Move(False, s(3), f(0), 0, s(2), f(0)),
+                            Move(False, s(0), f(2), 0, s(0), f(3)),
+                            Move(False, s(0), f(2), 0, s(1), f(2)),
+                            Move(False, s(0), f(2), 0, s(0), f(1)),
+                            Move(False, s(1), f(1), 0, s(0), f(1)),
+                            Move(False, s(1), f(1), 0, s(1), f(2)),
+                            Move(False, s(1), f(1), 0, s(2), f(1)),
+                            Move(False, s(1), f(1), 0, s(1), f(0)),
+                            Move(False, s(2), f(0), 0, s(1), f(0)),
+                            Move(False, s(2), f(0), 0, s(2), f(1)),
+                            Move(False, s(2), f(0), 0, s(3), f(0)),
+                        ]
+                    )
+                    # Place moves, not capitals
+                    if line[1] < 2:
+                        cur.extend(
+                            [
+                                Move(True, s(0), f(2), line[1] + 1),
+                                Move(True, s(1), f(1), line[1] + 1),
+                                Move(True, s(2), f(0), line[1] + 1),
+                            ]
+                        )
+                # First line
+                if line_breakers is None:
+                    line_breakers = cur
+                else:
+                    line_breakers = list(set(line_breakers) & set(cur))
+                    if len(line_breakers) == 0:
+                        return []
+            moves = line_breakers
+        else:
+            # Place
+            for ptype in range(3):
+                if self.pieces[self.to_play][ptype] == 0:
+                    continue
+                for row in range(4):
+                    for col in range(4):
+                        moves.append(Move(True, row, col, ptype))
+            # Move
+            for row1 in range(4):
+                for row2 in range(4):
+                    if abs(row1 - row2) > 1:
+                        continue
+                    for col1 in range(4):
+                        for col2 in range(4):
+                            moves.append(Move(False, row1, col1, 0, row2, col2))
+        legal_moves = []
         for move in moves:
             if self.is_legal(move, lines):
                 legal_moves.append(move)
-
         Game.GetLegalMovesTime += time.time() - t
         return legal_moves
 
@@ -123,7 +332,7 @@ class Game:
         #     return self.outcome
         # Place, remove piece from arsenal
         if move.mtype:
-            self.pieces[self.to_play * 3 + move.ptype] -= 1
+            self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
         # Previous player win
         self.to_play = 1 - self.to_play
@@ -142,10 +351,7 @@ class Game:
         """
         canonical_game = deepcopy(self)
         canonical_game.to_play = 0
-        canonical_game.pieces = np.concatenate(
-            (
-                self.pieces[self.to_play * 3 : self.to_play * 3 + 3],
-                self.pieces[(1 - self.to_play) * 3 : (1 - self.to_play) * 3 + 3],
-            ),
+        canonical_game.pieces = np.array(
+            [self.pieces[self.to_play], self.pieces[1 - self.to_play]]
         )
         return canonical_game

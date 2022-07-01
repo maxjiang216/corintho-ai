@@ -78,7 +78,7 @@ class MonteCarlo:
         if self.root.children[move_choice] is None:
             new_game = deepcopy(self.root.game)
             new_game.do_move(self.root.moves[move_choice])
-            new_game = new_game.get_canonical()
+            new_game = new_game
             new_evaluation = self.evaluator.evaluate(new_game)
             self.root.children[move_choice] = Node(
                 new_game,
@@ -121,7 +121,7 @@ class MonteCarlo:
             if node.children[move_choice] is None:
                 new_game = deepcopy(node.game)
                 new_game.do_move(node.moves[move_choice])
-                new_game = new_game.get_canonical()
+                new_game = new_game
                 new_evaluation = self.evaluator.evaluate(new_game)
                 node.children[move_choice] = Node(
                     new_game,

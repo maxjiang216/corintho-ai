@@ -15,9 +15,10 @@ with cProfile.Profile() as pr:
         player1 = elos[i % 2]
         player2 = elos[1 - i % 2]
         sim = Simulator(player1, player2)
-        sum += (-1) ** (i % 2) * sim.play_game()
+        sum += (-1) ** (i % 2) * sim.play_game(True)
 
     print(sum)
+    print(sim.samples)
 
 stats = pstats.Stats(pr)
 stats.print_stats()

@@ -331,8 +331,8 @@ class Game:
         if move.mtype:
             self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
-        # Previous player win
         self.to_play = 1 - self.to_play
+        # Previous player win
         if len(self.get_legal_moves()) == 0:
             if len(self.board.lines) > 0:
                 self.outcome = 2 * self.to_play - 1

@@ -1,6 +1,5 @@
 import numpy as np
 from copy import deepcopy
-import random
 
 
 class Node:
@@ -38,6 +37,7 @@ class MonteCarlo:
         self.move_guider = move_guider
         self.c_puct = c_puct
         self.iterations = iterations
+        self.rng = np.random.RandomState()
 
     def choose_move(self):
         """
@@ -59,14 +59,9 @@ class MonteCarlo:
             elif u == max_value:
                 move_choices.append(i)
 
-        move_choice = random.choice(move_choices)
+        move_choice = self.rng.choice(move_choices)
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-        print(
-            "{0} {1} {2}".format(
-                str(move), self.root.evaluation / self.root.searches, self.root.searches
-            )
-        )
         return move
 
     def force_move(self, move_choice):

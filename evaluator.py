@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import random
+import numpy as np
 
 
 class Evaluator(ABC):
@@ -24,9 +24,9 @@ class RandomEvaluator(Evaluator):
     """
 
     def __init__(self):
-        pass
+        self.rng = np.random.RandomState()
 
     def evaluate(self, game):
         if game.outcome is not None:
             return -1 * game.outcome
-        return 0
+        return self.rng.uniform(-0.1, 0.1)

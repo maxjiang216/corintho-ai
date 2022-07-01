@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import random
+import numpy as np
 from move import Move
 
 
@@ -54,10 +54,11 @@ class RandomPlayer(Player):
     """
 
     def __init__(self):
-        pass
+        self.rng = np.random.RandomState()
 
     def get_move(self, game, legal_moves):
-        move = random.choice(legal_moves)
+        move = self.rng.choice(legal_moves)
+        print(move)
         return move
 
     def receive_opp_move(self, move):

@@ -41,7 +41,7 @@ class Game:
             if not self.board.can_move(move.row1, move.col1, move.row2, move.col2):
                 return False
         # Check that all lines are broken or extended
-        if len(lines) == 0:
+        if not any(lines):
             return True
         temp_board = deepcopy(self.board)
         temp_board.do_move(move)
@@ -121,3 +121,10 @@ class Game:
             self.pieces[1 - self.to_play],
         ]
         return canonical_game
+
+    def get_vector(self):
+        canonical_pieces = [
+            self.pieces[self.to_play],
+            self.pieces[1 - self.to_play],
+        ]
+        return np.concatenate([np.array(self.board.spaces).flatten(), np.array(self.board.frozen).flatten(), np.array(canonical_pieces).flatten()/4])

@@ -2,22 +2,47 @@ from montecarlo import MonteCarlo
 from simulator import Simulator
 from player import RandomPlayer, HumanPlayer
 from mcplayer import MonteCarloPlayer
-from board import Board
 from game import Game
-import time
-import cProfile
-import pstats
+from neuralnet import NeuralNet
+import multiprocessing as mp
 
-with cProfile.Profile() as pr:
-    sum = 0
-    for i in range(1):
-        elos = [MonteCarloPlayer(600), MonteCarloPlayer(600)]
-        player1 = elos[i % 2]
-        player2 = elos[1 - i % 2]
-        sim = Simulator(player1, player2)
-        sum += (-1) ** (i % 2) * sim.play_game()
+if __name__ == "__main__":
+    import keras
+    from keras.models import Sequential
+    from keras.layers import Dense
+    from keras.optimizers import Adam
 
-    print(sum)
+    print("Number of processors: ", mp.cpu_count())
 
-stats = pstats.Stats(pr)
-stats.print_stats()
+    model = Sequential(
+        [
+            Dense(units=70, input_shape=(70,), activation="relu"),
+            Dense(units=80, activation="relu"),
+            Dense(units=90, activation="relu"),
+            Dense(units=100, activation="relu"),
+            Dense(units=110, activation="relu"),
+            Dense(units=120, activation="relu"),
+            Dense(units=130, activation="relu"),
+            Dense(units=140, activation="relu"),
+            Dense(units=130, activation="relu"),
+            Dense(units=120, activation="relu"),
+            Dense(units=110, activation="relu"),
+            Dense(units=100, activation="relu"),
+            Dense(units=90, activation="relu"),
+            Dense(units=80, activation="relu"),
+            Dense(units=70, activation="relu"),
+            Dense(units=1, activation="tanh"),
+        ]
+    )
+    model.compile(
+        optimizer=Adam(learning_rate=0.0001),
+        loss=keras.losses.MeanSquaredError(),
+    )
+    print("COMPILED MODEL")
+    simulator = Simulator(MonteCarloPlayer(60), MonteCarloPlayer(60))
+    nn = NeuralNet(model, simulator, batch_size=10)
+    k = 2
+    print("DONE SETUP")
+    nn.train_generation(num_games=k * 2, concurrency=k)
+    print(nn.predict(Game()))
+    nn.check()

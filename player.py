@@ -1,37 +1,6 @@
 from abc import ABC, abstractmethod
-import random
+import numpy as np
 from move import Move
-
-
-def decode_move(move):
-    if len(move) != 3:
-        return False
-    char_to_num = {"A": 2, "C": 1, "B": 0}
-    if move[0] in ["A", "B", "C"]:
-        if not (move[1] in "0123" and move[2] in "0123"):
-            return False
-        return Move(True, int(move[1]), int(move[2]), ptype=char_to_num[move[0]])
-    else:
-        if not (move[0] in "0123" and move[1] in "0123"):
-            return False
-        dx = dy = 0
-        if move[2] == "U":
-            dy = -1
-        elif move[2] == "D":
-            dy = 1
-        elif move[2] == "L":
-            dx = -1
-        elif move[2] == "R":
-            dx = 1
-        else:
-            return False
-        return Move(
-            False,
-            int(move[0]),
-            int(move[1]),
-            row2=int(move[0]) + dy,
-            col2=int(move[1]) + dx,
-        )
 
 
 class Player(ABC):
@@ -54,14 +23,15 @@ class RandomPlayer(Player):
     """
 
     def __init__(self):
-        pass
+        self.rng = np.random.Generator(np.random.PCG64())
+        super().__init__()
 
     def get_move(self, game, legal_moves):
-        move = random.choice(legal_moves)
+        move = self.rng.choice(legal_moves)
         return move
 
     def receive_opp_move(self, move):
-        return super().receive_opp_move(move)
+        super().receive_opp_move(move)
 
 
 class HumanPlayer(Player):
@@ -70,16 +40,44 @@ class HumanPlayer(Player):
     """
 
     def __init__(self):
-        pass
+        super().__init__()
 
     def get_move(self, game, legal_moves):
-        move = decode_move(input(str(game)))
+        move = self.decode_move(input(str(game)))
         legal = move and move in legal_moves
         while not legal:
             print("Illegal move!")
-            move = decode_move(input())
+            move = self.decode_move(input())
             legal = move and move in legal_moves
         return move
 
-    def receive_opp_move(self, move):
-        return super().receive_opp_move(move)
+    @staticmethod
+    def decode_move(move):
+        if len(move) != 3:
+            return False
+        char_to_num = {"A": 2, "C": 1, "B": 0}
+        if move[0] in ["A", "B", "C"]:
+            if not (move[1] in "0123" and move[2] in "0123"):
+                return False
+            return Move(True, int(move[1]), int(move[2]), ptype=char_to_num[move[0]])
+        else:
+            if not (move[0] in "0123" and move[1] in "0123"):
+                return False
+            dx, dy = 0
+            if move[2] == "U":
+                dy = -1
+            elif move[2] == "D":
+                dy = 1
+            elif move[2] == "L":
+                dx = -1
+            elif move[2] == "R":
+                dx = 1
+            else:
+                return False
+            return Move(
+                False,
+                int(move[0]),
+                int(move[1]),
+                row2=int(move[0]) + dy,
+                col2=int(move[1]) + dx,
+            )

@@ -1,6 +1,5 @@
 import numpy as np
 from copy import deepcopy
-import random
 
 
 class Node:
@@ -38,6 +37,7 @@ class MonteCarlo:
         self.move_guider = move_guider
         self.c_puct = c_puct
         self.iterations = iterations
+        self.rng = np.random.Generator(np.random.PCG64())
 
     def choose_move(self):
         """
@@ -59,14 +59,9 @@ class MonteCarlo:
             elif u == max_value:
                 move_choices.append(i)
 
-        move_choice = random.choice(move_choices)
+        move_choice = self.rng.choice(move_choices)
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-        print(
-            "{0} {1} {2}".format(
-                str(move), self.root.evaluation / self.root.searches, self.root.searches
-            )
-        )
         return move
 
     def force_move(self, move_choice):
@@ -78,7 +73,6 @@ class MonteCarlo:
         if self.root.children[move_choice] is None:
             new_game = deepcopy(self.root.game)
             new_game.do_move(self.root.moves[move_choice])
-            new_game = new_game.get_canonical()
             new_evaluation = self.evaluator.evaluate(new_game)
             self.root.children[move_choice] = Node(
                 new_game,
@@ -87,6 +81,7 @@ class MonteCarlo:
 
     def search(self, node):
         """
+        Node ->
         Search a node
         """
         if node.moves is None:
@@ -121,7 +116,6 @@ class MonteCarlo:
             if node.children[move_choice] is None:
                 new_game = deepcopy(node.game)
                 new_game.do_move(node.moves[move_choice])
-                new_game = new_game.get_canonical()
                 new_evaluation = self.evaluator.evaluate(new_game)
                 node.children[move_choice] = Node(
                     new_game,

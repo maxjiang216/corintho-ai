@@ -331,8 +331,8 @@ class Game:
         if move.mtype:
             self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
-        # Previous player win
         self.to_play = 1 - self.to_play
+        # Previous player win
         if len(self.get_legal_moves()) == 0:
             if len(self.board.lines) > 0:
                 self.outcome = 2 * self.to_play - 1
@@ -341,14 +341,20 @@ class Game:
             return self.outcome
         return None
 
-    def get_canonical(self):
+    def get_vector(self):
         """
-        -> Game
-        Get canonical form of board (from perspective of current player)
+        -> array
+        Returns vector representation of game in canonical form
         """
-        canonical_game = deepcopy(self)
-        canonical_game.to_play = 0
-        canonical_game.pieces = np.array(
-            [self.pieces[self.to_play], self.pieces[1 - self.to_play]]
+
+        canonical_pieces = [
+            self.pieces[self.to_play],
+            self.pieces[1 - self.to_play],
+        ]
+        return np.concatenate(
+            [
+                np.array(self.board.spaces).flatten(),
+                np.array(self.board.frozen).flatten(),
+                np.array(canonical_pieces).flatten() / 4,
+            ]
         )
-        return canonical_game

@@ -39,4 +39,5 @@ if __name__ == "__main__":
     )
     simulator = Simulator(MonteCarloPlayer(60), MonteCarloPlayer(60))
     neural_net = NeuralNet(model, simulator, batch_size=10)
-    neural_net.train_generation(2048, 8)
+    neural_net.train_generation(128, 8)
+    neural_net.check()

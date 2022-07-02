@@ -1,15 +1,6 @@
-import numpy as np
 import time
 import multiprocessing as mp
-from simulator import Simulator
-from player import RandomPlayer
-from mcplayer import MonteCarloPlayer
-from game import Game
-import multiprocessing as mp
-import keras
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import Adam
+import numpy as np
 
 
 class NeuralNet:
@@ -26,21 +17,28 @@ class NeuralNet:
 
     @staticmethod
     def play_games(args):
-        """ """
+        """
+        array -> (array, array)
+        args is in the format [simulator, num_games]
+        simulator is the Simulator used to play games
+        num_games is the number of games to play
+        batch_num is a unique identifier for logging purposes
+        """
         simulator = args[0]
         num_games = args[1]
-        counter = args[2]
+        batch_num = args[2]
         samples = []
         labels = []
         for i in range(num_games):
             temp_samples, temp_labels = simulator.play_game(train=True)
             samples.extend(temp_samples)
             labels.extend(temp_labels)
-            print("Done game {0}.{1}".format(counter, i))
-        print("Done batch {0}".format(counter))
+            if i % (num_games // 10) == 0 and i > 0:
+                print(f"{i/num_games*100:.1f}% completed batch {batch_num}")
+        print(f"Complete batch {batch_num}!")
         return (samples, labels)
 
-    def train_generation(self, num_games=100, concurrency=10):
+    def train_generation(self, num_games=100, concurrency=10, num_epochs=1):
         """
         int ->
         Generating training samples and fits model
@@ -51,9 +49,11 @@ class NeuralNet:
             (self.simulator, num_games // concurrency, i) for i in range(concurrency)
         ]
         with mp.Pool(concurrency) as pool:
-            t = time.time()
+            start_time = time.time()
             result = pool.map(self.play_games, args)
-            print((time.time() - t) / ((num_games // concurrency) * concurrency))
+            print(
+                f"Average time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
+            )
             pool.close()
             for game in result:
                 self.samples.extend(game[0])
@@ -63,7 +63,7 @@ class NeuralNet:
             x=np.array(self.samples),
             y=np.array(self.labels),
             batch_size=self.batch_size,
-            epochs=3,
+            epochs=num_epochs,
             shuffle=True,
         )
 
@@ -74,49 +74,13 @@ class NeuralNet:
         """
         return self.model.predict(x=np.array([game.get_vector()]))
 
-    def check(self):
-        f = open("./models/check.txt", "w")
+    def check(self, path="./models/check.txt"):
+        """
+        (str) ->
+        Writes predictions for current samples compared to actual result
+        Used as surface level check for reasonableness of trained neural net
+        """
+        check_file = open(path, "w", encoding="utf-8")
         predictions = self.model.predict(x=np.array(self.samples))
-        for i in range(len(self.samples)):
-            f.write(
-                "{0} {1} {2}\n".format(predictions[i], self.labels[i], self.samples[i])
-            )
-
-    def f(self):
-        print(1)
-        return 1
-
-
-def fun(net, ngames, c):
-    return net.play_games(ngames, c)
-
-
-if __name__ == "__main__":
-
-    model = Sequential(
-        [
-            Dense(units=70, input_shape=(70,), activation="relu"),
-            Dense(units=80, activation="relu"),
-            Dense(units=90, activation="relu"),
-            Dense(units=100, activation="relu"),
-            Dense(units=110, activation="relu"),
-            Dense(units=120, activation="relu"),
-            Dense(units=130, activation="relu"),
-            Dense(units=140, activation="relu"),
-            Dense(units=130, activation="relu"),
-            Dense(units=120, activation="relu"),
-            Dense(units=110, activation="relu"),
-            Dense(units=100, activation="relu"),
-            Dense(units=90, activation="relu"),
-            Dense(units=80, activation="relu"),
-            Dense(units=70, activation="relu"),
-            Dense(units=1, activation="tanh"),
-        ]
-    )
-    model.compile(
-        optimizer=Adam(learning_rate=0.0001),
-        loss=keras.losses.MeanSquaredError(),
-    )
-    simulator = Simulator(MonteCarloPlayer(60), MonteCarloPlayer(60))
-    neural_net = NeuralNet(model, simulator, batch_size=10)
-    neural_net.train_generation(256, 8)
+        for i, sample in enumerate(self.samples):
+            check_file.write(f"{predictions[i]} {self.labels[i]} {sample}\n")

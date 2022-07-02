@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import numpy as np
+from numpy.random import Generator, PCG64
 
 
 class Evaluator(ABC):
@@ -24,7 +24,8 @@ class RandomEvaluator(Evaluator):
     """
 
     def __init__(self):
-        self.rng = np.random.RandomState()
+        self.rng = Generator(PCG64())
+        super().__init__()
 
     def evaluate(self, game):
         if game.outcome is not None:

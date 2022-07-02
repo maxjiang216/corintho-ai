@@ -33,7 +33,7 @@ class NeuralNet:
             temp_samples, temp_labels = simulator.play_game(train=True)
             samples.extend(temp_samples)
             labels.extend(temp_labels)
-            if i % (num_games // 10) == 0 and i > 0:
+            if num_games > 10 and i > 0 and i % (num_games // 10) == 0:
                 print(f"{i/num_games*100:.1f}% completed batch {batch_num}")
         print(f"Complete batch {batch_num}!")
         return (samples, labels)
@@ -54,12 +54,18 @@ class NeuralNet:
             results = pool.map(self.play_games, args)
             pool.close()
         time_taken = time.time() - start_time
-        print(
-            f"Total time: {time_taken}\nAverage time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
-        )
         for game in results:
             self.samples.extend(game[0])
             self.labels.extend(game[1])
+        print(f"Total time: {time_taken}")
+        print(
+            f"Average time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
+        )
+        print(f"Total moves: {len(self.samples)}")
+        print(
+            f"Average moves per game: {len(self.samples)/((num_games // concurrency) * concurrency)}"
+        )
+        print(f"Average time per move: {time_taken / len(self.samples)}")
 
         self.model.fit(
             x=np.array(self.samples),
@@ -83,6 +89,12 @@ class NeuralNet:
         Used as surface level check for reasonableness of trained neural net
         """
         check_file = open(path, "w", encoding="utf-8")
-        predictions = self.model.predict(x=np.array(self.samples))
+        start_time = time.time()
         for i, sample in enumerate(self.samples):
-            check_file.write(f"{predictions[i]} {self.labels[i]} {sample}\n")
+            predictions = self.model.predict(x=np.array([sample]), verbose=0)
+            if len(self.samples) > 10 and i > 0 and i % (len(self.samples) // 10) == 0:
+                print(i / len(self.samples))
+        time_taken = time.time() - start_time
+        print(f"Seconds per prediction: {time_taken/len(self.samples)}")
+        # for i, sample in enumerate(self.samples):
+        #    check_file.write(f"{predictions[i]} {self.labels[i]} {sample}\n")

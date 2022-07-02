@@ -28,8 +28,10 @@ class RandomPlayer(Player):
 
     def get_move(self, game, legal_moves):
         move = self.rng.choice(legal_moves)
-        print(move)
         return move
+
+    def receive_opp_move(self, move):
+        super().receive_opp_move(move)
 
 
 class HumanPlayer(Player):

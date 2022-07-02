@@ -45,19 +45,21 @@ class NeuralNet:
         Players num_games games to generate samples
         """
 
+        results = []
         args = [
             (self.simulator, num_games // concurrency, i) for i in range(concurrency)
         ]
+        start_time = time.time()
         with mp.Pool(concurrency) as pool:
-            start_time = time.time()
-            result = pool.map(self.play_games, args)
-            print(
-                f"Average time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
-            )
+            results = pool.map(self.play_games, args)
             pool.close()
-            for game in result:
-                self.samples.extend(game[0])
-                self.labels.extend(game[1])
+        time_taken = time.time() - start_time
+        print(
+            f"Total time: {time_taken}\nAverage time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
+        )
+        for game in results:
+            self.samples.extend(game[0])
+            self.labels.extend(game[1])
 
         self.model.fit(
             x=np.array(self.samples),

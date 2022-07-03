@@ -18,6 +18,17 @@ if __name__ == "__main__":
             # Neural net shape is somewhat arbitrary at this point
             # With the number of games tested so far, it seems to simply memorize positions
             Dense(units=80, activation="relu"),
+            Dense(units=90, activation="relu"),
+            Dense(units=100, activation="relu"),
+            Dense(units=110, activation="relu"),
+            Dense(units=120, activation="relu"),
+            Dense(units=130, activation="relu"),
+            Dense(units=140, activation="relu"),
+            Dense(units=130, activation="relu"),
+            Dense(units=120, activation="relu"),
+            Dense(units=110, activation="relu"),
+            Dense(units=100, activation="relu"),
+            Dense(units=90, activation="relu"),
             Dense(units=80, activation="relu"),
             Dense(units=70, activation="relu"),
             Dense(units=1, activation="tanh"),
@@ -29,5 +40,5 @@ if __name__ == "__main__":
     )
     simulator = Simulator(RandomPlayer(), RandomPlayer())
     neural_net = NeuralNet(model, simulator, batch_size=10)
-    neural_net.train_generation(128, 4)
+    neural_net.train_generation(1000, 4)
     neural_net.check()

@@ -90,10 +90,13 @@ class NeuralNet:
         """
         check_file = open(path, "w", encoding="utf-8")
         start_time = time.time()
-        for i, sample in enumerate(self.samples):
-            predictions = self.model.predict(x=np.array([sample]), verbose=0)
-            if len(self.samples) > 10 and i > 0 and i % (len(self.samples) // 10) == 0:
-                print(i / len(self.samples))
+        # predictions = self.model.predict(x=np.array(self.samples), verbose=0)
+        for i in range(len(self.samples) // 64 + 1):
+            predictions = self.model.predict(
+                x=np.array(self.samples[i : min(i + 64, len(self.samples))]), verbose=0
+            )
+            # if len(self.samples) > 10 and i > 0 and i % (len(self.samples) // 10) == 0:
+            #    print(i / len(self.samples))
         time_taken = time.time() - start_time
         print(f"Seconds per prediction: {time_taken/len(self.samples)}")
         # for i, sample in enumerate(self.samples):

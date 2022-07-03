@@ -1,7 +1,9 @@
 import keras
-from keras.models import Sequential
-from keras.layers import Dense
+from keras import Input
+from keras.models import Model, Sequential
+from keras.layers import Activation, Dense, BatchNormalization
 from keras.optimizers import Adam
+from keras import regularizers
 from neuralnet import NeuralNet
 from simulator import Simulator
 from mcplayer import MonteCarloPlayer
@@ -11,34 +13,52 @@ from player import RandomPlayer
 # Would be useful to add command line variables
 if __name__ == "__main__":
 
-    model = Sequential(
-        [
-            # First layer need input_shape 70 for the vector representation of the game state
-            Dense(units=70, input_shape=(70,), activation="relu"),
-            # Neural net shape is somewhat arbitrary at this point
-            # With the number of games tested so far, it seems to simply memorize positions
-            Dense(units=80, activation="relu"),
-            Dense(units=90, activation="relu"),
-            Dense(units=100, activation="relu"),
-            Dense(units=110, activation="relu"),
-            Dense(units=120, activation="relu"),
-            Dense(units=130, activation="relu"),
-            Dense(units=140, activation="relu"),
-            Dense(units=130, activation="relu"),
-            Dense(units=120, activation="relu"),
-            Dense(units=110, activation="relu"),
-            Dense(units=100, activation="relu"),
-            Dense(units=90, activation="relu"),
-            Dense(units=80, activation="relu"),
-            Dense(units=70, activation="relu"),
-            Dense(units=1, activation="tanh"),
-        ]
+    input_layer = Input(shape=(70,))
+    layer_1 = Activation("relu")(
+        BatchNormalization()(
+            Dense(
+                units=70,
+                kernel_regularizer=regularizers.L2(1e-4),
+            )(input_layer)
+        )
     )
+    layer_2 = Activation("relu")(
+        BatchNormalization()(
+            Dense(
+                units=100,
+                kernel_regularizer=regularizers.L2(1e-4),
+            )(layer_1)
+        )
+    )
+    layer_3 = Activation("relu")(
+        BatchNormalization()(
+            Dense(
+                units=120,
+                kernel_regularizer=regularizers.L2(1e-4),
+            )(layer_2)
+        )
+    )
+    layer_4 = Activation("relu")(
+        BatchNormalization()(
+            Dense(
+                units=140,
+                kernel_regularizer=regularizers.L2(1e-4),
+            )(layer_3)
+        )
+    )
+    # Add Gaussian noise? Paper has Dirichlet noise
+    # Try adding Dropout and train with multiple epochs?
+    eval_layer = Dense(units=1, activation="tanh")(layer_4)
+    # Add this later
+    # guide_layer = Dense(units=96, activation="softmax")(layer_4)
+    # Add to this line, too
+    model = Model(inputs=input_layer, outputs=eval_layer)
     model.compile(
-        optimizer=Adam(learning_rate=0.0001),
+        optimizer=Adam(learning_rate=0.01),
         loss=keras.losses.MeanSquaredError(),
     )
     simulator = Simulator(RandomPlayer(), RandomPlayer())
     neural_net = NeuralNet(model, simulator, batch_size=10)
     neural_net.train_generation(1000, 4)
     neural_net.check()
+    print(neural_net.model.compiled_losssummary())

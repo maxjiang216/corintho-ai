@@ -8,8 +8,15 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm).
 - [x] Implement MCTS
 - [x] Optimize legal move generator
 - [x] Add neural network for evaluation
+- [ ] Add embedded layer to neural network for legal move masking
 - [ ] Create Player class with neural network for evaulation and move guider
-- [ ] Add batch evaluation in MCST
+- [ ] Implement concurrent gameplay and batch evaluation for neural network
 - [ ] Make neural network training pipeline
-- [ ] Test hyperparameters
-- [ ] Train neural network using cloud computing
+- [ ] Test hyperparameters (learning rate)
+- [ ] Train neural network
+
+# Possible bonuses
+
+- [ ] Make player share MCTS and game state during training
+- [ ] Test a convolutional network
+- [ ] Test larger models

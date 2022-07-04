@@ -17,6 +17,6 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm).
 
 # Possible bonuses
 
-- [ ] Make player share MCTS and game state during training
+- [ ] Make player share MCST and game state during training
 - [ ] Test a convolutional network
 - [ ] Test larger models

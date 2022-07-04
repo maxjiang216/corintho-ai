@@ -1,6 +1,6 @@
 # corintho-ai
 
-An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm).
+An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses the Alpha Zero Monte Carlo Tree Search and Neural Network position evaluation method.
 
 # To-do
 

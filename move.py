@@ -3,7 +3,7 @@ class Move:
     Represents a move in Corintho
     """
 
-    def __init__(self, id):
+    def __init__(self, move_id):
         """
         int -> Move
         Single ID constructor
@@ -11,35 +11,35 @@ class Move:
         # Place
         self.mtype = False
         # Right
-        if id < 12:
-            self.row1 = id // 3
-            self.col1 = id % 3
+        if move_id < 12:
+            self.row1 = move_id // 3
+            self.col1 = move_id % 3
             self.row2 = self.row1
             self.col2 = self.col1 + 1
         # Down
-        elif id < 24:
-            self.row1 = (id - 12) // 4
-            self.col1 = id % 4
+        elif move_id < 24:
+            self.row1 = (move_id - 12) // 4
+            self.col1 = move_id % 4
             self.row2 = self.row1 + 1
             self.col2 = self.col1
         # Left
-        elif id < 36:
-            self.row1 = (id - 24) // 3
-            self.col1 = id % 3 + 1
+        elif move_id < 36:
+            self.row1 = (move_id - 24) // 3
+            self.col1 = move_id % 3 + 1
             self.row2 = self.row1
             self.col2 = self.col1 - 1
         # Up
-        elif id < 48:
-            self.row1 = (id - 36) // 4 + 1
-            self.col1 = id % 4
+        elif move_id < 48:
+            self.row1 = (move_id - 36) // 4 + 1
+            self.col1 = move_id % 4
             self.row2 = self.row1 - 1
             self.col2 = self.col1
         # Place
         else:
             self.mtype = True
-            self.ptype = (id - 48) // 16
-            self.row = (id % 16) // 4
-            self.row = id % 4
+            self.ptype = (move_id - 48) // 16
+            self.row1 = (move_id % 16) // 4
+            self.col1 = move_id % 4
 
     @staticmethod
     def place(ptype, row, col):
@@ -48,9 +48,9 @@ class Move:
         Get a place move
         """
         out = Move(0)
-        out.ptype = True
-        out.row = row
-        out.col = col
+        out.ptype = ptype
+        out.row1 = row
+        out.col1 = col
         return out
 
     @staticmethod

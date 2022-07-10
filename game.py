@@ -1,5 +1,4 @@
 import numpy as np
-import time
 from copy import deepcopy
 from board import Board
 from move import Move
@@ -69,34 +68,39 @@ class Game:
                         sources = [2]
                     # Move moves
                     for source in sources:
+                        f = lambda x: x
+                        if target > source:
+                            f = lambda x: 48 - x
                         cur.extend(
                             [
-                                Move(False, target, 1, 0, source, 1),
-                                Move(False, target, 2, 0, source, 2),
-                                Move(False, source, 1, 0, target, 1),
-                                Move(False, source, 2, 0, target, 2),
+                                f(12) + 3 * target + 1,  # target, 1, source, 1
+                                f(12) + 3 * target + 2,  # target, 2, source, 2
+                                f(36) + 3 * source + 1,  # source, 1, target, 1
+                                f(36) + 3 * source + 2,  # source, 2, target, 2
                             ]
                         )
                         if line[0][2] == "l":
                             cur.extend(
                                 [
-                                    Move(False, target, 0, 0, source, 0),
-                                    Move(False, source, 0, 0, target, 0),
+                                    f(12) + 3 * target,  # target, 0, source, 0
+                                    f(36) + 3 * source,  # source, 0, target, 0
                                 ]
                             )
                             # Extend
                             if self.board.top(source, 3) == line[1]:
-                                cur.append(Move(False, source, 3, 0, target, 3))
+                                cur.append(
+                                    f(36) + 3 * source + 3
+                                )  # source, 3, target, 3
                         elif line[0][2] == "r":
                             cur.extend(
                                 [
-                                    Move(False, target, 3, 0, source, 3),
-                                    Move(False, source, 3, 0, target, 3),
+                                    f(12) + 3 * target + 3,  # target, 3, source, 3
+                                    f(36) + 3 * source + 3,  # source, 3, target, 3
                                 ]
                             )
                             # Extend
                             if self.board.top(source, 0) == line[1]:
-                                cur.append(Move(False, source, 0, 0, target, 0))
+                                cur.append(f(36) + 3 * source)  # source, 0, target, 0
                     # Place moves, not on capitals
                     if line[1] < 2:
                         cur.extend(

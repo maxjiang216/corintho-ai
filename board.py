@@ -151,7 +151,7 @@ class Board:
         """
         # Place
         if move.mtype:
-            return self.can_place(move.row, move.col, move.ptype)
+            return self.can_place(move.row1, move.col1, move.ptype)
         # Move
         return self.can_move(move.row1, move.col1, move.row2, move.col2)
 
@@ -166,8 +166,8 @@ class Board:
             self.frozen[row] = [False] * 4
         # Place
         if move.mtype:
-            self.spaces[move.row][move.col][move.ptype] = True
-            self.frozen[move.row][move.col] = True
+            self.spaces[move.row1][move.col1][move.ptype] = True
+            self.frozen[move.row1][move.col1] = True
         # Move
         else:
             self.spaces[move.row2][move.col2][0] = (

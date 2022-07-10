@@ -13,7 +13,7 @@ class MoveGuider(ABC):
     def generate(self, game):
         """
         Game -> array
-        Should return an array of probabilities summing to 1
+        Should return an array of size 96 of probabilities summing to 1
         """
         pass
 

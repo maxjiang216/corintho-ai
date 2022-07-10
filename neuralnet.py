@@ -29,14 +29,16 @@ class NeuralNet:
         batch_num = args[2]
         samples = []
         labels = []
+        legal_move_nums = []
         for i in range(num_games):
-            temp_samples, temp_labels = simulator.play_game(train=True)
+            temp_samples, temp_labels, legal_move_num = simulator.play_game(train=True)
             samples.extend(temp_samples)
             labels.extend(temp_labels)
+            legal_move_nums.extend(legal_move_num)
             if num_games > 10 and i > 0 and i % (num_games // 10) == 0:
                 print(f"{i/num_games*100:.1f}% completed batch {batch_num}")
         print(f"Complete batch {batch_num}!")
-        return (samples, labels)
+        return (samples, labels, legal_move_nums)
 
     def train_generation(self, num_games=100, concurrency=10, num_epochs=1):
         """
@@ -54,9 +56,11 @@ class NeuralNet:
             results = pool.map(self.play_games, args)
             pool.close()
         time_taken = time.time() - start_time
+        legal_move_nums = []
         for game in results:
             self.samples.extend(game[0])
             self.labels.extend(game[1])
+            legal_move_nums.extend(game[2])
         print(f"Total time: {time_taken}")
         print(
             f"Average time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"
@@ -65,6 +69,7 @@ class NeuralNet:
         print(
             f"Average moves per game: {len(self.samples)/((num_games // concurrency) * concurrency)}"
         )
+        print(f"Average num legal moves: {np.mean(legal_move_nums)}")
         print(f"Average time per move: {time_taken / len(self.samples)}")
 
         self.model.fit(
@@ -91,12 +96,9 @@ class NeuralNet:
         check_file = open(path, "w", encoding="utf-8")
         start_time = time.time()
         # predictions = self.model.predict(x=np.array(self.samples), verbose=0)
-        for i in range(len(self.samples) // 64 + 1):
-            predictions = self.model.predict(
-                x=np.array(self.samples[i : min(i + 64, len(self.samples))]), verbose=0
-            )
-            # if len(self.samples) > 10 and i > 0 and i % (len(self.samples) // 10) == 0:
-            #    print(i / len(self.samples))
+        predictions = self.model.predict(x=np.array(self.samples), verbose=0)
+        # if len(self.samples) > 10 and i > 0 and i % (len(self.samples) // 10) == 0:
+        #    print(i / len(self.samples))
         time_taken = time.time() - start_time
         print(f"Seconds per prediction: {time_taken/len(self.samples)}")
         # for i, sample in enumerate(self.samples):

@@ -51,6 +51,9 @@ class HumanPlayer(Player):
             legal = move and move in legal_moves
         return move
 
+    def receive_opp_move(self, move):
+        super().receive_opp_move(move)
+
     @staticmethod
     def decode_move(move):
         if len(move) != 3:
@@ -63,7 +66,8 @@ class HumanPlayer(Player):
         else:
             if not (move[0] in "0123" and move[1] in "0123"):
                 return False
-            dx, dy = 0
+            dx = 0
+            dy = 0
             if move[2] == "U":
                 dy = -1
             elif move[2] == "D":

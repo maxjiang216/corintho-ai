@@ -1,9 +1,8 @@
-import keras
-from keras import Input
-from keras.models import Model, Sequential
-from keras.layers import Activation, Dense, BatchNormalization
-from keras.optimizers import Adam
-from keras import regularizers
+import keras.api._v2.keras as keras
+from keras.api._v2.keras import Input, regularizers
+from keras.api._v2.keras.models import Model
+from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
+from keras.api._v2.keras.optimizers import Adam
 from neuralnet import NeuralNet
 from simulator import Simulator
 from mcplayer import MonteCarloPlayer
@@ -17,7 +16,7 @@ if __name__ == "__main__":
     layer_1 = Activation("relu")(
         BatchNormalization()(
             Dense(
-                units=70,
+                units=100,
                 kernel_regularizer=regularizers.L2(1e-4),
             )(input_layer)
         )
@@ -33,7 +32,7 @@ if __name__ == "__main__":
     layer_3 = Activation("relu")(
         BatchNormalization()(
             Dense(
-                units=120,
+                units=100,
                 kernel_regularizer=regularizers.L2(1e-4),
             )(layer_2)
         )
@@ -41,17 +40,16 @@ if __name__ == "__main__":
     layer_4 = Activation("relu")(
         BatchNormalization()(
             Dense(
-                units=140,
+                units=100,
                 kernel_regularizer=regularizers.L2(1e-4),
             )(layer_3)
         )
     )
-    # Add Gaussian noise? Paper has Dirichlet noise
-    # Try adding Dropout and train with multiple epochs?
     eval_layer = Dense(units=1, activation="tanh")(layer_4)
     # Add this later
     # guide_layer = Dense(units=96, activation="softmax")(layer_4)
     # Add to this line, too
+    # Maybe we should split this into two models, since they are called at different times.
     model = Model(inputs=input_layer, outputs=eval_layer)
     model.compile(
         optimizer=Adam(learning_rate=0.01),
@@ -59,6 +57,6 @@ if __name__ == "__main__":
     )
     simulator = Simulator(RandomPlayer(), RandomPlayer())
     neural_net = NeuralNet(model, simulator, batch_size=10)
-    neural_net.train_generation(1000, 4)
+    neural_net.train_generation(500, 8)
     neural_net.check()
-    print(neural_net.model.compiled_losssummary())
+    print(neural_net.model.summary())

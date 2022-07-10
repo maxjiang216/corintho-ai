@@ -97,7 +97,7 @@ class Game:
                             # Extend
                             if self.board.top(source, 0) == line[1]:
                                 cur.append(Move(False, source, 0, 0, target, 0))
-                    # Place moves, not capitals
+                    # Place moves, not on capitals
                     if line[1] < 2:
                         cur.extend(
                             [
@@ -107,13 +107,14 @@ class Game:
                         )
                         if line[0][2] == "l":
                             cur.append(Move(True, target, 0, line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, target, 3, line[1]))
                         elif line[0][2] == "r":
                             cur.append(Move(True, target, 3, line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, target, 0, line[1]))
-                if line[0][0] == "c":
+                    # Place capital, extend
+                    if line[0][2] == "l":
+                        cur.append(Move(True, target, 3, line[1]))
+                    elif line[0][2] == "r":
+                        cur.append(Move(True, target, 0, line[1]))
+                elif line[0][0] == "c":
                     target = int(line[0][1])
                     sources = []
                     if target == 0:
@@ -165,13 +166,14 @@ class Game:
                         )
                         if line[0][2] == "u":
                             cur.append(Move(True, 0, target, line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, 3, target, line[1]))
                         elif line[0][2] == "d":
                             cur.append(Move(True, 3, target, line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, 0, target, line[1]))
-                if line[0][0] == "d":
+                    # Place capital, extend
+                    if line[0][2] == "u":
+                        cur.append(Move(True, 3, target, line[1]))
+                    elif line[0][2] == "d":
+                        cur.append(Move(True, 0, target, line[1]))
+                elif line[0][0] == "d":
                     # Flip column if necessary
                     f = lambda x: x
                     if line[0][1] == "1":
@@ -227,22 +229,23 @@ class Game:
                         )
                         if line[0][2] == "u":
                             cur.append(Move(True, 0, f(0), line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, 3, f(3), line[1]))
                         elif line[0][2] == "d":
                             cur.append(Move(True, 3, f(3), line[1] + 1))
-                            # Extend
-                            cur.append(Move(True, 0, f(0), line[1]))
+                    # Place capital, extend
+                    if line[0][2] == "u":
+                        cur.append(Move(True, 3, f(3), line[1]))
+                    elif line[0][2] == "d":
+                        cur.append(Move(True, 0, f(0), line[1]))
                 # Short diagonals
                 else:
                     # Flip column if necessary
                     f = lambda x: x
-                    if line[0][1] in ["1", "3"]:
+                    if line[0][1] in ["1", "2"]:
                         f = lambda x: 3 - x
                     # Shift down if necessary
                     s = lambda x: x
                     if line[0][1] in ["2", "3"]:
-                        s = lambda x: x + 1
+                        s = lambda x: 3 - x
                     # Move moves
                     cur.extend(
                         [

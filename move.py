@@ -3,25 +3,85 @@ class Move:
     Represents a move in Corintho
     """
 
-    def __init__(self, mtype, row1, col1, ptype=0, row2=0, col2=0):
+    def __init__(self, id):
         """
-        bool,int,int(,int,int,int)
+        int -> Move
+        Single ID constructor
         """
-        self.mtype = mtype
         # Place
-        if mtype:
-            self.ptype = int(ptype)
-            self.row1 = row1
-            self.col1 = col1
-            self.row2 = 0
-            self.col2 = 0
-        # Move
+        self.mtype = False
+        # Right
+        if id < 12:
+            self.row1 = id // 3
+            self.col1 = id % 3
+            self.row2 = self.row1
+            self.col2 = self.col1 + 1
+        # Down
+        elif id < 24:
+            self.row1 = (id - 12) // 4
+            self.col1 = id % 4
+            self.row2 = self.row1 + 1
+            self.col2 = self.col1
+        # Left
+        elif id < 36:
+            self.row1 = (id - 24) // 3
+            self.col1 = id % 3 + 1
+            self.row2 = self.row1
+            self.col2 = self.col1 - 1
+        # Up
+        elif id < 48:
+            self.row1 = (id - 36) // 4 + 1
+            self.col1 = id % 4
+            self.row2 = self.row1 - 1
+            self.col2 = self.col1
+        # Place
         else:
-            self.row1 = row1
-            self.col1 = col1
-            self.row2 = row2
-            self.col2 = col2
-            self.ptype = 0
+            self.mtype = True
+            self.ptype = (id - 48) // 16
+            self.row1 = (id % 16) // 4
+            self.row1 = id % 4
+        # "Normal" constructor
+        else:
+            self.mtype = kwargs["mtype"]
+            # Place
+            if mtype:
+                self.ptype = int(ptype)
+                self.row1 = row1
+                self.col1 = col1
+                self.row2 = 0
+                self.col2 = 0
+            # Move
+            else:
+                self.row1 = row1
+                self.col1 = col1
+                self.row2 = row2
+                self.col2 = col2
+                self.ptype = 0
+
+    @staticmethod
+    def place(ptype, row1, col1):
+        """
+        bool,int,int -> Move
+        Get a place move
+        """
+        out = Move(0)
+        out.ptype = True
+        out.row1 = row1
+        out.col1 = col1
+        return out
+
+    @staticmethod
+    def move(row1, col1, row2, col2):
+        """
+        int,int,int,int -> Move
+        Get a move move
+        """
+        out = Move(0)
+        out.row1 = row1
+        out.col1 = col1
+        out.row2 = row2
+        out.col2 = col2
+        return out
 
     def __eq__(self, obj):
         if self.mtype != obj.mtype:

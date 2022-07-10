@@ -16,13 +16,21 @@ class Simulator:
         if train:
             samples = []
         while True:
-            samples.append(game.get_vector())
-            move = self.players[game.to_play].get_move(game, game.get_legal_moves())
+            if train:
+                samples.append(game.get_vector())
+            legal_moves = game.get_legal_moves()
+            out = ""
+            for move in legal_moves:
+                out += str(move) + " "
+            print(out)
+            print(game.board.lines)
+            move = self.players[game.to_play].get_move(game, legal_moves)
             self.players[1 - game.to_play].receive_opp_move(move)
             result = game.do_move(move)
             if result is not None:
                 if train:
-                    return [sample for sample in samples], [
-                        result * (-1) ** i for i in range(len(samples))
-                    ]
+                    return (
+                        [sample for sample in samples],
+                        [result * (-1) ** i for i in range(len(samples))],
+                    )
                 return result

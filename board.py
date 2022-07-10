@@ -1,6 +1,4 @@
-from ast import Index
 import numpy as np
-import time
 
 
 class Board:
@@ -19,7 +17,7 @@ class Board:
             self.spaces.append(temp_row)
         # Frozen spaces, defult to only give 3 spaces to prevent symmetry
         self.frozen = []
-        for row in range(4):
+        for _ in range(4):
             self.frozen.append([True] * 4)
         self.frozen[0][0] = False
         self.frozen[0][1] = False
@@ -98,7 +96,7 @@ class Board:
                 return i
         return -1
 
-    def can_place(self, row, col, ptype):
+    def can_place(self, ptype, row, col):
         """
         int,int,int -> bool
         Returns whether a piece of ptype
@@ -126,19 +124,8 @@ class Board:
         Returns whether it is legal to move
         the stack at (row1,col1) to (row2,col2)
         """
-        try:
-            # Frozen spaces
-            if self.frozen[row1][col1] or self.frozen[row2][col2]:
-                return False
-        except:
-            print(self.frozen)
-            print(row1)
-            print(col1)
-            print(row2)
-            print(col2)
-            return False
-        # Orthogonally adjacent spaces
-        if abs(row1 - row2) + abs(col1 - col2) != 1:
+        # Frozen spaces
+        if self.frozen[row1][col1] or self.frozen[row2][col2]:
             return False
         # Empty spaces
         if self.is_empty(row2, col2):
@@ -164,7 +151,7 @@ class Board:
         """
         # Place
         if move.mtype:
-            return self.can_place(move.row1, move.col1, move.ptype)
+            return self.can_place(move.row, move.col, move.ptype)
         # Move
         return self.can_move(move.row1, move.col1, move.row2, move.col2)
 
@@ -179,8 +166,8 @@ class Board:
             self.frozen[row] = [False] * 4
         # Place
         if move.mtype:
-            self.spaces[move.row1][move.col1][move.ptype] = True
-            self.frozen[move.row1][move.col1] = True
+            self.spaces[move.row][move.col][move.ptype] = True
+            self.frozen[move.row][move.col] = True
         # Move
         else:
             self.spaces[move.row2][move.col2][0] = (

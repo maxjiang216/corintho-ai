@@ -38,36 +38,19 @@ class Move:
         else:
             self.mtype = True
             self.ptype = (id - 48) // 16
-            self.row1 = (id % 16) // 4
-            self.row1 = id % 4
-        # "Normal" constructor
-        else:
-            self.mtype = kwargs["mtype"]
-            # Place
-            if mtype:
-                self.ptype = int(ptype)
-                self.row1 = row1
-                self.col1 = col1
-                self.row2 = 0
-                self.col2 = 0
-            # Move
-            else:
-                self.row1 = row1
-                self.col1 = col1
-                self.row2 = row2
-                self.col2 = col2
-                self.ptype = 0
+            self.row = (id % 16) // 4
+            self.row = id % 4
 
     @staticmethod
-    def place(ptype, row1, col1):
+    def place(ptype, row, col):
         """
         bool,int,int -> Move
         Get a place move
         """
         out = Move(0)
         out.ptype = True
-        out.row1 = row1
-        out.col1 = col1
+        out.row = row
+        out.col = col
         return out
 
     @staticmethod

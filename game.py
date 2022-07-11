@@ -68,57 +68,58 @@ class Game:
                         sources = [2]
                     # Move moves
                     for source in sources:
-                        f = lambda x: x
+                        f = lambda x, y, z: x + 4 * y + z
                         if target > source:
-                            f = lambda x: 48 - x
+                            f = lambda x, y, z: (48 - x) + 4 * (x - 1) + z
                         cur.extend(
                             [
-                                f(12) + 3 * target + 1,  # target, 1, source, 1
-                                f(12) + 3 * target + 2,  # target, 2, source, 2
-                                f(36) + 3 * source + 1,  # source, 1, target, 1
-                                f(36) + 3 * source + 2,  # source, 2, target, 2
+                                f(12, target, 1),
+                                f(12, target, 2),
+                                f(36, source, 1),
+                                f(36, source, 2),
                             ]
                         )
                         if line[0][2] == "l":
                             cur.extend(
                                 [
-                                    f(12) + 3 * target,  # target, 0, source, 0
-                                    f(36) + 3 * source,  # source, 0, target, 0
+                                    f(12, target, 0),
+                                    f(36, source, 0),
                                 ]
                             )
                             # Extend
                             if self.board.top(source, 3) == line[1]:
-                                cur.append(
-                                    f(36) + 3 * source + 3
-                                )  # source, 3, target, 3
+                                cur.append(f(36, source, 3))
                         elif line[0][2] == "r":
                             cur.extend(
                                 [
-                                    f(12) + 3 * target + 3,  # target, 3, source, 3
-                                    f(36) + 3 * source + 3,  # source, 3, target, 3
+                                    f(12, target, 3),
+                                    f(36, source, 3),
                                 ]
                             )
                             # Extend
                             if self.board.top(source, 0) == line[1]:
-                                cur.append(f(36) + 3 * source)  # source, 0, target, 0
+                                cur.append(f(36, source, 0))
+                    if line[0][2] == "l":
+                        cur.append(target * 3 + 2)
+                    elif line[0][2] == "r":
+                        cur.append(24 + target * 3)
                     # Place moves, not on capitals
                     if line[1] < 2:
                         cur.extend(
                             [
-                                Move(True, target, 1, line[1] + 1),
-                                Move(True, target, 2, line[1] + 1),
+                                48 + (line[1] + 1) * 16 + target * 4 + 1,
+                                48 + (line[1] + 1) * 16 + target * 4 + 2,
                             ]
                         )
                         if line[0][2] == "l":
-                            cur.append(Move(True, target, 0, line[1] + 1))
+                            cur.append(48 + (line[1] + 1) * 16 + target * 4)
                         elif line[0][2] == "r":
-                            cur.append(Move(True, target, 3, line[1] + 1))
+                            cur.append(48 + (line[1] + 1) * 16 + target * 4 + 3)
                     # Place capital, extend
                     if line[0][2] == "l":
-                        cur.append(Move(True, target, 3, line[1]))
+                        cur.append(48 + line[1] * 16 + target * 4 + 3)
                     elif line[0][2] == "r":
-                        cur.append(Move(True, target, 0, line[1]))
-                elif line[0][0] == "c":
+                        cur.append(48 + line[1] * 16 + target * 4)
                     target = int(line[0][1])
                     sources = []
                     if target == 0:
@@ -132,67 +133,76 @@ class Game:
                         sources = [2]
                     # Move moves
                     for source in sources:
+                        f = lambda x, y, z: x + 3 * y + z
+                        if target > source:
+                            f = lambda x, y, z: (24 - x) + 3 * y + (z - 1)
                         cur.extend(
                             [
-                                Move(False, 1, target, 0, 1, source),
-                                Move(False, 2, target, 0, 2, source),
-                                Move(False, 1, source, 0, 1, target),
-                                Move(False, 2, source, 0, 2, target),
+                                f(0, 1, target),
+                                f(0, 2, target),
+                                f(24, 1, source),
+                                f(24, 2, source),
                             ]
                         )
                         if line[0][2] == "u":
                             cur.extend(
                                 [
-                                    Move(False, 0, target, 0, 0, source),
-                                    Move(False, 0, source, 0, 0, target),
+                                    f(0, 0, target),
+                                    f(24, 0, source),
                                 ]
                             )
                             # Extend
                             if self.board.top(3, source) == line[1]:
-                                cur.append(Move(False, 3, source, 0, 3, target))
+                                cur.append(f(24, 3, source))
                         elif line[0][2] == "d":
                             cur.extend(
                                 [
-                                    Move(False, 3, target, 0, 3, source),
-                                    Move(False, 3, source, 0, 3, target),
+                                    f(0, 3, target),
+                                    f(24, 3, source),
                                 ]
                             )
                             # Extend
                             if self.board.top(0, source) == line[1]:
-                                cur.append(Move(False, 0, source, 0, 0, target))
-                    # Place moves, not capitals
+                                cur.append(f(24, 0, source))
+                    if line[0][2] == "u":
+                        cur.append(12 + 2 * 3 + target)
+                    elif line[0][2] == "r":
+                        cur.append(36 + 0 * 3 + target)
+                    # Place moves, not on capitals
                     if line[1] < 2:
                         cur.extend(
                             [
-                                Move(True, 1, target, line[1] + 1),
-                                Move(True, 2, target, line[1] + 1),
+                                48 + 16 * (line[1] + 1) + 1 * 3 + target,
+                                48 + (line[1] + 1) * 16 + 2 * 3 + target,
                             ]
                         )
                         if line[0][2] == "u":
-                            cur.append(Move(True, 0, target, line[1] + 1))
+                            cur.append(48 + (line[1] + 1) * 16 + 0 * 3 + target)
                         elif line[0][2] == "d":
-                            cur.append(Move(True, 3, target, line[1] + 1))
+                            cur.append(48 + (line[1] + 1) * 16 + 3 * 3 + target)
                     # Place capital, extend
                     if line[0][2] == "u":
-                        cur.append(Move(True, 3, target, line[1]))
+                        cur.append(48 + line[1] * 16 + 3 * 3 + target)
                     elif line[0][2] == "d":
-                        cur.append(Move(True, 0, target, line[1]))
+                        cur.append(48 + line[1] * 16 + 0 * 3 + target)
                 elif line[0][0] == "d":
                     # Flip column if necessary
-                    f = lambda x: x
+                    f = lambda x, y, z: x + y * 3 + z
+                    s = lambda x: x
                     if line[0][1] == "1":
-                        f = lambda x: 3 - x
+                        f = lambda x: (24 - x) + y * 3 + ((3 - x) - 1)
+                        s = lambda x: 3 - x
                     # Move moves
                     cur.extend(
                         [
-                            Move(False, 1, f(1), 0, 0, f(1)),
-                            Move(False, 1, f(1), 0, 1, f(2)),
-                            Move(False, 1, f(1), 0, 2, f(1)),
-                            Move(False, 1, f(1), 0, 1, f(0)),
-                            Move(False, 0, f(1), 0, 1, f(1)),
-                            Move(False, 1, f(2), 0, 1, f(1)),
-                            Move(False, 2, f(1), 0, 1, f(1)),
-                            Move(False, 1, f(0), 0, 1, f(1)),
+                            36 + 1 * 4 + s(1),
+                            f(0, 1, 1),
+                            12 + 1 * 4 + s(1),
+                            f(24, 1, 1),
+                            12 + 0 * 4 + s(1),
+                            f(24, 1, 2),
+                            36 + 2 * 4 + s(1),
+                            f(0, 1, 0),
                         ]
                     )
                     if line[0][2] == "u":

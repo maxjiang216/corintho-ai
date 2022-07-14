@@ -66,6 +66,24 @@ class Move:
         out.col2 = col2
         return out
 
+    @staticmethod
+    def encode_place(ptype, row, col):
+        return int(48 + ptype * 16 + row * 4 + col)
+
+    @staticmethod
+    def encode_move(row1, col1, row2, col2):
+        # Right
+        if col1 < col2:
+            return row1 * 3 + col1
+        # Down
+        if row1 < row2:
+            return 12 + row1 * 4 + col1
+        # Left
+        if col1 > col2:
+            return 24 + row1 * 3 + (col1 - 1)
+        # Up
+        return 36 + (row1 - 1) * 3 + col1
+
     def __eq__(self, obj):
         if self.mtype != obj.mtype:
             return False

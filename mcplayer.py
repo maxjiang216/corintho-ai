@@ -18,7 +18,7 @@ class MonteCarloPlayer(Player):
 
     def get_move(self, game, legal_moves):
         # first query or new game
-        if self.tree is None or self.tree.root.moves != legal_moves:
+        if self.tree is None:
             self.tree = MonteCarlo(
                 Node(game, self.evaluator.evaluate(game)),
                 self.evaluator,

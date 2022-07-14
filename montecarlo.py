@@ -1,6 +1,5 @@
 import numpy as np
 from copy import deepcopy
-from move import Move
 
 
 class Node:
@@ -120,7 +119,7 @@ class MonteCarlo:
             # Exploring new node
             if node.children[move_choice] is None:
                 new_game = deepcopy(node.game)
-                new_game.do_move(Move(node.moves[move_choice]))
+                new_game.do_move(node.moves[move_choice])
                 new_evaluation = self.evaluator.evaluate(new_game)
                 node.children[move_choice] = Node(
                     new_game,

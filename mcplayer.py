@@ -1,4 +1,5 @@
 from player import Player
+from move import Move
 from montecarlo import MonteCarlo, Node
 from evaluator import RandomEvaluator
 from moveguider import UniformGuider

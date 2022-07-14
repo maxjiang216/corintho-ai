@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from move import Move
 
 
 class Node:
@@ -85,7 +86,11 @@ class MonteCarlo:
         Search a node
         """
         if node.moves is None:
-            node.moves = node.game.get_legal_moves()
+            node.moves = []
+            legal_moves = node.game.get_legal_moves()
+            for i in range(96):
+                if legal_moves[i] > 0:
+                    node.moves.append(i)
             node.probabilities = self.move_guider.generate(node.game)
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)
@@ -115,7 +120,7 @@ class MonteCarlo:
             # Exploring new node
             if node.children[move_choice] is None:
                 new_game = deepcopy(node.game)
-                new_game.do_move(node.moves[move_choice])
+                new_game.do_move(Move(node.moves[move_choice]))
                 new_evaluation = self.evaluator.evaluate(new_game)
                 node.children[move_choice] = Node(
                     new_game,

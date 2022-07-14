@@ -19,11 +19,7 @@ class Simulator:
             if train:
                 samples.append(game.get_vector())
             legal_moves = game.get_legal_moves()
-            out = ""
-            for move in legal_moves:
-                out += str(move) + " "
-            print(out)
-            print(game.board.lines)
+            print(legal_moves)
             move = self.players[game.to_play].get_move(game, legal_moves)
             self.players[1 - game.to_play].receive_opp_move(move)
             result = game.do_move(move)

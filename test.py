@@ -6,6 +6,9 @@ from game import Game
 from neuralnet import NeuralNet
 import multiprocessing as mp
 
+simulator = Simulator(MonteCarloPlayer(60), MonteCarloPlayer(60))
+simulator.play_game()
+
 if __name__ == "__main__":
     import keras
     from keras.models import Sequential

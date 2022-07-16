@@ -3,10 +3,10 @@ from keras.api._v2.keras import Input, regularizers
 from keras.api._v2.keras.models import Model
 from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
-from neuralnet import NeuralNet
-from simulator import Simulator
-from mcplayer import MonteCarloPlayer
-from player import RandomPlayer
+from neural.neuralnet import NeuralNet
+from implement.simulator import Simulator
+from mc.mcplayer import MonteCarloPlayer
+from implement.player import RandomPlayer
 
 # Seems to be important guard to avoid some kind of infinite recursion
 # Would be useful to add command line variables

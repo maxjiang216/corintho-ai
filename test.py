@@ -1,9 +1,9 @@
-from montecarlo import MonteCarlo
-from simulator import Simulator
-from player import RandomPlayer, HumanPlayer
-from mcplayer import MonteCarloPlayer
-from game import Game
-from neuralnet import NeuralNet
+from mc.montecarlo import MonteCarlo
+from implement.simulator import Simulator
+from implement.player import RandomPlayer, HumanPlayer
+from mc.mcplayer import MonteCarloPlayer
+from implement.game import Game
+from neural.neuralnet import NeuralNet
 import multiprocessing as mp
 
 simulator = Simulator(MonteCarloPlayer(60), MonteCarloPlayer(60))

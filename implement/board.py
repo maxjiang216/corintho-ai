@@ -1,4 +1,5 @@
 import numpy as np
+from implement.move import Move
 
 
 class Board:
@@ -151,7 +152,7 @@ class Board:
         """
         # Place
         if move.mtype:
-            return self.can_place(move.row1, move.col1, move.ptype)
+            return self.can_place(move.ptype, move.row1, move.col1)
         # Move
         return self.can_move(move.row1, move.col1, move.row2, move.col2)
 

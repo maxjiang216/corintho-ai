@@ -1,6 +1,6 @@
-from simulator import Simulator
-from mcplayer import MonteCarloPlayer
-from player import RandomPlayer, HumanPlayer
+from implement.simulator import Simulator
+from mc.mcplayer import MonteCarloPlayer
+from implement.player import RandomPlayer, HumanPlayer
 
-simulator = Simulator(HumanPlayer(), MonteCarloPlayer(2400))
+simulator = Simulator(HumanPlayer(), RandomPlayer())
 simulator.play_game()

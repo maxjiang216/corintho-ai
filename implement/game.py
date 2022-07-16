@@ -1,7 +1,7 @@
 import numpy as np
 from copy import deepcopy
-from board import Board
-from move import Move
+from implement.board import Board
+from implement.move import Move
 
 
 class Game:
@@ -32,7 +32,7 @@ class Game:
         # Place
         if move.mtype:
             if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
-                move.row1, move.col1, move.ptype
+                move.ptype, move.row1, move.col1
             ):
                 return False
             return True

@@ -1,5 +1,5 @@
-from game import Game
-from move import Move
+from implement.game import Game
+from implement.move import Move
 
 
 class Simulator:

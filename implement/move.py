@@ -8,7 +8,7 @@ class Move:
         int -> Move
         Single ID constructor
         """
-        # Place
+        # Move
         self.mtype = False
         # Right
         if move_id < 12:
@@ -47,7 +47,9 @@ class Move:
         bool,int,int -> Move
         Get a place move
         """
+        print(ptype)
         out = Move(0)
+        out.mtype = True
         out.ptype = ptype
         out.row1 = row
         out.col1 = col
@@ -83,54 +85,6 @@ class Move:
             return 24 + row1 * 3 + (col1 - 1)
         # Up
         return 36 + (row1 - 1) * 3 + col1
-
-    def __eq__(self, obj):
-        if self.mtype != obj.mtype:
-            return False
-        # Place
-        if self.mtype:
-            return (
-                self.ptype == obj.ptype
-                and self.row1 == obj.row1
-                and self.col1 == obj.col1
-            )
-        return (
-            self.row1 == obj.row1
-            and self.col1 == obj.col1
-            and self.row2 == obj.row2
-            and self.col2 == obj.col2
-        )
-
-    def __key(self):
-        return (self.mtype, self.row1, self.col1, self.ptype, self.row2, self.col2)
-
-    def __hash__(self):
-        return hash(self.__key())
-
-    def __lt__(self, obj):
-        if self.mtype and not obj.mtype:
-            return True
-        if not self.mtype and obj.mtype:
-            return False
-        if self.row1 < obj.row1:
-            return True
-        if self.row1 > obj.row1:
-            return False
-        if self.col1 < obj.col1:
-            return True
-        if self.col1 > obj.col1:
-            return False
-        if self.mtype:
-            if self.ptype < obj.ptype:
-                return True
-            return False
-        if self.row2 < obj.row2:
-            return True
-        if self.row2 > obj.row2:
-            return False
-        if self.col2 < obj.col2:
-            return True
-        return False
 
     def __str__(self):
         """

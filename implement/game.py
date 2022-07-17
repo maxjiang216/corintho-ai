@@ -48,7 +48,7 @@ class Game:
         lines = self.board.lines
         # More than 2 lines, no legal moves
         if len(lines) > 2:
-            return []
+            return np.zeros(96)
         moves = np.ones(96)
         # Need to break / extend lines
         if len(lines) > 0:
@@ -236,7 +236,7 @@ class Game:
                 if len(moves) == 0:
                     moves = cur
                 else:
-                    for i, move in enumerate(moves):
+                    for i, move in enumerate(cur):
                         if not move:
                             moves[i] = 0
         legal_moves = np.zeros(96)
@@ -263,7 +263,7 @@ class Game:
         self.board.do_move(move)
         self.to_play = 1 - self.to_play
         # Previous player win
-        if len(self.get_legal_moves()) == 0:
+        if max(self.get_legal_moves()) == 0:
             if len(self.board.lines) > 0:
                 self.outcome = 2 * self.to_play - 1
             else:

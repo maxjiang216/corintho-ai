@@ -47,7 +47,6 @@ class Move:
         bool,int,int -> Move
         Get a place move
         """
-        print(ptype)
         out = Move(0)
         out.mtype = True
         out.ptype = ptype
@@ -84,7 +83,7 @@ class Move:
         if col1 > col2:
             return 24 + row1 * 3 + (col1 - 1)
         # Up
-        return 36 + (row1 - 1) * 3 + col1
+        return 36 + (row1 - 1) * 4 + col1
 
     def __str__(self):
         """

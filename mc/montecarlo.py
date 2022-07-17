@@ -58,7 +58,6 @@ class MonteCarlo:
                 move_choices = [i]
             elif u == max_value:
                 move_choices.append(i)
-
         move_choice = self.rng.choice(move_choices)
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
@@ -74,10 +73,12 @@ class MonteCarlo:
             new_game = deepcopy(self.root.game)
             new_game.do_move(self.root.moves[move_choice])
             new_evaluation = self.evaluator.evaluate(new_game)
-            self.root.children[move_choice] = Node(
+            self.root = Node(
                 new_game,
                 new_evaluation,
             )
+        else:
+            self.root = self.root.children[move_choice]
 
     def search(self, node):
         """

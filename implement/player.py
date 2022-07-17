@@ -27,7 +27,11 @@ class RandomPlayer(Player):
         super().__init__()
 
     def get_move(self, game, legal_moves):
-        move = self.rng.choice(legal_moves)
+        choices = []
+        for i, legal in enumerate(legal_moves):
+            if legal:
+                choices.append(i)
+        move = self.rng.choice(choices)
         return move
 
     def receive_opp_move(self, move):

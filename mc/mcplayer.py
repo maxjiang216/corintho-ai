@@ -20,7 +20,7 @@ class MonteCarloPlayer(Player):
         # first query or new game
         if self.tree is None:
             self.tree = MonteCarlo(
-                Node(game, self.evaluator.evaluate(game)),
+                Node(game, self.evaluator.evaluate(game), 0),
                 self.evaluator,
                 self.move_guider,
                 iterations=self.iterations,

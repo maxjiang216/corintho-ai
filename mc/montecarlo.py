@@ -7,14 +7,16 @@ class Node:
     Node in Monte Carlo Search Tree
     """
 
-    def __init__(self, game, evaluation):
+    def __init__(self, game, evaluation, depth):
         self.game = game
         self.searches = 1
         self.evaluation = evaluation
+        self.depth = depth
         self.moves = None
         self.probabilities = None
         self.children = None
         self.visits = None
+        self.noise = None
 
     def string(self, n):
         out = "(" + str(self.evaluation)
@@ -31,12 +33,15 @@ class MonteCarlo:
     Monte Carlo Search Tree with user-defined position evaulator
     """
 
-    def __init__(self, root, evaluator, move_guider, c_puct=1, iterations=600):
+    def __init__(
+        self, root, evaluator, move_guider, iterations=600, c_puct=1, epsilon=0.25
+    ):
         self.root = root
         self.evaluator = evaluator
         self.move_guider = move_guider
-        self.c_puct = c_puct
         self.iterations = iterations
+        self.c_puct = c_puct
+        self.epsilon = epsilon
         self.rng = np.random.Generator(np.random.PCG64())
 
     def choose_move(self):
@@ -47,18 +52,26 @@ class MonteCarlo:
         """
         for i in range(self.iterations):
             self.search(self.root)
-        max_value = 0
-        move_choices = []
-        for i in range(len(self.root.moves)):
-            u = 0
-            if self.root.children[i] is not None:
-                u = self.root.visits[i]
-            if u > max_value:
-                max_value = u
-                move_choices = [i]
-            elif u == max_value:
-                move_choices.append(i)
-        move_choice = self.rng.choice(move_choices)
+        move_choice = None
+        # Choose with weighted random for the first 2 moves from each player (temperature = 1)
+        if self.root.depth < 4:
+            move_choice = self.rng.choice(
+                len(self.root.moves), p=self.root.visits / sum(self.root.visits)
+            )
+        # Otherwise, choose randomly between the moves with the most visits/searches
+        else:
+            max_value = self.root.visits[0]
+            move_choices = [0]
+            for i in range(1, len(self.root.moves)):
+                visits = 0
+                if self.root.children[i] is not None:
+                    visits = self.root.visits[i]
+                if visits > max_value:
+                    max_value = visits
+                    move_choices = [i]
+                elif visits == max_value:
+                    move_choices.append(i)
+            move_choice = self.rng.choice(move_choices)
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
         return move
@@ -76,6 +89,7 @@ class MonteCarlo:
             self.root = Node(
                 new_game,
                 new_evaluation,
+                self.root.depth + 1,
             )
         else:
             self.root = self.root.children[move_choice]
@@ -94,6 +108,7 @@ class MonteCarlo:
             node.probabilities = self.move_guider.generate(node.game)
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)
+            node.noise = self.rng.dirichlet(np.full(len(node.moves), 0.3))
 
         # Result of search
         new_evaluation = 0
@@ -109,7 +124,7 @@ class MonteCarlo:
                 else:
                     u = -1 * node.children[i].evaluation / node.children[i].searches + (
                         self.c_puct
-                        * node.probabilities[i]
+                        * ((1 - self.epsilon) * node.probabilities[i] + node.noise[i])
                         * np.sqrt(node.searches - 1)
                         / (node.children[i].searches + 1)
                     )
@@ -125,6 +140,7 @@ class MonteCarlo:
                 node.children[move_choice] = Node(
                     new_game,
                     new_evaluation,
+                    node.depth + 1,
                 )
             else:
                 new_evaluation = self.search(node.children[move_choice])

@@ -10,7 +10,7 @@ class MonteCarloPlayer(Player):
     Player using Monte Carlo Search Tree with used defined evaluator
     """
 
-    def __init__(self, iterations=600):
+    def __init__(self, iterations=200):
         self.tree = None
         self.evaluator = RandomEvaluator()
         self.move_guider = UniformGuider()

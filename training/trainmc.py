@@ -74,9 +74,9 @@ class TrainMC:
                         move_choice = id
             move = self.root.moves[move_choice]
             self.root = self.root.children[move_choice]
-            return ("move", move)
+            return ("move", move, move_choice)
 
-    def force_move(self, move_choice, probabilities=None):
+    def receive_opp_move(self, move_choice, probabilities=None):
         """
         Force choose a move
         Used for opponent's moves
@@ -160,7 +160,7 @@ class TrainMC:
                 # Prepare to update the new node with received evaluations
                 self.cur_node = node.children[move_choice]
                 # Request evaluations
-                return True
+                return (True, node.game.get_vector())
             # Explore child node
             else:
                 return self.search(node.children[move_choice])
@@ -168,15 +168,12 @@ class TrainMC:
         # Terminal node
         # Determine result if needed
         if node.evaluation is None:
-            # Lines on board, last player win
-            if len(node.game.board.lines) > 0:
-                node.evaluation = -1 * (2 * node.game.to_play - 1)
-            else:
-                node.evaluation = 2 * node.game.to_play - 1
+            # This should not be None
+            node.evaluation = node.game.outcome
         # Propagate evaluation to parent nodes
         while node.parent is not None:
             node.parent.evaluation += node.evaluation * -1
             node = node.parent
 
         # No evaluation needed
-        return False
+        return (False,)

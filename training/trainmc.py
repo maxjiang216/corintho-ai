@@ -7,26 +7,17 @@ class Node:
     Node in Monte Carlo Search Tree
     """
 
-    def __init__(self, game, depth, parent=None):
+    def __init__(self, game, depth, parent=None, probabilities=None):
         self.game = game
         self.searches = 1
         self.evaluation = 0
         self.depth = depth
         self.parent = parent
         self.moves = None
-        self.probabilities = None
+        self.probabilities = probabilities
         self.children = None
         self.visits = None
         self.noise = None
-
-    def string(self, n):
-        out = "(" + str(self.evaluation)
-        if self.children is not None:
-            for child in self.children:
-                if child is not None:
-                    out += "\n" + " " * n + child.string(n + 1)
-        out += ")"
-        return out
 
 
 class TrainMC:
@@ -38,6 +29,7 @@ class TrainMC:
     def __init__(self, root, iterations=200, c_puct=1, epsilon=0.25):
         self.root = root
         self.iterations = iterations
+        self.iterations_done = 0
         self.c_puct = c_puct
         self.epsilon = epsilon
         self.rng = np.random.Generator(np.random.PCG64())
@@ -45,37 +37,46 @@ class TrainMC:
         self.cur_node = None
 
     def choose_move(self, evaluations=None):
-        """ """
+        """
+        Runs one search or chooses a move
+        If search is run, ("eval", bool) is returned
+        where bool indicates whether an evaluation is requested
+        Otherwise, ("move", move) is returns, where move is the chosen move
+        """
         # Result to request for evaluations
         if evaluations is not None:
-            
-        for i in range(self.iterations):
-            self.search(self.root)
-        move_choice = None
-        # Choose with weighted random for the first 2 moves from each player (temperature = 1)
-        if self.root.depth < 4:
-            move_choice = self.rng.choice(
-                len(self.root.moves), p=self.root.visits / sum(self.root.visits)
-            )
-        # Otherwise, choose randomly between the moves with the most visits/searches
-        else:
-            max_value = self.root.visits[0]
-            move_choices = [0]
-            for i in range(1, len(self.root.moves)):
-                visits = 0
-                if self.root.children[i] is not None:
-                    visits = self.root.visits[i]
-                if visits > max_value:
-                    max_value = visits
-                    move_choices = [i]
-                elif visits == max_value:
-                    move_choices.append(i)
-            move_choice = self.rng.choice(move_choices)
-        move = self.root.moves[move_choice]
-        self.root = self.root.children[move_choice]
-        return move
+            self.receive_evaluations(evaluations)
 
-    def force_move(self, move_choice):
+        # If we have not done enough searches, search again
+        if self.iterations_done < self.iterations:
+            return ("eval", self.search(self.root))
+        # Otherwise, choose a move
+        else:
+            move_choice = None
+            # Choose with weighted random for the first 2 moves from each player (temperature = 1)
+            if self.root.depth < 4:
+                move_choice = self.rng.choice(
+                    len(self.root.moves), p=self.root.visits / sum(self.root.visits)
+                )
+            # Otherwise, choose randomly between the moves with the most visits/searches
+            else:
+                max_value = -2
+                move_choice = 0
+                # Start on random index to ensure random selection in case of ties
+                start = self.rng.randint(0, len(self.root.moves))
+                for i in range(len(self.root.moves)):
+                    id = (i + start) % len(self.root.moves)
+                    visits = 0
+                    if self.root.children[id] is not None:
+                        visits = self.root.visits[id]
+                    if visits > max_value:
+                        max_value = visits
+                        move_choice = id
+            move = self.root.moves[move_choice]
+            self.root = self.root.children[move_choice]
+            return ("move", move)
+
+    def force_move(self, move_choice, probabilities=None):
         """
         Force choose a move
         Used for opponent's moves
@@ -84,20 +85,19 @@ class TrainMC:
         if self.root.children[move_choice] is None:
             new_game = deepcopy(self.root.game)
             new_game.do_move(self.root.moves[move_choice])
-            new_evaluation = self.evaluator.evaluate(new_game)
             self.root = Node(
                 new_game,
-                new_evaluation,
                 self.root.depth + 1,
+                probabilities=probabilities,
             )
         else:
             self.root = self.root.children[move_choice]
 
     def receive_evaluations(self, evaluations):
-        '''
+        """
         array ->
         Update nodes with newly received evaluations
-        '''
+        """
         self.cur_node.evaluation = evaluations[0]
         self.cur_node.probabilities = evaluations[1]
         # Propagate evaluation to parent nodes
@@ -121,7 +121,6 @@ class TrainMC:
             for i in range(96):
                 if legal_moves[i] > 0:
                     node.moves.append(i)
-            node.probabilities = self.move_guider.generate(node.game)
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)
             node.noise = self.rng.dirichlet(np.full(len(node.moves), 0.3))
@@ -146,6 +145,7 @@ class TrainMC:
                     max_value = u
                     move_choice = i
 
+            # Record visit
             node.visits[move_choice] += 1
 
             # Exploring new node
@@ -161,14 +161,22 @@ class TrainMC:
                 self.cur_node = node.children[move_choice]
                 # Request evaluations
                 return True
+            # Explore child node
             else:
-                self.search(node.children[move_choice])
+                return self.search(node.children[move_choice])
 
         # Terminal node
-        else:
-            # Propagate evaluation to parent nodes
-            while self.cur_node.parent is not None:
-                self.cur_node.parent.evaluation += self.cur_node.evaluation * -1
-                self.cur_node = self.cur_node.parent
+        # Determine result if needed
+        if node.evaluation is None:
+            # Lines on board, last player win
+            if len(node.game.board.lines) > 0:
+                node.evaluation = -1 * (2 * node.game.to_play - 1)
+            else:
+                node.evaluation = 2 * node.game.to_play - 1
+        # Propagate evaluation to parent nodes
+        while node.parent is not None:
+            node.parent.evaluation += node.evaluation * -1
+            node = node.parent
 
-        return -1 * new_evaluation
+        # No evaluation needed
+        return False

@@ -74,7 +74,7 @@ class TrainMC:
                         move_choice = id
             move = self.root.moves[move_choice]
             self.root = self.root.children[move_choice]
-            return ("move", move, move_choice)
+            return ("move", move, move_choice, self.root.visits / sum(self.root.visits))
 
     def receive_opp_move(self, move_choice, probabilities=None):
         """

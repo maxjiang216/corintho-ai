@@ -1,6 +1,11 @@
 import numpy as np
 from multiprocessing import Pool, cpu_count
-from training.selfplayer import SelfPlayer
+from selfplayer import SelfPlayer
+
+
+def helper(game, evaluations):
+    """Helper function"""
+    return game.play(evaluations)
 
 
 class Trainer:
@@ -9,15 +14,14 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, evaluator, move_guider, batch_size=64, num_games=2000):
+    def __init__(self, model, batch_size=32, num_games=2):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
         """
 
         self.games = []
-        self.evaluator = evaluator
-        self.move_guider = move_guider
+        self.model = model
         self.batch_size = batch_size
         for _ in range(num_games):
             self.games.append(SelfPlayer())
@@ -27,27 +31,25 @@ class Trainer:
         Play all num_games games and get training samples
         """
 
-        def helper(game, evaluations):
-            return game.play(evaluations)
-
         # Play games
         with Pool(processes=cpu_count()) as pool:
 
             evaluations = [None] * len(self.games)
-            probabilities = [None] * len(self.games)
 
             while True:
-                positions = pool.starmap(
-                    helper, zip(self.games, zip(evaluations, probabilities))
-                )
+                res = pool.starmap(helper, zip(self.games, evaluations))
+                positions = []
+                for i, item in enumerate(res):
+                    self.games[i] = item[1]
+                    positions.append(item[0])
                 games_completed = 0
-                for position in positions:
-                    if not np.any(position):
+                for game in self.games:
+                    if game.game.outcome is not None:
                         games_completed += 1
                 if games_completed >= len(self.games):
                     break
-                evaluations = self.evaluator.predict(x=positions)
-                probabilities = self.move_guider.predict(x=positions)
+                res = self.model.predict(x=np.array(positions))
+                evaluations = zip(res[0], res[1])
 
             pool.close()
 
@@ -66,20 +68,13 @@ class Trainer:
             probability_labels.extend(cur_probability_labels)
 
         # Train neural nets
-        self.evaluator.fit(
+        self.model.fit(
             x=np.array(samples),
-            y=np.array(evaluation_labels),
-            batch_size=self.batch_size,
-            epochs=1,
-            shuffle=True,
-        )
-        self.move_guider.fit(
-            x=np.array(samples),
-            y=np.array(probability_labels),
+            y=[np.array(evaluation_labels), np.array(probability_labels)],
             batch_size=self.batch_size,
             epochs=1,
             shuffle=True,
         )
 
         # Return weights
-        return self.evaluator.get_weights(), self.move_guider.get_weights()
+        return self.model.get_weights()

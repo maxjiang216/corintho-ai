@@ -26,8 +26,8 @@ class TrainMC:
 
     """
 
-    def __init__(self, root, iterations=200, c_puct=1, epsilon=0.25):
-        self.root = root
+    def __init__(self, game, iterations, c_puct=1, epsilon=0.25):
+        self.root = Node(game, 0)
         self.iterations = iterations
         self.iterations_done = 0
         self.c_puct = c_puct
@@ -49,7 +49,11 @@ class TrainMC:
 
         # If we have not done enough searches, search again
         if self.iterations_done < self.iterations:
-            return ("eval", self.search(self.root))
+            res = self.search(self.root)
+            # Search until an evaluation is needed
+            while not res[0]:
+                res = self.search(self.root)
+            return ("eval", res[1])
         # Otherwise, choose a move
         else:
             move_choice = None
@@ -111,13 +115,21 @@ class TrainMC:
         Search a node
         """
 
+        # First move
+        if node.probabilities is None:
+            self.cur_node = node
+            return (True, node.game.get_vector())
+
         node.searches += 1
 
         # First time searching this node
         if node.moves is None:
             node.moves = []
             legal_moves = node.game.get_legal_moves()
-            node.probabilties = np.ma.masked_array(node.probabilities, legal_moves)
+            for i, move in enumerate(legal_moves):
+                if move == 0:
+                    node.probabilities[i] = 0
+            node.probabilities = node.probabilities / sum(node.probabilities)
             for i in range(96):
                 if legal_moves[i] > 0:
                     node.moves.append(i)
@@ -160,7 +172,7 @@ class TrainMC:
                 # Prepare to update the new node with received evaluations
                 self.cur_node = node.children[move_choice]
                 # Request evaluations
-                return (True, node.game.get_vector())
+                return (True, self.cur_node.game.get_vector())
             # Explore child node
             else:
                 return self.search(node.children[move_choice])

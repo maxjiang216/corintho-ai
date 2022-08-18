@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+import time
 
 
 class Node:
@@ -43,18 +44,29 @@ class TrainMC:
         where bool indicates whether an evaluation is requested
         Otherwise, ("move", move) is returns, where move is the chosen move
         """
+
+        times = [0, 0, 0, 0, 0]
+
         # Result to request for evaluations
         if evaluations is not None:
             self.receive_evaluations(evaluations)
 
         # If we have not done enough searches, search again
         if self.iterations_done < self.iterations:
+            t1 = time.time()
             res = self.search(self.root)
+            times[4] += time.time() - t1
+            for i in range(len(res[-1])):
+                times[i] += res[-1][i]
             # Search until an evaluation is needed
             while not res[0] and self.iterations_done < self.iterations:
+                t1 = time.time()
                 res = self.search(self.root)
+                times[4] += time.time() - t1
+                for i in range(len(res[-1])):
+                    times[i] += res[-1][i]
             if res[0]:
-                return ("eval", res[1])
+                return ("eval", res[1], times)
         # Otherwise, choose a move
         self.iterations_done = 0
         move_choice = None
@@ -86,7 +98,7 @@ class TrainMC:
                 final_ratio[move] = self.root.visits[i] / total_visits
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-        return ("move", move, move_choice, final_ratio)
+        return ("move", move, move_choice, final_ratio, times)
 
     def receive_opp_move(self, move_choice, probabilities=None):
         """
@@ -140,6 +152,9 @@ class TrainMC:
         Search a node
         """
 
+        t0 = time.time()
+        times = [0, 0, 0, 0]
+
         self.iterations_done += 1
 
         # Terminal node
@@ -153,19 +168,23 @@ class TrainMC:
                 cur_evaluation *= -1
                 node = node.parent
             # No evaluation needed
-            return (False,)
+            times[-1] = time.time() - t0
+            return (False, times)
 
         # First move
         if node.probabilities is None:
             self.cur_node = node
-            return (True, node.game.get_vector())
+            times[-1] = time.time() - t0
+            return (True, node.game.get_vector(), times)
 
         node.searches += 1
 
         # First time searching this node
         if node.moves is None:
             node.moves = []
+            t1 = time.time()
             legal_moves = node.game.get_legal_moves()
+            times[0] += time.time() - t1
             for i, is_legal in enumerate(legal_moves):
                 if is_legal == 0:
                     node.probabilities[i] = 0
@@ -179,6 +198,7 @@ class TrainMC:
         # Choose next node to visit
         max_value = -1
         move_choice = -1
+        t3 = time.time()
         for i in range(len(node.moves)):
             u = 0
             # If not visited, set action value to 0
@@ -194,14 +214,17 @@ class TrainMC:
             if u > max_value:
                 max_value = u
                 move_choice = i
+        times[2] += time.time() - t3
 
         # Record visit
         node.visits[move_choice] += 1
 
         # Exploring new node
         if node.children[move_choice] is None:
+            t2 = time.time()
             new_game = deepcopy(node.game)
             new_game.do_move(node.moves[move_choice])
+            times[1] += time.time() - t2
             node.children[move_choice] = Node(
                 new_game,
                 node.depth + 1,
@@ -211,11 +234,16 @@ class TrainMC:
             if new_game.outcome is not None:
                 node.children[move_choice].evaluation = new_game.outcome
                 # No evaluation needed
-                return (False,)
+                return (False, times)
             # Prepare to update the new node with received evaluations
             self.cur_node = node.children[move_choice]
             # Request evaluations
-            return (True, self.cur_node.game.get_vector())
+            times[-1] = time.time() - t0
+            return (True, self.cur_node.game.get_vector(), times)
 
         # Otherwise, explore child node normally
-        return self.search(node.children[move_choice])
+        res = self.search(node.children[move_choice])
+        for i in range(len(res[-1])):
+            res[-1][i] += times[i]
+        res[-1][-1] = time.time() - t0
+        return res

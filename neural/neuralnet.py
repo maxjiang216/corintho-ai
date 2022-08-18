@@ -57,11 +57,11 @@ class NeuralNet:
             results = pool.map(self.play_games, args)
             pool.close()
         time_taken = time.time() - start_time
-        legal_move_nums = []
-        for game in results:
-            self.samples.extend(game[0])
-            self.labels.extend(game[1])
-            legal_move_nums.extend(game[2])
+        # legal_move_nums = []
+        # for game in results:
+        #    self.samples.extend(game[0])
+        #    self.labels.extend(game[1])
+        #    legal_move_nums.extend(game[2])
         print(f"Total time: {time_taken}")
         print(
             f"Average time per game: {(time.time() - start_time) / ((num_games // concurrency) * concurrency):.3f}s"

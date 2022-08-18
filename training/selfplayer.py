@@ -30,11 +30,18 @@ class SelfPlayer:
         array ->
         Plays until the next evaluation is needed
         """
-        start = time.time()
+
+        times = [0, 0, 0, 0, 0, 0, 0]
+
+        t0 = time.time()
 
         # While the game is still going
         if self.game.outcome is None:
+            t4 = time.time()
             res = self.players[self.game.to_play].choose_move(evaluations)
+            times[5] += time.time() - t4
+            for i in range(len(res[-1])):
+                times[i] += res[-1][i]
             while res[0] == "move" and self.game.outcome is None:
                 self.players[1 - self.game.to_play].receive_opp_move(
                     res[2],  # move choice
@@ -45,12 +52,16 @@ class SelfPlayer:
                 self.game.do_move(res[1])  # move
                 if self.game.outcome is None:
                     res = self.players[self.game.to_play].choose_move()
+                    for i in range(len(res[-1])):
+                        times[i] += res[-1][i]
             if res[0] == "eval":  # eval
                 # Propagate up
-                return (res[1], self, time.time() - start)
+                times[-1] = time.time() - t0
+                return (res[1], self, times)
 
         # If game is done
-        return (np.zeros(70), self, time.time() - start)
+        times[-1] = time.time() - t0
+        return (np.zeros(70), self, times)
 
     def get_samples(self):
         """

@@ -14,7 +14,7 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(self, iterations=200):
+    def __init__(self, iterations=2):
         """
         (int) -> SelfPlayers
         """
@@ -32,26 +32,31 @@ class SelfPlayer:
 
         # While the game is still going
         if self.game.outcome is None:
+            print("selfplayer 35")
             res = self.players[self.game.to_play].choose_move(evaluations)
+            print("selfplayer 36")
+            print(res)
 
-            if res[0] == "move":
+            while res[0] == "move" and self.game.outcome is None:
+                print("selfplayer")
+                print(res)
+                print(str(self.game))
                 self.players[1 - self.game.to_play].receive_opp_move(
                     res[2],  # move choice
                     self.players[self.game.to_play].root.probabilities,
                 )
                 self.samples.append(self.game.get_vector())
-                self.probability_labels.append(res[2])
+                self.probability_labels.append(res[3])
                 self.game.do_move(res[1])  # move
-                # Game not finished
                 if self.game.outcome is None:
-                    # Do next move (there will be at least one search)
-                    return (self.players[self.game.to_play].choose_move()[1], self)
-            else:  # eval
+                    print("selfplayer 52")
+                    res = self.players[self.game.to_play].choose_move()
+            if res[0] == "eval":  # eval
                 # Propagate up
                 return (res[1], self)
 
         # If game is done
-        return np.zeros(70)
+        return (np.zeros(70), self)
 
     def get_samples(self):
         """

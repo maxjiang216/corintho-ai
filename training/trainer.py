@@ -1,10 +1,11 @@
 import numpy as np
 from multiprocessing import Pool, cpu_count
+import time
 from selfplayer import SelfPlayer
 
 
 def helper(game, evaluations):
-    """Helper function"""
+    """Helper function for multiprocessing"""
     return game.play(evaluations)
 
 
@@ -14,7 +15,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=2):
+    def __init__(self, model, batch_size=32, num_games=1):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -36,36 +37,53 @@ class Trainer:
 
             evaluations = [None] * len(self.games)
 
+            start_time = time.time()
+            searches = 0
+
+            # Training samples
+            samples = []
+            evaluation_labels = []
+            probability_labels = []
+
             while True:
+
                 res = pool.starmap(helper, zip(self.games, evaluations))
+
+                searches += 1
+                print("trainer")
+                print(len(self.games))
+                print((time.time() - start_time) / searches)
+
+                self.games = []
                 positions = []
-                for i, item in enumerate(res):
-                    self.games[i] = item[1]
+                for item in res:
+                    print("trainer 60")
+                    print(item)
+                    if item[1].game.outcome is None:
+                        self.games.append(item[1])
+                    else:
+                        (
+                            cur_samples,
+                            cur_evaluation_labels,
+                            cur_probability_labels,
+                        ) = item[1].get_samples()
+                        samples.extend(cur_samples)
+                        evaluation_labels.extend(cur_evaluation_labels)
+                        probability_labels.extend(cur_probability_labels)
                     positions.append(item[0])
-                games_completed = 0
-                for game in self.games:
-                    if game.game.outcome is not None:
-                        games_completed += 1
-                if games_completed >= len(self.games):
+                print("trainer 72")
+                print(len(self.games))
+                # Done all games
+                if len(self.games) == 0:
+                    print("DONE")
                     break
-                res = self.model.predict(x=np.array(positions))
+                print(positions)
+                res = self.model.predict(x=np.array(positions), verbose=0)
                 evaluations = zip(res[0], res[1])
 
             pool.close()
 
-        # Collect samples
-        samples = []
-        evaluation_labels = []
-        probability_labels = []
-        for game in self.games:
-            (
-                cur_samples,
-                cur_evaluation_labels,
-                cur_probability_labels,
-            ) = game.get_samples()
-            samples.extend(cur_samples)
-            evaluation_labels.extend(cur_evaluation_labels)
-            probability_labels.extend(cur_probability_labels)
+        print(samples)
 
         # Train neural nets
         self.model.fit(

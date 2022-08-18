@@ -31,10 +31,11 @@ class NeuralNet:
         labels = []
         legal_move_nums = []
         for i in range(num_games):
-            temp_samples, temp_labels, legal_move_num = simulator.play_game(train=True)
-            samples.extend(temp_samples)
-            labels.extend(temp_labels)
-            legal_move_nums.extend(legal_move_num)
+            # temp_samples, temp_labels, legal_move_num = simulator.play_game()
+            # samples.extend(temp_samples)
+            # labels.extend(temp_labels)
+            # legal_move_nums.extend(legal_move_num)
+            simulator.play_game()
             if num_games > 10 and i > 0 and i % (num_games // 10) == 0:
                 print(f"{i/num_games*100:.1f}% completed batch {batch_num}")
         print(f"Complete batch {batch_num}!")

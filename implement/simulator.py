@@ -15,6 +15,9 @@ class Simulator:
         game = Game()
         while True:
             legal_moves = game.get_legal_moves()
+            print("SIMULATOR")
+            print(legal_moves)
+            print(str(game))
             move = self.players[game.to_play].get_move(game, legal_moves)
             self.players[1 - game.to_play].receive_opp_move(move)
             result = game.do_move(move)

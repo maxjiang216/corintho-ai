@@ -56,9 +56,6 @@ class TrainMC:
             if res[0]:
                 return ("eval", res[1])
         # Otherwise, choose a move
-        print("trainmc 59")
-        print(self.iterations_done)
-        print(self.root.game.outcome)
         self.iterations_done = 0
         move_choice = None
         # Choose with weighted random for the first 2 moves from each player (temperature = 1)
@@ -80,7 +77,13 @@ class TrainMC:
                 if visits > max_value:
                     max_value = visits
                     move_choice = id
-        final_ratio = self.root.visits / sum(self.root.visits)
+        final_ratio = np.zeros(96)
+        total_visits = sum(
+            self.root.visits
+        )  # Might be different from self.iterations due to reusing tree
+        for i, move in enumerate(self.root.moves):
+            if self.root.visits[i] > 0:
+                final_ratio[move] = self.root.visits[i] / total_visits
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
         return ("move", move, move_choice, final_ratio)
@@ -138,12 +141,9 @@ class TrainMC:
         """
 
         self.iterations_done += 1
-        print("trainmc 137")
-        print(self.iterations_done)
 
         # Terminal node
         if node.game.outcome is not None:
-            print("trainmc 145")
             node.evaluation = node.game.outcome
             node.searches += 1
             cur_evaluation = node.game.outcome * -1

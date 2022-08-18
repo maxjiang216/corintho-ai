@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import sys
 import os
 
@@ -14,7 +15,7 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(self, iterations=2):
+    def __init__(self, iterations=200):
         """
         (int) -> SelfPlayers
         """
@@ -29,18 +30,12 @@ class SelfPlayer:
         array ->
         Plays until the next evaluation is needed
         """
+        start = time.time()
 
         # While the game is still going
         if self.game.outcome is None:
-            print("selfplayer 35")
             res = self.players[self.game.to_play].choose_move(evaluations)
-            print("selfplayer 36")
-            print(res)
-
             while res[0] == "move" and self.game.outcome is None:
-                print("selfplayer")
-                print(res)
-                print(str(self.game))
                 self.players[1 - self.game.to_play].receive_opp_move(
                     res[2],  # move choice
                     self.players[self.game.to_play].root.probabilities,
@@ -49,14 +44,13 @@ class SelfPlayer:
                 self.probability_labels.append(res[3])
                 self.game.do_move(res[1])  # move
                 if self.game.outcome is None:
-                    print("selfplayer 52")
                     res = self.players[self.game.to_play].choose_move()
             if res[0] == "eval":  # eval
                 # Propagate up
-                return (res[1], self)
+                return (res[1], self, time.time() - start)
 
         # If game is done
-        return (np.zeros(70), self)
+        return (np.zeros(70), self, time.time() - start)
 
     def get_samples(self):
         """

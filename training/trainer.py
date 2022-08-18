@@ -4,11 +4,6 @@ import time
 from selfplayer import SelfPlayer
 
 
-def helper(game, evaluations):
-    """Helper function for multiprocessing"""
-    return game.play(evaluations)
-
-
 class Trainer:
     """
     Trains with multiple games concurrently
@@ -26,6 +21,10 @@ class Trainer:
         self.batch_size = batch_size
         for _ in range(num_games):
             self.games.append(SelfPlayer())
+
+    def play_games(self, i, evaluations):
+        """Helper function for multiprocessing"""
+        return self.games[i].play(evaluations)
 
     def train_generation(self):
         """
@@ -47,20 +46,23 @@ class Trainer:
 
             while True:
 
-                res = pool.starmap(helper, zip(self.games, evaluations))
-
+                t2 = time.time()
+                res = pool.starmap(
+                    self.play_games, zip(np.arange(len(self.games)), evaluations)
+                )
+                t3 = time.time() - t2
                 searches += 1
                 print("trainer")
-                print(len(self.games))
                 print((time.time() - start_time) / searches)
+                print(t3)
 
-                self.games = []
+                games = []
                 positions = []
-                for item in res:
-                    print("trainer 60")
-                    print(item)
+                t4 = time.time()
+                t6 = res[0][2]
+                for i, item in enumerate(res):
                     if item[1].game.outcome is None:
-                        self.games.append(item[1])
+                        games.append(self.games[i])
                     else:
                         (
                             cur_samples,
@@ -71,24 +73,27 @@ class Trainer:
                         evaluation_labels.extend(cur_evaluation_labels)
                         probability_labels.extend(cur_probability_labels)
                     positions.append(item[0])
-                print("trainer 72")
-                print(len(self.games))
+                self.games = games
+                t5 = time.time() - t4
+                print(t5)
+                print(t6)
                 # Done all games
                 if len(self.games) == 0:
+                    print(time.time() - start_time)
                     print("DONE")
                     break
-                print(positions)
                 res = self.model.predict(x=np.array(positions), verbose=0)
                 evaluations = zip(res[0], res[1])
 
             pool.close()
 
-        print(samples)
-
         # Train neural nets
         self.model.fit(
             x=np.array(samples),
-            y=[np.array(evaluation_labels), np.array(probability_labels)],
+            y=[
+                np.array(evaluation_labels),
+                np.array(probability_labels),
+            ],
             batch_size=self.batch_size,
             epochs=1,
             shuffle=True,

@@ -60,6 +60,9 @@ class MonteCarlo:
             )
         # Otherwise, choose randomly between the moves with the most visits/searches
         else:
+            print(str(self.root.game))
+            print(self.root.moves)
+            print(self.root.game.outcome)
             max_value = self.root.visits[0]
             move_choices = [0]
             for i in range(1, len(self.root.moves)):

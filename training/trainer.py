@@ -15,7 +15,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=3000):
+    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -24,6 +24,10 @@ class Trainer:
         self.games = []
         self.model = model
         self.batch_size = batch_size
+        self.test = False
+        if model2 is not None:
+            self.test = True
+            self.model2 = model2
         for _ in range(num_games):
             self.games.append(SelfPlayer())
 
@@ -43,8 +47,6 @@ class Trainer:
         samples = []
         evaluation_labels = []
         probability_labels = []
-
-        # pool = Pool(processes=1)
 
         while True:
 
@@ -68,7 +70,7 @@ class Trainer:
                     times[i] += item[-1][i]
                 if item[1].game.outcome is None:
                     self.games.append(item[1])
-                else:
+                elif not self.test:
                     (
                         cur_samples,
                         cur_evaluation_labels,
@@ -77,6 +79,7 @@ class Trainer:
                     samples.extend(cur_samples)
                     evaluation_labels.extend(cur_evaluation_labels)
                     probability_labels.extend(cur_probability_labels)
+
                 positions.append(item[0])
             t5 = time.time() - t4
             print(t5)
@@ -86,20 +89,23 @@ class Trainer:
                 print(time.time() - start_time)
                 print("DONE")
                 break
-            res = self.model.predict(x=np.array(positions))
+            res = self.model.predict(x=np.array(positions), batch_size=self.batch_size)
             evaluations = list(zip(res[0], res[1]))
 
-        # Train neural nets
-        self.model.fit(
-            x=np.array(samples),
-            y=[
-                np.array(evaluation_labels),
-                np.array(probability_labels),
-            ],
-            batch_size=self.batch_size,
-            epochs=1,
-            shuffle=True,
-        )
+        if not self.test:
+            # Train neural nets
+            self.model.fit(
+                x=np.array(samples),
+                y=[
+                    np.array(evaluation_labels),
+                    np.array(probability_labels),
+                ],
+                batch_size=self.batch_size,
+                epochs=1,
+                shuffle=True,
+            )
+            # Return weights
+            return self.model.get_weights()
 
-        # Return weights
-        return self.model.get_weights()
+        # If testing, return win rate
+        return

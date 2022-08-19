@@ -269,13 +269,14 @@ class Game:
         self.board.do_move(move)
         self.to_play = 1 - self.to_play
         # Previous player win
-        if max(self.get_legal_moves()) == 0:
+        legal_moves = self.get_legal_moves()
+        if max(legal_moves) == 0:
             if len(self.board.lines) > 0:
                 self.outcome = 2 * self.to_play - 1
             else:
                 self.outcome = 0
-            return self.outcome
-        return None
+            return (self.outcome,)
+        return (None, legal_moves)
 
     def get_vector(self):
         """

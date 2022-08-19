@@ -15,6 +15,7 @@ class Node:
         self.depth = depth
         self.parent = parent
         self.moves = None
+        self.legal_moves = None
         self.probabilities = probabilities
         self.children = None
         self.visits = None
@@ -108,27 +109,29 @@ class TrainMC:
 
         # Receiving first move
         if self.root.children is None:
-            new_game = deepcopy(self.root.game)
             self.root.moves = []
-            legal_moves = self.root.game.get_legal_moves()
-            for i, is_legal in enumerate(legal_moves):
+            for i, is_legal in enumerate(self.root.game.get_legal_moves()):
                 if is_legal == 1:
                     self.root.moves.append(i)
-            new_game.do_move(self.root.moves[move_choice])
+            # Cannot be game end
+            res = self.root.game.do_move(self.root.moves[move_choice])
             self.root = Node(
-                new_game,
+                self.root.game,
                 self.root.depth + 1,
                 probabilities=probabilities,
             )
+            self.root.legal_moves = res[1]
         # Unexplored state
         elif self.root.children[move_choice] is None:
-            new_game = deepcopy(self.root.game)
-            new_game.do_move(self.root.moves[move_choice])
+            res = self.root.game.do_move(self.root.moves[move_choice])
             self.root = Node(
-                new_game,
+                self.root.game,
                 self.root.depth + 1,
                 probabilities=probabilities,
             )
+            # Not a terminal state
+            if res[0] is None:
+                self.root.legal_moves = res[1]
         else:
             self.root = self.root.children[move_choice]
 
@@ -174,6 +177,7 @@ class TrainMC:
         # First move
         if node.probabilities is None:
             self.cur_node = node
+            node.legal_moves = node.game.get_legal_moves()
             times[-1] = time.time() - t0
             return (True, node.game.get_vector(), times)
 
@@ -182,10 +186,7 @@ class TrainMC:
         # First time searching this node
         if node.moves is None:
             node.moves = []
-            t1 = time.time()
-            legal_moves = node.game.get_legal_moves()
-            times[0] += time.time() - t1
-            for i, is_legal in enumerate(legal_moves):
+            for i, is_legal in enumerate(node.legal_moves):
                 if is_legal == 0:
                     node.probabilities[i] = 0
                 else:
@@ -223,7 +224,7 @@ class TrainMC:
         if node.children[move_choice] is None:
             t2 = time.time()
             new_game = deepcopy(node.game)
-            new_game.do_move(node.moves[move_choice])
+            res = new_game.do_move(node.moves[move_choice])
             times[1] += time.time() - t2
             node.children[move_choice] = Node(
                 new_game,
@@ -235,6 +236,8 @@ class TrainMC:
                 node.children[move_choice].evaluation = new_game.outcome
                 # No evaluation needed
                 return (False, times)
+            # Save legal moves if not terminal state
+            node.children[move_choice].legal_moves = res[1]
             # Prepare to update the new node with received evaluations
             self.cur_node = node.children[move_choice]
             # Request evaluations

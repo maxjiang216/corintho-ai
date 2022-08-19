@@ -78,7 +78,7 @@ if __name__ == "__main__":
             ],
         )
 
-        model.save("./training/old_model")
+        model.save("./models/old_model")
 
         old_weights = model.get_weights()
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
         new_weights = trainer.train_generation()
 
-        old_model = keras.models.load_model("./training/old_model")
+        old_model = keras.models.load_model("./models/old_model")
 
         tester = Trainer(trainer.model, num_games=10, model2=old_model)
 

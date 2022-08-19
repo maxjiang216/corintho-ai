@@ -1,6 +1,5 @@
 import numpy as np
 from multiprocessing import Pool, cpu_count
-import time
 from selfplayer import SelfPlayer
 
 
@@ -11,11 +10,11 @@ def helper(game, evaluations):
 
 class Trainer:
     """
-    Trains with multiple games concurrently
+    Trains with multiple games
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=10, model2=None):
+    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -43,54 +42,35 @@ class Trainer:
 
         evaluations = [None] * len(self.games)
 
-        start_time = time.time()
-        searches = 0
-
         while True:
 
-            t2 = time.time()
             res = []
             for i, game in enumerate(self.games):
                 res.append(game.play(evaluations[i]))
-            t3 = time.time() - t2
-
-            searches += 1
-            print("trainer")
-            print((time.time() - start_time) / searches)
-            print(t3)
 
             positions = []
-            t4 = time.time()
-            times = [0, 0, 0, 0, 0, 0, 0]
             games_done = 0
             for item in res:
-                for i in range(len(item[-1])):
-                    times[i] += item[-1][i]
                 # Game is done
-                if max(item[0]) == 0:
+                if max(item) == 0:
                     games_done += 1
-                positions.append(item[0])
-            t5 = time.time() - t4
-            print(t5)
-            print(times)
+                positions.append(item)
             # Done all games
             if games_done == len(self.games):
-                print(time.time() - start_time)
-                print("DONE")
                 break
             if self.test:
                 res1 = self.model.predict(
-                    x=np.array(positions), batch_size=self.batch_size
+                    x=np.array(positions), batch_size=self.batch_size, verbose=0
                 )
                 res2 = self.model2.predict(
-                    x=np.array(positions), batch_size=self.batch_size
+                    x=np.array(positions), batch_size=self.batch_size, verbose=0
                 )
                 evaluations = list(
                     zip(list(zip(res1[0], res1[1])), list(zip(res2[0], res2[1])))
                 )
             else:
                 res = self.model.predict(
-                    x=np.array(positions), batch_size=self.batch_size
+                    x=np.array(positions), batch_size=self.batch_size, verbose=0
                 )
                 evaluations = list(zip(res[0], res[1]))
 

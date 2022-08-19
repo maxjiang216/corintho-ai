@@ -1,6 +1,6 @@
 import os
-from copy import deepcopy
-import pstats
+import sys
+import time
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
@@ -12,11 +12,7 @@ from trainer import Trainer
 
 if __name__ == "__main__":
 
-    import cProfile
-    import pstats
-
-    with cProfile.Profile() as pr:
-
+    if len(sys.argv) < 2:
         input_layer = Input(shape=(70,))
         layer_1 = Activation("relu")(
             BatchNormalization()(
@@ -78,23 +74,29 @@ if __name__ == "__main__":
             ],
         )
 
-        model.save("./models/old_model")
+        model.save(f"./training/models/model_0")
 
-        old_weights = model.get_weights()
+        model_num = 0
+    else:
+        model_num = int(sys.argv[1])
+        model = keras.models.load_model(f"./training/models/model_{model_num}")
 
-        trainer = Trainer(
-            model,
-        )
+    old_weights = model.get_weights()
 
-        new_weights = trainer.train_generation()
+    trainer = Trainer(
+        model,
+    )
 
-        old_model = keras.models.load_model("./models/old_model")
+    new_weights = trainer.train_generation()
 
-        tester = Trainer(trainer.model, num_games=10, model2=old_model)
+    old_model = keras.models.load_model(f"./training/models/model_{model_num}")
 
-        print(tester.train_generation())
+    tester = Trainer(trainer.model, num_games=10, model2=old_model)
 
-    stats = pstats.Stats(pr)
-    stats.sort_stats(pstats.SortKey.TIME)
-    # stats.print_stats()
-    stats.dump_stats(filename="dump.prof")
+    start_time = time.time()
+    res = tester.train_generation()
+    print(f"Training generation {model_num} took {time.time()-start_time} seconds!")
+
+    # New neural net scores >50%
+    if res > 0.5:
+        trainer.model.save(f"./training/models/model_{model_num+1}")

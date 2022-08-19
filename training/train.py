@@ -89,13 +89,16 @@ if __name__ == "__main__":
 
     new_weights = trainer.train_generation()
 
+    print(f"Training generation {model_num} took {time.time()-start_time} seconds!")
+
     old_model = keras.models.load_model(f"./training/models/model_{model_num}")
 
     tester = Trainer(trainer.model, num_games=10, model2=old_model)
 
     start_time = time.time()
     res = tester.train_generation()
-    print(f"Training generation {model_num} took {time.time()-start_time} seconds!")
+
+    print(f"New model {model_num+1} scored {res*100}% out of 100 games!")
 
     # New neural net scores >50%
     if res > 0.5:

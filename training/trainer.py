@@ -15,7 +15,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
+    def __init__(self, model, batch_size=32, num_games=10, model2=None):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -24,12 +24,15 @@ class Trainer:
         self.games = []
         self.model = model
         self.batch_size = batch_size
-        self.test = False
         if model2 is not None:
             self.test = True
             self.model2 = model2
-        for _ in range(num_games):
-            self.games.append(SelfPlayer())
+            for i in range(num_games):
+                self.games.append(SelfPlayer(test=True, seed=i % 2))
+        else:
+            self.test = False
+            for _ in range(num_games):
+                self.games.append(SelfPlayer())
 
     def train_generation(self):
         """
@@ -42,11 +45,6 @@ class Trainer:
 
         start_time = time.time()
         searches = 0
-
-        # Training samples
-        samples = []
-        evaluation_labels = []
-        probability_labels = []
 
         while True:
 
@@ -61,38 +59,58 @@ class Trainer:
             print((time.time() - start_time) / searches)
             print(t3)
 
-            self.games = []
             positions = []
             t4 = time.time()
             times = [0, 0, 0, 0, 0, 0, 0]
+            games_done = 0
             for item in res:
                 for i in range(len(item[-1])):
                     times[i] += item[-1][i]
-                if item[1].game.outcome is None:
-                    self.games.append(item[1])
-                elif not self.test:
-                    (
-                        cur_samples,
-                        cur_evaluation_labels,
-                        cur_probability_labels,
-                    ) = item[1].get_samples()
-                    samples.extend(cur_samples)
-                    evaluation_labels.extend(cur_evaluation_labels)
-                    probability_labels.extend(cur_probability_labels)
-
+                # Game is done
+                if max(item[0]) == 0:
+                    games_done += 1
                 positions.append(item[0])
             t5 = time.time() - t4
             print(t5)
             print(times)
             # Done all games
-            if len(self.games) == 0:
+            if games_done == len(self.games):
                 print(time.time() - start_time)
                 print("DONE")
                 break
-            res = self.model.predict(x=np.array(positions), batch_size=self.batch_size)
-            evaluations = list(zip(res[0], res[1]))
+            if self.test:
+                res1 = self.model.predict(
+                    x=np.array(positions), batch_size=self.batch_size
+                )
+                res2 = self.model2.predict(
+                    x=np.array(positions), batch_size=self.batch_size
+                )
+                evaluations = list(
+                    zip(list(zip(res1[0], res1[1])), list(zip(res2[0], res2[1])))
+                )
+            else:
+                res = self.model.predict(
+                    x=np.array(positions), batch_size=self.batch_size
+                )
+                evaluations = list(zip(res[0], res[1]))
 
         if not self.test:
+
+            # Training samples
+            samples = []
+            evaluation_labels = []
+            probability_labels = []
+
+            for game in self.games:
+                (
+                    cur_samples,
+                    cur_evaluation_labels,
+                    cur_probability_labels,
+                ) = game.get_samples()
+                samples.extend(cur_samples)
+                evaluation_labels.extend(cur_evaluation_labels)
+                probability_labels.extend(cur_probability_labels)
+
             # Train neural nets
             self.model.fit(
                 x=np.array(samples),
@@ -107,5 +125,10 @@ class Trainer:
             # Return weights
             return self.model.get_weights()
 
+        # Score of first player (first model)
+        score = 0
+        for game in self.games:
+            score += (game.game.outcome * (-1) ** game.seed + 1) / 2
+
         # If testing, return win rate
-        return
+        return score / len(self.games)

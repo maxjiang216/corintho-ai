@@ -28,7 +28,7 @@ class TrainMC:
 
     """
 
-    def __init__(self, game, iterations, c_puct=1, epsilon=0.25):
+    def __init__(self, game, iterations, c_puct=1, epsilon=0.25, player_num=None):
         self.root = Node(game, 0)
         self.iterations = iterations
         self.iterations_done = 0
@@ -37,6 +37,7 @@ class TrainMC:
         self.rng = np.random.Generator(np.random.PCG64())
         self.iterations_done = 0
         self.cur_node = None
+        self.player_num = player_num
 
     def choose_move(self, evaluations=None):
         """
@@ -50,7 +51,11 @@ class TrainMC:
 
         # Result to request for evaluations
         if evaluations is not None:
-            self.receive_evaluations(evaluations)
+            # Choose evaluation from correct neural net
+            if self.player_num is not None:
+                self.receive_evaluations(evaluations[self.player_num])
+            else:
+                self.receive_evaluations(evaluations)
 
         # If we have not done enough searches, search again
         if self.iterations_done < self.iterations:
@@ -108,6 +113,7 @@ class TrainMC:
         """
 
         # Receiving first move
+        # May be used if iterations is lower than legal move number
         if self.root.children is None:
             self.root.moves = []
             for i, is_legal in enumerate(self.root.game.get_legal_moves()):

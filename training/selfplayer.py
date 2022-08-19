@@ -15,13 +15,20 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(self, iterations=20):
+    def __init__(self, iterations=100, test=False, seed=0):
         """
         (int) -> SelfPlayers
         """
 
         self.game = Game()
-        self.players = [TrainMC(Game(), iterations), TrainMC(Game(), iterations)]
+        if test:
+            self.seed = seed
+            self.players = [
+                TrainMC(Game(), iterations, player_num=seed % 2),
+                TrainMC(Game(), iterations, player_num=(seed + 1) % 2),
+            ]
+        else:
+            self.players = [TrainMC(Game(), iterations), TrainMC(Game(), iterations)]
         self.samples = []
         self.probability_labels = []
 
@@ -57,11 +64,11 @@ class SelfPlayer:
             if res[0] == "eval":  # eval
                 # Propagate up
                 times[-1] = time.time() - t0
-                return (res[1], self, times)
+                return (res[1], times)
 
         # If game is done
         times[-1] = time.time() - t0
-        return (np.zeros(70), self, times)
+        return (np.zeros(70), times)
 
     def get_samples(self):
         """

@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 import pstats
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -77,11 +78,21 @@ if __name__ == "__main__":
             ],
         )
 
+        model.save("./training/old_model")
+
+        old_weights = model.get_weights()
+
         trainer = Trainer(
             model,
         )
 
-        trainer.train_generation()
+        new_weights = trainer.train_generation()
+
+        old_model = keras.models.load_model("./training/old_model")
+
+        tester = Trainer(trainer.model, num_games=10, model2=old_model)
+
+        print(tester.train_generation())
 
     stats = pstats.Stats(pr)
     stats.sort_stats(pstats.SortKey.TIME)

@@ -15,7 +15,7 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(self, iterations=200):
+    def __init__(self, iterations=20):
         """
         (int) -> SelfPlayers
         """

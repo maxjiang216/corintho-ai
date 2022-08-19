@@ -15,7 +15,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=2000):
+    def __init__(self, model, batch_size=32, num_games=3000):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -44,12 +44,14 @@ class Trainer:
         evaluation_labels = []
         probability_labels = []
 
-        pool = Pool(processes=1)
+        # pool = Pool(processes=1)
 
         while True:
 
             t2 = time.time()
-            res = pool.starmap(helper, zip(self.games, evaluations))
+            res = []
+            for i, game in enumerate(self.games):
+                res.append(game.play(evaluations[i]))
             t3 = time.time() - t2
 
             searches += 1
@@ -84,10 +86,8 @@ class Trainer:
                 print(time.time() - start_time)
                 print("DONE")
                 break
-            res = self.model.predict(x=np.array(positions), verbose=0)
-            evaluations = zip(res[0], res[1])
-
-        pool.close()
+            res = self.model.predict(x=np.array(positions))
+            evaluations = list(zip(res[0], res[1]))
 
         # Train neural nets
         self.model.fit(

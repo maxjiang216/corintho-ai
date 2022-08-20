@@ -1,5 +1,5 @@
 import numpy as np
-import time
+from implement.move import Move
 
 
 class Board:
@@ -11,14 +11,14 @@ class Board:
     def __init__(self):
         # Three 4x4 boards
         self.spaces = []
-        for row in range(4):
+        for _ in range(4):
             temp_row = []
-            for col in range(4):
+            for _ in range(4):
                 temp_row.append([False] * 3)
             self.spaces.append(temp_row)
         # Frozen spaces, defult to only give 3 spaces to prevent symmetry
         self.frozen = []
-        for row in range(4):
+        for _ in range(4):
             self.frozen.append([True] * 4)
         self.frozen[0][0] = False
         self.frozen[0][1] = False
@@ -97,7 +97,7 @@ class Board:
                 return i
         return -1
 
-    def can_place(self, row, col, ptype):
+    def can_place(self, ptype, row, col):
         """
         int,int,int -> bool
         Returns whether a piece of ptype
@@ -128,9 +128,6 @@ class Board:
         # Frozen spaces
         if self.frozen[row1][col1] or self.frozen[row2][col2]:
             return False
-        # Orthogonally adjacent spaces
-        if abs(row1 - row2) + abs(col1 - col2) != 1:
-            return False
         # Empty spaces
         if self.is_empty(row2, col2):
             return False
@@ -155,7 +152,7 @@ class Board:
         """
         # Place
         if move.mtype:
-            return self.can_place(move.row1, move.col1, move.ptype)
+            return self.can_place(move.ptype, move.row1, move.col1)
         # Move
         return self.can_move(move.row1, move.col1, move.row2, move.col2)
 

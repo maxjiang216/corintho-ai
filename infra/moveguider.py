@@ -13,7 +13,7 @@ class MoveGuider(ABC):
     def generate(self, game):
         """
         Game -> array
-        Should return an array of probabilities summing to 1
+        Should return an array of size 96 of probabilities summing to 1
         """
         pass
 
@@ -27,7 +27,8 @@ class UniformGuider(MoveGuider):
         pass
 
     def generate(self, game):
-        n = len(game.get_legal_moves())
+        legal_moves = game.get_legal_moves()
+        n = np.count_nonzero(legal_moves)
         if n == 0:
-            return []
-        return np.full(n, 1 / n)
+            return legal_moves
+        return legal_moves / n

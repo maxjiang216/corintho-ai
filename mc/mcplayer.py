@@ -1,7 +1,8 @@
-from player import Player
-from montecarlo import MonteCarlo, Node
-from evaluator import RandomEvaluator
-from moveguider import UniformGuider
+from implement.player import Player
+from implement.move import Move
+from mc.montecarlo import MonteCarlo, Node
+from infra.evaluator import RandomEvaluator
+from infra.moveguider import UniformGuider
 
 
 class MonteCarloPlayer(Player):
@@ -9,7 +10,7 @@ class MonteCarloPlayer(Player):
     Player using Monte Carlo Search Tree with used defined evaluator
     """
 
-    def __init__(self, iterations=600):
+    def __init__(self, iterations=200):
         self.tree = None
         self.evaluator = RandomEvaluator()
         self.move_guider = UniformGuider()
@@ -17,9 +18,9 @@ class MonteCarloPlayer(Player):
 
     def get_move(self, game, legal_moves):
         # first query or new game
-        if self.tree is None or self.tree.root.moves != legal_moves:
+        if self.tree is None:
             self.tree = MonteCarlo(
-                Node(game, self.evaluator.evaluate(game)),
+                Node(game, self.evaluator.evaluate(game), 0),
                 self.evaluator,
                 self.move_guider,
                 iterations=self.iterations,

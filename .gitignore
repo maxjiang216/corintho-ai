@@ -4,3 +4,4 @@ notebooks
 .ipynb_checkpoints
 models
 /training/logs
+*.prof

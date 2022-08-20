@@ -20,6 +20,7 @@ class Node:
         self.children = None
         self.visits = None
         self.noise = None
+        self.noisy_probabilities = None
 
 
 class TrainMC:
@@ -158,6 +159,27 @@ class TrainMC:
             cur_evaluation *= -1
             self.cur_node = self.cur_node.parent
 
+    def choose_next(self, node):
+        # Choose next node to visit
+        max_value = -1
+        move_choice = -1
+        for i in range(len(node.moves)):
+            u = 0
+            # If not visited, set action value to 0
+            if node.children[i] is None:
+                u = node.noisy_probabilities[i] * np.sqrt(node.searches - 1)
+            else:
+                u = -1 * node.children[i].evaluation / node.children[i].searches + (
+                    node.noisy_probabilities[i]
+                    * np.sqrt(node.searches - 1)
+                    / (node.children[i].searches + 1)
+                )
+            if u > max_value:
+                max_value = u
+                move_choice = i
+
+        return move_choice
+
     def search(self, node):
         """
         Node ->
@@ -202,35 +224,14 @@ class TrainMC:
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)
             node.noise = self.rng.dirichlet(np.full(len(node.moves), 0.3))
+            node.noisy_probabilities = np.zeros(len(node.moves))
+            for i in range(len(node.moves)):
+                node.noisy_probabilities[i] = self.c_puct * (
+                    (1 - self.epsilon) * node.probabilities[i]
+                    + self.epsilon * node.noise[i]
+                )
 
-        # Choose next node to visit
-        max_value = -1
-        move_choice = -1
-        for i in range(len(node.moves)):
-            u = 0
-            # If not visited, set action value to 0
-            if node.children[i] is None:
-                u = (
-                    self.c_puct
-                    * (
-                        (1 - self.epsilon) * node.probabilities[i]
-                        + self.epsilon * node.noise[i]
-                    )
-                    * np.sqrt(node.searches - 1)
-                )
-            else:
-                u = -1 * node.children[i].evaluation / node.children[i].searches + (
-                    self.c_puct
-                    * (
-                        (1 - self.epsilon) * node.probabilities[i]
-                        + self.epsilon * node.noise[i]
-                    )
-                    * np.sqrt(node.searches - 1)
-                    / (node.children[i].searches + 1)
-                )
-            if u > max_value:
-                max_value = u
-                move_choice = i
+        move_choice = self.choose_next(node)
 
         # Record visit
         node.visits[move_choice] += 1

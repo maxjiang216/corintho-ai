@@ -90,13 +90,13 @@ class Game:
                             cur[Move.encode_move(target, 0, source, 0)] = 1
                             cur[Move.encode_move(source, 0, target, 0)] = 1
                             # Extend
-                            if self.board.top(source, 3) == line[1]:
+                            if self.board.tops[source * 4 + 3] == line[1]:
                                 cur[Move.encode_move(source, 3, target, 3)] = 1
                         elif line[0][2] == "r":
                             cur[Move.encode_move(target, 3, source, 3)] = 1
                             cur[Move.encode_move(source, 3, target, 3)] = 1
                             # Extend
-                            if self.board.top(source, 0) == line[1]:
+                            if self.board.tops[source * 4 + 0] == line[1]:
                                 cur[Move.encode_move(source, 0, target, 0)] = 1
                     if line[0][2] == "l":
                         cur[Move.encode_move(target, 2, target, 3)] = 1
@@ -137,13 +137,13 @@ class Game:
                             cur[Move.encode_move(0, target, 0, source)] = 1
                             cur[Move.encode_move(0, source, 0, target)] = 1
                             # Extend
-                            if self.board.top(3, source) == line[1]:
+                            if self.board.tops[3 + source] == line[1]:
                                 cur[Move.encode_move(3, source, 3, target)] = 1
                         elif line[0][2] == "d":
                             cur[Move.encode_move(3, target, 3, source)] = 1
                             cur[Move.encode_move(3, source, 3, target)] = 1
                             # Extend
-                            if self.board.top(0, source) == line[1]:
+                            if self.board.tops[0 * 4 + source] == line[1]:
                                 cur[Move.encode_move(0, source, 0, target)] = 1
                     if line[0][2] == "u":
                         cur[Move.encode_move(2, target, 3, target)] = 1
@@ -192,9 +192,9 @@ class Game:
                         cur[Move.encode_move(0, f(1), 0, f(0))] = 1
                         cur[Move.encode_move(1, f(0), 0, f(0))] = 1
                         # Extend
-                        if self.board.top(2, f(3)) == line[1]:
+                        if self.board.tops[2 * 4 + f(3)] == line[1]:
                             cur[Move.encode_move(2, f(3), 3, f(3))] = 1
-                        if self.board.top(3, f(2)) == line[1]:
+                        if self.board.tops[3 * 4 + f(2)] == line[1]:
                             cur[Move.encode_move(3, f(2), 3, f(3))] = 1
                     elif line[0][2] == "d":
                         cur[Move.encode_move(3, f(3), 2, f(3))] = 1
@@ -202,9 +202,9 @@ class Game:
                         cur[Move.encode_move(2, f(3), 3, f(3))] = 1
                         cur[Move.encode_move(3, f(2), 3, f(3))] = 1
                         # Extend
-                        if self.board.top(0, f(1)) == line[1]:
+                        if self.board.tops[0 * 4 + f(1)] == line[1]:
                             cur[Move.encode_move(0, f(1), 0, f(0))] = 1
-                        if self.board.top(1, f(0)) == line[1]:
+                        if self.board.tops[1 * 4 + f(0)] == line[1]:
                             cur[Move.encode_move(1, f(0), 0, f(0))] = 1
                     # Place moves, not capitals
                     if line[1] < 2:
@@ -263,9 +263,26 @@ class Game:
                         if not move:
                             moves[i] = 0
         legal_moves = np.zeros(96)
-        for i, move in enumerate(moves):
-            if move and self.is_legal(Move(i)):
+        # Move
+        for i in range(48):
+            if moves[i] and self.is_legal(Move(i)):
                 legal_moves[i] = 1
+        # Place
+        for i in range(16):
+            # Empty
+            if self.board.tops[i] == -1:
+                if not self.board.frozen[i]:
+                    for ptype in range(3):
+                        if self.pieces[self.to_play][ptype] > 0:
+                            legal_moves[48 + ptype * 16 + i] = (
+                                1 * moves[48 + ptype * 16 + i]
+                            )
+            # Not capital
+            elif self.board.tops[i] < 2 and not self.board.frozen[i]:
+                if self.pieces[self.to_play][self.board.tops[i] + 1] > 0:
+                    legal_moves[48 + (self.board.tops[i] + 1) * 16 + i] = (
+                        1 * moves[48 + (self.board.tops[i] + 1) * 16 + i]
+                    )
         return legal_moves
 
     def do_move(self, move_id):
@@ -305,9 +322,13 @@ class Game:
             self.pieces[self.to_play],
             self.pieces[1 - self.to_play],
         ]
+        spaces = np.zeros(48)
+        for i in range(16):
+            for j in range(self.board.bottoms[i], self.board.tops[i] + 1):
+                spaces[i * 3 + j] = 1
         return np.concatenate(
             [
-                np.array(self.board.spaces),
+                spaces,
                 np.array(self.board.frozen),
                 np.array(canonical_pieces).flatten() / 4,
             ]

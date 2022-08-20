@@ -14,7 +14,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=300, model2=None):
+    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
         """
         (int) -> Trainer
         Will train with num_games games concurrently

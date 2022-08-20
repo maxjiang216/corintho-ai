@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from implement.move import Move
 
 
 class Node:
@@ -7,7 +8,7 @@ class Node:
     Node in Monte Carlo Search Tree
     """
 
-    def __init__(self, game, depth, parent=None, probabilities=None):
+    def __init__(self, game, depth, parent=None):
         self.game = game
         self.searches = 1
         self.evaluation = 0
@@ -15,7 +16,7 @@ class Node:
         self.parent = parent
         self.moves = None
         self.legal_moves = None
-        self.probabilities = probabilities
+        self.probabilities = None
         self.children = None
         self.visits = None
         self.noise = None
@@ -56,9 +57,11 @@ class TrainMC:
 
         # If we have not done enough searches, search again
         if self.iterations_done < self.iterations:
+            self.iterations_done += 1
             res = self.search(self.root)
             # Search until an evaluation is needed
             while not res[0] and self.iterations_done < self.iterations:
+                self.iterations_done += 1
                 res = self.search(self.root)
             if res[0]:
                 return ("eval", res[1])
@@ -84,6 +87,19 @@ class TrainMC:
                 if visits > max_value:
                     max_value = visits
                     move_choice = id
+        move_stats = {
+            "eval": self.root.evaluation / self.root.searches,
+            "searches": self.root.searches,
+        }
+        for i, move in enumerate(self.root.moves):
+            if self.root.children[i] is not None:
+                move_stats[str(Move(move))] = {
+                    "prob": self.root.probabilities[i],
+                }
+                move_stats[str(Move(move))]["searches"] = self.root.children[i].searches
+                move_stats[str(Move(move))]["eval"] = (
+                    self.root.children[i].evaluation / self.root.children[i].searches
+                )
         final_ratio = np.zeros(96)
         total_visits = sum(
             self.root.visits
@@ -93,9 +109,9 @@ class TrainMC:
                 final_ratio[move] = self.root.visits[i] / total_visits
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-        return ("move", move, move_choice, final_ratio)
+        return ("move", move, move_choice, final_ratio, move_stats)
 
-    def receive_opp_move(self, move_choice, probabilities=None):
+    def receive_opp_move(self, move_choice):
         """
         Force choose a move
         Used for opponent's moves
@@ -113,7 +129,6 @@ class TrainMC:
             self.root = Node(
                 self.root.game,
                 self.root.depth + 1,
-                probabilities=probabilities,
             )
             self.root.legal_moves = res[1]
         # Unexplored state
@@ -122,7 +137,6 @@ class TrainMC:
             self.root = Node(
                 self.root.game,
                 self.root.depth + 1,
-                probabilities=probabilities,
             )
             # Not a terminal state
             if res[0] is None:
@@ -135,9 +149,9 @@ class TrainMC:
         array ->
         Update nodes with newly received evaluations
         """
-        self.cur_node.evaluation = evaluations[0]
+        self.cur_node.evaluation = evaluations[0] * (-1) ** self.root.game.to_play
         self.cur_node.probabilities = evaluations[1]
-        cur_evaluation = evaluations[0] * -1
+        cur_evaluation = self.cur_node.evaluation * -1
         # Propagate evaluation to parent nodes
         while self.cur_node.parent is not None:
             self.cur_node.parent.evaluation += cur_evaluation
@@ -150,13 +164,11 @@ class TrainMC:
         Search a node
         """
 
-        self.iterations_done += 1
-
         # Terminal node
         if node.game.outcome is not None:
-            node.evaluation = node.game.outcome
+            node.evaluation = node.game.outcome * (-1) ** node.game.to_play
             node.searches += 1
-            cur_evaluation = node.game.outcome * -1
+            cur_evaluation = node.evaluation * -1
             # Propagate evaluation to parent nodes
             while node.parent is not None:
                 node.parent.evaluation += cur_evaluation
@@ -175,13 +187,18 @@ class TrainMC:
 
         # First time searching this node
         if node.moves is None:
+            # This should occur if we receive a move from an opponent to an unsearched state
+            if node.probabilities is None:
+                self.cur_node = node
+                # Request evaluations
+                return (True, self.cur_node.game.get_vector())
             node.moves = []
+            probabilities = []
             for i, is_legal in enumerate(node.legal_moves):
-                if is_legal == 0:
-                    node.probabilities[i] = 0
-                else:
+                if is_legal == 1:
                     node.moves.append(i)
-            node.probabilities = node.probabilities / sum(node.probabilities)
+                    probabilities.append(node.probabilities[i])
+            node.probabilities = np.array(probabilities) / sum(probabilities)
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)
             node.noise = self.rng.dirichlet(np.full(len(node.moves), 0.3))
@@ -193,11 +210,21 @@ class TrainMC:
             u = 0
             # If not visited, set action value to 0
             if node.children[i] is None:
-                u = self.c_puct * node.probabilities[i] * np.sqrt(node.searches - 1)
+                u = (
+                    self.c_puct
+                    * (
+                        (1 - self.epsilon) * node.probabilities[i]
+                        + self.epsilon * node.noise[i]
+                    )
+                    * np.sqrt(node.searches - 1)
+                )
             else:
                 u = -1 * node.children[i].evaluation / node.children[i].searches + (
                     self.c_puct
-                    * ((1 - self.epsilon) * node.probabilities[i] + node.noise[i])
+                    * (
+                        (1 - self.epsilon) * node.probabilities[i]
+                        + self.epsilon * node.noise[i]
+                    )
                     * np.sqrt(node.searches - 1)
                     / (node.children[i].searches + 1)
                 )

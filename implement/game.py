@@ -30,6 +30,16 @@ class Game:
             str(self.board) + "\n" + str(self.pieces) + "\n" + str(self.to_play) + "\n"
         )
 
+    def __deepcopy__(self, memo):
+        """Custom deep copy"""
+        result = Game.__new__(Game)
+        result.board = deepcopy(self.board)
+        result.to_play = self.to_play
+        result.pieces = deepcopy(self.pieces)
+        result.outcome = self.outcome
+
+        return result
+
     def is_legal(self, move):
         """
         Move -> bool
@@ -37,11 +47,9 @@ class Game:
         """
         # Place
         if move.mtype:
-            if self.pieces[self.to_play][move.ptype] == 0 or not self.board.can_place(
+            return self.pieces[self.to_play][move.ptype] > 0 and self.board.can_place(
                 move.ptype, move.row1, move.col1
-            ):
-                return False
-            return True
+            )
         # Move
         return self.board.can_move(move.row1, move.col1, move.row2, move.col2)
 
@@ -162,13 +170,22 @@ class Game:
                         f = lambda x: 3 - x
                     # Move moves
                     cur[Move.encode_move(1, f(1), 0, f(1))] = 1
-                    cur[Move.encode_move(1, f(1), 0, f(2))] = 1
-                    cur[Move.encode_move(1, f(1), 0, f(1))] = 1
-                    cur[Move.encode_move(1, f(1), 0, f(0))] = 1
-                    cur[Move.encode_move(0, f(1), 0, f(1))] = 1
-                    cur[Move.encode_move(1, f(2), 0, f(1))] = 1
-                    cur[Move.encode_move(2, f(1), 0, f(1))] = 1
-                    cur[Move.encode_move(1, f(0), 0, f(1))] = 1
+                    cur[Move.encode_move(1, f(1), 1, f(2))] = 1
+                    cur[Move.encode_move(1, f(1), 2, f(1))] = 1
+                    cur[Move.encode_move(1, f(1), 1, f(0))] = 1
+                    cur[Move.encode_move(0, f(1), 1, f(1))] = 1
+                    cur[Move.encode_move(1, f(2), 1, f(1))] = 1
+                    cur[Move.encode_move(2, f(1), 1, f(1))] = 1
+                    cur[Move.encode_move(1, f(0), 1, f(1))] = 1
+
+                    cur[Move.encode_move(2, f(2), 1, f(2))] = 1
+                    cur[Move.encode_move(2, f(2), 2, f(3))] = 1
+                    cur[Move.encode_move(2, f(2), 3, f(2))] = 1
+                    cur[Move.encode_move(2, f(2), 2, f(1))] = 1
+                    cur[Move.encode_move(0, f(2), 2, f(2))] = 1
+                    cur[Move.encode_move(2, f(3), 2, f(2))] = 1
+                    cur[Move.encode_move(3, f(2), 2, f(2))] = 1
+                    cur[Move.encode_move(2, f(1), 2, f(2))] = 1
                     if line[0][2] == "u":
                         cur[Move.encode_move(0, f(0), 0, f(1))] = 1
                         cur[Move.encode_move(0, f(0), 1, f(0))] = 1
@@ -275,7 +292,7 @@ class Game:
                 self.outcome = 2 * self.to_play - 1
             else:
                 self.outcome = 0
-            return (self.outcome,)
+            return (self.outcome, legal_moves)
         return (None, legal_moves)
 
     def get_vector(self):
@@ -290,8 +307,8 @@ class Game:
         ]
         return np.concatenate(
             [
-                np.array(self.board.spaces).flatten(),
-                np.array(self.board.frozen).flatten(),
+                np.array(self.board.spaces),
+                np.array(self.board.frozen),
                 np.array(canonical_pieces).flatten() / 4,
             ]
         )

@@ -14,7 +14,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
+    def __init__(self, model, batch_size=32, num_games=300, model2=None):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -77,9 +77,15 @@ class Trainer:
                 evaluations = list(zip(res[0], res[1]))
             evaluations_done += 1
             if evaluations_done % 50 == 0:
-                print(
-                    f"{evaluations_done} evaluations completed in {(time.time()-start_time)/60:.1f} minutes"
-                )
+                time_taken = (time.time() - start_time) / 60
+                if time_taken < 60:
+                    print(
+                        f"{evaluations_done} evaluations completed in {time.time()-start_time:.1f} seconds"
+                    )
+                else:
+                    print(
+                        f"{evaluations_done} evaluations completed in {(time.time()-start_time)/60:.1f} minutes"
+                    )
 
         # Compile logs
         # Return game histories and outcome as string to be written into file
@@ -90,7 +96,8 @@ class Trainer:
             game_logs += "\n".join(game.logs) + "\n\n"
             total_turns += len(game.logs)
         game_logs = (
-            f"AVERAGE NUMBER OF TURNS: {total_turns / len(self.games)}\n" + game_logs
+            f"AVERAGE NUMBER OF TURNS: {total_turns / 2 / len(self.games):.2f}\n"
+            + game_logs
         )
 
         if not self.test:

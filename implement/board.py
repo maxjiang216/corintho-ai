@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from implement.move import Move
 
 
@@ -10,19 +11,12 @@ class Board:
 
     def __init__(self):
         # Three 4x4 boards
-        self.spaces = []
-        for _ in range(4):
-            temp_row = []
-            for _ in range(4):
-                temp_row.append([False] * 3)
-            self.spaces.append(temp_row)
+        self.spaces = [False] * 48
         # Frozen spaces, defult to only give 3 spaces to prevent symmetry
-        self.frozen = []
-        for _ in range(4):
-            self.frozen.append([True] * 4)
-        self.frozen[0][0] = False
-        self.frozen[0][1] = False
-        self.frozen[1][1] = False
+        self.frozen = [True] * 16
+        self.frozen[0 * 4 + 0] = False
+        self.frozen[0 * 4 + 1] = False
+        self.frozen[1 * 4 + 1] = False
         self.lines = []
 
     def __str__(self):
@@ -34,27 +28,36 @@ class Board:
         for i in range(4):
             for j in range(4):
                 # Base
-                if self.spaces[i][j][0]:
+                if self.spaces[i * 12 + j * 3 + 0]:
                     output += "B"
                 else:
                     output += "_"
                 # Column
-                if self.spaces[i][j][1]:
+                if self.spaces[i * 12 + j * 3 + 1]:
                     output += "C"
                 else:
                     output += "_"
                 # Capital
-                if self.spaces[i][j][2]:
+                if self.spaces[i * 12 + j * 3 + 2]:
                     output += "A"
                 else:
                     output += "_"
                 # Frozen space
-                if self.frozen[i][j]:
+                if self.frozen[i * 4 + j]:
                     output += "#"
                 else:
                     output += " "
             output += "\n"
         return output
+
+    def __deepcopy__(self, memo):
+        """Custom deepcopy"""
+        result = Board.__new__(Board)
+        result.spaces = self.spaces[:]
+        result.frozen = self.frozen[:]
+        result.lines = self.lines[:]
+
+        return result
 
     def is_empty(self, row, col):
         """
@@ -63,15 +66,7 @@ class Board:
         Returns whether the corresponding space is empty
         If ptype is specified, only considers that slot
         """
-        return not any(ptype for ptype in self.spaces[row][col])
-
-    def clear(self, row, col):
-        """
-        int,int ->
-        Takes a row and column number
-        Clears the corresponding space
-        """
-        self.spaces[row][col] = [False] * 3
+        return not any(self.spaces[row * 12 + col * 3 : row * 12 + col * 3 + 3])
 
     def bottom(self, row, col):
         """
@@ -81,7 +76,7 @@ class Board:
         Returns -1 if space is empty
         """
         for i in [0, 1, 2]:
-            if self.spaces[row][col][i]:
+            if self.spaces[row * 12 + col * 3 + i]:
                 return i
         return -1
 
@@ -93,7 +88,7 @@ class Board:
         Returns -1 if space is empty
         """
         for i in [2, 1, 0]:
-            if self.spaces[row][col][i]:
+            if self.spaces[row * 12 + col * 3 + i]:
                 return i
         return -1
 
@@ -104,20 +99,26 @@ class Board:
         can be placed at (row, col)
         """
         # Check if space is frozen
-        if self.frozen[row][col]:
-            return False
         if self.is_empty(row, col):
             return True
+        if self.frozen[row * 4 + col]:
+            return False
         # Base
         if ptype == 0:
             return False
         # Column
         if ptype == 1:
             # Check for base
-            return self.spaces[row][col][0] and not self.spaces[row][col][1]
+            return (
+                self.spaces[row * 12 + col * 3 + 0]
+                and not self.spaces[row * 12 + col * 3 + 1]
+            )
         # Capital
         # Check for column and absence of capital
-        return self.spaces[row][col][1] and not self.spaces[row][col][2]
+        return (
+            self.spaces[row * 12 + col * 3 + 1]
+            and not self.spaces[row * 12 + col * 3 + 2]
+        )
 
     def can_move(self, row1, col1, row2, col2):
         """
@@ -125,24 +126,13 @@ class Board:
         Returns whether it is legal to move
         the stack at (row1,col1) to (row2,col2)
         """
-        # Frozen spaces
-        if self.frozen[row1][col1] or self.frozen[row2][col2]:
-            return False
         # Empty spaces
-        if self.is_empty(row2, col2):
+        if self.is_empty(row1, col1) or self.is_empty(row2, col2):
+            return False
+        # Frozen spaces
+        if self.frozen[row1 * 4 + col1] or self.frozen[row2 * 4 + col2]:
             return False
         return self.bottom(row1, col1) - self.top(row2, col2) == 1
-
-    def is_top(self, row, col, ptype):
-        """
-        int,int,int -> bool
-        Checks if space (row,col) has top ptype
-        """
-        # Piece above
-        if any(self.spaces[row][col][ptype + 1 :]):
-            return False
-        if self.spaces[row][col][ptype]:
-            return True
 
     def is_legal_move(self, move):
         """
@@ -164,27 +154,29 @@ class Board:
         """
         # Reset which space is frozen
         for row in range(4):
-            self.frozen[row] = [False] * 4
+            self.frozen[row * 4 : row * 4 + 4] = [False] * 4
         # Place
         if move.mtype:
-            self.spaces[move.row1][move.col1][move.ptype] = True
-            self.frozen[move.row1][move.col1] = True
+            self.spaces[move.row1 * 12 + move.col1 * 3 + move.ptype] = True
+            self.frozen[move.row1 * 4 + move.col1] = True
         # Move
         else:
-            self.spaces[move.row2][move.col2][0] = (
-                self.spaces[move.row1][move.col1][0]
-                or self.spaces[move.row2][move.col2][0]
+            self.spaces[move.row2 * 12 + move.col2 * 3 + 0] = (
+                self.spaces[move.row1 * 12 + move.col1 * 3 + 0]
+                or self.spaces[move.row2 * 12 + move.col2 * 3 + 0]
             )
-            self.spaces[move.row2][move.col2][1] = (
-                self.spaces[move.row1][move.col1][1]
-                or self.spaces[move.row2][move.col2][1]
+            self.spaces[move.row2 * 12 + move.col2 * 3 + 1] = (
+                self.spaces[move.row1 * 12 + move.col1 * 3 + 1]
+                or self.spaces[move.row2 * 12 + move.col2 * 3 + 1]
             )
-            self.spaces[move.row2][move.col2][2] = (
-                self.spaces[move.row1][move.col1][2]
-                or self.spaces[move.row2][move.col2][2]
+            self.spaces[move.row2 * 12 + move.col2 * 3 + 2] = (
+                self.spaces[move.row1 * 12 + move.col1 * 3 + 2]
+                or self.spaces[move.row2 * 12 + move.col2 * 3 + 2]
             )
-            self.spaces[move.row1][move.col1] = [0, 0, 0]
-            self.frozen[move.row2][move.col2] = True
+            self.spaces[
+                move.row1 * 12 + move.col1 * 3 : move.row1 * 12 + move.col1 * 3 + 3
+            ] = [0, 0, 0]
+            self.frozen[move.row2 * 4 + move.col2] = True
         self.get_lines()
 
     def get_tops(self):

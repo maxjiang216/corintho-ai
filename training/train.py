@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
         print(f"Loading model took {time.time()-start_time:.0f} seconds!")
 
-        tester = Trainer(trainer.model, num_games=10, model2=old_model)
+        tester = Trainer(trainer.model, num_games=100, model2=old_model)
 
         start_time = time.time()
 

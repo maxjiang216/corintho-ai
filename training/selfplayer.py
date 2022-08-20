@@ -14,7 +14,7 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(self, iterations=200, test=False, seed=0):
+    def __init__(self, iterations=25, test=False, seed=0):
         """
         (int) -> SelfPlayers
         """
@@ -44,11 +44,11 @@ class SelfPlayer:
             while res[0] == "move" and self.game.outcome is None:
                 self.players[1 - self.game.to_play].receive_opp_move(
                     res[2],  # move choice
-                    self.players[self.game.to_play].root.probabilities,
                 )
                 self.samples.append(self.game.get_vector())
                 self.probability_labels.append(res[3])
                 self.game.do_move(res[1])  # move
+                self.logs.append(str(res[-1]))
                 self.logs.append(str(self.game))  # Keep game logs
                 if self.game.outcome is None:
                     res = self.players[self.game.to_play].choose_move()

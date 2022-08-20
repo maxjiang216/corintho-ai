@@ -3,4 +3,4 @@ __pycache__
 notebooks
 .ipynb_checkpoints
 models
-/training/logs/*
+/training/logs

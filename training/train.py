@@ -83,6 +83,12 @@ if __name__ == "__main__":
 
     fail_num = 0
 
+    try:
+        os.mkdir("./training/logs")
+        print("Created directory ./training/logs")
+    except FileExistsError:
+        print("Will write logs into directory ./training/logs")
+
     while True:
 
         old_weights = model.get_weights()

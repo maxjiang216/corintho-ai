@@ -77,7 +77,7 @@ class Trainer:
                 evaluations = list(zip(res[0], res[1]))
             evaluations_done += 1
             if evaluations_done % 50 == 0:
-                time_taken = (time.time() - start_time) / 60
+                time_taken = time.time() - start_time
                 if time_taken < 60:
                     print(
                         f"{evaluations_done} evaluations completed in {time.time()-start_time:.1f} seconds"
@@ -86,6 +86,9 @@ class Trainer:
                     print(
                         f"{evaluations_done} evaluations completed in {(time.time()-start_time)/60:.1f} minutes"
                     )
+                print(
+                    f"Predicted time to complete: {26.67*200*time_taken/evaluations_done/60/60:.2f} hours\n{(26.67*200-evaluations_done)*time_taken/evaluations_done/60/60:.2f} hours left"
+                )
 
         # Compile logs
         # Return game histories and outcome as string to be written into file

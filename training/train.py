@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
             print(f"Loading model took {time.time()-start_time:.1f} seconds!")
 
-            TEST_NUM = 3
+            TEST_NUM = 100
 
             tester = Trainer(trainer.model, num_games=TEST_NUM, model2=old_model)
 

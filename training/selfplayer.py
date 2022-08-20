@@ -30,6 +30,7 @@ class SelfPlayer:
             self.players = [TrainMC(Game(), iterations), TrainMC(Game(), iterations)]
         self.samples = []
         self.probability_labels = []
+        self.logs = []
 
     def play(self, evaluations=None):
         """
@@ -48,6 +49,7 @@ class SelfPlayer:
                 self.samples.append(self.game.get_vector())
                 self.probability_labels.append(res[3])
                 self.game.do_move(res[1])  # move
+                self.logs.append(str(self.game))  # Keep game logs
                 if self.game.outcome is None:
                     res = self.players[self.game.to_play].choose_move()
             if res[0] == "eval":  # eval

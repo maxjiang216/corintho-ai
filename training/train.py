@@ -81,25 +81,66 @@ if __name__ == "__main__":
         model_num = int(sys.argv[1])
         model = keras.models.load_model(f"./training/models/model_{model_num}")
 
-    old_weights = model.get_weights()
+    fail_num = 0
 
-    trainer = Trainer(
-        model,
-    )
+    while True:
 
-    new_weights = trainer.train_generation()
+        old_weights = model.get_weights()
 
-    print(f"Training generation {model_num} took {time.time()-start_time} seconds!")
+        trainer = Trainer(
+            model,
+        )
 
-    old_model = keras.models.load_model(f"./training/models/model_{model_num}")
+        print(f"Begin training generation {model_num}! (Times failed: {fail_num})")
 
-    tester = Trainer(trainer.model, num_games=10, model2=old_model)
+        start_time = time.time()
 
-    start_time = time.time()
-    res = tester.train_generation()
+        res = trainer.train_generation()
 
-    print(f"New model {model_num+1} scored {res*100}% out of 100 games!")
+        print(
+            f"Training generation {model_num} took {(time.time()-start_time)/60:.1f} minutes!"
+        )
 
-    # New neural net scores >50%
-    if res > 0.5:
-        trainer.model.save(f"./training/models/model_{model_num+1}")
+        start_time = time.time()
+        # Write game logs
+        open(
+            f"./training/logs/model_{model_num}_{fail_num}_training.txt",
+            "w",
+            encoding="utf-8",
+        ).write(res[1])
+
+        print(f"Writing training logs took {time.time()-start_time:.0f} seconds!")
+
+        start_time = time.time()
+
+        old_model = keras.models.load_model(f"./training/models/model_{model_num}")
+
+        print(f"Loading model took {time.time()-start_time:.0f} seconds!")
+
+        tester = Trainer(trainer.model, num_games=10, model2=old_model)
+
+        start_time = time.time()
+
+        res = tester.train_generation()
+
+        print(
+            f"New model {model_num+1} scored {res[0]*100:.1f}% out of 100 games!\nTesting took {(time.time()-start_time)/60:.1f} minutes!"
+        )
+
+        # Write game logs
+        open(
+            f"./training/logs/model_{model_num}_{fail_num}_testing.txt",
+            "w",
+            encoding="utf-8",
+        ).write(res[1])
+
+        # New neural net scores >50%
+        if res[0] > 0.5:
+            trainer.model.save(f"./training/models/model_{model_num+1}")
+            model = trainer.model
+            model_num += 1
+            fail_num = 0
+        else:
+            trainer.model.save(f"./training/models/model_{model_num}_failed_{fail_num}")
+            model = old_model
+            fail_num += 1

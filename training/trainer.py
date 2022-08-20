@@ -1,5 +1,5 @@
 import numpy as np
-from multiprocessing import Pool, cpu_count
+import time
 from selfplayer import SelfPlayer
 
 
@@ -41,6 +41,8 @@ class Trainer:
         # Play games
 
         evaluations = [None] * len(self.games)
+        evaluations_done = 0
+        start_time = time.time()
 
         while True:
 
@@ -73,6 +75,23 @@ class Trainer:
                     x=np.array(positions), batch_size=self.batch_size, verbose=0
                 )
                 evaluations = list(zip(res[0], res[1]))
+            evaluations_done += 1
+            if evaluations_done % 50 == 0:
+                print(
+                    f"{evaluations_done} evaluations completed in {(time.time()-start_time)/60:.1f} minutes"
+                )
+
+        # Compile logs
+        # Return game histories and outcome as string to be written into file
+        game_logs = ""
+        total_turns = 0
+        for i, game in enumerate(self.games):
+            game_logs += f"GAME {i}\nRESULT: {game.game.outcome}\n"
+            game_logs += "\n".join(game.logs) + "\n\n"
+            total_turns += len(game.logs)
+        game_logs = (
+            f"AVERAGE NUMBER OF TURNS: {total_turns / len(self.games)}\n" + game_logs
+        )
 
         if not self.test:
 
@@ -103,7 +122,7 @@ class Trainer:
                 shuffle=True,
             )
             # Return weights
-            return self.model.get_weights()
+            return (self.model.get_weights(), game_logs)
 
         # Score of first player (first model)
         score = 0
@@ -111,4 +130,4 @@ class Trainer:
             score += (game.game.outcome * (-1) ** game.seed + 1) / 2
 
         # If testing, return win rate
-        return score / len(self.games)
+        return (score / len(self.games), game_logs)

@@ -114,6 +114,11 @@ class TrainMC:
                     self.root.children[i].original_evaluation
                     * (-1) ** self.root.children[i].game.to_play
                 )
+                if self.root.children[i].children is not None:
+                    move_stats[str(Move(move))]["calculation"] = {
+                        str(Move(submove)):self.root.children[i].children[j].searches for j,submove in enumerate(self.root.children[i].moves) if self.root.children[i].children[j] is not None
+                    }
+                    
         move_stats["moves"] = move_names
         final_ratio = np.zeros(96)
         total_visits = sum(

@@ -27,6 +27,7 @@ class Trainer:
         self.model2 = model2
         self.batch_size = batch_size
         self.test = test
+        self.iterations = iterations
         if test:
             for i in range(num_games):
                 self.games.append(
@@ -90,7 +91,7 @@ class Trainer:
                         f"{evaluations_done} evaluations completed in {(time.time()-start_time)/60:.1f} minutes"
                     )
                 print(
-                    f"Predicted time to complete: {26.67*200*time_taken/evaluations_done/60/60:.2f} hours\n{(26.67*200-evaluations_done)*time_taken/evaluations_done/60/60:.2f} hours left"
+                    f"Predicted time to complete: {26.67*self.iterations*time_taken/evaluations_done/60/60:.2f} hours\n{(26.67*self.iterations-evaluations_done)*time_taken/evaluations_done/60/60:.2f} hours left"
                 )
 
         # Compile logs
@@ -137,7 +138,7 @@ class Trainer:
                     np.array(probability_labels),
                 ],
                 batch_size=self.batch_size,
-                epochs=1,
+                epochs=10,
                 shuffle=True,
             )
             # Return weights

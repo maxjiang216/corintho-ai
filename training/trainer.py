@@ -14,7 +14,7 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, batch_size=32, num_games=3000, model2=None):
+    def __init__(self, model, model2, batch_size=32, num_games=3000, test=False):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -22,14 +22,13 @@ class Trainer:
 
         self.games = []
         self.model = model
+        self.model2 = model2
         self.batch_size = batch_size
-        if model2 is not None:
-            self.test = True
-            self.model2 = model2
+        self.test = test
+        if test:
             for i in range(num_games):
                 self.games.append(SelfPlayer(test=True, seed=i % 2))
         else:
-            self.test = False
             for _ in range(num_games):
                 self.games.append(SelfPlayer())
 
@@ -72,7 +71,7 @@ class Trainer:
                 )
             else:
                 res = self.model.predict(
-                    x=np.array(positions), batch_size=self.batch_size, verbose=0
+                    x=np.array(positions), batch_size=len(self.games), verbose=0
                 )
                 evaluations = list(zip(res[0], res[1]))
             evaluations_done += 1
@@ -121,7 +120,7 @@ class Trainer:
                 probability_labels.extend(cur_probability_labels)
 
             # Train neural nets
-            self.model.fit(
+            self.model2.fit(
                 x=np.array(samples),
                 y=[
                     np.array(evaluation_labels),
@@ -132,7 +131,7 @@ class Trainer:
                 shuffle=True,
             )
             # Return weights
-            return (self.model.get_weights(), game_logs)
+            return (self.model2.get_weights(), game_logs)
 
         # Score of first player (first model)
         score = 0

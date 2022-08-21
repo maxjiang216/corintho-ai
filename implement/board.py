@@ -34,7 +34,7 @@ class Board:
                 else:
                     output += "_"
                 # Column
-                if 1 <= self.tops[i * 4 + j] < self.bottoms[i * 4 + j] >= 0:
+                if 1 <= self.tops[i * 4 + j] > self.bottoms[i * 4 + j] >= 0:
                     output += "C"
                 else:
                     output += "_"

@@ -1,5 +1,6 @@
 import os
 import sys
+import select
 import time
 import cProfile
 import pstats
@@ -97,9 +98,7 @@ if __name__ == "__main__":
 
             old_weights = model.get_weights()
 
-            trainer = Trainer(
-                model,
-            )
+            trainer = Trainer(model, model)
 
             print(f"Begin training generation {model_num}! (Times failed: {fail_num})")
 
@@ -129,7 +128,7 @@ if __name__ == "__main__":
 
             TEST_NUM = 100
 
-            tester = Trainer(trainer.model, num_games=TEST_NUM, model2=old_model)
+            tester = Trainer(trainer.model, old_model, num_games=TEST_NUM, test=True)
 
             start_time = time.time()
 
@@ -148,19 +147,17 @@ if __name__ == "__main__":
 
             # New neural net scores >50%
             if res[0] > 0.5:
-                trainer.model.save(f"./training/models/model_{model_num+1}")
+                trainer.model2.save(f"./training/models/model_{model_num+1}")
                 model = trainer.model
                 model_num += 1
                 fail_num = 0
             else:
-                trainer.model.save(
+                trainer.model2.save(
                     f"./training/models/model_{model_num}_failed_{fail_num}"
                 )
                 model = old_model
                 fail_num += 1
 
-            break
-
-    stats = pstats.Stats(pr)
-    stats.sort_stats(pstats.SortKey.TIME)
-    stats.dump_stats(filename="train.prof")
+            stats = pstats.Stats(pr)
+            stats.sort_stats(pstats.SortKey.TIME)
+            stats.dump_stats(filename="train.prof")

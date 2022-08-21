@@ -46,8 +46,10 @@ class Trainer:
         while True:
 
             res = []
+            start = time.time()
             for i, game in enumerate(self.games):
                 res.append(game.play(evaluations[i]))
+            print(f"Simulation took {time.time()-start}")
 
             positions = []
             games_done = 0
@@ -61,19 +63,21 @@ class Trainer:
                 break
             if self.test:
                 res1 = self.model.predict(
-                    x=np.array(positions), batch_size=self.batch_size, verbose=0
+                    x=np.array(positions), batch_size=len(self.games), verbose=0
                 )
                 res2 = self.model2.predict(
-                    x=np.array(positions), batch_size=self.batch_size, verbose=0
+                    x=np.array(positions), batch_size=len(self.games), verbose=0
                 )
                 evaluations = list(
                     zip(list(zip(res1[0], res1[1])), list(zip(res2[0], res2[1])))
                 )
             else:
+                start = time.time()
                 res = self.model.predict(
                     x=np.array(positions), batch_size=len(self.games), verbose=0
                 )
                 evaluations = list(zip(res[0], res[1]))
+                print(f"Predict took {time.time()-start}")
             evaluations_done += 1
             if evaluations_done % 50 == 0:
                 time_taken = time.time() - start_time

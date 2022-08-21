@@ -298,11 +298,11 @@ class Game:
         #     self.outcome = 1 - self.to_play
         #     return self.outcome
 
-        self.to_play = 1 - self.to_play
         move = Move(move_id)
         # Place, remove piece from arsenal
         if move.mtype == 1:
             self.pieces[self.to_play][move.ptype] -= 1
+        self.to_play = 1 - self.to_play
         self.board.do_move(move)
         # Previous player win
         legal_moves = self.get_legal_moves()

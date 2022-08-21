@@ -71,7 +71,7 @@ class Trainer:
                 )
             else:
                 res = self.model.predict(
-                    x=np.array(positions), batch_size=len(self.games), verbose=0
+                    x=np.array(positions), batch_size=len(self.games)
                 )
                 evaluations = list(zip(res[0], res[1]))
             evaluations_done += 1

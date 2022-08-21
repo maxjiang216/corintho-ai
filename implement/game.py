@@ -297,11 +297,10 @@ class Game:
         #     self.outcome = 1 - self.to_play
         #     return self.outcome
         # Place, remove piece from arsenal
-        move = Move(move_id)
-        if move.mtype:
-            self.pieces[self.to_play][move.ptype] -= 1
-        self.board.do_move(move)
         self.to_play = 1 - self.to_play
+        move = Move(move_id)
+        self.pieces[self.to_play][move.ptype] -= 1
+        self.board.do_move(move)
         # Previous player win
         legal_moves = self.get_legal_moves()
         if max(legal_moves) == 0:

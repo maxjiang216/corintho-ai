@@ -204,7 +204,7 @@ class TrainMC:
         # Terminal node
         if node.game.outcome is not None:
             node.evaluation += node.game.outcome * (-1) ** node.game.to_play
-            cur_evaluation = node.game.outcome * (-1) ** node.game.to_play
+            cur_evaluation = node.game.outcome * (-1) ** node.game.to_play * (-1)
             # Propagate evaluation to parent nodes
             while node.parent is not None:
                 node.parent.evaluation += cur_evaluation

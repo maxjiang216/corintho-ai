@@ -21,6 +21,7 @@ class Node:
         self.visits = None
         self.noise = None
         self.noisy_probabilities = None
+        self.original_evaluation = 0
 
 
 class TrainMC:
@@ -101,6 +102,9 @@ class TrainMC:
                 move_stats[str(Move(move))]["eval"] = (
                     self.root.children[i].evaluation / self.root.children[i].searches
                 )
+                move_stats[str(Move(move))]["original_eval"] = self.root.children[
+                    i
+                ].original_evaluation
         final_ratio = np.zeros(96)
         total_visits = sum(
             self.root.visits
@@ -151,6 +155,9 @@ class TrainMC:
         Update nodes with newly received evaluations
         """
         self.cur_node.evaluation = evaluations[0] * (-1) ** self.root.game.to_play
+        self.cur_node.original_evaluation = (
+            evaluations[0] * (-1) ** self.root.game.to_play
+        )
         self.cur_node.probabilities = evaluations[1]
         cur_evaluation = self.cur_node.evaluation * -1
         # Propagate evaluation to parent nodes
@@ -160,6 +167,7 @@ class TrainMC:
             self.cur_node = self.cur_node.parent
 
     def choose_next(self, node):
+        """Choose child to visit"""
         # Choose next node to visit
         max_value = -1
         move_choice = -1

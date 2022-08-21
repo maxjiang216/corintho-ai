@@ -15,6 +15,7 @@ from trainer import Trainer
 
 NUM_GAMES = 30
 ITERATIONS = 25
+TEST_NUM = 10
 
 if __name__ == "__main__":
 
@@ -132,8 +133,6 @@ if __name__ == "__main__":
             old_model = keras.models.load_model(f"./training/models/model_{model_num}")
 
             print(f"Loading model took {time.time()-start_time:.1f} seconds!")
-
-            TEST_NUM = 10
 
             tester = Trainer(
                 trainer.model2,

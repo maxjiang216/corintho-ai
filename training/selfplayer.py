@@ -69,10 +69,12 @@ class SelfPlayer:
 
         if self.game.outcome is None:
             return [], [], []
-        evaluation_labels = []
-        for i, _ in enumerate(self.samples):
-            evaluation_labels.append(
-                self.game.outcome * (-1) ** (len(self.samples) - i - 1),
-            )
+        # Draw, all labels are 0
+        if self.game.outcome == 0:
+            evaluation_labels = [0] * len(self.samples)
+        else:
+            evaluation_labels = [
+                (-1) ** (len(self.samples) - i - 1) for i in range(len(self.samples))
+            ]
 
         return self.samples, evaluation_labels, self.probability_labels

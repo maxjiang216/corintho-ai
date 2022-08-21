@@ -14,7 +14,9 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, model2, batch_size=32, num_games=30, test=False):
+    def __init__(
+        self, model, model2, batch_size=32, num_games=3000, iterations=200, test=False
+    ):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -27,10 +29,12 @@ class Trainer:
         self.test = test
         if test:
             for i in range(num_games):
-                self.games.append(SelfPlayer(test=True, seed=i % 2))
+                self.games.append(
+                    SelfPlayer(iterations=iterations, test=True, seed=i % 2)
+                )
         else:
             for _ in range(num_games):
-                self.games.append(SelfPlayer())
+                self.games.append(SelfPlayer(iterations=iterations))
 
     def train_generation(self):
         """
@@ -101,6 +105,12 @@ class Trainer:
             f"AVERAGE NUMBER OF TURNS: {total_turns / 2 / len(self.games):.2f}\n"
             + game_logs
         )
+        if self.test:
+            # Score of first player (first model)
+            score = 0
+            for game in self.games:
+                score += (game.game.outcome * (-1) ** game.seed + 1) / 2
+            game_logs = f"FIRST MODEL SCORE: {score/len(self.games)}\n" + game_logs
 
         if not self.test:
 

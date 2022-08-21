@@ -13,6 +13,9 @@ from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 
+NUM_GAMES = 30
+ITERATIONS = 25
+
 if __name__ == "__main__":
 
     with cProfile.Profile() as pr:
@@ -94,11 +97,15 @@ if __name__ == "__main__":
         except FileExistsError:
             print("Will write logs into directory ./training/logs")
 
+        trained_model = model
+
         while True:
 
             old_weights = model.get_weights()
 
-            trainer = Trainer(model, model)
+            trainer = Trainer(
+                model, trained_model, iterations=ITERATIONS, num_games=NUM_GAMES
+            )
 
             print(f"Begin training generation {model_num}! (Times failed: {fail_num})")
 
@@ -128,7 +135,13 @@ if __name__ == "__main__":
 
             TEST_NUM = 10
 
-            tester = Trainer(trainer.model, old_model, num_games=TEST_NUM, test=True)
+            tester = Trainer(
+                trainer.model2,
+                old_model,
+                num_games=TEST_NUM,
+                iterations=ITERATIONS,
+                test=True,
+            )
 
             start_time = time.time()
 
@@ -148,7 +161,8 @@ if __name__ == "__main__":
             # New neural net scores >50%
             if res[0] > 0.5:
                 trainer.model2.save(f"./training/models/model_{model_num+1}")
-                model = trainer.model
+                model = trainer.model2
+                trained_model = trainer.model2
                 model_num += 1
                 fail_num = 0
             else:
@@ -156,6 +170,7 @@ if __name__ == "__main__":
                     f"./training/models/model_{model_num}_failed_{fail_num}"
                 )
                 model = old_model
+                trained_model = trainer.model2
                 fail_num += 1
 
             stats = pstats.Stats(pr)

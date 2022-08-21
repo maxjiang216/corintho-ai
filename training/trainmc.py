@@ -90,7 +90,9 @@ class TrainMC:
                     max_value = visits
                     move_choice = id
         move_stats = {
-            "eval": self.root.evaluation / self.root.searches,
+            "eval": self.root.evaluation
+            / self.root.searches
+            * (-1) ** self.root.game.to_play,
             "searches": self.root.searches,
         }
         for i, move in enumerate(self.root.moves):
@@ -100,11 +102,14 @@ class TrainMC:
                 }
                 move_stats[str(Move(move))]["searches"] = self.root.children[i].searches
                 move_stats[str(Move(move))]["eval"] = (
-                    self.root.children[i].evaluation / self.root.children[i].searches
+                    self.root.children[i].evaluation
+                    / self.root.children[i].searches
+                    * (-1) ** self.root.children[i].game.to_play
                 )
-                move_stats[str(Move(move))]["original_eval"] = self.root.children[
-                    i
-                ].original_evaluation
+                move_stats[str(Move(move))]["original_eval"] = (
+                    self.root.children[i].original_evaluation
+                    * (-1) ** self.root.children[i].game.to_play
+                )
         final_ratio = np.zeros(96)
         total_visits = sum(
             self.root.visits
@@ -194,11 +199,12 @@ class TrainMC:
         Search a node
         """
 
+        node.searches += 1
+
         # Terminal node
         if node.game.outcome is not None:
-            node.evaluation = node.game.outcome * (-1) ** node.game.to_play
-            node.searches += 1
-            cur_evaluation = node.evaluation * -1
+            node.evaluation += node.game.outcome * (-1) ** node.game.to_play
+            cur_evaluation = node.game.outcome * (-1) ** node.game.to_play
             # Propagate evaluation to parent nodes
             while node.parent is not None:
                 node.parent.evaluation += cur_evaluation
@@ -212,8 +218,6 @@ class TrainMC:
             self.cur_node = node
             node.legal_moves = node.game.get_legal_moves()
             return (True, node.game.get_vector())
-
-        node.searches += 1
 
         # First time searching this node
         if node.moves is None:
@@ -255,7 +259,15 @@ class TrainMC:
             )
             # Terminal state
             if new_game.outcome is not None:
-                node.children[move_choice].evaluation = new_game.outcome
+                node.children[move_choice].evaluation = (
+                    new_game.outcome * (-1) ** new_game.to_play
+                )
+                cur_evaluation = node.children[move_choice].evaluation * -1
+                # Propagate evaluation to parent nodes
+                while node is not None:
+                    node.evaluation += cur_evaluation
+                    cur_evaluation *= -1
+                    node = node.parent
                 # No evaluation needed
                 return (False,)
             # Save legal moves if not terminal state

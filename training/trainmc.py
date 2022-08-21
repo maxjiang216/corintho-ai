@@ -89,17 +89,21 @@ class TrainMC:
                 if visits > max_value:
                     max_value = visits
                     move_choice = id
+
         move_stats = {
             "eval": self.root.evaluation
             / self.root.searches
             * (-1) ** self.root.game.to_play,
             "searches": self.root.searches,
+            "lines": self.root.game.board.lines,
         }
+        move_names = []
         for i, move in enumerate(self.root.moves):
+            move_names.append(str(Move(move)))
+            move_stats[str(Move(move))] = {
+                "prob": self.root.probabilities[i],
+            }
             if self.root.children[i] is not None:
-                move_stats[str(Move(move))] = {
-                    "prob": self.root.probabilities[i],
-                }
                 move_stats[str(Move(move))]["searches"] = self.root.children[i].searches
                 move_stats[str(Move(move))]["eval"] = (
                     self.root.children[i].evaluation
@@ -110,6 +114,7 @@ class TrainMC:
                     self.root.children[i].original_evaluation
                     * (-1) ** self.root.children[i].game.to_play
                 )
+        move_stats["moves"] = move_names
         final_ratio = np.zeros(96)
         total_visits = sum(
             self.root.visits

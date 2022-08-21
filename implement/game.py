@@ -274,15 +274,16 @@ class Game:
                 if not self.board.frozen[i]:
                     for ptype in range(3):
                         if self.pieces[self.to_play][ptype] > 0:
-                            legal_moves[48 + ptype * 16 + i] = (
-                                1 * moves[48 + ptype * 16 + i]
-                            )
+                            legal_moves[48 + ptype * 16 + i] = moves[
+                                48 + ptype * 16 + i
+                            ]
+
             # Not capital
             elif self.board.tops[i] < 2 and not self.board.frozen[i]:
                 if self.pieces[self.to_play][self.board.tops[i] + 1] > 0:
-                    legal_moves[48 + (self.board.tops[i] + 1) * 16 + i] = (
-                        1 * moves[48 + (self.board.tops[i] + 1) * 16 + i]
-                    )
+                    legal_moves[48 + (self.board.tops[i] + 1) * 16 + i] = moves[
+                        48 + (self.board.tops[i] + 1) * 16 + i
+                    ]
         return legal_moves
 
     def do_move(self, move_id):
@@ -296,10 +297,12 @@ class Game:
         # if not self.is_legal(move):
         #     self.outcome = 1 - self.to_play
         #     return self.outcome
-        # Place, remove piece from arsenal
+
         self.to_play = 1 - self.to_play
         move = Move(move_id)
-        self.pieces[self.to_play][move.ptype] -= 1
+        # Place, remove piece from arsenal
+        if move.mtype == 1:
+            self.pieces[self.to_play][move.ptype] -= 1
         self.board.do_move(move)
         # Previous player win
         legal_moves = self.get_legal_moves()

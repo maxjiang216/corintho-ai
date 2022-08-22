@@ -83,7 +83,7 @@ if __name__ == "__main__":
                 ],
             )
 
-            model.save(f"./training/models/model_0")
+            model.save("./training/models/model_0")
 
             model_num = 0
         else:

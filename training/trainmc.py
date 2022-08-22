@@ -236,7 +236,11 @@ class TrainMC:
             for i, is_legal in enumerate(node.legal_moves):
                 if is_legal == 1:
                     node.moves.append(i)
-                    probabilities.append(node.probabilities[i])
+
+                    try:
+                        probabilities.append(node.probabilities[i])
+                    except IndexError:
+                        print(node.probabilities)
             node.probabilities = np.array(probabilities) / sum(probabilities)
             node.children = [None] * len(node.moves)
             node.visits = np.full(len(node.moves), 0)

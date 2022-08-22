@@ -3,11 +3,6 @@ import time
 from selfplayer import SelfPlayer
 
 
-def helper(game, evaluations):
-    """Helper function for multiprocessing"""
-    return game.play(evaluations)
-
-
 class Trainer:
     """
     Trains with multiple games

@@ -14,13 +14,14 @@ def format_time(t):
     return f"{t/60/60:.1f} hours"
 
 
-class Trainer:
+class Tester:
     """
-    Trains with multiple games
-    Collects training samples
+    Test models
     """
 
-    def __init__(self, model, model_num, num_games=3000, iterations=200, logging=False):
+    def __init__(
+        self, model, old_model, model_num, num_games=400, iterations=200, logging=False
+    ):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
@@ -28,31 +29,30 @@ class Trainer:
 
         self.games = []
         self.model = model
+        self.old_model = old_model
         self.model_num = model_num
         self.iterations = iterations
-        self.num_games = num_games
         self.logging = logging
+        for i in range(num_games):
+            self.games.append(SelfPlayer(iterations=iterations, test=True, seed=i % 2))
         if logging:
             open(
-                f"./training/models/model_{model_num}/logs/training_game_progress.txt",
+                f"./training/models/model_{model_num}/logs/testing_game_progress.txt",
                 "w",
                 encoding="utf-8",
             ).write(
                 f"{num_games} games with {iterations} searches per move\nStarted: {time.ctime()}\n\n"
             )
             open(
-                f"./training/models/model_{model_num}/logs/training_game_logs.txt",
+                f"./training/models/model_{model_num}/logs/testing_game_logs.txt",
                 "w",
                 encoding="utf-8",
             ).write(f"{num_games} games with {iterations} searches per move\n\n")
 
     def play(self):
         """
-        Play all num_games games and get training samples
+        Play all num_games games
         """
-
-        for _ in range(self.num_games):
-            self.games.append(SelfPlayer(iterations=self.iterations))
 
         # Play games
 
@@ -76,17 +76,21 @@ class Trainer:
             # Done all games
             if games_done == len(self.games):
                 break
-            res = self.model.predict(
-                x=np.array(positions), batch_size=len(self.games), verbose=0
+            res1 = self.model.predict(
+                x=np.array(positions), batch_size=len(positions), verbose=0
             )
-            evaluations = list(zip(res[0], res[1]))
+            res2 = self.old_model.predict(
+                x=np.array(positions), batch_size=len(positions), verbose=0
+            )
+            evaluations = list(
+                zip(list(zip(res1[0], res1[1])), list(zip(res2[0], res2[1])))
+            )
             if self.logging:
                 evaluations_done += 1
-                print(evaluations_done)
                 if evaluations_done % max(1, 15 * self.iterations // 100) == 0:
                     time_taken = time.time() - start_time
                     open(
-                        f"./training/models/model_{self.model_num}/logs/training_game_progress.txt",
+                        f"./training/models/model_{self.model_num}/logs/testing_game_progress.txt",
                         "a",
                         encoding="utf-8",
                     ).write(
@@ -98,36 +102,23 @@ class Trainer:
         # Compile logs
         # Return game histories and outcome as string to be written into file
         game_logs_file = open(
-            f"./training/models/model_{self.model_num}/logs/training_game_logs.txt",
+            f"./training/models/model_{self.model_num}/logs/testing_game_logs.txt",
             "a",
             encoding="utf-8",
         )
-        total_turns = 0
-        samples = []
-        evaluation_labels = []
-        probability_labels = []
+
+        score = 0
         for i, game in enumerate(self.games):
-            (
-                cur_samples,
-                cur_evaluation_labels,
-                cur_probability_labels,
-            ) = game.get_samples()
-            samples.extend(cur_samples)
-            evaluation_labels.extend(cur_evaluation_labels)
-            probability_labels.extend(cur_probability_labels)
-            total_turns += len(game.logs) / 2
+            score += (game.game.outcome * (-1) ** game.seed + 1) / 2
             game_logs_file.write(f"GAME {i}\nRESULT: {game.game.outcome}\n").write(
                 "\n".join(game.logs)
             ).write("\n\n")
 
         open(
-            f"./training/models/model_{self.model_num}/logs/training_game_stats.txt",
+            f"./training/models/model_{self.model_num}/logs/testing_game_stats.txt",
             "w",
             encoding="utf-8",
-        ).write(
-            f"AVERAGE NUMBER OF TURNS: {total_turns / len(self.games):.2f}\n"
-            f"TIME TAKEN: {format_time(time.time()-start_time)}"
-        )
+        ).write(f"TIME TAKEN: {format_time(time.time()-start_time)}")
 
         # If testing, return win rate
-        return (samples, evaluation_labels, probability_labels)
+        return score

@@ -14,18 +14,17 @@ from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 from tester import Tester
 
-NUM_GAMES = 30
-ITERATIONS = 20
-NUM_TEST_GAMES = 40
+NUM_GAMES = 3000
+ITERATIONS = 200
+NUM_TEST_GAMES = 400
 BATCH_SIZE = 2048
 EPOCHS = 1
-PROCESSES = 2
+PROCESSES = 5
 
 
 def helper(player):
     """Helper function for training and testing"""
-    print("START PLAYING")
-    return 0
+    return player.play()
 
 
 if __name__ == "__main__":
@@ -135,12 +134,10 @@ if __name__ == "__main__":
         trainers = []
         logging = True
 
-        print(1)
-
         for _ in range(PROCESSES):
             trainers.append(
                 Trainer(
-                    model=playing_model,
+                    model=f"./training/models/model_{model_num}/player_model",
                     model_num=model_num,
                     num_games=NUM_GAMES // PROCESSES,
                     iterations=ITERATIONS,
@@ -149,11 +146,8 @@ if __name__ == "__main__":
             )
             logging = False
 
-        print(trainers)
-
         pool = Pool(processes=PROCESSES)
-        print(pool)
-        res = pool.map(helper, range(PROCESSES))
+        res = pool.map(helper, trainers)
         pool.close()
 
         samples = []
@@ -197,8 +191,8 @@ if __name__ == "__main__":
         for _ in range(PROCESSES):
             testers.append(
                 Tester(
-                    model=training_model,
-                    old_model=playing_model,
+                    model=f"./training/models/model_{model_num}/new_model",
+                    old_model=f"./training/models/model_{model_num}/player_model",
                     model_num=model_num,
                     num_games=NUM_TEST_GAMES // PROCESSES,
                     iterations=ITERATIONS,

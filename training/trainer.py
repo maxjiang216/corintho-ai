@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from selfplayer import SelfPlayer
+from keras.api._v2.keras.models import load_model
 
 
 def format_time(t):
@@ -51,6 +52,9 @@ class Trainer:
         Play all num_games games and get training samples
         """
 
+        # Do these at evaluation to avoid pickling a large amount of data
+        self.model = load_model(self.model)
+
         for _ in range(self.num_games):
             self.games.append(SelfPlayer(iterations=self.iterations))
 
@@ -82,7 +86,6 @@ class Trainer:
             evaluations = list(zip(res[0], res[1]))
             if self.logging:
                 evaluations_done += 1
-                print(evaluations_done)
                 if evaluations_done % max(1, 15 * self.iterations // 100) == 0:
                     time_taken = time.time() - start_time
                     open(
@@ -90,9 +93,14 @@ class Trainer:
                         "a",
                         encoding="utf-8",
                     ).write(
-                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}"
+                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
+                    )
+                    print(
+                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                     )
 
         # Compile logs
@@ -116,9 +124,11 @@ class Trainer:
             evaluation_labels.extend(cur_evaluation_labels)
             probability_labels.extend(cur_probability_labels)
             total_turns += len(game.logs) / 2
-            game_logs_file.write(f"GAME {i}\nRESULT: {game.game.outcome}\n").write(
-                "\n".join(game.logs)
-            ).write("\n\n")
+            game_logs_file.write(
+                f"GAME {i}\nRESULT: {game.game.outcome}\n"
+                + "\n".join(game.logs)
+                + "\n\n"
+            )
 
         open(
             f"./training/models/model_{self.model_num}/logs/training_game_stats.txt",

@@ -1,6 +1,7 @@
 import numpy as np
 import time
 from selfplayer import SelfPlayer
+from keras.api._v2.keras.models import load_model
 
 
 def format_time(t):
@@ -31,10 +32,9 @@ class Tester:
         self.model = model
         self.old_model = old_model
         self.model_num = model_num
+        self.num_games = num_games
         self.iterations = iterations
         self.logging = logging
-        for i in range(num_games):
-            self.games.append(SelfPlayer(iterations=iterations, test=True, seed=i % 2))
         if logging:
             open(
                 f"./training/models/model_{model_num}/logs/testing_game_progress.txt",
@@ -53,6 +53,15 @@ class Tester:
         """
         Play all num_games games
         """
+
+        # Do these at evaluation to avoid pickling a large amount of data
+        self.model = load_model(self.model)
+        self.old_model = load_model(self.old_model)
+
+        for i in range(self.num_games):
+            self.games.append(
+                SelfPlayer(iterations=self.iterations, test=True, seed=i % 2)
+            )
 
         # Play games
 
@@ -94,9 +103,14 @@ class Tester:
                         "a",
                         encoding="utf-8",
                     ).write(
-                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}"
+                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
+                    )
+                    print(
+                        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                     )
 
         # Compile logs
@@ -110,9 +124,11 @@ class Tester:
         score = 0
         for i, game in enumerate(self.games):
             score += (game.game.outcome * (-1) ** game.seed + 1) / 2
-            game_logs_file.write(f"GAME {i}\nRESULT: {game.game.outcome}\n").write(
-                "\n".join(game.logs)
-            ).write("\n\n")
+            game_logs_file.write(
+                f"GAME {i}\nRESULT: {game.game.outcome}\n"
+                + "\n".join(game.logs)
+                + "\n\n"
+            )
 
         open(
             f"./training/models/model_{self.model_num}/logs/testing_game_stats.txt",

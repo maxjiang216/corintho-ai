@@ -54,10 +54,10 @@ class SelfPlayer:
                     res = self.players[self.game.to_play].choose_move()
             if res[0] == "eval":  # eval
                 # Propagate up
-                return (res[1], self)
+                return res[1]
 
         # If game is done
-        return (np.zeros(70), self)
+        return np.zeros(70)
 
     def get_samples(self):
         """

@@ -19,7 +19,7 @@ ITERATIONS = 200
 NUM_TEST_GAMES = 400
 BATCH_SIZE = 2048
 EPOCHS = 1
-PROCESSES = 3
+PROCESSES = 5
 
 
 def helper(player):
@@ -111,10 +111,6 @@ if __name__ == "__main__":
         print(f"Begin training generation {model_num}! (Times failed: {fail_num})")
 
         # Prepare log files
-        try:
-            os.mkdir("./training/models")
-        except FileExistsError:
-            pass
         try:
             shutil.rmtree(f"./training/models/model_{model_num}")
         except FileNotFoundError:

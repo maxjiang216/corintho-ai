@@ -55,35 +55,8 @@ class Trainer:
         # Do these at evaluation to avoid pickling a large amount of data
         self.model = load_model(self.model)
 
-        samples_file = open(
-            f"./training/models/model_{self.model_num}/samples_unprocessed.txt",
-            "w",
-            encoding="utf-8",
-        )
-
-        for i in range(self.num_games):
-            if i < 10 and self.logging:
-                self.games.append(
-                    SelfPlayer(
-                        iterations=self.iterations,
-                        seed=i,
-                        samples_file=samples_file,
-                        logging=True,
-                        logs_file=open(
-                            f"./training/models/model_{self.model_num}/game_logs_{i}.txt",
-                            "w",
-                            encoding="utf-8",
-                        ),
-                    )
-                )
-            else:
-                self.games.append(
-                    SelfPlayer(
-                        iterations=self.iterations,
-                        seed=i,
-                        samples_file=samples_file,
-                    )
-                )
+        for _ in range(self.num_games):
+            self.games.append(SelfPlayer(iterations=self.iterations))
 
         # Play games
 
@@ -130,8 +103,32 @@ class Trainer:
                         f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                     )
 
-        # Process samples
-        samples_file.close()
+        # Compile logs
+        # Return game histories and outcome as string to be written into file
+        game_logs_file = open(
+            f"./training/models/model_{self.model_num}/logs/training_game_logs.txt",
+            "a",
+            encoding="utf-8",
+        )
+        total_turns = 0
+        samples = []
+        evaluation_labels = []
+        probability_labels = []
+        for i, game in enumerate(self.games):
+            (
+                cur_samples,
+                cur_evaluation_labels,
+                cur_probability_labels,
+            ) = game.get_samples()
+            samples.extend(cur_samples)
+            evaluation_labels.extend(cur_evaluation_labels)
+            probability_labels.extend(cur_probability_labels)
+            total_turns += len(game.logs) / 2
+            game_logs_file.write(
+                f"GAME {i}\nRESULT: {game.game.outcome}\n"
+                + "\n".join(game.logs)
+                + "\n\n"
+            )
 
         open(
             f"./training/models/model_{self.model_num}/logs/training_game_stats.txt",

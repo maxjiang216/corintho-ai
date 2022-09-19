@@ -14,59 +14,23 @@ class SelfPlayer:
     Interface to do self play during training
     """
 
-    def __init__(
-        self,
-        iterations=200,
-        testing=False,
-        seed=0,
-        samples_file=None,
-        logging=False,
-        logs_file=None,
-    ):
+    def __init__(self, iterations=200, test=False, seed=0):
         """
         (int) -> SelfPlayers
         """
 
         self.game = Game()
-        self.testing = testing
-        self.seed = seed
-        self.samples_file = samples_file
-        self.logging = logging
-        self.logs_file = logs_file
-        if testing:
+        if test:
+            self.seed = seed
             self.players = [
-                TrainMC(
-                    Game(),
-                    iterations,
-                    player_num=seed % 2,
-                    testing=True,
-                    logging=logging,
-                ),
-                TrainMC(
-                    Game(),
-                    iterations,
-                    player_num=(seed + 1) % 2,
-                    testing=True,
-                    logging=logging,
-                ),
+                TrainMC(Game(), iterations, player_num=seed % 2),
+                TrainMC(Game(), iterations, player_num=(seed + 1) % 2),
             ]
         else:
-            self.players = [
-                TrainMC(
-                    Game(),
-                    iterations,
-                    testing=False,
-                    logging=logging,
-                ),
-                TrainMC(
-                    Game(),
-                    iterations,
-                    testing=False,
-                    logging=logging,
-                ),
-            ]
+            self.players = [TrainMC(Game(), iterations), TrainMC(Game(), iterations)]
         self.samples = []
         self.probability_labels = []
+        self.logs = []
 
     def play(self, evaluations=None):
         """
@@ -76,28 +40,18 @@ class SelfPlayer:
 
         # While the game is still going
         if self.game.outcome is None:
-
             res = self.players[self.game.to_play].choose_move(evaluations)
-
             while res[0] == "move" and self.game.outcome is None:
-
                 self.players[1 - self.game.to_play].receive_opp_move(
                     res[2],  # move choice
                 )
-
-                if not self.testing:
-                    self.samples_file.write(
-                        f"{self.game.get_vector()}\t{res[3]}\t{self.seed}\n"
-                    )
-
-                self.game.do_move(res[1])  # do move
-
-                if self.logging:  # write to log if needed
-                    self.logs_file.write(f"{res[-1]}\n{str(self.game)}\n\n")
-
+                self.samples.append(self.game.get_vector())
+                self.probability_labels.append(res[3])
+                self.game.do_move(res[1])  # move
+                self.logs.append(str(res[-1]))
+                self.logs.append(str(self.game))  # Keep game logs
                 if self.game.outcome is None:
                     res = self.players[self.game.to_play].choose_move()
-
             if res[0] == "eval":  # eval
                 # Propagate up
                 return res[1]

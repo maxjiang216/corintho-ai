@@ -30,17 +30,7 @@ class TrainMC:
 
     """
 
-    def __init__(
-        self,
-        game,
-        iterations,
-        c_puct=1,
-        epsilon=0.25,
-        player_num=None,
-        testing=False,
-        logging=False,
-        logs_file=None,
-    ):
+    def __init__(self, game, iterations, c_puct=1, epsilon=0.25, player_num=None):
         self.root = Node(game, 0)
         self.iterations = iterations
         self.iterations_done = 0
@@ -50,7 +40,6 @@ class TrainMC:
         self.iterations_done = 0
         self.cur_node = None
         self.player_num = player_num
-        self.testing = testing
 
     def choose_move(self, evaluations=None):
         """
@@ -82,7 +71,7 @@ class TrainMC:
         self.iterations_done = 0
         move_choice = None
         # Choose with weighted random for the first 2 moves from each player (temperature = 1)
-        if self.root.depth < 4 and not self.testing:
+        if self.root.depth < 4:
             move_choice = self.rng.choice(
                 len(self.root.moves), p=self.root.visits / sum(self.root.visits)
             )
@@ -101,35 +90,31 @@ class TrainMC:
                     max_value = visits
                     move_choice = id
 
-        move_stats = None
-        if self.logging:
-            move_stats = {
-                "eval": self.root.evaluation
-                / self.root.searches
-                * (-1) ** self.root.game.to_play,
-                "searches": self.root.searches,
+        move_stats = {
+            "eval": self.root.evaluation
+            / self.root.searches
+            * (-1) ** self.root.game.to_play,
+            "searches": self.root.searches,
+            "lines": self.root.game.board.lines,
+        }
+        move_names = []
+        for i, move in enumerate(self.root.moves):
+            move_names.append(str(Move(move)))
+            move_stats[str(Move(move))] = {
+                "prob": self.root.probabilities[i],
             }
-            move_names = []
-            for i, move in enumerate(self.root.moves):
-                move_names.append(str(Move(move)))
-                move_stats[str(Move(move))] = {
-                    "prob": self.root.probabilities[i],
-                }
-                if self.root.children[i] is not None:
-                    move_stats[str(Move(move))]["searches"] = self.root.children[
-                        i
-                    ].searches
-                    move_stats[str(Move(move))]["eval"] = (
-                        self.root.children[i].evaluation
-                        / self.root.children[i].searches
-                        * (-1) ** self.root.children[i].game.to_play
-                    )
-                    move_stats[str(Move(move))]["original_eval"] = (
-                        self.root.children[i].original_evaluation
-                        * (-1) ** self.root.children[i].game.to_play
-                    )
-            move_stats["moves"] = move_names
-
+            if self.root.children[i] is not None:
+                move_stats[str(Move(move))]["searches"] = self.root.children[i].searches
+                move_stats[str(Move(move))]["eval"] = (
+                    self.root.children[i].evaluation
+                    / self.root.children[i].searches
+                    * (-1) ** self.root.children[i].game.to_play
+                )
+                move_stats[str(Move(move))]["original_eval"] = (
+                    self.root.children[i].original_evaluation
+                    * (-1) ** self.root.children[i].game.to_play
+                )
+        move_stats["moves"] = move_names
         final_ratio = np.zeros(96)
         total_visits = sum(
             self.root.visits
@@ -139,7 +124,6 @@ class TrainMC:
                 final_ratio[move] = self.root.visits[i] / total_visits
         move = self.root.moves[move_choice]
         self.root = self.root.children[move_choice]
-
         return ("move", move, move_choice, final_ratio, move_stats)
 
     def receive_opp_move(self, move_choice):

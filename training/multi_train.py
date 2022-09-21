@@ -3,6 +3,7 @@ import shutil
 import sys
 import time
 import numpy as np
+import random
 from multiprocessing import Pool
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -27,118 +28,186 @@ def helper(player):
     return player.play()
 
 
+def format_time(t):
+    """Format string
+    t is time in seconds"""
+
+    if t < 60:
+        return f"{t:.1f} seconds"
+    if t < 3600:
+        return f"{t/60:.1f} minutes"
+    return f"{t/60/60:.1f} hours"
+
+
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        input_layer = Input(shape=(70,))
-        layer_1 = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(input_layer)
-            )
-        )
-        layer_2 = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_1)
-            )
-        )
-        layer_3 = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_2)
-            )
-        )
-        layer_4 = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_3)
-            )
-        )
-        eval_layer = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_4)
-            )
-        )
-        eval_output = Dense(units=1, activation="tanh")(eval_layer)
-        prob_layer = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=100,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_4)
-            )
-        )
-        prob_output = Dense(units=96, activation="softmax")(prob_layer)
+    cwd = f"{os.getcwd()}/training"
 
-        model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
-        model.compile(
-            optimizer=Adam(learning_rate=0.01),
-            loss=[
-                keras.losses.MeanSquaredError(),
-                keras.losses.CategoricalCrossentropy(),
-            ],
-        )
+    if not os.path.isdir(cwd):
+        os.mkdir(cwd)
 
-        playing_model = model
-        training_model = model
-
-        model_num = 1
-    else:
-        model_num = int(sys.argv[1])
-        model = keras.models.load_model(f"./training/models/model_{model_num}")
-        # Change this
-        playing_model = model
-        training_model = model
-
-    fail_num = 0
+    seed = ""
+    if len(sys.argv) >= 2 and os.path.isdir(f"{cwd}/train_{sys.argv[1]}"):
+        seed = sys.argv[1]
 
     while True:
 
-        start_time = time.time()
+        # Initialize training and playing models
+        # Start from the previous loop or a previous run
+        if len(seed) > 0:
 
-        print(f"Begin training generation {model_num}! (Times failed: {fail_num})")
+            current_generation = (
+                open(
+                    f"{cwd}/train_{seed}/metadata/current_generation.txt",
+                    encoding="utf-8",
+                )
+                .read()
+                .strip()
+            )
+            best_generation = (
+                open(
+                    f"{cwd}/train_{seed}/metadata/best_generation.txt", encoding="utf-8"
+                )
+                .read()
+                .strip()
+            )
 
-        # Prepare log files
-        try:
-            shutil.rmtree(f"./training/models/model_{model_num}")
-        except FileNotFoundError:
-            pass
-        os.mkdir(f"./training/models/model_{model_num}")
-        os.mkdir(f"./training/models/model_{model_num}/logs")
-        playing_model.save(f"./training/models/model_{model_num}/player_model")
-        open(
-            f"./training/models/model_{model_num}/logs/player_weights.txt",
-            "w",
-            encoding="utf-8",
-        ).write(str(playing_model.get_weights()))
-        open(
-            f"./training/models/model_{model_num}/logs/untrained_weights.txt",
-            "w",
-            encoding="utf-8",
-        ).write(str(training_model.get_weights()))
+            training_model = keras.models.load_model(
+                f"{cwd}/train_{seed}/generations/gen_{current_generation}/model"
+            )
+
+        # Initialize new "run"
+        else:
+
+            seed = f"{random.randrange(100000000):08}"
+
+            # Create folder, implausible that name is repeated
+            os.mkdir(f"{cwd}/train_{seed}")
+
+            # Create model
+            input_layer = Input(shape=(70,))
+            layer_1 = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(input_layer)
+                )
+            )
+            layer_2 = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(layer_1)
+                )
+            )
+            layer_3 = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(layer_2)
+                )
+            )
+            layer_4 = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(layer_3)
+                )
+            )
+            eval_layer = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(layer_4)
+                )
+            )
+            eval_output = Dense(units=1, activation="tanh")(eval_layer)
+            prob_layer = Activation("relu")(
+                BatchNormalization()(
+                    Dense(
+                        units=100,
+                        kernel_regularizer=regularizers.L2(1e-4),
+                    )(layer_4)
+                )
+            )
+            prob_output = Dense(units=96, activation="softmax")(prob_layer)
+
+            model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
+            model.compile(
+                optimizer=Adam(learning_rate=0.01),
+                loss=[
+                    keras.losses.MeanSquaredError(),
+                    keras.losses.CategoricalCrossentropy(),
+                ],
+            )
+
+            os.mkdir(f"{cwd}/train_{seed}/generations")
+            os.mkdir(f"{cwd}/train_{seed}/generations/gen_0")
+            model.save(f"{cwd}/train_{seed}/generations/gen_0/model")
+
+            os.mkdir(f"{cwd}/train_{seed}/metadata")
+            open(
+                f"{cwd}/train_{seed}/metadata/current_generation.txt",
+                "w+",
+                encoding="utf-8",
+            ).write("0")
+            open(
+                f"{cwd}/train_{seed}/metadata/best_generation.txt",
+                "w+",
+                encoding="utf-8",
+            ).write("0")
+            current_generation = 0
+            best_generation = 0
+
+            training_model = keras.models.load_model(
+                f"{cwd}/train_{seed}/generations/gen_0/model"
+            )
 
         # Training
+
+        print(
+            f"Began training generation {current_generation+1}!\nTraining with generation {best_generation}."
+        )
+
+        # Prepare directories
+        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}")
+        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata")
+        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs")
+        os.mkdir(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/training_games"
+        )
+        os.mkdir(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games"
+        )
+
+        open(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            "w+",
+            encoding="utf-8",
+        ).write(
+            f"Playing model: {best_generation}\n"
+            f"Number of games: {NUM_GAMES}\n"
+            f"Number of searches: {ITERATIONS}\n"
+            f"Number of test games: {NUM_TEST_GAMES}\n"
+            f"Training sample batch size: {BATCH_SIZE}\n"
+            f"Number of training epochs: {EPOCHS}\n"
+            f"Number of processes used: {PROCESSES}\n"
+        )
 
         trainers = []
         logging = True
 
+        # Set up trainers
         for _ in range(PROCESSES):
             trainers.append(
                 Trainer(
-                    model=f"./training/models/model_{model_num}/player_model",
-                    model_num=model_num,
+                    model_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
+                    logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/training_games",
                     num_games=NUM_GAMES // PROCESSES,
                     iterations=ITERATIONS,
                     logging=logging,
@@ -146,10 +215,20 @@ if __name__ == "__main__":
             )
             logging = False
 
+        start_time = time.time()
+
+        # Run training. This is the meat of the process
         pool = Pool(processes=PROCESSES)
         res = pool.map(helper, trainers)
         pool.close()
 
+        open(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            "a",
+            encoding="utf-8",
+        ).write(f"Time to play training games: {format_time(time.time()-start_time)}\n")
+
+        # Collect training samples
         samples = []
         eval_labels = []
         prob_labels = []
@@ -170,18 +249,14 @@ if __name__ == "__main__":
             shuffle=True,
         )
 
-        training_model.save(f"./training/models/model_{model_num}/new_model")
+        # Save newly trained model
+        training_model.save(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/model"
+        )
 
-        start_time = time.time()
-
-        print(f"Begin testing generation {model_num}!")
-
-        # Prepare log files
-        open(
-            f"./training/models/model_{model_num}/logs/trained_weights.txt",
-            "w",
-            encoding="utf-8",
-        ).write(str(training_model.get_weights()))
+        print(
+            f"Began testing generation {current_generation+1}!\nPlaying against generation {best_generation}."
+        )
 
         # Testing
 
@@ -191,9 +266,9 @@ if __name__ == "__main__":
         for _ in range(PROCESSES):
             testers.append(
                 Tester(
-                    model=f"./training/models/model_{model_num}/new_model",
-                    old_model=f"./training/models/model_{model_num}/player_model",
-                    model_num=model_num,
+                    model_1_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/model",
+                    model_2_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
+                    logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games",
                     num_games=NUM_TEST_GAMES // PROCESSES,
                     iterations=ITERATIONS,
                     logging=logging,
@@ -201,23 +276,38 @@ if __name__ == "__main__":
             )
             logging = False
 
+        start_time = time.time()
+
         pool = Pool(processes=PROCESSES)
         res = pool.map(helper, testers)
         pool.close()
 
+        open(
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            "a",
+            encoding="utf-8",
+        ).write(f"Time to play testing games: {format_time(time.time()-start_time)}\n")
+
         score = sum(res) / (PROCESSES * (NUM_TEST_GAMES // PROCESSES))
 
         open(
-            f"./training/models/model_{model_num}/logs/testing_stats.txt",
+            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
             "a",
             encoding="utf-8",
-        ).write(f"NEW MODEL SCORE: {score}\nTIMES FAILED: {fail_num}")
+        ).write(f"Testing score: {score}\n")
 
-        # New neural net scores >50%
+        # New neural net scores >50%, update best_generation
         if score > 0.5:
-            playing_model = training_model
-            fail_num = 0
-        else:
-            fail_num += 1
+            best_generation = current_generation + 1
+        current_generation += 1
 
-        model_num += 1
+        # Update model generations used
+        open(
+            f"{cwd}/train_{seed}/metadata/current_generation.txt", "w", encoding="utf-8"
+        ).write(str(current_generation))
+        open(
+            f"{cwd}/train_{seed}/metadata/best_generation.txt", "w", encoding="utf-8"
+        ).write(str(best_generation))
+
+        # Clear old models
+        keras.backend.clear_session()

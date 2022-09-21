@@ -23,8 +23,8 @@ class SelfPlayer:
         if test:
             self.seed = seed
             self.players = [
-                TrainMC(Game(), iterations, player_num=seed % 2),
-                TrainMC(Game(), iterations, player_num=(seed + 1) % 2),
+                TrainMC(Game(), iterations, player_num=seed % 2, testing=True),
+                TrainMC(Game(), iterations, player_num=(seed + 1) % 2, testing=True),
             ]
         else:
             self.players = [TrainMC(Game(), iterations), TrainMC(Game(), iterations)]

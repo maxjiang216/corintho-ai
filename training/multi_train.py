@@ -56,7 +56,7 @@ if __name__ == "__main__":
         # Start from the previous loop or a previous run
         if len(seed) > 0:
 
-            current_generation = (
+            current_generation = int(
                 open(
                     f"{cwd}/train_{seed}/metadata/current_generation.txt",
                     encoding="utf-8",
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                 .read()
                 .strip()
             )
-            best_generation = (
+            best_generation = int(
                 open(
                     f"{cwd}/train_{seed}/metadata/best_generation.txt", encoding="utf-8"
                 )

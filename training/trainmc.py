@@ -30,7 +30,9 @@ class TrainMC:
 
     """
 
-    def __init__(self, game, iterations, c_puct=1, epsilon=0.25, player_num=None):
+    def __init__(
+        self, game, iterations, c_puct=1, epsilon=0.25, player_num=None, testing=False
+    ):
         self.root = Node(game, 0)
         self.iterations = iterations
         self.iterations_done = 0
@@ -40,6 +42,7 @@ class TrainMC:
         self.iterations_done = 0
         self.cur_node = None
         self.player_num = player_num
+        self.testing = testing
 
     def choose_move(self, evaluations=None):
         """
@@ -71,7 +74,7 @@ class TrainMC:
         self.iterations_done = 0
         move_choice = None
         # Choose with weighted random for the first 2 moves from each player (temperature = 1)
-        if self.root.depth < 4:
+        if self.root.depth < 4 and not self.testing:
             move_choice = self.rng.choice(
                 len(self.root.moves), p=self.root.visits / sum(self.root.visits)
             )

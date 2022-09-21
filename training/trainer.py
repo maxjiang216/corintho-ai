@@ -21,29 +21,28 @@ class Trainer:
     Collects training samples
     """
 
-    def __init__(self, model, model_num, num_games=3000, iterations=200, logging=False):
+    def __init__(
+        self, model_path, logging_path, num_games=3000, iterations=200, logging=False
+    ):
         """
         (int) -> Trainer
         Will train with num_games games concurrently
         """
 
         self.games = []
-        self.model = model
-        self.model_num = model_num
+        self.model = None
+        self.model_path = model_path
+        self.logging_path = logging_path
         self.iterations = iterations
         self.num_games = num_games
         self.logging = logging
         if logging:
-            open(
-                f"./training/models/model_{model_num}/logs/training_game_progress.txt",
-                "w",
-                encoding="utf-8",
-            ).write(
+            open(f"{logging_path}/progress.txt", "w+", encoding="utf-8",).write(
                 f"{num_games} games with {iterations} searches per move\nStarted: {time.ctime()}\n\n"
             )
             open(
-                f"./training/models/model_{model_num}/logs/training_game_logs.txt",
-                "w",
+                f"{logging_path}/game_logs.txt",
+                "w+",
                 encoding="utf-8",
             ).write(f"{num_games} games with {iterations} searches per move\n\n")
 
@@ -53,7 +52,7 @@ class Trainer:
         """
 
         # Do these at evaluation to avoid pickling a large amount of data
-        self.model = load_model(self.model)
+        self.model = load_model(self.model_path)
 
         for _ in range(self.num_games):
             self.games.append(SelfPlayer(iterations=self.iterations))
@@ -89,7 +88,7 @@ class Trainer:
                 if evaluations_done % max(1, 15 * self.iterations // 100) == 0:
                     time_taken = time.time() - start_time
                     open(
-                        f"./training/models/model_{self.model_num}/logs/training_game_progress.txt",
+                        f"{self.logging_path}/progress.txt",
                         "a",
                         encoding="utf-8",
                     ).write(
@@ -106,10 +105,11 @@ class Trainer:
         # Compile logs
         # Return game histories and outcome as string to be written into file
         game_logs_file = open(
-            f"./training/models/model_{self.model_num}/logs/training_game_logs.txt",
+            f"{self.logging_path}/game_logs.txt",
             "a",
             encoding="utf-8",
         )
+
         total_turns = 0
         samples = []
         evaluation_labels = []
@@ -130,11 +130,7 @@ class Trainer:
                 + "\n\n"
             )
 
-        open(
-            f"./training/models/model_{self.model_num}/logs/training_game_stats.txt",
-            "w",
-            encoding="utf-8",
-        ).write(
+        open(f"{self.logging_path}/game_stats.txt", "w+", encoding="utf-8").write(
             f"AVERAGE NUMBER OF TURNS: {total_turns / len(self.games):.2f}\n"
             f"TIME TAKEN: {format_time(time.time()-start_time)}"
         )

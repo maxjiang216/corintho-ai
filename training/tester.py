@@ -21,7 +21,13 @@ class Tester:
     """
 
     def __init__(
-        self, model, old_model, model_num, num_games=400, iterations=200, logging=False
+        self,
+        model_1_path,
+        model_2_path,
+        logging_path,
+        num_games=400,
+        iterations=200,
+        logging=False,
     ):
         """
         (int) -> Trainer
@@ -29,23 +35,21 @@ class Tester:
         """
 
         self.games = []
-        self.model = model
-        self.old_model = old_model
-        self.model_num = model_num
+        self.model_1 = None
+        self.model_2 = None
+        self.model_1_path = model_1_path
+        self.model_2_path = model_2_path
+        self.logging_path = logging_path
         self.num_games = num_games
         self.iterations = iterations
         self.logging = logging
         if logging:
-            open(
-                f"./training/models/model_{model_num}/logs/testing_game_progress.txt",
-                "w",
-                encoding="utf-8",
-            ).write(
+            open(f"{logging_path}/progress.txt", "w+", encoding="utf-8",).write(
                 f"{num_games} games with {iterations} searches per move\nStarted: {time.ctime()}\n\n"
             )
             open(
-                f"./training/models/model_{model_num}/logs/testing_game_logs.txt",
-                "w",
+                f"{logging_path}/game_logs.txt",
+                "w+",
                 encoding="utf-8",
             ).write(f"{num_games} games with {iterations} searches per move\n\n")
 
@@ -55,8 +59,8 @@ class Tester:
         """
 
         # Do these at evaluation to avoid pickling a large amount of data
-        self.model = load_model(self.model)
-        self.old_model = load_model(self.old_model)
+        self.model_1 = load_model(self.model_1_path)
+        self.model_2 = load_model(self.model_2_path)
 
         for i in range(self.num_games):
             self.games.append(
@@ -85,10 +89,10 @@ class Tester:
             # Done all games
             if games_done == len(self.games):
                 break
-            res1 = self.model.predict(
+            res1 = self.model_1.predict(
                 x=np.array(positions), batch_size=len(positions), verbose=0
             )
-            res2 = self.old_model.predict(
+            res2 = self.model_2.predict(
                 x=np.array(positions), batch_size=len(positions), verbose=0
             )
             evaluations = list(
@@ -99,7 +103,7 @@ class Tester:
                 if evaluations_done % max(1, 15 * self.iterations // 100) == 0:
                     time_taken = time.time() - start_time
                     open(
-                        f"./training/models/model_{self.model_num}/logs/testing_game_progress.txt",
+                        f"{self.logging_path}/progress.txt",
                         "a",
                         encoding="utf-8",
                     ).write(
@@ -116,7 +120,7 @@ class Tester:
         # Compile logs
         # Return game histories and outcome as string to be written into file
         game_logs_file = open(
-            f"./training/models/model_{self.model_num}/logs/testing_game_logs.txt",
+            f"{self.logging_path}/game_logs.txt",
             "a",
             encoding="utf-8",
         )
@@ -131,8 +135,8 @@ class Tester:
             )
 
         open(
-            f"./training/models/model_{self.model_num}/logs/testing_game_stats.txt",
-            "w",
+            f"{self.logging_path}/game_stats.txt",
+            "w+",
             encoding="utf-8",
         ).write(f"TIME TAKEN: {format_time(time.time()-start_time)}")
 

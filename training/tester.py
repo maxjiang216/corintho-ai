@@ -27,6 +27,7 @@ class Tester:
         logging_path,
         num_games=400,
         iterations=200,
+        series_length=1,
         logging=False,
     ):
         """
@@ -42,6 +43,7 @@ class Tester:
         self.logging_path = logging_path
         self.num_games = num_games
         self.iterations = iterations
+        self.series_length = series_length
         self.logging = logging
         if logging:
             open(f"{logging_path}/progress.txt", "w+", encoding="utf-8",).write(
@@ -62,9 +64,14 @@ class Tester:
         self.model_1 = load_model(self.model_1_path)
         self.model_2 = load_model(self.model_2_path)
 
-        for i in range(self.num_games):
+        for i in range(max(1, self.num_games // self.series_length)):
             self.games.append(
-                SelfPlayer(iterations=self.iterations, test=True, seed=i % 2)
+                SelfPlayer(
+                    iterations=self.iterations,
+                    series_length=self.series_length,
+                    testing=True,
+                    seed=i % 2,
+                )
             )
 
         # Play games

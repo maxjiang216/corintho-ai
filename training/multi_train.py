@@ -15,9 +15,10 @@ from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 from tester import Tester
 
-NUM_GAMES = 3000
-ITERATIONS = 200
-NUM_TEST_GAMES = 400
+NUM_GAMES = 10
+ITERATIONS = 4
+NUM_TEST_GAMES = 10
+SERIES_LENGTH = 2
 BATCH_SIZE = 2048
 EPOCHS = 1
 PROCESSES = 5
@@ -208,8 +209,9 @@ if __name__ == "__main__":
                 Trainer(
                     model_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
                     logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/training_games",
-                    num_games=NUM_GAMES // PROCESSES,
+                    num_games=max(1, NUM_GAMES // PROCESSES),
                     iterations=ITERATIONS,
+                    series_length=SERIES_LENGTH,
                     logging=logging,
                 )
             )
@@ -269,8 +271,9 @@ if __name__ == "__main__":
                     model_1_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/model",
                     model_2_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
                     logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games",
-                    num_games=NUM_TEST_GAMES // PROCESSES,
+                    num_games=max(1, NUM_TEST_GAMES // PROCESSES),
                     iterations=ITERATIONS,
+                    series_length=SERIES_LENGTH,
                     logging=logging,
                 )
             )
@@ -288,7 +291,7 @@ if __name__ == "__main__":
             encoding="utf-8",
         ).write(f"Time to play testing games: {format_time(time.time()-start_time)}\n")
 
-        score = sum(res) / (PROCESSES * (NUM_TEST_GAMES // PROCESSES))
+        score = sum(res) / (PROCESSES * (max(1, NUM_TEST_GAMES // PROCESSES)))
 
         open(
             f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",

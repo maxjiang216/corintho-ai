@@ -15,9 +15,9 @@ from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 from tester import Tester
 
-NUM_GAMES = 10
-ITERATIONS = 3
-NUM_TEST_GAMES = 10
+NUM_GAMES = 3000
+ITERATIONS = 200
+NUM_TEST_GAMES = 400
 SERIES_LENGTH = 2
 BATCH_SIZE = 2048
 EPOCHS = 1

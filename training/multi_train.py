@@ -15,9 +15,9 @@ from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 from tester import Tester
 
-NUM_GAMES = 3000
-ITERATIONS = 200
-NUM_TEST_GAMES = 400
+NUM_GAMES = 10
+ITERATIONS = 3
+NUM_TEST_GAMES = 10
 SERIES_LENGTH = 2
 BATCH_SIZE = 2048
 EPOCHS = 1
@@ -273,7 +273,6 @@ if __name__ == "__main__":
                     logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games",
                     num_games=max(1, NUM_TEST_GAMES // PROCESSES),
                     iterations=ITERATIONS,
-                    series_length=SERIES_LENGTH,
                     logging=logging,
                 )
             )

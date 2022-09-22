@@ -115,13 +115,13 @@ class Tester:
                         encoding="utf-8",
                     ).write(
                         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
+                        f"Predicted time to complete: {format_time(self.series_length*26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((self.series_length*26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
                     )
                     print(
                         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                        f"Predicted time to complete: {format_time(self.series_length*26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((self.series_length*26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                     )
 
         # Compile logs

@@ -61,9 +61,13 @@ class Trainer:
         # Do these at evaluation to avoid pickling a large amount of data
         self.model = load_model(self.model_path)
 
-        for _ in range(max(1, self.num_games // self.series_length)):
+        for i in range(max(1, self.num_games // self.series_length)):
             self.games.append(
-                SelfPlayer(iterations=self.iterations, series_length=self.series_length)
+                SelfPlayer(
+                    iterations=self.iterations,
+                    series_length=self.series_length,
+                    logging=i < 100,
+                )
             )
 
         # Play games
@@ -76,6 +80,9 @@ class Trainer:
 
             res = []
             for i, game in enumerate(self.games):
+                # Offset by delaying for the first few searches
+                if i // self.iterations > evaluations_done:
+                    break
                 res.append(game.play(evaluations[i]))
 
             positions = []
@@ -102,13 +109,13 @@ class Trainer:
                         encoding="utf-8",
                     ).write(
                         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
+                        f"Predicted time to complete: {format_time(self.series_length*26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((self.series_length*26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n\n"
                     )
                     print(
                         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                        f"Predicted time to complete: {format_time(26.67*self.iterations*time_taken/evaluations_done)}\n"
-                        f"Estimated time left: {format_time((26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                        f"Predicted time to complete: {format_time(self.series_length*26.67*self.iterations*time_taken/evaluations_done)}\n"
+                        f"Estimated time left: {format_time((self.series_length*26.67*self.iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                     )
 
         # Compile logs
@@ -119,7 +126,7 @@ class Trainer:
             encoding="utf-8",
         )
 
-        total_turns = 0
+        total_turns = []
         samples = []
         evaluation_labels = []
         probability_labels = []
@@ -132,7 +139,7 @@ class Trainer:
             samples.extend(cur_samples)
             evaluation_labels.extend(cur_evaluation_labels)
             probability_labels.extend(cur_probability_labels)
-            total_turns += len(game.logs) / 2
+            total_turns.append(len(game.logs) / 2)
             game_logs_file.write(
                 f"GAME {i}\nRESULT: {game.game.outcome}\n"
                 + "\n".join(game.logs)
@@ -140,7 +147,7 @@ class Trainer:
             )
 
         open(f"{self.logging_path}/game_stats.txt", "w+", encoding="utf-8").write(
-            f"AVERAGE NUMBER OF TURNS: {total_turns / len(self.games):.2f}\n"
+            f"AVERAGE NUMBER OF TURNS: {sum(total_turns) / len(total_turns):.2f}\n"
             f"TIME TAKEN: {format_time(time.time()-start_time)}"
         )
 

@@ -273,7 +273,6 @@ if __name__ == "__main__":
                     logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games",
                     num_games=max(1, NUM_TEST_GAMES // PROCESSES),
                     iterations=ITERATIONS,
-                    series_length=SERIES_LENGTH,
                     logging=logging,
                 )
             )

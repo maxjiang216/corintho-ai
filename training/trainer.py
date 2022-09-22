@@ -22,7 +22,13 @@ class Trainer:
     """
 
     def __init__(
-        self, model_path, logging_path, num_games=3000, iterations=200, logging=False
+        self,
+        model_path,
+        logging_path,
+        num_games=3000,
+        iterations=200,
+        series_length=1,
+        logging=False,
     ):
         """
         (int) -> Trainer
@@ -35,6 +41,7 @@ class Trainer:
         self.logging_path = logging_path
         self.iterations = iterations
         self.num_games = num_games
+        self.series_length = series_length
         self.logging = logging
         if logging:
             open(f"{logging_path}/progress.txt", "w+", encoding="utf-8",).write(
@@ -54,8 +61,10 @@ class Trainer:
         # Do these at evaluation to avoid pickling a large amount of data
         self.model = load_model(self.model_path)
 
-        for _ in range(self.num_games):
-            self.games.append(SelfPlayer(iterations=self.iterations))
+        for _ in range(max(1, self.num_games // self.series_length)):
+            self.games.append(
+                SelfPlayer(iterations=self.iterations, series_length=self.series_length)
+            )
 
         # Play games
 
@@ -135,5 +144,4 @@ class Trainer:
             f"TIME TAKEN: {format_time(time.time()-start_time)}"
         )
 
-        # If testing, return win rate
         return (samples, evaluation_labels, probability_labels)

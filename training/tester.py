@@ -84,7 +84,14 @@ class Tester:
 
             res = []
             for i, game in enumerate(self.games):
-                res.append(game.play(evaluations[i]))
+                # Offset by delaying for the first few searches
+                if i // self.iterations > evaluations_done:
+                    break
+                # Start of game not played in previous iteration
+                if i >= len(evaluations):
+                    res.append(game.play(None))
+                else:
+                    res.append(game.play(evaluations[i]))
 
             positions = []
             games_done = 0

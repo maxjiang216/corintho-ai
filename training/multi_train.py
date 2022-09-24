@@ -1,9 +1,10 @@
 import os
-import shutil
 import sys
 import time
+import datetime
 import numpy as np
 import random
+import argparse
 from multiprocessing import Pool
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -14,52 +15,111 @@ from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 from trainer import Trainer
 from tester import Tester
-
-NUM_GAMES = 3000
-ITERATIONS = 200
-NUM_TEST_GAMES = 400
-SERIES_LENGTH = 2
-BATCH_SIZE = 2048
-EPOCHS = 1
-PROCESSES = 5
-
-
-def helper(player):
-    """Helper function for training and testing"""
-    return player.play()
-
-
-def format_time(t):
-    """Format string
-    t is time in seconds"""
-
-    if t < 60:
-        return f"{t:.1f} seconds"
-    if t < 3600:
-        return f"{t/60:.1f} minutes"
-    return f"{t/60/60:.1f} hours"
+from util import *
 
 
 if __name__ == "__main__":
 
+    # Parse flags
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--num_games",
+        type=int,
+        default=3000,
+        help="Number of games used for training a generation",
+    )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=200,
+        help="Number of iterations/searches per turn",
+    )
+    parser.add_argument(
+        "--num_test_games",
+        type=int,
+        default=400,
+        help="Number of games used to test a generation. Default 400.",
+    )
+    parser.add_argument(
+        "--series_length",
+        type=int,
+        default=1,
+        help="Number of games played per SelfPlayer object. Default 1.",
+    )
+    parser.add_argument(
+        "--processes",
+        type=int,
+        default=1,
+        help="Number of processes used for self play. Default 1.",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=2048,
+        help="Batch size for neural network training. Default 2048.",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=1,
+        help="Number of epochs for neural network training. Default 1.",
+    )
+    parser.add_argument(
+        "--testing",
+        type=bool,
+        default=False,
+        help="Flag for testing that the code works. Uses small number for all arguments to run a generation quickly. Default False",
+    )
+    parser.add_argument(
+        "--profiling",
+        type=bool,
+        default=False,
+        help="Flag to toggle profiling for the first generation. Default is False",
+    )
+    parser.add_argument(
+        "--name",
+        type=str,
+        default="",
+        help="Name of the run. Will write outputs into folder train_{name} or continue a previous run if the folder exists."
+        "Default is the empty string, in which case timestamp is used",
+    )
+
+    # Dictionary of flag values
+    args = vars(parser.parse_args())
+
+    NUM_GAMES = args["num_games"]
+    ITERATIONS = args["iterations"]
+    NUM_TEST_GAMES = args["num_test_games"]
+    SERIES_LENGTH = args["series_length"]
+    PROCESSES = args["processes"]
+    PROFILING = args["profiling"]
+    BATCH_SIZE = args["batch_size"]
+    EPOCHS = args["epochs"]
+    NAME = args["name"]
+
+    # Testing, override arguments
+    if args["testing"]:
+        NUM_GAMES = 10
+        ITERATIONS = 5
+        NUM_TEST_GAMES = 10
+        SERIES_LENGTH = 1
+        NAME = "test"
+
+    # "Normalize" position where we create files, etc.
     cwd = f"{os.getcwd()}/training"
 
     if not os.path.isdir(cwd):
         os.mkdir(cwd)
 
-    seed = ""
-    if len(sys.argv) >= 2 and os.path.isdir(f"{cwd}/train_{sys.argv[1]}"):
-        seed = sys.argv[1]
-
     while True:
 
         # Initialize training and playing models
         # Start from the previous loop or a previous run
-        if len(seed) > 0:
+        if len(NAME) > 0 and os.path.isdir(os.path.join(cwd, f"train_{NAME}")):
 
             current_generation = int(
                 open(
-                    f"{cwd}/train_{seed}/metadata/current_generation.txt",
+                    f"{cwd}/train_{NAME}/metadata/current_generation.txt",
                     encoding="utf-8",
                 )
                 .read()
@@ -67,23 +127,28 @@ if __name__ == "__main__":
             )
             best_generation = int(
                 open(
-                    f"{cwd}/train_{seed}/metadata/best_generation.txt", encoding="utf-8"
+                    f"{cwd}/train_{NAME}/metadata/best_generation.txt", encoding="utf-8"
                 )
                 .read()
                 .strip()
             )
 
             training_model = keras.models.load_model(
-                f"{cwd}/train_{seed}/generations/gen_{current_generation}/model"
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation}/model"
             )
 
         # Initialize new "run"
         else:
 
-            seed = f"{random.randrange(100000000):08}"
+            # Generate name from timestamp
+            if len(NAME) == 0:
+                now = datetime.datetime.now()
+                NAME = (
+                    f"{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}"
+                )
 
             # Create folder, implausible that name is repeated
-            os.mkdir(f"{cwd}/train_{seed}")
+            os.mkdir(f"{cwd}/train_{NAME}")
 
             # Create model
             input_layer = Input(shape=(70,))
@@ -147,18 +212,18 @@ if __name__ == "__main__":
                 ],
             )
 
-            os.mkdir(f"{cwd}/train_{seed}/generations")
-            os.mkdir(f"{cwd}/train_{seed}/generations/gen_0")
-            model.save(f"{cwd}/train_{seed}/generations/gen_0/model")
+            os.mkdir(f"{cwd}/train_{NAME}/generations")
+            os.mkdir(f"{cwd}/train_{NAME}/generations/gen_0")
+            model.save(f"{cwd}/train_{NAME}/generations/gen_0/model")
 
-            os.mkdir(f"{cwd}/train_{seed}/metadata")
+            os.mkdir(f"{cwd}/train_{NAME}/metadata")
             open(
-                f"{cwd}/train_{seed}/metadata/current_generation.txt",
+                f"{cwd}/train_{NAME}/metadata/current_generation.txt",
                 "w+",
                 encoding="utf-8",
             ).write("0")
             open(
-                f"{cwd}/train_{seed}/metadata/best_generation.txt",
+                f"{cwd}/train_{NAME}/metadata/best_generation.txt",
                 "w+",
                 encoding="utf-8",
             ).write("0")
@@ -166,7 +231,7 @@ if __name__ == "__main__":
             best_generation = 0
 
             training_model = keras.models.load_model(
-                f"{cwd}/train_{seed}/generations/gen_0/model"
+                f"{cwd}/train_{NAME}/generations/gen_0/model"
             )
 
         # Training
@@ -176,18 +241,25 @@ if __name__ == "__main__":
         )
 
         # Prepare directories
-        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}")
-        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata")
-        os.mkdir(f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs")
-        os.mkdir(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/training_games"
-        )
-        os.mkdir(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games"
-        )
+        try:
+            os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}")
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata"
+            )
+            os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs")
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games"
+            )
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games"
+            )
+        except FileExistsError:
+            print(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1} already exists"
+            )
 
         open(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",
             "w+",
             encoding="utf-8",
         ).write(
@@ -207,8 +279,8 @@ if __name__ == "__main__":
         for _ in range(PROCESSES):
             trainers.append(
                 Trainer(
-                    model_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
-                    logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/training_games",
+                    model_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                    logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games",
                     num_games=max(1, NUM_GAMES // PROCESSES),
                     iterations=ITERATIONS,
                     series_length=SERIES_LENGTH,
@@ -225,7 +297,7 @@ if __name__ == "__main__":
         pool.close()
 
         open(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",
             "a",
             encoding="utf-8",
         ).write(f"Time to play training games: {format_time(time.time()-start_time)}\n")
@@ -253,7 +325,7 @@ if __name__ == "__main__":
 
         # Save newly trained model
         training_model.save(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/model"
+            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/model"
         )
 
         print(
@@ -268,9 +340,9 @@ if __name__ == "__main__":
         for _ in range(PROCESSES):
             testers.append(
                 Tester(
-                    model_1_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/model",
-                    model_2_path=f"{cwd}/train_{seed}/generations/gen_{best_generation}/model",
-                    logging_path=f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/logs/testing_games",
+                    model_1_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/model",
+                    model_2_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                    logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games",
                     num_games=max(1, NUM_TEST_GAMES // PROCESSES),
                     iterations=ITERATIONS,
                     logging=logging,
@@ -285,7 +357,7 @@ if __name__ == "__main__":
         pool.close()
 
         open(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",
             "a",
             encoding="utf-8",
         ).write(f"Time to play testing games: {format_time(time.time()-start_time)}\n")
@@ -293,7 +365,7 @@ if __name__ == "__main__":
         score = sum(res) / (PROCESSES * (max(1, NUM_TEST_GAMES // PROCESSES)))
 
         open(
-            f"{cwd}/train_{seed}/generations/gen_{current_generation+1}/metadata/metadata.txt",
+            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",
             "a",
             encoding="utf-8",
         ).write(f"Testing score: {score}\n")
@@ -305,10 +377,10 @@ if __name__ == "__main__":
 
         # Update model generations used
         open(
-            f"{cwd}/train_{seed}/metadata/current_generation.txt", "w", encoding="utf-8"
+            f"{cwd}/train_{NAME}/metadata/current_generation.txt", "w", encoding="utf-8"
         ).write(str(current_generation))
         open(
-            f"{cwd}/train_{seed}/metadata/best_generation.txt", "w", encoding="utf-8"
+            f"{cwd}/train_{NAME}/metadata/best_generation.txt", "w", encoding="utf-8"
         ).write(str(best_generation))
 
         # Clear old models

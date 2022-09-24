@@ -241,15 +241,22 @@ if __name__ == "__main__":
         )
 
         # Prepare directories
-        os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}")
-        os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata")
-        os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs")
-        os.mkdir(
-            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games"
-        )
-        os.mkdir(
-            f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games"
-        )
+        try:
+            os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}")
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata"
+            )
+            os.mkdir(f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs")
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games"
+            )
+            os.mkdir(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games"
+            )
+        except FileExistsError:
+            print(
+                f"{cwd}/train_{NAME}/generations/gen_{current_generation+1} already exists"
+            )
 
         open(
             f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",

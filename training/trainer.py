@@ -83,7 +83,11 @@ class Trainer:
                 # Offset by delaying for the first few searches
                 if i // self.iterations > evaluations_done:
                     break
-                res.append(game.play(evaluations[i]))
+                # Start of game not played in previous iteration
+                if i >= len(evaluations):
+                    res.append(game.play(None))
+                else:
+                    res.append(game.play(evaluations[i]))
 
             positions = []
             games_done = 0
@@ -96,7 +100,7 @@ class Trainer:
             if games_done == len(self.games):
                 break
             res = self.model.predict(
-                x=np.array(positions), batch_size=len(self.games), verbose=0
+                x=np.array(positions), batch_size=len(positions), verbose=0
             )
             evaluations = list(zip(res[0], res[1]))
             if self.logging:

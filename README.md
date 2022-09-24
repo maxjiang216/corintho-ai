@@ -10,6 +10,7 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
 - [x] Add neural network for evaluation
 - [x] Implement concurrent gameplay and batch evaluation for neural network
 - [x] Make neural network training pipeline
+- [ ] Optimize code using Cython
 - [ ] Train neural network
 
 # Possible bonuses

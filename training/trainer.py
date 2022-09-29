@@ -29,6 +29,7 @@ class Trainer:
         iterations=200,
         series_length=1,
         logging=False,
+        profiling=False,
     ):
         """
         (int) -> Trainer
@@ -43,6 +44,7 @@ class Trainer:
         self.num_games = num_games
         self.series_length = series_length
         self.logging = logging
+        self.profiling = profiling
         if logging:
             open(f"{logging_path}/progress.txt", "w+", encoding="utf-8",).write(
                 f"{num_games} games with {iterations} searches per move\nStarted: {time.ctime()}\n\n"

@@ -1,11 +1,11 @@
 import os
-import sys
 import time
 import datetime
 import numpy as np
-import random
 import argparse
 from multiprocessing import Pool
+import cProfile
+import pstats
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
@@ -391,8 +391,14 @@ if __name__ == "__main__":
                     )
 
             start_time = time.time()
-
-            res = (tester.play(),)
+            if PROFILING:
+                with cProfile.Profile() as pr:
+                    res = (tester.play(),)
+                    stats = pstats.Stats(pr)
+                    stats.sort_stats(pstats.SortKey.TIME)
+                    stats.dump_stats(filename=f"train_{NAME}_{current_generation}.prof")
+            else:
+                res = (tester.play(),)
 
         open(
             f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",

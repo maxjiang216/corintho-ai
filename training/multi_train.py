@@ -1,11 +1,11 @@
 import os
-import sys
 import time
 import datetime
 import numpy as np
-import random
 import argparse
 from multiprocessing import Pool
+import cProfile
+import pstats
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
@@ -87,14 +87,14 @@ if __name__ == "__main__":
     # Dictionary of flag values
     args = vars(parser.parse_args())
 
-    NUM_GAMES = args["num_games"]
-    ITERATIONS = args["iterations"]
-    NUM_TEST_GAMES = args["num_test_games"]
-    SERIES_LENGTH = args["series_length"]
-    PROCESSES = args["processes"]
+    NUM_GAMES = max(1, args["num_games"])
+    ITERATIONS = max(2, args["iterations"])
+    NUM_TEST_GAMES = max(2, 2 * (args["num_test_games"] // 2)) # Enforce even number (first player bias)
+    SERIES_LENGTH = max(1, args["series_length"])
+    PROCESSES = max(1, args["processes"])
     PROFILING = args["profiling"]
     BATCH_SIZE = args["batch_size"]
-    EPOCHS = args["epochs"]
+    EPOCHS = max(1, args["epochs"])
     NAME = args["name"]
 
     # Testing, override arguments
@@ -272,29 +272,49 @@ if __name__ == "__main__":
             f"Number of processes used: {PROCESSES}\n"
         )
 
-        trainers = []
-        logging = True
+        res = []
 
-        # Set up trainers
-        for _ in range(PROCESSES):
-            trainers.append(
-                Trainer(
-                    model_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
-                    logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games",
-                    num_games=max(1, NUM_GAMES // PROCESSES),
-                    iterations=ITERATIONS,
-                    series_length=SERIES_LENGTH,
-                    logging=logging,
+        # We want to use multiprocessing
+        if PROCESSES > 1:
+
+            trainers = []
+            logging = True
+
+            # Set up trainers
+            for _ in range(PROCESSES):
+                trainers.append(
+                    Trainer(
+                        model_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                        logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games",
+                        num_games=max(1, NUM_GAMES // PROCESSES),
+                        iterations=ITERATIONS,
+                        series_length=SERIES_LENGTH,
+                        logging=logging,
+                    )
                 )
-            )
-            logging = False
+                logging = False
 
-        start_time = time.time()
+            start_time = time.time()
 
-        # Run training. This is the meat of the process
-        pool = Pool(processes=PROCESSES)
-        res = pool.map(helper, trainers)
-        pool.close()
+            # Run training. This is the meat of the process
+            pool = Pool(processes=PROCESSES)
+            res = pool.map(helper, trainers)
+            pool.close()
+
+        else:
+            trainer = Trainer(
+                        model_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                        logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/training_games",
+                        num_games=NUM_GAMES,
+                        iterations=ITERATIONS,
+                        series_length=SERIES_LENGTH,
+                        logging=True,
+                    )
+
+            start_time = time.time()
+
+            res = (trainer.play(),)
+
 
         open(
             f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",
@@ -334,27 +354,51 @@ if __name__ == "__main__":
 
         # Testing
 
-        testers = []
-        logging = True
+        res = []
 
-        for _ in range(PROCESSES):
-            testers.append(
-                Tester(
-                    model_1_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/model",
-                    model_2_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
-                    logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games",
-                    num_games=max(1, NUM_TEST_GAMES // PROCESSES),
-                    iterations=ITERATIONS,
-                    logging=logging,
+        if PROCESSES > 1:
+
+            testers = []
+            logging = True
+
+            for _ in range(PROCESSES):
+                testers.append(
+                    Tester(
+                        model_1_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/model",
+                        model_2_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                        logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games",
+                        num_games=max(1, NUM_TEST_GAMES // PROCESSES),
+                        iterations=ITERATIONS,
+                        logging=logging,
+                    )
                 )
-            )
-            logging = False
+                logging = False
 
-        start_time = time.time()
+            start_time = time.time()
 
-        pool = Pool(processes=PROCESSES)
-        res = pool.map(helper, testers)
-        pool.close()
+            pool = Pool(processes=PROCESSES)
+            res = pool.map(helper, testers)
+            pool.close()
+
+        else:
+            tester = Tester(
+                        model_1_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/model",
+                        model_2_path=f"{cwd}/train_{NAME}/generations/gen_{best_generation}/model",
+                        logging_path=f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/logs/testing_games",
+                        num_games=NUM_GAMES,
+                        iterations=ITERATIONS,
+                        logging=True,
+                    )
+
+            start_time = time.time()
+            if PROFILING:
+                with cProfile.Profile() as pr:
+                    res = (tester.play(),)
+                    stats = pstats.Stats(pr)
+                    stats.sort_stats(pstats.SortKey.TIME)
+                    stats.dump_stats(filename=f"train_{NAME}_{current_generation}.prof")
+            else:
+                res = (tester.play(),)
 
         open(
             f"{cwd}/train_{NAME}/generations/gen_{current_generation+1}/metadata/metadata.txt",

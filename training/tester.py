@@ -1,18 +1,8 @@
 import numpy as np
 import time
 from selfplayer import SelfPlayer
+from util import format_time
 from keras.api._v2.keras.models import load_model
-
-
-def format_time(t):
-    """Format string
-    t is time in seconds"""
-
-    if t < 60:
-        return f"{t:.1f} seconds"
-    if t < 3600:
-        return f"{t/60:.1f} minutes"
-    return f"{t/60/60:.1f} hours"
 
 
 class Tester:
@@ -71,6 +61,7 @@ class Tester:
                     series_length=self.series_length,
                     testing=True,
                     seed=i % 2,
+                    logging=self.logging,
                 )
             )
 
@@ -142,11 +133,12 @@ class Tester:
         score = 0
         for i, game in enumerate(self.games):
             score += (game.game.outcome * (-1) ** game.seed + 1) / 2
-            game_logs_file.write(
-                f"GAME {i}\nRESULT: {game.game.outcome}\n"
-                + "\n".join(game.logs)
-                + "\n\n"
-            )
+            if len(game.logs) > 0:
+                game_logs_file.write(
+                    f"GAME {i}\nRESULT: {game.game.outcome}\n"
+                    + "\n".join(game.logs)
+                    + "\n\n"
+                )
 
         open(
             f"{self.logging_path}/game_stats.txt",

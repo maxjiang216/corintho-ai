@@ -1,18 +1,8 @@
 import numpy as np
 import time
 from selfplayer import SelfPlayer
+from util import format_time
 from keras.api._v2.keras.models import load_model
-
-
-def format_time(t):
-    """Format string
-    t is time in seconds"""
-
-    if t < 60:
-        return f"{t:.1f} seconds"
-    if t < 3600:
-        return f"{t/60:.1f} minutes"
-    return f"{t/60/60:.1f} hours"
 
 
 class Trainer:
@@ -68,7 +58,7 @@ class Trainer:
                 SelfPlayer(
                     iterations=self.iterations,
                     series_length=self.series_length,
-                    logging=i < 100,
+                    logging=i < 100 and self.logging,
                 )
             )
 
@@ -145,12 +135,13 @@ class Trainer:
             samples.extend(cur_samples)
             evaluation_labels.extend(cur_evaluation_labels)
             probability_labels.extend(cur_probability_labels)
-            total_turns.append(len(game.logs) / 2)
-            game_logs_file.write(
-                f"GAME {i}\nRESULT: {game.game.outcome}\n"
-                + "\n".join(game.logs)
-                + "\n\n"
-            )
+            if len(game.logs) > 0:
+                total_turns.append(len(game.logs) / 2)
+                game_logs_file.write(
+                    f"GAME {i}\nRESULT: {game.game.outcome}\n"
+                    + "\n".join(game.logs)
+                    + "\n\n"
+                )
 
         open(f"{self.logging_path}/game_stats.txt", "w+", encoding="utf-8").write(
             f"AVERAGE NUMBER OF TURNS: {sum(total_turns) / len(total_turns):.2f}\n"

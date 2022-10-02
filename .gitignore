@@ -5,3 +5,4 @@ notebooks
 models
 /training/train_*
 *.prof
+/cython/*.so

@@ -1,6 +1,6 @@
 from copy import deepcopy
 import numpy as np
-from implement.move import Move
+from move import Move
 
 
 class Board:

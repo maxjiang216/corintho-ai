@@ -1,0 +1,471 @@
+100 games with 100 searches per move
+Started: Sun Oct  2 19:18:35 2022
+
+15 evaluations completed in 1.5 seconds
+Predicted time to complete: 4.4 minutes
+Estimated time left: 4.3 minutes
+
+30 evaluations completed in 3.0 seconds
+Predicted time to complete: 4.5 minutes
+Estimated time left: 4.4 minutes
+
+45 evaluations completed in 4.7 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.5 minutes
+
+60 evaluations completed in 6.2 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.5 minutes
+
+75 evaluations completed in 7.7 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.5 minutes
+
+90 evaluations completed in 9.3 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.4 minutes
+
+105 evaluations completed in 11.2 seconds
+Predicted time to complete: 4.7 minutes
+Estimated time left: 4.5 minutes
+
+120 evaluations completed in 12.4 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.4 minutes
+
+135 evaluations completed in 13.9 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.3 minutes
+
+150 evaluations completed in 15.5 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.3 minutes
+
+165 evaluations completed in 17.2 seconds
+Predicted time to complete: 4.6 minutes
+Estimated time left: 4.4 minutes
+
+180 evaluations completed in 19.3 seconds
+Predicted time to complete: 4.8 minutes
+Estimated time left: 4.4 minutes
+
+195 evaluations completed in 21.2 seconds
+Predicted time to complete: 4.8 minutes
+Estimated time left: 4.5 minutes
+
+210 evaluations completed in 23.6 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.6 minutes
+
+225 evaluations completed in 25.0 seconds
+Predicted time to complete: 4.9 minutes
+Estimated time left: 4.5 minutes
+
+240 evaluations completed in 26.5 seconds
+Predicted time to complete: 4.9 minutes
+Estimated time left: 4.5 minutes
+
+255 evaluations completed in 28.1 seconds
+Predicted time to complete: 4.9 minutes
+Estimated time left: 4.4 minutes
+
+270 evaluations completed in 30.1 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.4 minutes
+
+285 evaluations completed in 31.9 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.4 minutes
+
+300 evaluations completed in 33.8 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.4 minutes
+
+315 evaluations completed in 35.7 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.4 minutes
+
+330 evaluations completed in 37.1 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.4 minutes
+
+345 evaluations completed in 38.7 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.3 minutes
+
+360 evaluations completed in 40.7 seconds
+Predicted time to complete: 5.0 minutes
+Estimated time left: 4.3 minutes
+
+375 evaluations completed in 45.5 seconds
+Predicted time to complete: 5.4 minutes
+Estimated time left: 4.6 minutes
+
+390 evaluations completed in 53.2 seconds
+Predicted time to complete: 6.1 minutes
+Estimated time left: 5.2 minutes
+
+405 evaluations completed in 1.0 minutes
+Predicted time to complete: 6.9 minutes
+Estimated time left: 5.8 minutes
+
+420 evaluations completed in 1.1 minutes
+Predicted time to complete: 7.2 minutes
+Estimated time left: 6.1 minutes
+
+435 evaluations completed in 1.2 minutes
+Predicted time to complete: 7.6 minutes
+Estimated time left: 6.3 minutes
+
+450 evaluations completed in 1.3 minutes
+Predicted time to complete: 8.0 minutes
+Estimated time left: 6.6 minutes
+
+465 evaluations completed in 1.5 minutes
+Predicted time to complete: 8.5 minutes
+Estimated time left: 7.0 minutes
+
+480 evaluations completed in 1.6 minutes
+Predicted time to complete: 8.9 minutes
+Estimated time left: 7.3 minutes
+
+495 evaluations completed in 1.7 minutes
+Predicted time to complete: 9.3 minutes
+Estimated time left: 7.6 minutes
+
+510 evaluations completed in 1.9 minutes
+Predicted time to complete: 9.8 minutes
+Estimated time left: 7.9 minutes
+
+525 evaluations completed in 2.0 minutes
+Predicted time to complete: 10.0 minutes
+Estimated time left: 8.0 minutes
+
+540 evaluations completed in 2.1 minutes
+Predicted time to complete: 10.2 minutes
+Estimated time left: 8.2 minutes
+
+555 evaluations completed in 2.2 minutes
+Predicted time to complete: 10.5 minutes
+Estimated time left: 8.3 minutes
+
+570 evaluations completed in 2.3 minutes
+Predicted time to complete: 10.9 minutes
+Estimated time left: 8.6 minutes
+
+585 evaluations completed in 2.5 minutes
+Predicted time to complete: 11.2 minutes
+Estimated time left: 8.7 minutes
+
+600 evaluations completed in 2.6 minutes
+Predicted time to complete: 11.5 minutes
+Estimated time left: 8.9 minutes
+
+615 evaluations completed in 2.7 minutes
+Predicted time to complete: 11.7 minutes
+Estimated time left: 9.0 minutes
+
+630 evaluations completed in 2.8 minutes
+Predicted time to complete: 11.8 minutes
+Estimated time left: 9.0 minutes
+
+645 evaluations completed in 2.9 minutes
+Predicted time to complete: 12.0 minutes
+Estimated time left: 9.1 minutes
+
+660 evaluations completed in 3.0 minutes
+Predicted time to complete: 12.1 minutes
+Estimated time left: 9.1 minutes
+
+675 evaluations completed in 3.1 minutes
+Predicted time to complete: 12.4 minutes
+Estimated time left: 9.3 minutes
+
+690 evaluations completed in 3.3 minutes
+Predicted time to complete: 12.6 minutes
+Estimated time left: 9.4 minutes
+
+705 evaluations completed in 3.4 minutes
+Predicted time to complete: 12.9 minutes
+Estimated time left: 9.5 minutes
+
+720 evaluations completed in 3.5 minutes
+Predicted time to complete: 13.0 minutes
+Estimated time left: 9.5 minutes
+
+735 evaluations completed in 3.6 minutes
+Predicted time to complete: 13.1 minutes
+Estimated time left: 9.5 minutes
+
+750 evaluations completed in 3.7 minutes
+Predicted time to complete: 13.2 minutes
+Estimated time left: 9.5 minutes
+
+765 evaluations completed in 3.8 minutes
+Predicted time to complete: 13.3 minutes
+Estimated time left: 9.5 minutes
+
+780 evaluations completed in 3.9 minutes
+Predicted time to complete: 13.4 minutes
+Estimated time left: 9.5 minutes
+
+795 evaluations completed in 4.0 minutes
+Predicted time to complete: 13.5 minutes
+Estimated time left: 9.5 minutes
+
+810 evaluations completed in 4.2 minutes
+Predicted time to complete: 13.8 minutes
+Estimated time left: 9.6 minutes
+
+825 evaluations completed in 4.3 minutes
+Predicted time to complete: 13.8 minutes
+Estimated time left: 9.5 minutes
+
+840 evaluations completed in 4.4 minutes
+Predicted time to complete: 13.8 minutes
+Estimated time left: 9.5 minutes
+
+855 evaluations completed in 4.5 minutes
+Predicted time to complete: 14.1 minutes
+Estimated time left: 9.6 minutes
+
+870 evaluations completed in 4.6 minutes
+Predicted time to complete: 14.1 minutes
+Estimated time left: 9.5 minutes
+
+885 evaluations completed in 4.7 minutes
+Predicted time to complete: 14.2 minutes
+Estimated time left: 9.5 minutes
+
+900 evaluations completed in 4.8 minutes
+Predicted time to complete: 14.3 minutes
+Estimated time left: 9.5 minutes
+
+915 evaluations completed in 4.9 minutes
+Predicted time to complete: 14.4 minutes
+Estimated time left: 9.4 minutes
+
+930 evaluations completed in 5.0 minutes
+Predicted time to complete: 14.4 minutes
+Estimated time left: 9.4 minutes
+
+945 evaluations completed in 5.1 minutes
+Predicted time to complete: 14.4 minutes
+Estimated time left: 9.3 minutes
+
+960 evaluations completed in 5.2 minutes
+Predicted time to complete: 14.4 minutes
+Estimated time left: 9.2 minutes
+
+975 evaluations completed in 5.3 minutes
+Predicted time to complete: 14.5 minutes
+Estimated time left: 9.2 minutes
+
+990 evaluations completed in 5.4 minutes
+Predicted time to complete: 14.6 minutes
+Estimated time left: 9.2 minutes
+
+1005 evaluations completed in 5.5 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 9.2 minutes
+
+1020 evaluations completed in 5.6 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 9.1 minutes
+
+1035 evaluations completed in 5.7 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 9.0 minutes
+
+1050 evaluations completed in 5.8 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 8.9 minutes
+
+1065 evaluations completed in 5.9 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 8.8 minutes
+
+1080 evaluations completed in 6.0 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 8.8 minutes
+
+1095 evaluations completed in 6.1 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.7 minutes
+
+1110 evaluations completed in 6.2 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.6 minutes
+
+1125 evaluations completed in 6.2 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.5 minutes
+
+1140 evaluations completed in 6.3 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.5 minutes
+
+1155 evaluations completed in 6.4 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.4 minutes
+
+1170 evaluations completed in 6.5 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.3 minutes
+
+1185 evaluations completed in 6.6 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.2 minutes
+
+1200 evaluations completed in 6.7 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.1 minutes
+
+1215 evaluations completed in 6.7 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 8.0 minutes
+
+1230 evaluations completed in 6.9 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 8.0 minutes
+
+1245 evaluations completed in 7.0 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.9 minutes
+
+1260 evaluations completed in 7.0 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.9 minutes
+
+1275 evaluations completed in 7.1 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.8 minutes
+
+1290 evaluations completed in 7.2 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.7 minutes
+
+1305 evaluations completed in 7.3 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.6 minutes
+
+1320 evaluations completed in 7.4 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.5 minutes
+
+1335 evaluations completed in 7.4 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.4 minutes
+
+1350 evaluations completed in 7.5 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.3 minutes
+
+1365 evaluations completed in 7.6 minutes
+Predicted time to complete: 14.9 minutes
+Estimated time left: 7.3 minutes
+
+1380 evaluations completed in 7.7 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 7.2 minutes
+
+1395 evaluations completed in 7.8 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 7.1 minutes
+
+1410 evaluations completed in 7.8 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 7.0 minutes
+
+1425 evaluations completed in 7.9 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.9 minutes
+
+1440 evaluations completed in 8.0 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.8 minutes
+
+1455 evaluations completed in 8.1 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.7 minutes
+
+1470 evaluations completed in 8.1 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 6.6 minutes
+
+1485 evaluations completed in 8.2 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 6.5 minutes
+
+1500 evaluations completed in 8.3 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 6.5 minutes
+
+1515 evaluations completed in 8.4 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 6.4 minutes
+
+1530 evaluations completed in 8.4 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 6.3 minutes
+
+1545 evaluations completed in 8.6 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.2 minutes
+
+1560 evaluations completed in 8.6 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.1 minutes
+
+1575 evaluations completed in 8.7 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.0 minutes
+
+1590 evaluations completed in 8.8 minutes
+Predicted time to complete: 14.8 minutes
+Estimated time left: 6.0 minutes
+
+1605 evaluations completed in 8.9 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.9 minutes
+
+1620 evaluations completed in 8.9 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.8 minutes
+
+1635 evaluations completed in 9.0 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.7 minutes
+
+1650 evaluations completed in 9.1 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.6 minutes
+
+1665 evaluations completed in 9.2 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.5 minutes
+
+1680 evaluations completed in 9.2 minutes
+Predicted time to complete: 14.7 minutes
+Estimated time left: 5.4 minutes
+
+1695 evaluations completed in 9.3 minutes
+Predicted time to complete: 14.6 minutes
+Estimated time left: 5.3 minutes
+
+1710 evaluations completed in 9.4 minutes
+Predicted time to complete: 14.6 minutes
+Estimated time left: 5.2 minutes
+
+1725 evaluations completed in 9.4 minutes
+Predicted time to complete: 14.6 minutes
+Estimated time left: 5.1 minutes
+
+1740 evaluations completed in 9.5 minutes
+Predicted time to complete: 14.5 minutes
+Estimated time left: 5.1 minutes
+
+1755 evaluations completed in 9.6 minutes
+Predicted time to complete: 14.5 minutes
+Estimated time left: 5.0 minutes
+

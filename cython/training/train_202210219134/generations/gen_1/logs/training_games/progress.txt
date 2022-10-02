@@ -1,0 +1,7 @@
+10000 games with 1600 searches per move
+Started: Sun Oct  2 19:13:09 2022
+
+18 evaluations completed in 1.1 minutes
+Predicted time to complete: 44.4 hours
+Estimated time left: 44.4 hours
+

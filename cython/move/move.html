@@ -709,20 +709,15 @@ static PyObject *__pyx_pf_4move_4get_move(CYTHON_UNUSED PyObject *__pyx_self, in
 <pre class='cython code score-0 '>  __pyx_r = __pyx_v_move;
   goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">058</span>: </pre>
-<pre class="cython line score-58" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">059</span>: cpdef encode_place(int ptype, int row, int col):</pre>
-<pre class='cython code score-58 '>static PyObject *__pyx_pw_4move_7encode_place(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_4move_encode_place(int __pyx_v_ptype, int __pyx_v_row, int __pyx_v_col, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  PyObject *__pyx_r = NULL;
+<pre class="cython line score-57" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">059</span>: cpdef int encode_place(int ptype, int row, int col):</pre>
+<pre class='cython code score-57 '>static PyObject *__pyx_pw_4move_7encode_place(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_f_4move_encode_place(int __pyx_v_ptype, int __pyx_v_row, int __pyx_v_col, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  int __pyx_r;
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("encode_place", 0);
 /* … */
   /* function exit code */
-  __pyx_L1_error:;
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_1);
-  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("move.encode_place", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
   __pyx_L0:;
-  <span class='refnanny'>__Pyx_XGIVEREF</span>(__pyx_r);
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
@@ -807,7 +802,7 @@ static PyObject *__pyx_pf_4move_6encode_place(CYTHON_UNUSED PyObject *__pyx_self
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("encode_place", 0);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_1 = __pyx_f_4move_encode_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_From_int</span>(__pyx_f_4move_encode_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0));<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -823,28 +818,19 @@ static PyObject *__pyx_pf_4move_6encode_place(CYTHON_UNUSED PyObject *__pyx_self
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">060</span>:     return 48 + ptype * 16 + row * 4 + col</pre>
-<pre class='cython code score-3 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_From_long</span>((((48 + (__pyx_v_ptype * 16)) + (__pyx_v_row * 4)) + __pyx_v_col));<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">060</span>:     return 48 + ptype * 16 + row * 4 + col</pre>
+<pre class='cython code score-0 '>  __pyx_r = (((48 + (__pyx_v_ptype * 16)) + (__pyx_v_row * 4)) + __pyx_v_col);
   goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">061</span>: </pre>
-<pre class="cython line score-71" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">062</span>: cpdef encode_move(int row1, int col1, int row2, int col2):</pre>
-<pre class='cython code score-71 '>static PyObject *__pyx_pw_4move_9encode_move(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __pyx_v_row2, int __pyx_v_col2, CYTHON_UNUSED int __pyx_skip_dispatch) {
-  PyObject *__pyx_r = NULL;
+<pre class="cython line score-70" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">062</span>: cpdef int encode_move(int row1, int col1, int row2, int col2):</pre>
+<pre class='cython code score-70 '>static PyObject *__pyx_pw_4move_9encode_move(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __pyx_v_row2, int __pyx_v_col2, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  int __pyx_r;
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("encode_move", 0);
 /* … */
   /* function exit code */
-  __pyx_L1_error:;
-  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_2);
-  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("move.encode_move", __pyx_clineno, __pyx_lineno, __pyx_filename);
-  __pyx_r = 0;
   __pyx_L0:;
-  <span class='refnanny'>__Pyx_XGIVEREF</span>(__pyx_r);
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
@@ -940,7 +926,7 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("encode_move", 0);
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_1 = __pyx_f_4move_encode_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_From_int</span>(__pyx_f_4move_encode_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0));<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -962,12 +948,8 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">065</span>:         return row1 * 3 + col1</pre>
-<pre class='cython code score-3 '>    <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-    __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_long</span>(((__pyx_v_row1 * 3) + __pyx_v_col1));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-    __pyx_r = __pyx_t_2;
-    __pyx_t_2 = 0;
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">065</span>:         return row1 * 3 + col1</pre>
+<pre class='cython code score-0 '>    __pyx_r = ((__pyx_v_row1 * 3) + __pyx_v_col1);
     goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">066</span>:     # Down</pre>
 <pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">067</span>:     if row1 &lt; row2:</pre>
@@ -975,12 +957,8 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">068</span>:         return 12 + row1 * 4 + col1</pre>
-<pre class='cython code score-3 '>    <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-    __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_long</span>(((12 + (__pyx_v_row1 * 4)) + __pyx_v_col1));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-    __pyx_r = __pyx_t_2;
-    __pyx_t_2 = 0;
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">068</span>:         return 12 + row1 * 4 + col1</pre>
+<pre class='cython code score-0 '>    __pyx_r = ((12 + (__pyx_v_row1 * 4)) + __pyx_v_col1);
     goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">069</span>:     # Left</pre>
 <pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">070</span>:     if col1 &gt; col2:</pre>
@@ -988,20 +966,12 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">071</span>:         return 24 + row1 * 3 + (col1 - 1)</pre>
-<pre class='cython code score-3 '>    <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-    __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_long</span>(((24 + (__pyx_v_row1 * 3)) + (__pyx_v_col1 - 1)));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)</span>
-    <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-    __pyx_r = __pyx_t_2;
-    __pyx_t_2 = 0;
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">071</span>:         return 24 + row1 * 3 + (col1 - 1)</pre>
+<pre class='cython code score-0 '>    __pyx_r = ((24 + (__pyx_v_row1 * 3)) + (__pyx_v_col1 - 1));
     goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">072</span>:     # Up</pre>
-<pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">073</span>:     return 36 + (row1 - 1) * 4 + col1</pre>
-<pre class='cython code score-3 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_long</span>(((36 + ((__pyx_v_row1 - 1) * 4)) + __pyx_v_col1));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-  __pyx_r = __pyx_t_2;
-  __pyx_t_2 = 0;
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">073</span>:     return 36 + (row1 - 1) * 4 + col1</pre>
+<pre class='cython code score-0 '>  __pyx_r = ((36 + ((__pyx_v_row1 - 1) * 4)) + __pyx_v_col1);
   goto __pyx_L0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">074</span>: </pre>
 <pre class="cython line score-18" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">075</span>: def move_to_str(Move move):</pre>

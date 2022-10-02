@@ -957,7 +957,7 @@ static const char *__pyx_f[] = {
 /*--- Type declarations ---*/
 struct __pyx_t_4move_Move;
 
-/* "move.pyx":1
+/* "move.pxd":1
  * cdef struct Move:             # <<<<<<<<<<<<<<
  *     bint mtype
  *     int row1, col1, row2, col2, ptype
@@ -1285,6 +1285,9 @@ static CYTHON_INLINE int __Pyx_PyErr_GivenExceptionMatches2(PyObject *err, PyObj
 /* CheckBinaryVersion.proto */
 static int __Pyx_check_binary_version(void);
 
+/* FunctionExport.proto */
+static int __Pyx_ExportFunction(const char *name, void (*f)(void), const char *sig);
+
 /* InitStrings.proto */
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
@@ -1295,6 +1298,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int, int, int, int __py
 static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int, int, int, int, int __pyx_skip_dispatch); /*proto*/
 static int __pyx_f_4move_encode_place(int, int, int, int __pyx_skip_dispatch); /*proto*/
 static int __pyx_f_4move_encode_move(int, int, int, int, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_4move_move_to_str(struct __pyx_t_4move_Move, int __pyx_skip_dispatch); /*proto*/
 static struct __pyx_t_4move_Move __pyx_convert__from_py_struct____pyx_t_4move_Move(PyObject *); /*proto*/
 #define __Pyx_MODULE_NAME "move"
 extern int __pyx_module_is_main_move;
@@ -1319,19 +1323,15 @@ static const char __pyx_k_row[] = "row";
 static const char __pyx_k_col1[] = "col1";
 static const char __pyx_k_col2[] = "col2";
 static const char __pyx_k_main[] = "__main__";
-static const char __pyx_k_move[] = "move";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_row1[] = "row1";
 static const char __pyx_k_row2[] = "row2";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_mtype[] = "mtype";
 static const char __pyx_k_ptype[] = "ptype";
-static const char __pyx_k_output[] = "output";
 static const char __pyx_k_KeyError[] = "KeyError";
-static const char __pyx_k_move_pyx[] = "move.pyx";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_ValueError[] = "ValueError";
-static const char __pyx_k_move_to_str[] = "move_to_str";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_No_value_specified_for_struct_at[] = "No value specified for struct attribute 'mtype'";
 static const char __pyx_k_No_value_specified_for_struct_at_2[] = "No value specified for struct attribute 'row1'";
@@ -1363,12 +1363,8 @@ static PyObject *__pyx_n_s_col;
 static PyObject *__pyx_n_s_col1;
 static PyObject *__pyx_n_s_col2;
 static PyObject *__pyx_n_s_main;
-static PyObject *__pyx_n_s_move;
-static PyObject *__pyx_kp_s_move_pyx;
-static PyObject *__pyx_n_s_move_to_str;
 static PyObject *__pyx_n_s_mtype;
 static PyObject *__pyx_n_s_name;
-static PyObject *__pyx_n_s_output;
 static PyObject *__pyx_n_s_ptype;
 static PyObject *__pyx_n_s_row;
 static PyObject *__pyx_n_s_row1;
@@ -1386,13 +1382,9 @@ static PyObject *__pyx_tuple__4;
 static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
-static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_codeobj__9;
 /* Late includes */
 
-/* "move.pyx":5
- *     int row1, col1, row2, col2, ptype
- * 
+/* "move.pyx":1
  * cpdef Move move_from_id(int move_id):             # <<<<<<<<<<<<<<
  *     cdef Move move
  *     # Move
@@ -1407,7 +1399,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("move_from_id", 0);
 
-  /* "move.pyx":8
+  /* "move.pyx":4
  *     cdef Move move
  *     # Move
  *     move.mtype = False             # <<<<<<<<<<<<<<
@@ -1416,7 +1408,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
   __pyx_v_move.mtype = 0;
 
-  /* "move.pyx":10
+  /* "move.pyx":6
  *     move.mtype = False
  *     # Right
  *     if move_id < 12:             # <<<<<<<<<<<<<<
@@ -1426,7 +1418,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   __pyx_t_1 = ((__pyx_v_move_id < 12) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":11
+    /* "move.pyx":7
  *     # Right
  *     if move_id < 12:
  *         move.row1 = move_id // 3             # <<<<<<<<<<<<<<
@@ -1435,7 +1427,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row1 = __Pyx_div_long(__pyx_v_move_id, 3);
 
-    /* "move.pyx":12
+    /* "move.pyx":8
  *     if move_id < 12:
  *         move.row1 = move_id // 3
  *         move.col1 = move_id % 3             # <<<<<<<<<<<<<<
@@ -1444,7 +1436,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col1 = __Pyx_mod_long(__pyx_v_move_id, 3);
 
-    /* "move.pyx":13
+    /* "move.pyx":9
  *         move.row1 = move_id // 3
  *         move.col1 = move_id % 3
  *         move.row2 = move.row1             # <<<<<<<<<<<<<<
@@ -1454,7 +1446,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     __pyx_t_2 = __pyx_v_move.row1;
     __pyx_v_move.row2 = __pyx_t_2;
 
-    /* "move.pyx":14
+    /* "move.pyx":10
  *         move.col1 = move_id % 3
  *         move.row2 = move.row1
  *         move.col2 = move.col1 + 1             # <<<<<<<<<<<<<<
@@ -1463,7 +1455,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col2 = (__pyx_v_move.col1 + 1);
 
-    /* "move.pyx":10
+    /* "move.pyx":6
  *     move.mtype = False
  *     # Right
  *     if move_id < 12:             # <<<<<<<<<<<<<<
@@ -1473,7 +1465,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     goto __pyx_L3;
   }
 
-  /* "move.pyx":16
+  /* "move.pyx":12
  *         move.col2 = move.col1 + 1
  *     # Down
  *     elif move_id < 24:             # <<<<<<<<<<<<<<
@@ -1483,7 +1475,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   __pyx_t_1 = ((__pyx_v_move_id < 24) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":17
+    /* "move.pyx":13
  *     # Down
  *     elif move_id < 24:
  *         move.row1 = (move_id - 12) // 4             # <<<<<<<<<<<<<<
@@ -1492,7 +1484,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row1 = __Pyx_div_long((__pyx_v_move_id - 12), 4);
 
-    /* "move.pyx":18
+    /* "move.pyx":14
  *     elif move_id < 24:
  *         move.row1 = (move_id - 12) // 4
  *         move.col1 = move_id % 4             # <<<<<<<<<<<<<<
@@ -1501,7 +1493,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col1 = __Pyx_mod_long(__pyx_v_move_id, 4);
 
-    /* "move.pyx":19
+    /* "move.pyx":15
  *         move.row1 = (move_id - 12) // 4
  *         move.col1 = move_id % 4
  *         move.row2 = move.row1 + 1             # <<<<<<<<<<<<<<
@@ -1510,7 +1502,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row2 = (__pyx_v_move.row1 + 1);
 
-    /* "move.pyx":20
+    /* "move.pyx":16
  *         move.col1 = move_id % 4
  *         move.row2 = move.row1 + 1
  *         move.col2 = move.col1             # <<<<<<<<<<<<<<
@@ -1520,7 +1512,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     __pyx_t_2 = __pyx_v_move.col1;
     __pyx_v_move.col2 = __pyx_t_2;
 
-    /* "move.pyx":16
+    /* "move.pyx":12
  *         move.col2 = move.col1 + 1
  *     # Down
  *     elif move_id < 24:             # <<<<<<<<<<<<<<
@@ -1530,7 +1522,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     goto __pyx_L3;
   }
 
-  /* "move.pyx":22
+  /* "move.pyx":18
  *         move.col2 = move.col1
  *     # Left
  *     elif move_id < 36:             # <<<<<<<<<<<<<<
@@ -1540,7 +1532,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   __pyx_t_1 = ((__pyx_v_move_id < 36) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":23
+    /* "move.pyx":19
  *     # Left
  *     elif move_id < 36:
  *         move.row1 = (move_id - 24) // 3             # <<<<<<<<<<<<<<
@@ -1549,7 +1541,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row1 = __Pyx_div_long((__pyx_v_move_id - 24), 3);
 
-    /* "move.pyx":24
+    /* "move.pyx":20
  *     elif move_id < 36:
  *         move.row1 = (move_id - 24) // 3
  *         move.col1 = move_id % 3 + 1             # <<<<<<<<<<<<<<
@@ -1558,7 +1550,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col1 = (__Pyx_mod_long(__pyx_v_move_id, 3) + 1);
 
-    /* "move.pyx":25
+    /* "move.pyx":21
  *         move.row1 = (move_id - 24) // 3
  *         move.col1 = move_id % 3 + 1
  *         move.row2 = move.row1             # <<<<<<<<<<<<<<
@@ -1568,7 +1560,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     __pyx_t_2 = __pyx_v_move.row1;
     __pyx_v_move.row2 = __pyx_t_2;
 
-    /* "move.pyx":26
+    /* "move.pyx":22
  *         move.col1 = move_id % 3 + 1
  *         move.row2 = move.row1
  *         move.col2 = move.col1 - 1             # <<<<<<<<<<<<<<
@@ -1577,7 +1569,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col2 = (__pyx_v_move.col1 - 1);
 
-    /* "move.pyx":22
+    /* "move.pyx":18
  *         move.col2 = move.col1
  *     # Left
  *     elif move_id < 36:             # <<<<<<<<<<<<<<
@@ -1587,7 +1579,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     goto __pyx_L3;
   }
 
-  /* "move.pyx":28
+  /* "move.pyx":24
  *         move.col2 = move.col1 - 1
  *     # Up
  *     elif move_id < 48:             # <<<<<<<<<<<<<<
@@ -1597,7 +1589,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   __pyx_t_1 = ((__pyx_v_move_id < 48) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":29
+    /* "move.pyx":25
  *     # Up
  *     elif move_id < 48:
  *         move.row1 = (move_id - 36) // 4 + 1             # <<<<<<<<<<<<<<
@@ -1606,7 +1598,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row1 = (__Pyx_div_long((__pyx_v_move_id - 36), 4) + 1);
 
-    /* "move.pyx":30
+    /* "move.pyx":26
  *     elif move_id < 48:
  *         move.row1 = (move_id - 36) // 4 + 1
  *         move.col1 = move_id % 4             # <<<<<<<<<<<<<<
@@ -1615,7 +1607,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.col1 = __Pyx_mod_long(__pyx_v_move_id, 4);
 
-    /* "move.pyx":31
+    /* "move.pyx":27
  *         move.row1 = (move_id - 36) // 4 + 1
  *         move.col1 = move_id % 4
  *         move.row2 = move.row1 - 1             # <<<<<<<<<<<<<<
@@ -1624,7 +1616,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row2 = (__pyx_v_move.row1 - 1);
 
-    /* "move.pyx":32
+    /* "move.pyx":28
  *         move.col1 = move_id % 4
  *         move.row2 = move.row1 - 1
  *         move.col2 = move.col1             # <<<<<<<<<<<<<<
@@ -1634,7 +1626,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     __pyx_t_2 = __pyx_v_move.col1;
     __pyx_v_move.col2 = __pyx_t_2;
 
-    /* "move.pyx":28
+    /* "move.pyx":24
  *         move.col2 = move.col1 - 1
  *     # Up
  *     elif move_id < 48:             # <<<<<<<<<<<<<<
@@ -1644,7 +1636,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
     goto __pyx_L3;
   }
 
-  /* "move.pyx":35
+  /* "move.pyx":31
  *     # Place
  *     else:
  *         move.mtype = True             # <<<<<<<<<<<<<<
@@ -1654,7 +1646,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   /*else*/ {
     __pyx_v_move.mtype = 1;
 
-    /* "move.pyx":36
+    /* "move.pyx":32
  *     else:
  *         move.mtype = True
  *         move.ptype = (move_id - 48) // 16             # <<<<<<<<<<<<<<
@@ -1663,7 +1655,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.ptype = __Pyx_div_long((__pyx_v_move_id - 48), 16);
 
-    /* "move.pyx":37
+    /* "move.pyx":33
  *         move.mtype = True
  *         move.ptype = (move_id - 48) // 16
  *         move.row1 = (move_id % 16) // 4             # <<<<<<<<<<<<<<
@@ -1672,7 +1664,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
  */
     __pyx_v_move.row1 = __Pyx_div_long(__Pyx_mod_long(__pyx_v_move_id, 16), 4);
 
-    /* "move.pyx":38
+    /* "move.pyx":34
  *         move.ptype = (move_id - 48) // 16
  *         move.row1 = (move_id % 16) // 4
  *         move.col1 = move_id % 4             # <<<<<<<<<<<<<<
@@ -1683,7 +1675,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   }
   __pyx_L3:;
 
-  /* "move.pyx":40
+  /* "move.pyx":36
  *         move.col1 = move_id % 4
  * 
  *     return move             # <<<<<<<<<<<<<<
@@ -1693,9 +1685,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_move_from_id(int __pyx_v_move_id,
   __pyx_r = __pyx_v_move;
   goto __pyx_L0;
 
-  /* "move.pyx":5
- *     int row1, col1, row2, col2, ptype
- * 
+  /* "move.pyx":1
  * cpdef Move move_from_id(int move_id):             # <<<<<<<<<<<<<<
  *     cdef Move move
  *     # Move
@@ -1718,7 +1708,7 @@ static PyObject *__pyx_pw_4move_1move_from_id(PyObject *__pyx_self, PyObject *__
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("move_from_id (wrapper)", 0);
   assert(__pyx_arg_move_id); {
-    __pyx_v_move_id = __Pyx_PyInt_As_int(__pyx_arg_move_id); if (unlikely((__pyx_v_move_id == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 5, __pyx_L3_error)
+    __pyx_v_move_id = __Pyx_PyInt_As_int(__pyx_arg_move_id); if (unlikely((__pyx_v_move_id == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -1742,7 +1732,7 @@ static PyObject *__pyx_pf_4move_move_from_id(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("move_from_id", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_move_from_id(__pyx_v_move_id, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_move_from_id(__pyx_v_move_id, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1759,7 +1749,7 @@ static PyObject *__pyx_pf_4move_move_from_id(CYTHON_UNUSED PyObject *__pyx_self,
   return __pyx_r;
 }
 
-/* "move.pyx":42
+/* "move.pyx":38
  *     return move
  * 
  * cpdef Move get_place(int ptype, int row, int col):             # <<<<<<<<<<<<<<
@@ -1774,7 +1764,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_place", 0);
 
-  /* "move.pyx":44
+  /* "move.pyx":40
  * cpdef Move get_place(int ptype, int row, int col):
  *     cdef Move move
  *     move.mtype = True             # <<<<<<<<<<<<<<
@@ -1783,7 +1773,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
  */
   __pyx_v_move.mtype = 1;
 
-  /* "move.pyx":45
+  /* "move.pyx":41
  *     cdef Move move
  *     move.mtype = True
  *     move.ptype = ptype             # <<<<<<<<<<<<<<
@@ -1792,7 +1782,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
  */
   __pyx_v_move.ptype = __pyx_v_ptype;
 
-  /* "move.pyx":46
+  /* "move.pyx":42
  *     move.mtype = True
  *     move.ptype = ptype
  *     move.row1 = row             # <<<<<<<<<<<<<<
@@ -1801,7 +1791,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
  */
   __pyx_v_move.row1 = __pyx_v_row;
 
-  /* "move.pyx":47
+  /* "move.pyx":43
  *     move.ptype = ptype
  *     move.row1 = row
  *     move.col1 = col             # <<<<<<<<<<<<<<
@@ -1810,7 +1800,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
  */
   __pyx_v_move.col1 = __pyx_v_col;
 
-  /* "move.pyx":48
+  /* "move.pyx":44
  *     move.row1 = row
  *     move.col1 = col
  *     return move             # <<<<<<<<<<<<<<
@@ -1820,7 +1810,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_place(int __pyx_v_ptype, int 
   __pyx_r = __pyx_v_move;
   goto __pyx_L0;
 
-  /* "move.pyx":42
+  /* "move.pyx":38
  *     return move
  * 
  * cpdef Move get_place(int ptype, int row, int col):             # <<<<<<<<<<<<<<
@@ -1871,17 +1861,17 @@ static PyObject *__pyx_pw_4move_3get_place(PyObject *__pyx_self, PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, 1); __PYX_ERR(0, 42, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, 1); __PYX_ERR(0, 38, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, 2); __PYX_ERR(0, 42, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, 2); __PYX_ERR(0, 38, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_place") < 0)) __PYX_ERR(0, 42, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_place") < 0)) __PYX_ERR(0, 38, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1890,13 +1880,13 @@ static PyObject *__pyx_pw_4move_3get_place(PyObject *__pyx_self, PyObject *__pyx
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_ptype = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ptype == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
-    __pyx_v_row = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_row == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
-    __pyx_v_col = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_col == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
+    __pyx_v_ptype = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ptype == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L3_error)
+    __pyx_v_row = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_row == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L3_error)
+    __pyx_v_col = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_col == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 38, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 42, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_place", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 38, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("move.get_place", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1918,7 +1908,7 @@ static PyObject *__pyx_pf_4move_2get_place(CYTHON_UNUSED PyObject *__pyx_self, i
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_place", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_get_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_get_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1935,7 +1925,7 @@ static PyObject *__pyx_pf_4move_2get_place(CYTHON_UNUSED PyObject *__pyx_self, i
   return __pyx_r;
 }
 
-/* "move.pyx":50
+/* "move.pyx":46
  *     return move
  * 
  * cpdef Move get_move(int row1, int col1, int row2, int col2):             # <<<<<<<<<<<<<<
@@ -1950,7 +1940,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_move", 0);
 
-  /* "move.pyx":52
+  /* "move.pyx":48
  * cpdef Move get_move(int row1, int col1, int row2, int col2):
  *     cdef Move move
  *     move.mtype = False             # <<<<<<<<<<<<<<
@@ -1959,7 +1949,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
  */
   __pyx_v_move.mtype = 0;
 
-  /* "move.pyx":53
+  /* "move.pyx":49
  *     cdef Move move
  *     move.mtype = False
  *     move.row1 = row1             # <<<<<<<<<<<<<<
@@ -1968,7 +1958,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
  */
   __pyx_v_move.row1 = __pyx_v_row1;
 
-  /* "move.pyx":54
+  /* "move.pyx":50
  *     move.mtype = False
  *     move.row1 = row1
  *     move.col1 = col1             # <<<<<<<<<<<<<<
@@ -1977,7 +1967,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
  */
   __pyx_v_move.col1 = __pyx_v_col1;
 
-  /* "move.pyx":55
+  /* "move.pyx":51
  *     move.row1 = row1
  *     move.col1 = col1
  *     move.row2 = row2             # <<<<<<<<<<<<<<
@@ -1986,7 +1976,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
  */
   __pyx_v_move.row2 = __pyx_v_row2;
 
-  /* "move.pyx":56
+  /* "move.pyx":52
  *     move.col1 = col1
  *     move.row2 = row2
  *     move.col2 = col2             # <<<<<<<<<<<<<<
@@ -1995,7 +1985,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
  */
   __pyx_v_move.col2 = __pyx_v_col2;
 
-  /* "move.pyx":57
+  /* "move.pyx":53
  *     move.row2 = row2
  *     move.col2 = col2
  *     return move             # <<<<<<<<<<<<<<
@@ -2005,7 +1995,7 @@ static struct __pyx_t_4move_Move __pyx_f_4move_get_move(int __pyx_v_row1, int __
   __pyx_r = __pyx_v_move;
   goto __pyx_L0;
 
-  /* "move.pyx":50
+  /* "move.pyx":46
  *     return move
  * 
  * cpdef Move get_move(int row1, int col1, int row2, int col2):             # <<<<<<<<<<<<<<
@@ -2059,23 +2049,23 @@ static PyObject *__pyx_pw_4move_5get_move(PyObject *__pyx_self, PyObject *__pyx_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 1); __PYX_ERR(0, 50, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 1); __PYX_ERR(0, 46, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 2); __PYX_ERR(0, 50, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 2); __PYX_ERR(0, 46, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 3); __PYX_ERR(0, 50, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, 3); __PYX_ERR(0, 46, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_move") < 0)) __PYX_ERR(0, 50, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_move") < 0)) __PYX_ERR(0, 46, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2085,14 +2075,14 @@ static PyObject *__pyx_pw_4move_5get_move(PyObject *__pyx_self, PyObject *__pyx_
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_row1 = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_row1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
-    __pyx_v_col1 = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_col1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
-    __pyx_v_row2 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_row2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
-    __pyx_v_col2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_col2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L3_error)
+    __pyx_v_row1 = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_row1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L3_error)
+    __pyx_v_col1 = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_col1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L3_error)
+    __pyx_v_row2 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_row2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L3_error)
+    __pyx_v_col2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_col2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 46, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 50, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_move", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 46, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("move.get_move", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2114,7 +2104,7 @@ static PyObject *__pyx_pf_4move_4get_move(CYTHON_UNUSED PyObject *__pyx_self, in
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_move", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_get_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_1 = __pyx_convert__to_py_struct____pyx_t_4move_Move(__pyx_f_4move_get_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2131,7 +2121,7 @@ static PyObject *__pyx_pf_4move_4get_move(CYTHON_UNUSED PyObject *__pyx_self, in
   return __pyx_r;
 }
 
-/* "move.pyx":59
+/* "move.pyx":55
  *     return move
  * 
  * cpdef int encode_place(int ptype, int row, int col):             # <<<<<<<<<<<<<<
@@ -2145,7 +2135,7 @@ static int __pyx_f_4move_encode_place(int __pyx_v_ptype, int __pyx_v_row, int __
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("encode_place", 0);
 
-  /* "move.pyx":60
+  /* "move.pyx":56
  * 
  * cpdef int encode_place(int ptype, int row, int col):
  *     return 48 + ptype * 16 + row * 4 + col             # <<<<<<<<<<<<<<
@@ -2155,7 +2145,7 @@ static int __pyx_f_4move_encode_place(int __pyx_v_ptype, int __pyx_v_row, int __
   __pyx_r = (((48 + (__pyx_v_ptype * 16)) + (__pyx_v_row * 4)) + __pyx_v_col);
   goto __pyx_L0;
 
-  /* "move.pyx":59
+  /* "move.pyx":55
  *     return move
  * 
  * cpdef int encode_place(int ptype, int row, int col):             # <<<<<<<<<<<<<<
@@ -2206,17 +2196,17 @@ static PyObject *__pyx_pw_4move_7encode_place(PyObject *__pyx_self, PyObject *__
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, 1); __PYX_ERR(0, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, 1); __PYX_ERR(0, 55, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, 2); __PYX_ERR(0, 59, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, 2); __PYX_ERR(0, 55, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "encode_place") < 0)) __PYX_ERR(0, 59, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "encode_place") < 0)) __PYX_ERR(0, 55, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2225,13 +2215,13 @@ static PyObject *__pyx_pw_4move_7encode_place(PyObject *__pyx_self, PyObject *__
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
-    __pyx_v_ptype = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ptype == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
-    __pyx_v_row = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_row == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
-    __pyx_v_col = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_col == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 59, __pyx_L3_error)
+    __pyx_v_ptype = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_ptype == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 55, __pyx_L3_error)
+    __pyx_v_row = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_row == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 55, __pyx_L3_error)
+    __pyx_v_col = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_col == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 55, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 59, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("encode_place", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 55, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("move.encode_place", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2253,7 +2243,7 @@ static PyObject *__pyx_pf_4move_6encode_place(CYTHON_UNUSED PyObject *__pyx_self
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("encode_place", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_4move_encode_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_4move_encode_place(__pyx_v_ptype, __pyx_v_row, __pyx_v_col, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2270,7 +2260,7 @@ static PyObject *__pyx_pf_4move_6encode_place(CYTHON_UNUSED PyObject *__pyx_self
   return __pyx_r;
 }
 
-/* "move.pyx":62
+/* "move.pyx":58
  *     return 48 + ptype * 16 + row * 4 + col
  * 
  * cpdef int encode_move(int row1, int col1, int row2, int col2):             # <<<<<<<<<<<<<<
@@ -2285,7 +2275,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("encode_move", 0);
 
-  /* "move.pyx":64
+  /* "move.pyx":60
  * cpdef int encode_move(int row1, int col1, int row2, int col2):
  *     # Right
  *     if col1 < col2:             # <<<<<<<<<<<<<<
@@ -2295,7 +2285,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
   __pyx_t_1 = ((__pyx_v_col1 < __pyx_v_col2) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":65
+    /* "move.pyx":61
  *     # Right
  *     if col1 < col2:
  *         return row1 * 3 + col1             # <<<<<<<<<<<<<<
@@ -2305,7 +2295,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
     __pyx_r = ((__pyx_v_row1 * 3) + __pyx_v_col1);
     goto __pyx_L0;
 
-    /* "move.pyx":64
+    /* "move.pyx":60
  * cpdef int encode_move(int row1, int col1, int row2, int col2):
  *     # Right
  *     if col1 < col2:             # <<<<<<<<<<<<<<
@@ -2314,7 +2304,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
  */
   }
 
-  /* "move.pyx":67
+  /* "move.pyx":63
  *         return row1 * 3 + col1
  *     # Down
  *     if row1 < row2:             # <<<<<<<<<<<<<<
@@ -2324,7 +2314,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
   __pyx_t_1 = ((__pyx_v_row1 < __pyx_v_row2) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":68
+    /* "move.pyx":64
  *     # Down
  *     if row1 < row2:
  *         return 12 + row1 * 4 + col1             # <<<<<<<<<<<<<<
@@ -2334,7 +2324,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
     __pyx_r = ((12 + (__pyx_v_row1 * 4)) + __pyx_v_col1);
     goto __pyx_L0;
 
-    /* "move.pyx":67
+    /* "move.pyx":63
  *         return row1 * 3 + col1
  *     # Down
  *     if row1 < row2:             # <<<<<<<<<<<<<<
@@ -2343,7 +2333,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
  */
   }
 
-  /* "move.pyx":70
+  /* "move.pyx":66
  *         return 12 + row1 * 4 + col1
  *     # Left
  *     if col1 > col2:             # <<<<<<<<<<<<<<
@@ -2353,7 +2343,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
   __pyx_t_1 = ((__pyx_v_col1 > __pyx_v_col2) != 0);
   if (__pyx_t_1) {
 
-    /* "move.pyx":71
+    /* "move.pyx":67
  *     # Left
  *     if col1 > col2:
  *         return 24 + row1 * 3 + (col1 - 1)             # <<<<<<<<<<<<<<
@@ -2363,7 +2353,7 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
     __pyx_r = ((24 + (__pyx_v_row1 * 3)) + (__pyx_v_col1 - 1));
     goto __pyx_L0;
 
-    /* "move.pyx":70
+    /* "move.pyx":66
  *         return 12 + row1 * 4 + col1
  *     # Left
  *     if col1 > col2:             # <<<<<<<<<<<<<<
@@ -2372,17 +2362,17 @@ static int __pyx_f_4move_encode_move(int __pyx_v_row1, int __pyx_v_col1, int __p
  */
   }
 
-  /* "move.pyx":73
+  /* "move.pyx":69
  *         return 24 + row1 * 3 + (col1 - 1)
  *     # Up
  *     return 36 + (row1 - 1) * 4 + col1             # <<<<<<<<<<<<<<
  * 
- * def move_to_str(Move move):
+ * cpdef str move_to_str(Move move):
  */
   __pyx_r = ((36 + ((__pyx_v_row1 - 1) * 4)) + __pyx_v_col1);
   goto __pyx_L0;
 
-  /* "move.pyx":62
+  /* "move.pyx":58
  *     return 48 + ptype * 16 + row * 4 + col
  * 
  * cpdef int encode_move(int row1, int col1, int row2, int col2):             # <<<<<<<<<<<<<<
@@ -2436,23 +2426,23 @@ static PyObject *__pyx_pw_4move_9encode_move(PyObject *__pyx_self, PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 1); __PYX_ERR(0, 62, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 1); __PYX_ERR(0, 58, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_row2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 2); __PYX_ERR(0, 62, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 2); __PYX_ERR(0, 58, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_col2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 3); __PYX_ERR(0, 62, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, 3); __PYX_ERR(0, 58, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "encode_move") < 0)) __PYX_ERR(0, 62, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "encode_move") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2462,14 +2452,14 @@ static PyObject *__pyx_pw_4move_9encode_move(PyObject *__pyx_self, PyObject *__p
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_row1 = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_row1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
-    __pyx_v_col1 = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_col1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
-    __pyx_v_row2 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_row2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
-    __pyx_v_col2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_col2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 62, __pyx_L3_error)
+    __pyx_v_row1 = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_row1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_col1 = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_col1 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_row2 = __Pyx_PyInt_As_int(values[2]); if (unlikely((__pyx_v_row2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+    __pyx_v_col2 = __Pyx_PyInt_As_int(values[3]); if (unlikely((__pyx_v_col2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 62, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("encode_move", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 58, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("move.encode_move", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2491,7 +2481,7 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("encode_move", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_4move_encode_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_f_4move_encode_move(__pyx_v_row1, __pyx_v_col1, __pyx_v_row2, __pyx_v_col2, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2508,17 +2498,403 @@ static PyObject *__pyx_pf_4move_8encode_move(CYTHON_UNUSED PyObject *__pyx_self,
   return __pyx_r;
 }
 
-/* "move.pyx":75
+/* "move.pyx":71
  *     return 36 + (row1 - 1) * 4 + col1
  * 
- * def move_to_str(Move move):             # <<<<<<<<<<<<<<
+ * cpdef str move_to_str(Move move):             # <<<<<<<<<<<<<<
  *     output = ""
  *     # Place
  */
 
+static PyObject *__pyx_pw_4move_11move_to_str(PyObject *__pyx_self, PyObject *__pyx_arg_move); /*proto*/
+static PyObject *__pyx_f_4move_move_to_str(struct __pyx_t_4move_Move __pyx_v_move, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_v_output = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("move_to_str", 0);
+
+  /* "move.pyx":72
+ * 
+ * cpdef str move_to_str(Move move):
+ *     output = ""             # <<<<<<<<<<<<<<
+ *     # Place
+ *     if move.mtype:
+ */
+  __Pyx_INCREF(__pyx_kp_s_);
+  __pyx_v_output = __pyx_kp_s_;
+
+  /* "move.pyx":74
+ *     output = ""
+ *     # Place
+ *     if move.mtype:             # <<<<<<<<<<<<<<
+ *         output += "P"
+ *         if move.ptype == 0:
+ */
+  __pyx_t_1 = (__pyx_v_move.mtype != 0);
+  if (__pyx_t_1) {
+
+    /* "move.pyx":75
+ *     # Place
+ *     if move.mtype:
+ *         output += "P"             # <<<<<<<<<<<<<<
+ *         if move.ptype == 0:
+ *             output += "B"
+ */
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_P); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":76
+ *     if move.mtype:
+ *         output += "P"
+ *         if move.ptype == 0:             # <<<<<<<<<<<<<<
+ *             output += "B"
+ *         elif move.ptype == 1:
+ */
+    switch (__pyx_v_move.ptype) {
+      case 0:
+
+      /* "move.pyx":77
+ *         output += "P"
+ *         if move.ptype == 0:
+ *             output += "B"             # <<<<<<<<<<<<<<
+ *         elif move.ptype == 1:
+ *             output += "C"
+ */
+      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_B); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 77, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+      __pyx_t_2 = 0;
+
+      /* "move.pyx":76
+ *     if move.mtype:
+ *         output += "P"
+ *         if move.ptype == 0:             # <<<<<<<<<<<<<<
+ *             output += "B"
+ *         elif move.ptype == 1:
+ */
+      break;
+      case 1:
+
+      /* "move.pyx":79
+ *             output += "B"
+ *         elif move.ptype == 1:
+ *             output += "C"             # <<<<<<<<<<<<<<
+ *         elif move.ptype == 2:
+ *             output += "A"
+ */
+      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_C); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+      __pyx_t_2 = 0;
+
+      /* "move.pyx":78
+ *         if move.ptype == 0:
+ *             output += "B"
+ *         elif move.ptype == 1:             # <<<<<<<<<<<<<<
+ *             output += "C"
+ *         elif move.ptype == 2:
+ */
+      break;
+      case 2:
+
+      /* "move.pyx":81
+ *             output += "C"
+ *         elif move.ptype == 2:
+ *             output += "A"             # <<<<<<<<<<<<<<
+ *         output += str(move.row1)
+ *         output += str(move.col1)
+ */
+      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_A); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+      __pyx_t_2 = 0;
+
+      /* "move.pyx":80
+ *         elif move.ptype == 1:
+ *             output += "C"
+ *         elif move.ptype == 2:             # <<<<<<<<<<<<<<
+ *             output += "A"
+ *         output += str(move.row1)
+ */
+      break;
+      default: break;
+    }
+
+    /* "move.pyx":82
+ *         elif move.ptype == 2:
+ *             output += "A"
+ *         output += str(move.row1)             # <<<<<<<<<<<<<<
+ *         output += str(move.col1)
+ *         return output
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.row1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":83
+ *             output += "A"
+ *         output += str(move.row1)
+ *         output += str(move.col1)             # <<<<<<<<<<<<<<
+ *         return output
+ *     # Move
+ */
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.col1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":84
+ *         output += str(move.row1)
+ *         output += str(move.col1)
+ *         return output             # <<<<<<<<<<<<<<
+ *     # Move
+ *     output += "M"
+ */
+    __Pyx_XDECREF(__pyx_r);
+    if (!(likely(PyString_CheckExact(__pyx_v_output))||((__pyx_v_output) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_output)->tp_name), 0))) __PYX_ERR(0, 84, __pyx_L1_error)
+    __Pyx_INCREF(__pyx_v_output);
+    __pyx_r = ((PyObject*)__pyx_v_output);
+    goto __pyx_L0;
+
+    /* "move.pyx":74
+ *     output = ""
+ *     # Place
+ *     if move.mtype:             # <<<<<<<<<<<<<<
+ *         output += "P"
+ *         if move.ptype == 0:
+ */
+  }
+
+  /* "move.pyx":86
+ *         return output
+ *     # Move
+ *     output += "M"             # <<<<<<<<<<<<<<
+ *     output += str(move.row1)
+ *     output += str(move.col1)
+ */
+  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "move.pyx":87
+ *     # Move
+ *     output += "M"
+ *     output += str(move.row1)             # <<<<<<<<<<<<<<
+ *     output += str(move.col1)
+ *     if move.row2 - move.row1 == 1:
+ */
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.row1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "move.pyx":88
+ *     output += "M"
+ *     output += str(move.row1)
+ *     output += str(move.col1)             # <<<<<<<<<<<<<<
+ *     if move.row2 - move.row1 == 1:
+ *         output += "D"
+ */
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.col1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "move.pyx":89
+ *     output += str(move.row1)
+ *     output += str(move.col1)
+ *     if move.row2 - move.row1 == 1:             # <<<<<<<<<<<<<<
+ *         output += "D"
+ *     elif move.row2 - move.row1 == -1:
+ */
+  __pyx_t_1 = (((__pyx_v_move.row2 - __pyx_v_move.row1) == 1) != 0);
+  if (__pyx_t_1) {
+
+    /* "move.pyx":90
+ *     output += str(move.col1)
+ *     if move.row2 - move.row1 == 1:
+ *         output += "D"             # <<<<<<<<<<<<<<
+ *     elif move.row2 - move.row1 == -1:
+ *         output += "U"
+ */
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_D); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":89
+ *     output += str(move.row1)
+ *     output += str(move.col1)
+ *     if move.row2 - move.row1 == 1:             # <<<<<<<<<<<<<<
+ *         output += "D"
+ *     elif move.row2 - move.row1 == -1:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "move.pyx":91
+ *     if move.row2 - move.row1 == 1:
+ *         output += "D"
+ *     elif move.row2 - move.row1 == -1:             # <<<<<<<<<<<<<<
+ *         output += "U"
+ *     elif move.col2 - move.col1 == 1:
+ */
+  __pyx_t_1 = (((__pyx_v_move.row2 - __pyx_v_move.row1) == -1L) != 0);
+  if (__pyx_t_1) {
+
+    /* "move.pyx":92
+ *         output += "D"
+ *     elif move.row2 - move.row1 == -1:
+ *         output += "U"             # <<<<<<<<<<<<<<
+ *     elif move.col2 - move.col1 == 1:
+ *         output += "R"
+ */
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_U); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":91
+ *     if move.row2 - move.row1 == 1:
+ *         output += "D"
+ *     elif move.row2 - move.row1 == -1:             # <<<<<<<<<<<<<<
+ *         output += "U"
+ *     elif move.col2 - move.col1 == 1:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "move.pyx":93
+ *     elif move.row2 - move.row1 == -1:
+ *         output += "U"
+ *     elif move.col2 - move.col1 == 1:             # <<<<<<<<<<<<<<
+ *         output += "R"
+ *     elif move.col2 - move.col1 == -1:
+ */
+  __pyx_t_1 = (((__pyx_v_move.col2 - __pyx_v_move.col1) == 1) != 0);
+  if (__pyx_t_1) {
+
+    /* "move.pyx":94
+ *         output += "U"
+ *     elif move.col2 - move.col1 == 1:
+ *         output += "R"             # <<<<<<<<<<<<<<
+ *     elif move.col2 - move.col1 == -1:
+ *         output += "L"
+ */
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_R); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":93
+ *     elif move.row2 - move.row1 == -1:
+ *         output += "U"
+ *     elif move.col2 - move.col1 == 1:             # <<<<<<<<<<<<<<
+ *         output += "R"
+ *     elif move.col2 - move.col1 == -1:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "move.pyx":95
+ *     elif move.col2 - move.col1 == 1:
+ *         output += "R"
+ *     elif move.col2 - move.col1 == -1:             # <<<<<<<<<<<<<<
+ *         output += "L"
+ *     return output
+ */
+  __pyx_t_1 = (((__pyx_v_move.col2 - __pyx_v_move.col1) == -1L) != 0);
+  if (__pyx_t_1) {
+
+    /* "move.pyx":96
+ *         output += "R"
+ *     elif move.col2 - move.col1 == -1:
+ *         output += "L"             # <<<<<<<<<<<<<<
+ *     return output
+ */
+    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_L); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
+    __pyx_t_2 = 0;
+
+    /* "move.pyx":95
+ *     elif move.col2 - move.col1 == 1:
+ *         output += "R"
+ *     elif move.col2 - move.col1 == -1:             # <<<<<<<<<<<<<<
+ *         output += "L"
+ *     return output
+ */
+  }
+  __pyx_L4:;
+
+  /* "move.pyx":97
+ *     elif move.col2 - move.col1 == -1:
+ *         output += "L"
+ *     return output             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  if (!(likely(PyString_CheckExact(__pyx_v_output))||((__pyx_v_output) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_output)->tp_name), 0))) __PYX_ERR(0, 97, __pyx_L1_error)
+  __Pyx_INCREF(__pyx_v_output);
+  __pyx_r = ((PyObject*)__pyx_v_output);
+  goto __pyx_L0;
+
+  /* "move.pyx":71
+ *     return 36 + (row1 - 1) * 4 + col1
+ * 
+ * cpdef str move_to_str(Move move):             # <<<<<<<<<<<<<<
+ *     output = ""
+ *     # Place
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("move.move_to_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_output);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 /* Python wrapper */
 static PyObject *__pyx_pw_4move_11move_to_str(PyObject *__pyx_self, PyObject *__pyx_arg_move); /*proto*/
-static PyMethodDef __pyx_mdef_4move_11move_to_str = {"move_to_str", (PyCFunction)__pyx_pw_4move_11move_to_str, METH_O, 0};
 static PyObject *__pyx_pw_4move_11move_to_str(PyObject *__pyx_self, PyObject *__pyx_arg_move) {
   struct __pyx_t_4move_Move __pyx_v_move;
   int __pyx_lineno = 0;
@@ -2528,7 +2904,7 @@ static PyObject *__pyx_pw_4move_11move_to_str(PyObject *__pyx_self, PyObject *__
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("move_to_str (wrapper)", 0);
   assert(__pyx_arg_move); {
-    __pyx_v_move = __pyx_convert__from_py_struct____pyx_t_4move_Move(__pyx_arg_move); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 75, __pyx_L3_error)
+    __pyx_v_move = __pyx_convert__from_py_struct____pyx_t_4move_Move(__pyx_arg_move); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 71, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -2544,384 +2920,26 @@ static PyObject *__pyx_pw_4move_11move_to_str(PyObject *__pyx_self, PyObject *__
 }
 
 static PyObject *__pyx_pf_4move_10move_to_str(CYTHON_UNUSED PyObject *__pyx_self, struct __pyx_t_4move_Move __pyx_v_move) {
-  PyObject *__pyx_v_output = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
-  int __pyx_t_1;
-  PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("move_to_str", 0);
-
-  /* "move.pyx":76
- * 
- * def move_to_str(Move move):
- *     output = ""             # <<<<<<<<<<<<<<
- *     # Place
- *     if move.mtype:
- */
-  __Pyx_INCREF(__pyx_kp_s_);
-  __pyx_v_output = __pyx_kp_s_;
-
-  /* "move.pyx":78
- *     output = ""
- *     # Place
- *     if move.mtype:             # <<<<<<<<<<<<<<
- *         output += "P"
- *         if move.ptype == 0:
- */
-  __pyx_t_1 = (__pyx_v_move.mtype != 0);
-  if (__pyx_t_1) {
-
-    /* "move.pyx":79
- *     # Place
- *     if move.mtype:
- *         output += "P"             # <<<<<<<<<<<<<<
- *         if move.ptype == 0:
- *             output += "B"
- */
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_P); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":80
- *     if move.mtype:
- *         output += "P"
- *         if move.ptype == 0:             # <<<<<<<<<<<<<<
- *             output += "B"
- *         elif move.ptype == 1:
- */
-    switch (__pyx_v_move.ptype) {
-      case 0:
-
-      /* "move.pyx":81
- *         output += "P"
- *         if move.ptype == 0:
- *             output += "B"             # <<<<<<<<<<<<<<
- *         elif move.ptype == 1:
- *             output += "C"
- */
-      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_B); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-      __pyx_t_2 = 0;
-
-      /* "move.pyx":80
- *     if move.mtype:
- *         output += "P"
- *         if move.ptype == 0:             # <<<<<<<<<<<<<<
- *             output += "B"
- *         elif move.ptype == 1:
- */
-      break;
-      case 1:
-
-      /* "move.pyx":83
- *             output += "B"
- *         elif move.ptype == 1:
- *             output += "C"             # <<<<<<<<<<<<<<
- *         elif move.ptype == 2:
- *             output += "A"
- */
-      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_C); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-      __pyx_t_2 = 0;
-
-      /* "move.pyx":82
- *         if move.ptype == 0:
- *             output += "B"
- *         elif move.ptype == 1:             # <<<<<<<<<<<<<<
- *             output += "C"
- *         elif move.ptype == 2:
- */
-      break;
-      case 2:
-
-      /* "move.pyx":85
- *             output += "C"
- *         elif move.ptype == 2:
- *             output += "A"             # <<<<<<<<<<<<<<
- *         output += str(move.row1)
- *         output += str(move.col1)
- */
-      __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_A); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-      __pyx_t_2 = 0;
-
-      /* "move.pyx":84
- *         elif move.ptype == 1:
- *             output += "C"
- *         elif move.ptype == 2:             # <<<<<<<<<<<<<<
- *             output += "A"
- *         output += str(move.row1)
- */
-      break;
-      default: break;
-    }
-
-    /* "move.pyx":86
- *         elif move.ptype == 2:
- *             output += "A"
- *         output += str(move.row1)             # <<<<<<<<<<<<<<
- *         output += str(move.col1)
- *         return output
- */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.row1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":87
- *             output += "A"
- *         output += str(move.row1)
- *         output += str(move.col1)             # <<<<<<<<<<<<<<
- *         return output
- *     # Move
- */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.col1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 87, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":88
- *         output += str(move.row1)
- *         output += str(move.col1)
- *         return output             # <<<<<<<<<<<<<<
- *     # Move
- *     output += "M"
- */
-    __Pyx_XDECREF(__pyx_r);
-    __Pyx_INCREF(__pyx_v_output);
-    __pyx_r = __pyx_v_output;
-    goto __pyx_L0;
-
-    /* "move.pyx":78
- *     output = ""
- *     # Place
- *     if move.mtype:             # <<<<<<<<<<<<<<
- *         output += "P"
- *         if move.ptype == 0:
- */
-  }
-
-  /* "move.pyx":90
- *         return output
- *     # Move
- *     output += "M"             # <<<<<<<<<<<<<<
- *     output += str(move.row1)
- *     output += str(move.col1)
- */
-  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "move.pyx":91
- *     # Move
- *     output += "M"
- *     output += str(move.row1)             # <<<<<<<<<<<<<<
- *     output += str(move.col1)
- *     if move.row2 - move.row1 == 1:
- */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.row1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 91, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "move.pyx":92
- *     output += "M"
- *     output += str(move.row1)
- *     output += str(move.col1)             # <<<<<<<<<<<<<<
- *     if move.row2 - move.row1 == 1:
- *         output += "D"
- */
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_move.col1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyString_Type)), __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "move.pyx":93
- *     output += str(move.row1)
- *     output += str(move.col1)
- *     if move.row2 - move.row1 == 1:             # <<<<<<<<<<<<<<
- *         output += "D"
- *     elif move.row2 - move.row1 == -1:
- */
-  __pyx_t_1 = (((__pyx_v_move.row2 - __pyx_v_move.row1) == 1) != 0);
-  if (__pyx_t_1) {
-
-    /* "move.pyx":94
- *     output += str(move.col1)
- *     if move.row2 - move.row1 == 1:
- *         output += "D"             # <<<<<<<<<<<<<<
- *     elif move.row2 - move.row1 == -1:
- *         output += "U"
- */
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_D); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":93
- *     output += str(move.row1)
- *     output += str(move.col1)
- *     if move.row2 - move.row1 == 1:             # <<<<<<<<<<<<<<
- *         output += "D"
- *     elif move.row2 - move.row1 == -1:
- */
-    goto __pyx_L4;
-  }
-
-  /* "move.pyx":95
- *     if move.row2 - move.row1 == 1:
- *         output += "D"
- *     elif move.row2 - move.row1 == -1:             # <<<<<<<<<<<<<<
- *         output += "U"
- *     elif move.col2 - move.col1 == 1:
- */
-  __pyx_t_1 = (((__pyx_v_move.row2 - __pyx_v_move.row1) == -1L) != 0);
-  if (__pyx_t_1) {
-
-    /* "move.pyx":96
- *         output += "D"
- *     elif move.row2 - move.row1 == -1:
- *         output += "U"             # <<<<<<<<<<<<<<
- *     elif move.col2 - move.col1 == 1:
- *         output += "R"
- */
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_U); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":95
- *     if move.row2 - move.row1 == 1:
- *         output += "D"
- *     elif move.row2 - move.row1 == -1:             # <<<<<<<<<<<<<<
- *         output += "U"
- *     elif move.col2 - move.col1 == 1:
- */
-    goto __pyx_L4;
-  }
-
-  /* "move.pyx":97
- *     elif move.row2 - move.row1 == -1:
- *         output += "U"
- *     elif move.col2 - move.col1 == 1:             # <<<<<<<<<<<<<<
- *         output += "R"
- *     elif move.col2 - move.col1 == -1:
- */
-  __pyx_t_1 = (((__pyx_v_move.col2 - __pyx_v_move.col1) == 1) != 0);
-  if (__pyx_t_1) {
-
-    /* "move.pyx":98
- *         output += "U"
- *     elif move.col2 - move.col1 == 1:
- *         output += "R"             # <<<<<<<<<<<<<<
- *     elif move.col2 - move.col1 == -1:
- *         output += "L"
- */
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_R); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":97
- *     elif move.row2 - move.row1 == -1:
- *         output += "U"
- *     elif move.col2 - move.col1 == 1:             # <<<<<<<<<<<<<<
- *         output += "R"
- *     elif move.col2 - move.col1 == -1:
- */
-    goto __pyx_L4;
-  }
-
-  /* "move.pyx":99
- *     elif move.col2 - move.col1 == 1:
- *         output += "R"
- *     elif move.col2 - move.col1 == -1:             # <<<<<<<<<<<<<<
- *         output += "L"
- *     return output
- */
-  __pyx_t_1 = (((__pyx_v_move.col2 - __pyx_v_move.col1) == -1L) != 0);
-  if (__pyx_t_1) {
-
-    /* "move.pyx":100
- *         output += "R"
- *     elif move.col2 - move.col1 == -1:
- *         output += "L"             # <<<<<<<<<<<<<<
- *     return output
- */
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_v_output, __pyx_n_s_L); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF_SET(__pyx_v_output, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "move.pyx":99
- *     elif move.col2 - move.col1 == 1:
- *         output += "R"
- *     elif move.col2 - move.col1 == -1:             # <<<<<<<<<<<<<<
- *         output += "L"
- *     return output
- */
-  }
-  __pyx_L4:;
-
-  /* "move.pyx":101
- *     elif move.col2 - move.col1 == -1:
- *         output += "L"
- *     return output             # <<<<<<<<<<<<<<
- */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_output);
-  __pyx_r = __pyx_v_output;
+  __pyx_t_1 = __pyx_f_4move_move_to_str(__pyx_v_move, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
   goto __pyx_L0;
-
-  /* "move.pyx":75
- *     return 36 + (row1 - 1) * 4 + col1
- * 
- * def move_to_str(Move move):             # <<<<<<<<<<<<<<
- *     output = ""
- *     # Place
- */
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("move.move_to_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_output);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -3631,6 +3649,7 @@ static PyMethodDef __pyx_methods[] = {
   {"get_move", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4move_5get_move, METH_VARARGS|METH_KEYWORDS, 0},
   {"encode_place", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4move_7encode_place, METH_VARARGS|METH_KEYWORDS, 0},
   {"encode_move", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4move_9encode_move, METH_VARARGS|METH_KEYWORDS, 0},
+  {"move_to_str", (PyCFunction)__pyx_pw_4move_11move_to_str, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -3700,12 +3719,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_col1, __pyx_k_col1, sizeof(__pyx_k_col1), 0, 0, 1, 1},
   {&__pyx_n_s_col2, __pyx_k_col2, sizeof(__pyx_k_col2), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
-  {&__pyx_n_s_move, __pyx_k_move, sizeof(__pyx_k_move), 0, 0, 1, 1},
-  {&__pyx_kp_s_move_pyx, __pyx_k_move_pyx, sizeof(__pyx_k_move_pyx), 0, 0, 1, 0},
-  {&__pyx_n_s_move_to_str, __pyx_k_move_to_str, sizeof(__pyx_k_move_to_str), 0, 0, 1, 1},
   {&__pyx_n_s_mtype, __pyx_k_mtype, sizeof(__pyx_k_mtype), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
-  {&__pyx_n_s_output, __pyx_k_output, sizeof(__pyx_k_output), 0, 0, 1, 1},
   {&__pyx_n_s_ptype, __pyx_k_ptype, sizeof(__pyx_k_ptype), 0, 0, 1, 1},
   {&__pyx_n_s_row, __pyx_k_row, sizeof(__pyx_k_row), 0, 0, 1, 1},
   {&__pyx_n_s_row1, __pyx_k_row1, sizeof(__pyx_k_row1), 0, 0, 1, 1},
@@ -3791,18 +3806,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_No_value_specified_for_struct_at_6); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(1, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
-
-  /* "move.pyx":75
- *     return 36 + (row1 - 1) * 4 + col1
- * 
- * def move_to_str(Move move):             # <<<<<<<<<<<<<<
- *     output = ""
- *     # Place
- */
-  __pyx_tuple__8 = PyTuple_Pack(3, __pyx_n_s_move, __pyx_n_s_move, __pyx_n_s_output); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 75, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_move_pyx, __pyx_n_s_move_to_str, 75, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -3843,10 +3846,22 @@ static int __Pyx_modinit_variable_export_code(void) {
 
 static int __Pyx_modinit_function_export_code(void) {
   __Pyx_RefNannyDeclarations
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__Pyx_modinit_function_export_code", 0);
   /*--- Function export code ---*/
+  if (__Pyx_ExportFunction("move_from_id", (void (*)(void))__pyx_f_4move_move_from_id, "struct __pyx_t_4move_Move (int, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ExportFunction("get_place", (void (*)(void))__pyx_f_4move_get_place, "struct __pyx_t_4move_Move (int, int, int, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ExportFunction("get_move", (void (*)(void))__pyx_f_4move_get_move, "struct __pyx_t_4move_Move (int, int, int, int, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ExportFunction("encode_place", (void (*)(void))__pyx_f_4move_encode_place, "int (int, int, int, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ExportFunction("encode_move", (void (*)(void))__pyx_f_4move_encode_move, "int (int, int, int, int, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (__Pyx_ExportFunction("move_to_str", (void (*)(void))__pyx_f_4move_move_to_str, "PyObject *(struct __pyx_t_4move_Move, int __pyx_skip_dispatch)") < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
+  __pyx_L1_error:;
+  __Pyx_RefNannyFinishContext();
+  return -1;
 }
 
 static int __Pyx_modinit_type_init_code(void) {
@@ -4071,7 +4086,7 @@ if (!__Pyx_RefNanny) {
   /*--- Global type/function init code ---*/
   (void)__Pyx_modinit_global_init_code();
   (void)__Pyx_modinit_variable_export_code();
-  (void)__Pyx_modinit_function_export_code();
+  if (unlikely(__Pyx_modinit_function_export_code() < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
   (void)__Pyx_modinit_type_init_code();
   (void)__Pyx_modinit_type_import_code();
   (void)__Pyx_modinit_variable_import_code();
@@ -4081,22 +4096,10 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "move.pyx":75
- *     return 36 + (row1 - 1) * 4 + col1
- * 
- * def move_to_str(Move move):             # <<<<<<<<<<<<<<
- *     output = ""
- *     # Place
- */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4move_11move_to_str, NULL, __pyx_n_s_move); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_move_to_str, __pyx_t_1) < 0) __PYX_ERR(0, 75, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
   /* "move.pyx":1
- * cdef struct Move:             # <<<<<<<<<<<<<<
- *     bint mtype
- *     int row1, col1, row2, col2, ptype
+ * cpdef Move move_from_id(int move_id):             # <<<<<<<<<<<<<<
+ *     cdef Move move
+ *     # Move
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -5831,6 +5834,43 @@ static int __Pyx_check_binary_version(void) {
         return PyErr_WarnEx(NULL, message, 1);
     }
     return 0;
+}
+
+/* FunctionExport */
+static int __Pyx_ExportFunction(const char *name, void (*f)(void), const char *sig) {
+    PyObject *d = 0;
+    PyObject *cobj = 0;
+    union {
+        void (*fp)(void);
+        void *p;
+    } tmp;
+    d = PyObject_GetAttrString(__pyx_m, (char *)"__pyx_capi__");
+    if (!d) {
+        PyErr_Clear();
+        d = PyDict_New();
+        if (!d)
+            goto bad;
+        Py_INCREF(d);
+        if (PyModule_AddObject(__pyx_m, (char *)"__pyx_capi__", d) < 0)
+            goto bad;
+    }
+    tmp.fp = f;
+#if PY_VERSION_HEX >= 0x02070000
+    cobj = PyCapsule_New(tmp.p, sig, 0);
+#else
+    cobj = PyCObject_FromVoidPtrAndDesc(tmp.p, (void *)sig, 0);
+#endif
+    if (!cobj)
+        goto bad;
+    if (PyDict_SetItemString(d, name, cobj) < 0)
+        goto bad;
+    Py_DECREF(cobj);
+    Py_DECREF(d);
+    return 0;
+bad:
+    Py_XDECREF(cobj);
+    Py_XDECREF(d);
+    return -1;
 }
 
 /* InitStrings */

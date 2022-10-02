@@ -1,20 +1,24 @@
 from copy import deepcopy
-import numpy as np
-from move import Move
+from move cimport *
 
 
-class Board:
+cdef class Board:
     """
     A board of spaces
     There are three 2D arrays indicating whether a piece is present
     """
 
+    cdef int bottoms[16], tops[16]
+    cdef bint frozen[16]
+    cdef list lines
+
     def __init__(self):
         # Three 4x4 boards
-        self.bottoms = [3] * 16
-        self.tops = [-1] * 16
-        # Frozen spaces, defult to only give 3 spaces to prevent symmetry
-        self.frozen = [True] * 16
+        for i in range(16):
+            self.bottoms[i] = 3
+            self.tops[i] = -1
+            self.frozen[i] = True
+
         self.frozen[0 * 4 + 0] = False
         self.frozen[0 * 4 + 1] = False
         self.frozen[1 * 4 + 1] = False
@@ -54,9 +58,10 @@ class Board:
     def __deepcopy__(self, memo):
         """Custom deepcopy"""
         result = Board.__new__(Board)
-        result.bottoms = self.bottoms[:]
-        result.tops = self.tops[:]
-        result.frozen = self.frozen[:]
+        for i in range(16):
+            result.bottoms[i] = self.bottoms[i]
+            result.tops[i] = self.tops[i]
+            result.frozen[i] = self.frozen[i]
         result.lines = self.lines[:]
 
         return result
@@ -90,7 +95,7 @@ class Board:
             return self.tops[row * 4 + col] == 0
         # Capital
         # Check for column and absence of capital
-        return self.tops == 1
+        return self.tops[row * 4 + col] == 1
 
     def can_move(self, row1, col1, row2, col2):
         """
@@ -118,15 +123,15 @@ class Board:
         # Move
         return self.can_move(move.row1, move.col1, move.row2, move.col2)
 
-    def do_move(self, move):
+    cdef do_move(self, move):
         """
         Move->
         Takes a Move
         Does the move, if it is legal
         """
         # Reset which space is frozen
-        for row in range(4):
-            self.frozen[row * 4 : row * 4 + 4] = [False] * 4
+        for i in range(16):
+            self.frozen[i] = False
         # Place
         if move.mtype:
             # Change if originally empty

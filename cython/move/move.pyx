@@ -1,17 +1,9 @@
-cdef class Move:
+class Move:
     """
     Represents a move in Corintho
-    Implement in Cython
     """
 
-    cpdef bool mtype # Move or Place
-    cpdef int row1
-    cpdef int col1
-    cpdef int row2
-    cpdef int col2
-    cpdef int ptype
-
-    cpdef __init__(self, int move_id):
+    def __init__(self, move_id):
         """
         int -> Move
         Single ID constructor
@@ -50,7 +42,7 @@ cdef class Move:
             self.col1 = move_id % 4
 
     @staticmethod
-    cpdef place(int ptype, int row, int col):
+    def place(ptype, row, col):
         """
         bool,int,int -> Move
         Get a place move
@@ -63,7 +55,7 @@ cdef class Move:
         return out
 
     @staticmethod
-    cpdef move(int row1, int col1, int row2, int col2):
+    def move(row1, col1, row2, col2):
         """
         int,int,int,int -> Move
         Get a move move
@@ -76,11 +68,11 @@ cdef class Move:
         return out
 
     @staticmethod
-    cpdef encode_place(int ptype, int row, int col):
+    def encode_place(ptype, row, col):
         return int(48 + ptype * 16 + row * 4 + col)
 
     @staticmethod
-    cpdef encode_move(int row1, int col1, int row2, int col2):
+    def encode_move(row1, col1, row2, col2):
         # Right
         if col1 < col2:
             return row1 * 3 + col1

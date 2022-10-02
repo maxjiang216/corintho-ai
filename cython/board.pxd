@@ -1,128 +1,17 @@
 from copy import deepcopy
-from move cimport *
-
-
 cdef class Board:
-    """
-    A board of spaces
-    There are three 2D arrays indicating whether a piece is present
-    """
-
+    
     cdef int bottoms[16], tops[16]
     cdef bint frozen[16]
     cdef list lines
 
-    def __init__(self):
-        # Three 4x4 boards
-        for i in range(16):
-            self.bottoms[i] = 3
-            self.tops[i] = -1
-            self.frozen[i] = True
-
-        self.frozen[0 * 4 + 0] = False
-        self.frozen[0 * 4 + 1] = False
-        self.frozen[1 * 4 + 1] = False
-        self.lines = []
-
-    def __str__(self):
-        """
-        -> str
-        String representation of board
-        """
-        output = ""
-        for i in range(4):
-            for j in range(4):
-                # Base
-                if self.bottoms[i * 4 + j] == 0:
-                    output += "B"
-                else:
-                    output += "_"
-                # Column
-                if 0 <= self.bottoms[i * 4 + j] <= 1 and 1 <= self.tops[i * 4 + j] <= 2:
-                    output += "C"
-                else:
-                    output += "_"
-                # Capital
-                if self.tops[i * 4 + j] == 2:
-                    output += "A"
-                else:
-                    output += "_"
-                # Frozen space
-                if self.frozen[i * 4 + j]:
-                    output += "#"
-                else:
-                    output += " "
-            output += "\n"
-        return output
-
-    def __deepcopy__(self, memo):
-        """Custom deepcopy"""
-        cdef Board result = Board.__new__(Board)
-        for i in range(16):
-            result.bottoms[i] = self.bottoms[i]
-            result.tops[i] = self.tops[i]
-            result.frozen[i] = self.frozen[i]
-        result.lines = self.lines[:]
-
-        return result
-
-    cdef bint is_empty(self, int row, int col):
-        """
-        int,int(,int) -> bool
-        Takes a row and column number
-        Returns whether the corresponding space is empty
-        If ptype is specified, only considers that slot
-        """
-        return self.tops[row * 4 + col] == -1
-
-    cdef bint can_place(self, int ptype, int row, int col):
-        """
-        int,int,int -> bool
-        Returns whether a piece of ptype
-        can be placed at (row, col)
-        """
-        if self.is_empty(row, col):
-            return True
-        # Check if space is frozen
-        if self.frozen[row * 4 + col]:
-            return False
-        # Base
-        if ptype == 0:
-            return False
-        # Column
-        if ptype == 1:
-            # Check for base
-            return self.tops[row * 4 + col] == 0
-        # Capital
-        # Check for column and absence of capital
-        return self.tops[row * 4 + col] == 1
-
-    cdef bint can_move(self, int row1, int col1, int row2, int col2):
-        """
-        int,int,int,int -> bool
-        Returns whether it is legal to move
-        the stack at (row1,col1) to (row2,col2)
-        """
-        # Empty spaces
-        if self.is_empty(row1, col1) or self.is_empty(row2, col2):
-            return False
-        # Frozen spaces
-        if self.frozen[row1 * 4 + col1] or self.frozen[row2 * 4 + col2]:
-            return False
-        return self.bottoms[row1 * 4 + col1] - self.tops[row2 * 4 + col2] == 1
-
-    cdef bint is_legal_move(self, Move move):
-        """
-        Move -> bool
-        Takes a Move
-        Returns whether the move is legal
-        """
-        # Place
-        if move.mtype:
-            return self.can_place(move.ptype, move.row1, move.col1)
-        # Move
-        return self.can_move(move.row1, move.col1, move.row2, move.col2)
-
+    def __init__(self)
+    def __str__(self)
+    def __deepcopy__(self, memo)
+    cdef bint is_empty(self, int row, int col)
+    cdef bint can_place(self, int ptype, int row, int col)
+    cdef bint can_move(self, int row1, int col1, int row2, int col2)
+    cdef bint is_legal_move(self, Move move)
     cdef do_move(self, Move move):
         """
         Move->

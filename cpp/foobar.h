@@ -1,12 +1,6 @@
 #ifndef FOOBAR_H
 #define FOOBAR_H
-
-class Foo {
-    int x;
-  public:
-    Foo(int);
-    int fun(int);
-};
+#include "foo.h"
 
 class Bar {
     Foo f;

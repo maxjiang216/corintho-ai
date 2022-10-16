@@ -4,15 +4,16 @@
 struct Move {
   
     bool mtype;
-    short row1, col1, row2, col2, ptype;
+    int ptype, row1, col1, row2, col2;
   
-    Move(short, short, short);
-    Move(short, short, short, short);
+    Move() = default;
+    Move(int, int, int);
+    Move(int, int, int, int);
 
 };
 
-Move get_move_from_id(short);
-short encode_place(short, short, short);
-short encode_move(short, short, short, short);
+Move get_move_from_id(int);
+int encode_place(int, int, int);
+int encode_move(int, int, int, int);
 
 #endif

@@ -3,14 +3,14 @@
 
 // 3 int constructor
 // Used for place moves
-Move::Move(short ptype, short row, short col): mtype{true}, ptype{ptype}, row1{row1}, col1{col} {}
+Move::Move(int ptype, int row, int col): mtype{true}, ptype{ptype}, row1{row}, col1{col} {}
 
 // 4 int constructor
 // Used for move moves
-Move::Move(short row1, short col1, short row2, short co2): mtype{false}, row1{row1}, col1{col1}, row2{row2}, col2{col2} {}
+Move::Move(int row1, int col1, int row2, int col2): mtype{false}, row1{row1}, col1{col1}, row2{row2}, col2{col2} {}
 
 // Convert move_id to Move object
-Move get_move_from_id(short move_id) {
+Move get_move_from_id(int move_id) {
 
     // Place
     // I believe that place is more common
@@ -38,14 +38,14 @@ Move get_move_from_id(short move_id) {
 }
 
 // Convert place move to int
-short encode_place(short ptype, short row, short col) {
+int encode_place(int ptype, int row, int col) {
 
     return 48 + ptype * 16 + row * 4 + col;
 
 }
 
 // Convert move move to int
-short encode_move(short row1, short col1, short row2, short col2) {
+int encode_move(int row1, int col1, int row2, int col2) {
 
     // Right
     if (col1 < col2) return row1 * 3 + col1;

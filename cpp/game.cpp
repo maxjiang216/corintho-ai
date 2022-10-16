@@ -1,4 +1,5 @@
 #include "game.h"
+#include "move.h"
 
 Game::Game(): board{bitset<48>{}}, frozen{bitset<48>{}}, is_done{false}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 

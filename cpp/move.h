@@ -13,7 +13,6 @@ struct Move {
 
 };
 
-Move get_move_from_id(int);
 int encode_place(int, int, int);
 int encode_move(int, int, int, int);
 

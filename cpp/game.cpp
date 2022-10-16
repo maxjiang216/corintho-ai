@@ -3,7 +3,7 @@
 
 Game::Game(): board{bitset<48>{}}, frozen{bitset<48>{}}, is_done{false}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
-bool Game::is_empty(int row, int col) {
+bool Game::is_empty(int_least8_t row, int_least8_t col) {
     return !(
         board.test(row * 12 + col * 3 + 0) ||
 	board.test(row * 12 + col * 3 + 1) ||
@@ -11,12 +11,14 @@ bool Game::is_empty(int row, int col) {
     ); // Is there a faster way to test this given the consecutive addresses?
 }
 
-bool Game::can_place(int ptype, int row, int col) {
+bool Game::can_place(int_least8_t ptype, int_least8_t row, int_least8_t col) {
 
     // Check if space is empty
     // This is more common than frozen spaces
     // An empty space cannot be frozen
     if (is_empty(row, col)) return true;
+    // Check if player has the piece left
+    if (pieces[to_play * 3 + ptype]  == 0) return false;
     // Check if space is frozen
     if (frozen.test(row * 4 + col)) return false;
     // Bases can only be placed on empty spaces
@@ -39,7 +41,7 @@ bool Game::can_place(int ptype, int row, int col) {
 
 // Returns an int representing the bottom piece of a stack, 3 if empty
 // Used to determine the legality of move moves
-int get_bottom(int row, int col) {
+int_least8_t get_bottom(int_least8_t row, int_least8_t col) {
     if (board.test(row * 12 + col * 3 + 0)) return 0;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 2)) return 2;
@@ -49,7 +51,7 @@ int get_bottom(int row, int col) {
 
 // Returns an int representing the top of a stack, -1 if empty
 // Used to determine the legality of move moves
-int get_top(int row, int col) {
+int_least8_t get_top(int_least8_t row, int_least8_t col) {
     if (board.test(row * 12 + col * 3 + 2)) return 2;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 0)) return 0;
@@ -58,7 +60,7 @@ int get_top(int row, int col) {
 }
 
 // Returns whether it is legal to move a stack between spaces
-bool can_move(int row1, int col1, int row2, int col2) {
+bool can_move(int_least8_t row1, int_least8_t col1, int_least8_t row2, int_least8_t col2) {
     // Empty spaces, move moves not possible
     if (is_empty(row1, ro1) || is_empty(row2, col2)) return false;
     // Frozen spaces
@@ -68,7 +70,7 @@ bool can_move(int row1, int col1, int row2, int col2) {
 }
 
 // Returns whether a move is legal
-bool is_legal(int move_id) {
+bool is_legal(int_least8_t move_id) {
     Move move{move_id};
     // Place
     if (move.mtype) return can_place(move.ptype, move.row1, move.col1);

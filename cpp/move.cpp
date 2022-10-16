@@ -1,16 +1,8 @@
 #include <stdlib.h>
 #include "move.h"
 
-// 3 int constructor
-// Used for place moves
-Move::Move(int ptype, int row, int col): mtype{true}, ptype{ptype}, row1{row}, col1{col} {}
-
-// 4 int constructor
-// Used for move moves
-Move::Move(int row1, int col1, int row2, int col2): mtype{false}, row1{row1}, col1{col1}, row2{row2}, col2{col2} {}
-
 // Convert move_id to Move object
-Move::Move(int move_id) {
+Move::Move(int_least8_t move_id) {
 
     // Place
     // I believe that place is more common
@@ -57,14 +49,14 @@ Move::Move(int move_id) {
 }
 
 // Convert place move to int
-int encode_place(int ptype, int row, int col) {
+int_least8_t encode_place(int_least8_t ptype, int_least8_t row, int_least8_t col) {
 
     return 48 + ptype * 16 + row * 4 + col;
 
 }
 
 // Convert move move to int
-int encode_move(int row1, int col1, int row2, int col2) {
+int_least8_t encode_move(int_least8_t row1, int_least8_t col1, int_least8_t row2, int_least8_t col2) {
 
     // Right
     if (col1 < col2) return row1 * 3 + col1;

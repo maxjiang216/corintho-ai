@@ -4,16 +4,13 @@
 struct Move {
 
     bool mtype;
-    int ptype, row1, col1, row2, col2;
+    int_least8_t ptype, row1, col1, row2, col2;
 
-    Move() = default;
-    Move(int);
-    Move(int, int, int);
-    Move(int, int, int, int);
+    Move(int_least8_t);
 
 };
 
-int encode_place(int, int, int);
-int encode_move(int, int, int, int);
+int_least8_t encode_place(int_least8_t, int_least8_t, int_least8_t);
+int_least8_t encode_move(int_least8_t, int_least8_t, int_least8_t);
 
 #endif

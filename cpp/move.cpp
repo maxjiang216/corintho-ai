@@ -1,9 +1,13 @@
 #include <stdlib.h>
 #include "move.h"
 
-// Nullary constructor
-// Ideally not used
-Move::Move() {}
+// 3 int constructor
+// Used for place moves
+Move::Move(short ptype, short row, short col): mtype{true}, ptype{ptype}, row1{row1}, col1{col} {}
+
+// 4 int constructor
+// Used for move moves
+Move::Move(short row1, short col1, short row2, short co2): mtype{false}, row1{row1}, col1{col1}, row2{row2}, col2{col2} {}
 
 // Convert move_id to Move object
 Move get_move_from_id(short move_id) {
@@ -32,14 +36,6 @@ Move get_move_from_id(short move_id) {
     return Move{(move_id - 32) / 4, move_id % 4, (move_id - 36) / 4, move_id % 4};
 
 }
-
-// 3 int constructor
-// Used for place moves
-Move::Move(short ptype, short row, short col): mtype{true}, ptype{ptype}, row1{row1}, col1{col} {}
-
-// 4 int constructor
-// Used for move moves
-Move::Move(short row1, short col1, short row2, short co2): mtype{false}, row1{row1}, col1{col1}, row2{row2}, col2{col2} {}
 
 // Convert place move to int
 short encode_place(short ptype, short row, short col) {

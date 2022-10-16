@@ -11,15 +11,17 @@ class Game {
     bitset<48> board;
     bitset<16> frozen;
     bool is_done;
-    int_least8_t to_play, pieces[6], outcome;
+    uint_least8_t to_play, pieces[6];
+    int_least8_t outcome;
   
   public:
 
     Game();
-    bool is_empty(int_least8_t, int_least8_t);
-    bool can_place(int_least8_t, int_least8_t);
-    bool can_move(int_least8_t, int_least8_t);
-    bool is_legal(int_least8_t);
+    bool is_empty(uint_fast8_t, uint_fast8_t);
+    bool can_place(uint_fast8_t, uint_fast8_t);
+    bool can_move(uint_fast8_t, uint_fast8_t);
+    bool is_legal(uint_fast8_t);
+    bitset<96> get_legal_moves();
 
 };
 #endif

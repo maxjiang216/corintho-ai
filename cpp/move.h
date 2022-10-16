@@ -4,13 +4,13 @@
 struct Move {
 
     bool mtype;
-    int_least8_t ptype, row1, col1, row2, col2;
+    uint_fast8_t ptype, row1, col1, row2, col2;
 
-    Move(int_least8_t);
+    Move(uint_fast8_t);
 
 };
 
-int_least8_t encode_place(int_least8_t, int_least8_t, int_least8_t);
-int_least8_t encode_move(int_least8_t, int_least8_t, int_least8_t);
+uint_fast8_t encode_place(uint_fast8_t, uint_fast8_t, uint_fast8_t);
+uint_fast8_t encode_move(uint_fast8_t, uint_fast8_t, uint_fast8_t);
 
 #endif

@@ -2,7 +2,7 @@
 #include "move.h"
 
 // Convert move_id to Move object
-Move::Move(int_least8_t move_id) {
+Move::Move(int_fast8_t move_id) {
 
     // Place
     // I believe that place is more common
@@ -49,14 +49,14 @@ Move::Move(int_least8_t move_id) {
 }
 
 // Convert place move to int
-int_least8_t encode_place(int_least8_t ptype, int_least8_t row, int_least8_t col) {
+int_fast8_t encode_place(int_fast8_t ptype, int_fast8_t row, int_fast8_t col) {
 
     return 48 + ptype * 16 + row * 4 + col;
 
 }
 
 // Convert move move to int
-int_least8_t encode_move(int_least8_t row1, int_least8_t col1, int_least8_t row2, int_least8_t col2) {
+int_fast8_t encode_move(int_fast8_t row1, int_fast8_t col1, int_fast8_t row2, int_fast8_t col2) {
 
     // Right
     if (col1 < col2) return row1 * 3 + col1;

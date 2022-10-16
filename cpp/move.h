@@ -1,16 +1,14 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-class Move {
-
-  public:
-
-    Move();
+struct Move {
+  
+    bool mtype;
+    short row1, col1, row2, col2, ptype;
+  
     Move(short, short, short);
     Move(short, short, short, short);
 
-    bool mtype;
-    short row1, col1, row2, col2, ptype;
 };
 
 Move get_move_from_id(short);

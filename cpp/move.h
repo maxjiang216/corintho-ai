@@ -3,8 +3,8 @@
 
 struct Move {
 
-    bool mtype;
-    uint_fast8_t ptype, row1, col1, row2, col2;
+    bool mtype:1;
+    uint_fast8_t ptype:2, row1:2, col1:2, row2:2, col2:2;
 
     Move(uint_fast8_t);
 

@@ -9,7 +9,7 @@ struct Line {
     int_least8_t direction, alignment, coordinate, ptype;
 };
 
-Game::Game(): board{bitset<48>{}}, frozen{bitset<48>{}}, is_done{false}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
+Game::Game(): board{bitset<48>{}}, frozen{bitset<48>{}}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
 bool Game::is_empty(int_fast8_t row, int_fast8_t col) {
     return !(

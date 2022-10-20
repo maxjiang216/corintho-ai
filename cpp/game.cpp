@@ -16,7 +16,8 @@ enum class Game::Diagonals {
     s0, s1, s2, s3
 };
 
-static bitset<96> line_breakers[102] = {    bitset<96>(string("001000000000111000000000000000000000111000000000000100000000000011100000000000000000000000000000")),
+static bitset<96> line_breakers[102] = {
+    bitset<96>(string("001000000000111000000000000000000000111000000000000100000000000011100000000000000000000000000000")),
     bitset<96>(string("001000000000111000000000000000000000111000000000000000000000000000010000000000001110000000000000")),
     bitset<96>(string("001000000000111000000000000000000000111000000000000000000000000000000000000000000001000000000000")),
     bitset<96>(string("000001000000111011100000000000000000111011100000000000010000000000001110000000000000000000000000")),
@@ -223,8 +224,12 @@ static bitset<96> Game::get_moves_break_line(Line line) {
     }
 }
 
+void apply_line(bitset<96> &legal_moves, int line) {
+    legal_moves &= line_breaks[line];
+}
+
 // Finds lines and moves that break all lines
-void get_moves_break_lines(bitset<96> &legal_moves) {
+void get_line_breakers(bitset<96> &legal_moves) {
 
     // Rows
     for (int i = 0; i < 4; ++i) {
@@ -235,14 +240,14 @@ void get_moves_break_lines(bitset<96> &legal_moves) {
                 int space_0 = get_top(i, 0), space_3 = get_top(i, 3);
 		if (space_0 == space_2) {
                     if (space_0 == space_3) {
-		        apply_line(legal_moves, Lines.rb, i, space_0);
+		        apply_line(legal_moves, Lines.rb * 12 + i * 3 + space_0);
 	            }
 		    else {
-		        apply_line(legal_moves, Lines.rl, i, space_0);
+		        apply_line(legal_moves, Lines.rl * 12 + i * 3 + space_0);
                     }
 		}
 		else if (space_2 == space_3) {
-                    apply_line(legal_moves, Lines.rr, i, space_3);
+                    apply_line(legal_moves, Lines.rr * 12 + i * 3 + space_3);
 		}
 	    }
 	}
@@ -257,14 +262,14 @@ void get_moves_break_lines(bitset<96> &legal_moves) {
 	        int space_0 = get_top(0, j), space_3 = get_top(3, j);
 	        if (space_0 == space_2) {
 	            if (space_0 == space_3) {
-		        apply_line(legal_moves, Lines.cb, j, space_0);
+		        apply_line(legal_moves, Lines.cb * 12 + j * 3 + space_0);
 		    }
 		    else {
-		        apply_line(legal_moves, Lines.cu, j, space_0);
+		        apply_line(legal_moves, Lines.cu * 12 + j * 3 + space_0);
 		    }
                 }
 	        else if (space_2 == space_3) {
-	            apply_line(legal_moves, Lines.cd, j, space_3);
+	            apply_line(legal_moves, Lines.cd * 12 + j * 3 + space_3);
 	        }
 	    }
 	}
@@ -278,14 +283,14 @@ void get_moves_break_lines(bitset<96> &legal_moves) {
             int space_0 = get_top(0, 0), space_3 = get_top(3, 3);
 	    if (space_0 == space_2) {
 	        if (space_0 == space_3) {
-	            apply_line(legal_moves, Lines.d0b, space_0);
+	            apply_line(legal_moves, 72 + Diagonals.d0b * 3 + space_0);
 		}
 		else {
-		    apply_line(legal_moves, Lines.d0u, space_0);
+		    apply_line(legal_moves, 72 + Diagonals.d0u * 3 + space_0);
 		}
 	    }
 	    else if (space_2 == space_3) {
-	        apply_line(legal_moves, Lines.d0d, space_3);
+	        apply_line(legal_moves, 72 + Diagonals.d0d * 3 + space_3);
 	    }
 	}
     }
@@ -298,14 +303,14 @@ void get_moves_break_lines(bitset<96> &legal_moves) {
 	    int space_0 = get_top(0, 3), space_3 = get_top(3, 0);
 	    if (space_0 == space_2) {
 	        if (space_0 == space_3) {
-		    apply_line(legal_moves, Diagonals.d1b, space_0);
+		    apply_line(legal_moves, 72 + Diagonals.d1b * 3 + space_0);
 		}
 		else {
-                    apply_line(legal_moves, Diagonals.d1u, space_0);
+                    apply_line(legal_moves, 72 + Diagonals.d1u * 3 + space_0);
 		}
 	    }
 	    else if (space_2 == space_3) {
-                apply_line(legal_moves, Diagonals.d1d, space_3);
+                apply_line(legal_moves, 72 + Diagonals.d1d * 3 + space_3);
 	    }
 	}
     }
@@ -313,30 +318,39 @@ void get_moves_break_lines(bitset<96> &legal_moves) {
     // Top left short diagonal
     space_1 = get_top(1, 1);
     if (space_1 != -1 && space_1 == get_top(0, 2) && space_1 == get_top(2, 0)) {
-        apply_line(legal_moves, Diagonals.s0, space_1);
+        apply_line(legal_moves, 72 + Diagonals.s0 * 3 + space_1);
     }
 
     // Top right short diagonal
     space_1 = get_top(1, 2);
     if (space_1 != -1 && space_1 == get_top(0, 1) && space_1 == get_top(2, 3)) {
-        apply_line(legal_moves, Diagonals.s1, space_1);
+        apply_line(legal_moves, 72 + Diagonals.s1 * 3 + space_1);
     }
 
     // Bottom right short diagonal
     space_1 = get_top(2, 2);
     if (space_1 != -1 && space_1 == get_top(1, 3) && space_1 == get_top(3, 1)) {
-        apply_line(legal_moves, Diagonals.s2, space_1);
+        apply_line(legal_moves, 72 + Diagonals.s2 * 3 + space_1);
     }
 
     // Bottom left short diagonal
     space_1 = get_top(2, 1);
     if (space_1 != -1 && space_1 == get_top(1, 0) && space_1 == get_top(3, 2)) {
-        apply_line(legal_moves, Diagonals.s3, space_1);
+        apply_line(legal_moves, 72 + Diagonals.s3 * 3 + space_1);
     }
 
 }
 
 // Find lines and then filters through remaining moves to find legal moves
-bitset<96> get_legal_moves() {
+void get_legal_moves(bitset<96> &legal_moves) {
+
+    // Filter out moves that don't break lines
+    get_line_breakers(legal_moves);
+
+    for (int i = 0; i < 96; ++i) {
+        if (legal_moves.test(i) && !is_legal(i)) {
+            legal_moves.flip(i);
+	}
+    }
 
 }

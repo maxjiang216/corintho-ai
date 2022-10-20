@@ -12,7 +12,7 @@ class Game {
 
     bitset<48> board;
     bitset<16> frozen;
-    uint_least32_t pieces:18, outcome:2, to_play:1;
+    int pieces[6], outcome, to_play;
   
   public:
 
@@ -21,7 +21,7 @@ class Game {
     bool can_place(uint_fast8_t, uint_fast8_t);
     bool can_move(uint_fast8_t, uint_fast8_t);
     bool is_legal(uint_fast8_t);
-    bitset<96> get_legal_moves();
+    void get_legal_moves(bitset<96> &legal_moves);
 
 };
 

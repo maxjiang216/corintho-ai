@@ -1,22 +1,33 @@
 #include "game.h"
 #include "move.h"
-#include <vector.h>
+#include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 // Used to represent vertical and horizontal lines in a position
-enum class Game::Lines {
-    rl, rr, rb,
-    cu, cd, cb
-};
 
-enum class Game::Diagonals {
-    d0u, d0d, d0b,
-    d1u, d1d, d1b,
-    s0, s1, s2, s3
-};
+// Is there a better way to do this?
+const int RL = 0;
+const int RR = 1;
+const int RB = 2;
+const int CU = 3;
+const int CD = 4;
+const int CB = 5;
 
-static bitset<96> line_breakers[102] = {
+const int D0U = 0;
+const int D0D = 1;
+const int D0B = 2;
+const int D1U = 3;
+const int D1D = 4;
+const int D1B = 5;
+const int S0 = 6;
+const int S1 = 7;
+const int S2 = 8;
+const int S3 = 9;
+
+bitset<96> line_breakers[102] = {
     bitset<96>(string("001000000000111000000000000000000000111000000000000100000000000011100000000000000000000000000000")),
     bitset<96>(string("001000000000111000000000000000000000111000000000000000000000000000010000000000001110000000000000")),
     bitset<96>(string("001000000000111000000000000000000000111000000000000000000000000000000000000000000001000000000000")),
@@ -121,17 +132,17 @@ static bitset<96> line_breakers[102] = {
     bitset<96>(string("000100110011100011000110000100110011100011000110000000000000000000000000000000000000000000000000"))
 };
 
-Game::Game(): board{bitset<48>{}}, frozen{bitset<48>{}}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
+Game::Game(): board{bitset<48>()}, frozen{bitset<16>()}, to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
-bool Game::is_empty(int_fast8_t row, int_fast8_t col) {
+bool Game::is_empty(int row, int col) {
     return !(
         board.test(row * 12 + col * 3 + 0) ||
 	board.test(row * 12 + col * 3 + 1) ||
-	board.test(row * 12 + col * 3  2)
+	board.test(row * 12 + col * 3 + 2)
     ); // Is there a faster way to test this given the consecutive addresses?
 }
 
-bool Game::can_place(uint_fast8_t ptype, uint_fast8_t row, uint_fast8_t col) {
+bool Game::can_place(int ptype, int row, int col) {
 
     // Check if space is empty
     // This is more common than frozen spaces
@@ -161,7 +172,7 @@ bool Game::can_place(uint_fast8_t ptype, uint_fast8_t row, uint_fast8_t col) {
 
 // Returns an int representing the bottom piece of a stack, 3 if empty
 // Used to determine the legality of move moves
-uint_fast8_t Game::get_bottom(uint_fast8_t row, uint_fast8_t col) {
+int Game::get_bottom(int row, int col) {
     if (board.test(row * 12 + col * 3 + 0)) return 0;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 2)) return 2;
@@ -171,7 +182,7 @@ uint_fast8_t Game::get_bottom(uint_fast8_t row, uint_fast8_t col) {
 
 // Returns an int representing the top of a stack, -1 if empty
 // Used to determine the legality of move moves
-uint_fast8_t Game::get_top(uint_fast8_t row, uint_fast8_t col) {
+int Game::get_top(int row, int col) {
     if (board.test(row * 12 + col * 3 + 2)) return 2;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 0)) return 0;
@@ -180,17 +191,17 @@ uint_fast8_t Game::get_top(uint_fast8_t row, uint_fast8_t col) {
 }
 
 // Returns whether it is legal to move a stack between spaces
-bool Game::can_move(uint_fast8_t row1, uint_fast8_t col1, uint_fast8_t row2, uint_fast8_t col2) {
+bool Game::can_move(int row1, int col1, int row2, int col2) {
     // Empty spaces, move moves not possible
     if (is_empty(row1, col1) || is_empty(row2, col2)) return false;
     // Frozen spaces
-    if (frozen.test(row1 * 4 + col1) || frozen(row2 * 4 + col2)) return false;
+    if (frozen.test(row1 * 4 + col1) || frozen.test(row2 * 4 + col2)) return false;
     // The bottom of the first stack must go on the top of the second
     return get_bottom(row1, col1) - get_top(row2, col2) == 1;
 }
 
 // Returns whether a move is legal
-bool Game::is_legal(uint_fast8_t move_id) {
+bool Game::is_legal(int move_id) {
     Move move{move_id};
     // Place
     if (move.mtype) return can_place(move.ptype, move.row1, move.col1);
@@ -198,38 +209,12 @@ bool Game::is_legal(uint_fast8_t move_id) {
     return can_move(move.row1, move.col1, move.row2, move.col2);    
 }
 
-// Get all moves that break the given line
-static bitset<96> Game::get_moves_break_line(Line line) {
-
-    bitset<96> moves{};
-
-    if (line.direction == 0) { // Row
-        vector<int_least8_t> sources;
-	switch (line.coordinate) {
-            case 0:
-	        sources = vector<int_least8_t>{1};
-		break;
-	    case 1:
-		sources = vector<int_least8_t>{0, 2};
-		break;
-	    case 2:
-		sources = vector<int_least8_t>{1, 3};
-	    default: // 2
-		sources = 
-	}
-	if (line.coordinate == 0) {
-            sources = vector<int_least8_t>{1};
-	}
-	else if (line.coordinate
-    }
-}
-
 void apply_line(bitset<96> &legal_moves, int line) {
-    legal_moves &= line_breaks[line];
+    legal_moves &= line_breakers[line];
 }
 
 // Finds lines and moves that break all lines
-void get_line_breakers(bitset<96> &legal_moves) {
+void Game::get_line_breakers(bitset<96> &legal_moves) {
 
     // Rows
     for (int i = 0; i < 4; ++i) {
@@ -240,14 +225,14 @@ void get_line_breakers(bitset<96> &legal_moves) {
                 int space_0 = get_top(i, 0), space_3 = get_top(i, 3);
 		if (space_0 == space_2) {
                     if (space_0 == space_3) {
-		        apply_line(legal_moves, Lines.rb * 12 + i * 3 + space_0);
+		        apply_line(legal_moves, RB * 12 + i * 3 + space_0);
 	            }
 		    else {
-		        apply_line(legal_moves, Lines.rl * 12 + i * 3 + space_0);
+		        apply_line(legal_moves, RL * 12 + i * 3 + space_0);
                     }
 		}
 		else if (space_2 == space_3) {
-                    apply_line(legal_moves, Lines.rr * 12 + i * 3 + space_3);
+                    apply_line(legal_moves, RR * 12 + i * 3 + space_3);
 		}
 	    }
 	}
@@ -262,14 +247,14 @@ void get_line_breakers(bitset<96> &legal_moves) {
 	        int space_0 = get_top(0, j), space_3 = get_top(3, j);
 	        if (space_0 == space_2) {
 	            if (space_0 == space_3) {
-		        apply_line(legal_moves, Lines.cb * 12 + j * 3 + space_0);
+		        apply_line(legal_moves, CB * 12 + j * 3 + space_0);
 		    }
 		    else {
-		        apply_line(legal_moves, Lines.cu * 12 + j * 3 + space_0);
+		        apply_line(legal_moves, CU * 12 + j * 3 + space_0);
 		    }
                 }
 	        else if (space_2 == space_3) {
-	            apply_line(legal_moves, Lines.cd * 12 + j * 3 + space_3);
+	            apply_line(legal_moves, CD * 12 + j * 3 + space_3);
 	        }
 	    }
 	}
@@ -283,14 +268,14 @@ void get_line_breakers(bitset<96> &legal_moves) {
             int space_0 = get_top(0, 0), space_3 = get_top(3, 3);
 	    if (space_0 == space_2) {
 	        if (space_0 == space_3) {
-	            apply_line(legal_moves, 72 + Diagonals.d0b * 3 + space_0);
+	            apply_line(legal_moves, 72 + D0B * 3 + space_0);
 		}
 		else {
-		    apply_line(legal_moves, 72 + Diagonals.d0u * 3 + space_0);
+		    apply_line(legal_moves, 72 + D0U * 3 + space_0);
 		}
 	    }
 	    else if (space_2 == space_3) {
-	        apply_line(legal_moves, 72 + Diagonals.d0d * 3 + space_3);
+	        apply_line(legal_moves, 72 + D0D * 3 + space_3);
 	    }
 	}
     }
@@ -303,14 +288,14 @@ void get_line_breakers(bitset<96> &legal_moves) {
 	    int space_0 = get_top(0, 3), space_3 = get_top(3, 0);
 	    if (space_0 == space_2) {
 	        if (space_0 == space_3) {
-		    apply_line(legal_moves, 72 + Diagonals.d1b * 3 + space_0);
+		    apply_line(legal_moves, 72 + D1B * 3 + space_0);
 		}
 		else {
-                    apply_line(legal_moves, 72 + Diagonals.d1u * 3 + space_0);
+                    apply_line(legal_moves, 72 + D1U * 3 + space_0);
 		}
 	    }
 	    else if (space_2 == space_3) {
-                apply_line(legal_moves, 72 + Diagonals.d1d * 3 + space_3);
+                apply_line(legal_moves, 72 + D1D * 3 + space_3);
 	    }
 	}
     }
@@ -318,31 +303,31 @@ void get_line_breakers(bitset<96> &legal_moves) {
     // Top left short diagonal
     space_1 = get_top(1, 1);
     if (space_1 != -1 && space_1 == get_top(0, 2) && space_1 == get_top(2, 0)) {
-        apply_line(legal_moves, 72 + Diagonals.s0 * 3 + space_1);
+        apply_line(legal_moves, 72 + S0 * 3 + space_1);
     }
 
     // Top right short diagonal
     space_1 = get_top(1, 2);
     if (space_1 != -1 && space_1 == get_top(0, 1) && space_1 == get_top(2, 3)) {
-        apply_line(legal_moves, 72 + Diagonals.s1 * 3 + space_1);
+        apply_line(legal_moves, 72 + S1 * 3 + space_1);
     }
 
     // Bottom right short diagonal
     space_1 = get_top(2, 2);
     if (space_1 != -1 && space_1 == get_top(1, 3) && space_1 == get_top(3, 1)) {
-        apply_line(legal_moves, 72 + Diagonals.s2 * 3 + space_1);
+        apply_line(legal_moves, 72 + S2 * 3 + space_1);
     }
 
     // Bottom left short diagonal
     space_1 = get_top(2, 1);
     if (space_1 != -1 && space_1 == get_top(1, 0) && space_1 == get_top(3, 2)) {
-        apply_line(legal_moves, 72 + Diagonals.s3 * 3 + space_1);
+        apply_line(legal_moves, 72 + S3 * 3 + space_1);
     }
 
 }
 
 // Find lines and then filters through remaining moves to find legal moves
-void get_legal_moves(bitset<96> &legal_moves) {
+void Game::get_legal_moves(bitset<96> &legal_moves) {
 
     // Filter out moves that don't break lines
     get_line_breakers(legal_moves);

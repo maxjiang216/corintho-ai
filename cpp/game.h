@@ -13,14 +13,18 @@ class Game {
     bitset<48> board;
     bitset<16> frozen;
     int pieces[6], outcome, to_play;
-  
+
+    bool is_empty(int, int);
+    bool can_place(int, int, int);
+    int get_bottom(int, int);
+    int get_top(int, int);
+    bool can_move(int, int, int, int);
+    bool is_legal(int);
+    void get_line_breakers(bitset<96> &legal_moves);
+
   public:
 
     Game();
-    bool is_empty(uint_fast8_t, uint_fast8_t);
-    bool can_place(uint_fast8_t, uint_fast8_t);
-    bool can_move(uint_fast8_t, uint_fast8_t);
-    bool is_legal(uint_fast8_t);
     void get_legal_moves(bitset<96> &legal_moves);
 
 };

@@ -3,8 +3,10 @@
 
 // Bitset can save on memory and make resetting all bits faster
 #include <bitset>
+#include <memory>
 
 using std::bitset;
+using std::shared_ptr;
 
 class Game {
 
@@ -24,13 +26,12 @@ class Game {
 };
 
 class Node {
-    Game *game;
-    uint_least16_t searches:12, visits:12;
-    float evaluation;
-    uint_least8_t depth:6;
+    Game game;
+    int searches, depth;
     Node *parent;
     bitset<96> legal_moves;
-    //float noisy_probabilities[96];
-    //Node *children[96];
+    float noisy_probabilities[96];
+    float evaluations[96];
+    shared_ptr<Node> children[96];
 };
 #endif

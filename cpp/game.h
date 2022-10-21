@@ -31,13 +31,4 @@ class Game {
 
 };
 
-class Node {
-    Game game;
-    int searches, depth;
-    Node *parent;
-    bitset<96> legal_moves;
-    float noisy_probabilities[96];
-    float evaluations[96];
-    shared_ptr<Node> children[96];
-};
 #endif

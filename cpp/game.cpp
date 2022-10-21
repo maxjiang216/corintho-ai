@@ -339,3 +339,30 @@ void Game::get_legal_moves(bitset<96> &legal_moves) {
     }
 
 }
+
+// Apply move to game. Does not check for legality
+void Game::do_move(int move_id) {
+    
+    Move move{move_id};
+
+    // Reset which space is frozen
+    frozen.reset();
+
+    // Place
+    if (move.mtype) {
+        pieces[to_play * 3 + move.ptype] -= 1;
+	board.set(move.row1 * 12 + move.col1 * 3 + move.ptype);
+    }
+    // Move
+    else {
+        for (int i = 0; i < 3; ++i) {
+	    board.set(
+	        move.row2 * 12 + move.col2 * 3 + i,
+		board.test(move.row1 * 12 + move.col1 * 3 + i) ||
+		board.test(move.row2 * 12 + move.col2 & 3 + i)
+	    );
+            board.reset(move.row1 * 12 + move.col1 * 3 + i);
+	}
+    }
+    to_play = 1 - to_play;
+}

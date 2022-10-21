@@ -25,7 +25,9 @@ class Game {
   public:
 
     Game();
+    Game(const Game &game) = default;
     void get_legal_moves(bitset<96> &legal_moves);
+    void do_move(int);
 
 };
 

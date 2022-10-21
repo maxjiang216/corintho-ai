@@ -16,11 +16,12 @@ class TrainMC {
         Game game;
 	int visits, depth;
 	float evaluation, noisy_probabilities[96];
-	bitset<96> legal_moves;
+	unique_ptr<bitset<96>> legal_moves;
         vector<shared_ptr<Node>> children;
 	Node *parent;
       public:
 	Node();
+	Node(Game);
 	~Node() = default;
     };
 
@@ -28,14 +29,20 @@ class TrainMC {
     int iterations_done;
     Node *cur_node;
 
-    static int iterations;
-    static float c_puct, epsilon;
+    static int iterations = 1600;
+    static float c_puct = 1, epsilon = 0.25;
+
+    int choose_next(Node &node);
 
   public:
 
     TrainMC();
     ~TrainMC() = default;
 
+    void first_search();
+    void search();
+    void receive_opp_move(int);
 
 };
+
 #endif

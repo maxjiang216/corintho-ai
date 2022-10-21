@@ -14,8 +14,9 @@ class TrainMC {
     // Node in Monte Carlo Tree
     class Node {
         Game game;
+	// Visits is number of times this node has been searched
 	int visits, depth;
-	float evaluation, noisy_probabilities[96];
+	float evaluation, probabilities[96];
 	unique_ptr<bitset<96>> legal_moves;
         vector<shared_ptr<Node>> children;
 	Node *parent;
@@ -29,7 +30,7 @@ class TrainMC {
     int iterations_done;
     Node *cur_node;
 
-    static int iterations = 1600;
+    static int max_iterations = 1600;
     static float c_puct = 1, epsilon = 0.25;
 
     int choose_next(Node &node);

@@ -29,6 +29,7 @@ class TrainMC {
     shared_ptr<Node> root;
     int iterations_done;
     Node *cur_node;
+    bool testing;
 
     static int max_iterations = 1600;
     static float c_puct = 1, epsilon = 0.25;
@@ -37,7 +38,7 @@ class TrainMC {
 
   public:
 
-    TrainMC();
+    TrainMC(bool testing = false);
     ~TrainMC() = default;
 
     void first_search();

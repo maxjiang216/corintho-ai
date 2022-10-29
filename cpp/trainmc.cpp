@@ -4,6 +4,7 @@
 #include <memory>
 #include <bitset>
 #include <math.h>
+#include <random>
 
 using std::unique_ptr;
 using std::bitset;
@@ -22,7 +23,7 @@ TrainMC::Node::Node(): game{Game()}, visits{0}, depth{0}, evaluation{0}, legal_m
 TrainMC::Node::Node(Game game, int depth, Node *parent): game{game}, visits{1}, depth{depth}, parent{parent} {}
 
 // Used to initialize tree with root node
-TrainMC::TrainMC(): root{shared_ptr(new Node{})}, iterations_done{0}, cur_node{nullptr} {}
+TrainMC::TrainMC(bool testing): root{shared_ptr(new Node{})}, iterations_done{0}, cur_node{nullptr}, testing{testing} {}
 
 // First search on root node
 void first_search() {
@@ -130,6 +131,38 @@ bool search(float evaluation, float &noisy_probabilities[LEGAL_MOVE_NUM]) {
     // If false, number of searches is reached and move can be chosen
     return need_evaluation;
 
+}
+
+// Choose the best move once searches are done
+int choose_move() {
+
+    // Choose weighted random
+    if (root->depth < 4 && !testing) {
+        int total = 0;
+        for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
+            if (root->children[i]) total += root->children[i]->visits;
+        }
+        int id = rand() % total;
+        for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
+            if (root->children[i]) {
+                id -= root->children[i]->visits;
+                if (id <= 0) return i;
+            }
+        }
+        return LEGAL_MOVE_NUM - 1;
+    }
+    // Otherwise, choose randomly between the moves with the most visits/searches
+    // Random offset is the easiest way to randomly break ties
+    int id = rand() % LEGAL_MOVE_NUM, max_visits = 0, move_choice = -1;
+    for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
+        Node *cur_child = root->children[(id + i) % LEGAL_MOVE_NUM].get();
+        if (cur_child && cur_child->visits > max_visits) {
+            max_visists = cur_child->visits;
+            move_choice = (id + i) % LEGAL_MOVE_NUM;
+        }
+    }
+
+    return move_choice;
 }
 
 // Move the tree down a level

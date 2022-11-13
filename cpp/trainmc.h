@@ -11,6 +11,8 @@ using std::shared_ptr;
 
 class TrainMC {
 
+  public:
+
     // Node in Monte Carlo Tree
     class Node {
         Game game;
@@ -34,16 +36,17 @@ class TrainMC {
     static int max_iterations = 1600;
     static float c_puct = 1, epsilon = 0.25;
 
-    int choose_next(Node &node);
+    void first_search();
+    int choose_next();
+    void search(float, float &noisy_probabilities[])
 
   public:
 
     TrainMC(bool testing = false);
     ~TrainMC() = default;
-
-    void first_search();
-    void search();
+    
     void receive_opp_move(int);
+    int choose_move()
 
 };
 

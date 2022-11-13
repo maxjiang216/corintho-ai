@@ -12,7 +12,8 @@ class Game {
 
     bitset<48> board;
     bitset<16> frozen;
-    int pieces[6], outcome, to_play;
+    unsigned short pieces[6], to_play, orientation;
+    short outcome;
 
     bool is_empty(int, int);
     bool can_place(int, int, int);

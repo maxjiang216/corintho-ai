@@ -21,6 +21,8 @@ class TrainMC {
 	      float evaluation, probabilities[96];
 	      unique_ptr<bitset<96>> legal_moves;
         vector<shared_ptr<Node>> children;
+        // Tracks if we still need to keep this node, lazy deletions
+        bool is_stale;
 	      Node *parent;
       public:
 	      Node();

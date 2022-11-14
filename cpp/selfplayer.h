@@ -6,6 +6,7 @@
 class SelfPlayer {
 
     bool testing, logging;
+    TrainMC players[2];
 
   public:
     

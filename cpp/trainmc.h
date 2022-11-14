@@ -30,7 +30,7 @@ class TrainMC {
 	      ~Node() = default;
     };
 
-    shared_ptr<Node> root;
+    unsigned int root;
     int iterations_done;
     Node *cur_node;
     bool testing;

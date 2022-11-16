@@ -39,8 +39,6 @@ class Trainer {
     vector<SelfPlayer> games;
     // Number of games to play
     int num_games;
-    // Number of games to log
-    int num_logged;
     
     // Number of iterations per move (used to do offsets and to pass onto SelfPlayer objects)
     int num_iterations;
@@ -61,7 +59,8 @@ class Trainer {
     Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon);
     ~Trainer();
 
-    void do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES]);
+    // We need a testing version of do_iteration, where we pass 2 sets of results, one for each neural net (dirichlet noise can be shared)
+    void do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES], float dirichlet[][NUM_LEGAL_MOVES]);
 
     // Place root in hash table (different hash function)
     unsigned int place_root(unsigned int game_num);

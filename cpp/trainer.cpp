@@ -18,11 +18,33 @@ const unsigned int MULT_FACTOR = 10009;
 // Prime number?
 const unsigned int ADD_FACTOR = 1009;
 
-Trainer::Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
+Trainer::Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE], unsigned int max_iterations, float c_puct, float epsilon):
                  hash_table{vector<Node*>(nullptr, num_games * HASH_TABLE_SIZE)}, cur_block{new Node[BLOCK_SIZE]}, cur_ind{0},
-                 num_games{num_games}, num_logged{num_logged}, num_iterations{num_iterations}, games{vector<SelfPlayer>(SelfPlayer(), num_games)},
+                 num_games{num_games}, num_iterations{num_iterations},
                  states_to_evaluate{states_to_evaluate},
-                 generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {}
+                 generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
+    games.reserve(num_games);
+    if (num_logged <= num_games) {
+        // Is there a way to fill many objects after the fact?
+        // We could construct an object and memcopy a bunch, in theory
+        // Actually memcopy with a loop probably works and is close to optimal
+        // Memcopy might be bad for object, though, only try this to optimize
+        for (size_t i = 0; i < num_logged; ++i) {
+            games.push_back(SelfPlayer(true));
+        }
+        for(size_t i = num_logged; i < num_games; ++i) {
+            games.push_back(SelfPlayer());
+        }
+    }
+    else {
+        for (size_t i = 0; i < num_games; ++i) {
+            games.push_back(SelfPlayer(true));
+        }
+    }
+    TrainMC::max_iterations = max_iterations;
+    TrainMC::c_puct = c_puct;
+    TrainMC::epsilon = epsilon;
+}
 
 Trainer::~Trainer() {
     for (size_t i = 0; i < hash_table.size(); ++i) {
@@ -30,12 +52,13 @@ Trainer::~Trainer() {
     }
 }
 
-void Trainer::do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES]) {
+// Should we use pointers instead?
+void Trainer::do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES], float dirichlet_noise[][NUM_LEGAL_MOVES]) {
     // We should first check if rehash is needed
     for (int i = 0; i < num_games; ++i) {
         // Pass neural net results
         if (i / num_iterations < iterations_done) {
-            games[i].do_iteration(evaluation_results[i], probability_results[i]);
+            games[i].do_iteration(evaluation_results[i], probability_results[i], dirichlet_noise[i]);
         }
         // First iteration
         else if (i / num_iterations == iterations_done) {

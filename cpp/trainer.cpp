@@ -19,19 +19,18 @@ const unsigned int MULT_FACTOR = 10009;
 const unsigned int ADD_FACTOR = 1009;
 
 Trainer::Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
-                 cur_block{new Node[BLOCK_SIZE]}, cur_ind{0}, num_games{num_games}, num_logged{num_logged}, num_iterations{num_iterations}, states_to_evaluate{states_to_evaluate}, generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
-    int table_size = num_games * HASH_TABLE_SIZE;
-    hash_table.reserve(table_size);
-    for (int i = 0; i < table_size; ++i) {
-        hash_table.push_back(unique_ptr<Node>(nullptr));
-    }
-    games.reserve(num_games);
-    for (int i = 0; i < num_games; ++i) {
-        games.push_back(SelfPlayer());
+                 hash_table{vector<Node*>(nullptr, num_games * HASH_TABLE_SIZE)}, cur_block{new Node[BLOCK_SIZE]}, cur_ind{0},
+                 num_games{num_games}, num_logged{num_logged}, num_iterations{num_iterations}, games{vector<SelfPlayer>(SelfPlayer(), num_games)},
+                 states_to_evaluate{states_to_evaluate},
+                 generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {}
+
+Trainer::~Trainer() {
+    for (size_t i = 0; i < hash_table.size(); ++i) {
+        ~(*(hash_table[i]));
     }
 }
 
-void do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES]) {
+void Trainer::do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES]) {
     // We should first check if rehash is needed
     for (int i = 0; i < num_games; ++i) {
         // Pass neural net results
@@ -46,30 +45,44 @@ void do_iteration(float evaluation_results[], float probability_results[][NUM_LE
     ++iterations_done;
 }
 
-unsigned int find_first() {
+unsigned int Trainer::place_root() {
     // Use random hash value
     unsigned int pos = generator() % hash_table.size();
     // We need to continue probing
     // We keep the capacity of the table below a certain constant (0.6?)
     // Long clusters are probabilistically almost impossible
+    // We can try other linear probes, but all else equal adding 1 could be faster and is more simple
     while (hash_table[pos] && !hash_table[pos]->is_stale) {
         pos = (pos + 1) % hash_table.size();
     }
     // Unused space, allocate new node
     if (!hash_table[pos]) {
-        // Need a new block
-        if (cur_ind == BLOCK_SIZE) {
-            cur_block = new Node[BLOCK_SIZE];
-            cur_ind = 0;
-        }
-        hash_table[pos] = unique_ptr<Node>(cur_block + cur_ind);
-        ++cur_ind;
+        allocate(pos);
     }
     // Otherwise, we are at a stale node, and we can simply return that location
+    // The TrainMC will overwrite it
+    // it does not need to tell the difference between a new node and a stale node
     return pos;
 }
 
-unsigned int find_node(unsigned int parent_num, int move_choice) {
+unsigned int Trainer::place_node(unsigned int parent_num, unsigned int move_choice) {
+    unsigned int pos = (parent_num * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
+    // When placing a node, we can replace a stale node
+    while (hash_table[pos] && !hash_table[pos]->is_stale && hash_table[pos]->parent != parent_num) {
+        pos = (pos + 1) % hash_table.size();
+    }
+
+    // Unused space, allocate new node
+    if (!hash_table[pos]) {
+        allocate(pos);
+    }
+    // Otherwise, we are at a stale node, and we can simply return that location
+    // The TrainMC will overwrite it
+    // it does not need to tell the difference between a new node and a stale node
+    return pos;
+}
+
+unsigned int Trainer::find_node(unsigned int parent_num, int move_choice) {
     unsigned int pos = (parent_num * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
     // We assume matching parent is sufficient
     // We do not want to store more than we need to
@@ -79,40 +92,24 @@ unsigned int find_node(unsigned int parent_num, int move_choice) {
     // And we do not need to check that the game states are equal
     // Since children of a parent node are quite spaced out
     // The chance of a collision between children is effectively 0
-    while (hash_table[pos] && !hash_table[pos]->is_stale && !hash_table[pos]->parent == parent_num) {
+    // When finding a node, we stop at a match
+    // The caller must make sure the node exists
+    // Otherwise errors will probably happen
+    while (hash_table[pos]->parent != parent_num) {
         pos = (pos + 1) % hash_table.size();
     }
-    // Node found
-    if (hash_table[pos]->parent == parent_num) {
-        return pos;
-    }
-    // Not found, create new node
-    // Unused space, allocate new node
-    if (!hash_table[pos]) {
-        // Need a new block
-        if (cur_ind == BLOCK_SIZE) {
-            cur_block = new Node[BLOCK_SIZE];
-            cur_ind = 0;
-        }
-        hash_table[pos] = unique_ptr<Node>(cur_block + cur_ind);
-        ++cur_ind;
-    }
-    // Otherwise, we are at a stale node, and we can simply return that location
+    // Node should always be found
     return pos;
 }
 
-void rehash() {
+void Trainer::rehash() {
     // Double the size of the new table
     // Rehashing should be very seldom (no reason for more than once per run)
     // Time efficiency is not too important
     // Pointers in the table are small compared to Nodes
     // So space efficiency is also not too important
-    vector<unique_ptr<Node>> new_table;
     unsigned int new_size = 2 * hash_table.size();
-    new_table.reserve(new_size);
-    for (unsigned int i = 0; i < new_size; ++i) {
-        new_table.emplace_back(nullptr);
-    }
+    vector<Node*> new_table(nullptr, new_size);
 
     // Queue for processing nodes
     std::queue<int> nodes;
@@ -125,9 +122,13 @@ void rehash() {
             while (new_table[pos]) {
                 pos = (pos + 1) % new_size;
             }
+            // Use memcopy?
             new_table[pos] = hash_table[root];
             for (unsigned int k = 0; k < NUM_LEGAL_MOVES; ++k) {
-                nodes.push((root * MULT_FACTOR + k * ADD_FACTOR) % hash_table.size());
+                // Only search child nodes that have been visited
+                if (hash_table[root]->visited.get(k)) {
+                    nodes.push((root * MULT_FACTOR + k * ADD_FACTOR) % hash_table.size());
+                }
             }
         }
     }
@@ -138,7 +139,30 @@ void rehash() {
     // But that could be more hassle than is worth it
     while (!nodes.empty()) {
         unsigned int pos = queue.front();
-        while (!hash_table[pos])
+        while (hash_table[pos]->parent != parent_num) {
+            pos = (pos + 1) % hash_table.size();
+        }
+        while (new_table[pos]) {
+            pos = (pos + 1) % new_size;
+        }
+        new_table[pos] = hash_table[queue.front()];
+        for (unsigned int i = 0; i < NUM_LEGAL_MOVES; ++i) {
+            // Only search child nodes that have been visited
+            if (hash_table[queue.front()]->visited.get(i)) {
+                nodes.push((queue.front() * MULT_FACTOR + i * ADD_FACTOR) % hash_table.size());
+            }
+        }
+        queue.pop();
     }
     hash_table = std::move(new_table);
+}
+
+void Trainer::allocate(unsigned int pos) {
+    // Need a new block
+    if (cur_ind == BLOCK_SIZE) {
+        cur_block = new Node[BLOCK_SIZE];
+        cur_ind = 0;
+    }
+    hash_table[pos] = cur_block + cur_ind;
+    ++cur_ind;
 }

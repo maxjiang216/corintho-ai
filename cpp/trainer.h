@@ -29,7 +29,7 @@ class Trainer {
     // In this case, unique_ptr does not add too much space overhead
     // We could consider using normal pointers to get better memory locality
     // But we usually have random access so it might not be significant
-    vector<unique_ptr<TrainMC::Node>> hash_table;
+    vector<Node*> hash_table;
 
     // Blocks used to allocate in chunk, saves on allocation cost
     TrainMC::Node *cur_block;
@@ -53,20 +53,21 @@ class Trainer {
     // Random generator for all operation
     std::mt19937 generator;
 
-    Node* find(int hash_val);
+    void allocate(unsigned int pos);
     void rehash();
 
   public:
 
     Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon);
-    ~Trainer() = default;
+    ~Trainer();
 
     void do_iteration(float evaluation_results[], float probability_results[][NUM_LEGAL_MOVES]);
 
     // Place root in hash table (different hash function)
-    pair<Node*,int> find_root(int game_num);
+    unsigned int place_root(unsigned int game_num);
     // Place node in hash table
-    Node* find_node(int parent_num, int move_choice);
+    unsigned int find_node(unsigned int parent_num, unsigned int move_choice);
+    unsigned int place_node(unsigned int parent_num, unsigned int move_choice);
 
 };
 

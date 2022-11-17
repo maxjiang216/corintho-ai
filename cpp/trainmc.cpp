@@ -126,31 +126,32 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
             // Exploring a new node
             if (!(cur_node->visited.get(move_choice))) {
                 // Create the new node
-                uint32 next = trainer->place_next(cur_node->game, cur_node->depth, cur_node->parent, move_choice);
-                cur_node = cur_node->children[move_choice];
-                cur_node->game.do_move(move_choice);
-                cur_node->game.get_legal_moves(*(cur_node->legal_moves));
+                cur = trainer->place_next(cur_node->game, cur_node->depth, cur_node->parent, move_choice);
+                cur_node = trainer->get_node(cur);
                 break;
             }
             // Otherwise, move down normally
             else {
+                // Add to visit count up front, although it should come after we choose_next
                 ++(cur_node->visits);
-                cur_node = cur_node->children[move_choice];
+                cur = trainer->find_next(cur_node->parent, move_choice);
+                cur_node = trainer->get_node(cur);
             }
         }
         // Check for terminal state, otherwise evaluation is needed
-        if (cur_node->legal_moves->none()) {
+        if (cur_node->legal_moves.none()) {
             // Don't propagate if value is 0
             if (cur_node->game.outcome != 0) {
                 // Propagate evaluation
                 float cur_evaluation = cur_node->game.outcome;
-                while (cur_node != nullptr) {
+                while (cur != root) {
                     cur_node->evaluation += cur_evaluation;
-                    // Increment visit count when the evaluation from the visit is received
-                    ++(cur_node->visits);
                     cur_evaluation *= -1;
-                    cur_node = cur_node->parent;
+                    cur = cur_node->parent;
+                    cur_node = trainer->get_node(cur);
                 }
+                // We need to propagate to root
+                cur->evaluations += cur_evaluation
             }
         }
         // Otherwise, request an evaluation
@@ -170,28 +171,39 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
 int choose_move() {
 
     // Choose weighted random
-    if (root->depth < 4 && !testing) {
-        int total = 0;
-        for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
-            if (root->children[i]) total += root->children[i]->visits;
-        }
-        int id = rand() % total;
-        for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
-            if (root->children[i]) {
-                id -= root->children[i]->visits;
-                if (id <= 0) return i;
+    // cur_node should always be root after searches
+    if (cur_node->depth < 4 && !testing) {
+        uint16 total = 0, children_visits[i];
+        for (uint8 i = 0; i < LEGAL_MOVE_NUM; ++i) {
+            if (cur_node->visited.get(i)) {
+                children_visits[i] = trainer->get_node(trainer->find_next(cur, i))->visits;
+                total += children_visits[i];
             }
         }
-        return LEGAL_MOVE_NUM - 1;
+        // Should we store a pointer to the generator in TrainMC?
+        // Probably no difference
+        uint16 id = trainer->generator() % total;
+        total = 0;
+        for (uint8 i = 0; i < NUM_MOVES - 1; ++i) {
+            if (root->children[i]) {
+                total += children_visits[i];
+                if (total >= id) return i;
+            }
+        }
+        return NUM_MOVES - 1;
     }
     // Otherwise, choose randomly between the moves with the most visits/searches
     // Random offset is the easiest way to randomly break ties
-    int id = rand() % LEGAL_MOVE_NUM, max_visits = 0, move_choice = -1;
-    for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
-        Node *cur_child = root->children[(id + i) % LEGAL_MOVE_NUM].get();
-        if (cur_child && cur_child->visits > max_visits) {
-            max_visists = cur_child->visits;
-            move_choice = (id + i) % LEGAL_MOVE_NUM;
+    uint16 id = trainer->generator() % NUM_MOVES, max_visits = 0, move_choice;
+    // the move choices are all internal, so they can be fit into NUM_MOVES
+    // we might have to consider rotations when we add that
+    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+        if (cur_node->visited.get(i)) {
+            uint16 cur_visits = trainer->get_node(trainer->find_next(cur, i))->visits;
+            if (cur_visits > max_visits) {
+                max_visits = cur_visits;
+                move_choice = (id + i) % NUM_MOVES;
+            }
         }
     }
 
@@ -200,6 +212,7 @@ int choose_move() {
 
 // Move the tree down a level
 // Used when opponent moves
+// this should call the tree move down method from trainer
 void receive_opp_move(int move_choice) {
 
     // Unexplored state (this should really only happen for the first move)

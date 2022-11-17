@@ -20,10 +20,10 @@ class SelfPlayer {
   public:
     
     // Training mode
-    SelfPlayer();
-    SelfPlayer(bool logging);
+    SelfPlayer(Trainer *trainer);
+    SelfPlayer(bool, Trainer *trainer);
     // Testing mode
-    SelfPlayer(bool logging, bool seed);
+    SelfPlayer(bool logging, bool seed, Trainer *trainer);
     ~SelfPlayer() = default;
 
     void do_first_iteration();

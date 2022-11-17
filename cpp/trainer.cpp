@@ -76,6 +76,8 @@ float dirichlet_noise[][NUM_MOVES]) {
     ++iterations_done;
 }
 
+// This function could actually initialize the node
+// Since there is only one possible root node (?)
 uint32 Trainer::place_root() {
     // Use random hash value
     uint32 pos = generator() % hash_table.size();

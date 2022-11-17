@@ -10,12 +10,31 @@ using std::unique_ptr;
 using std::bitset;
 using std::memmove;
 
-// Used to initialize tree with root node
-TrainMC::TrainMC(bool testing): root{shared_ptr(new Node{})}, iterations_done{0}, cur_node{nullptr}, testing{testing} {}
+// Used to initialize tree
+// Training
+TrainMC::TrainMC(Trainer *trainer): trainer{trainer}, iterations_done{0},
+testing{false}, logging{false},  {
+    // We cannot put this in initialization list
+    // Evaluation order is not guaranteed
+    root = trainer->place_root();
+    cur_node = root;
+}
+TrainMC::TrainMC(Trainer *trainer, bool): trainer{trainer}, iterations_done{0}, testing{false}, logging{true} {
+    root = trainer->place_root();
+    // We need to write the stuff into the node
+    cur_node = root;
+}
+// Testing
+TrainMC::TrainMC(Trainer *trainer, bool, bool logging): trainer{trainer}, iterations_done{0}, testing{true}, logging{logging} {
+    root = trainer->place_root();
+    cur_node = root;
+}
 
 // First search on root node
-void first_search() {
+// Guaranteed to not yield a move output
+void do_first_iteration() {
 
+    ++((*trainer)[root]->visits)
     cur_node = root.get();
     ++(cur_node->visits);
     ++iterations_done;

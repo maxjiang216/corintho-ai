@@ -56,7 +56,7 @@ class Trainer {
     float dirichlet[][NUM_MOVES]);
 
     // Place root in hash table (different hash function)
-    uint32 place_root(uint32 game_num);
+    uint32 place_root();
     // Place node in hash table
     uint32 find_node(uint32 parent_num, uint32 move_choice);
     uint32 place_node(uint32 parent_num, uint32 move_choice);

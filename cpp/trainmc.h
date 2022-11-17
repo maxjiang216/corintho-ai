@@ -2,6 +2,7 @@
 #define TRAINMC_H
 
 #include "game.h"
+#include "trainer.h"
 #include "util.h"
 #include <bitset>
 #include <memory>
@@ -12,25 +13,30 @@ using std::shared_ptr;
 
 class TrainMC {
 
-  public:
-
-    unsigned int root, cur_node, iterations_done;
+    Trainer *trainer;
+    uint32 root, cur_node;
+    // Used to keep track of when to choose a move
+    uint16 iterations_done;
     bool testing, logging;
 
-    static int max_iterations = 1600;
-    static float c_puct = 1, epsilon = 0.25;
+    static uint16 max_iterations = 1600;
+    static float c_puct = 1.0, epsilon = 0.25;
 
-    void first_search();
     int choose_next();
     void search(float, float &noisy_probabilities[])
 
   public:
 
-    TrainMC(bool testing = false);
+    // Training
+    TrainMC(Trainer *trainer);
+    TrainMC(Trainer *trainer, bool);
+    // Testing
+    TrainMC(Trainer *trainer, bool logging, bool);
     ~TrainMC() = default;
     
     void receive_opp_move(int);
-    int choose_move()
+    int do_iterations()
+    void do_first_iteration();
 
 };
 

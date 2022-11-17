@@ -4,6 +4,7 @@
 #include "game.h"
 #include "util.h"
 #include <bitset>
+#include <array>
 
 using std::bitset;
 
@@ -18,7 +19,8 @@ using std::bitset;
     uint8 depth;
     // Index of parent node
     uint32 parent;
-    float evaluation, probabilities[NUM_MOVES];
+    float evaluation;
+    std::array<float, NUM_MOVES> probabilities;
     // legal_moves denotes which moves are legal
     // visited denotes which children have been visited, useful for many computations
     bitset<NUM_MOVES> legal_moves, visited;
@@ -36,6 +38,9 @@ using std::bitset;
     
     // Used to create the root node
     Node();
+    // We should have something to construct a node on allocated memory (placement new)
+    // We should also have something to overwrite an existing node with a new node (probably just = operator)
+    // Although, we only need to overwrite the game and perhaps reset some flags, so maybe a separate method would be better
     // Used when writing into a new node
     // Will copy a game, then apply the move
     Node(Game game, uint8 depth, uint32 parent, uint8 move_choice);

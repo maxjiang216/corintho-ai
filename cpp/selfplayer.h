@@ -3,6 +3,7 @@
 
 #include "trainer.h"
 #include "trainmc.h"
+#include "util.h"
 #include <vector>
 #include <array>
 
@@ -11,9 +12,9 @@ using std::array;
 
 class SelfPlayer {
 
+    bool testing, logging;
     // Seed is only used in testing
-    // Optimize for space. Speed of testing is not important
-    bool testing, logging, seed;
+    uint8 seed;
     TrainMC players[2];
 
   public:
@@ -26,7 +27,8 @@ class SelfPlayer {
     ~SelfPlayer() = default;
 
     void do_first_iteration();
-    void do_iteration(float evaluation_result, float probability_result[NUM_LEGAL_MOVES], float dirichlet_noise[NUM_LEGAL_MOVES]);
+    void do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+    float dirichlet_noise[NUM_MOVES]);
 
 };
 

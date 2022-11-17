@@ -88,9 +88,9 @@ uint32 Trainer::place_root() {
     while (hash_table[pos] && !hash_table[pos]->is_stale) {
         pos = (pos + 1) % hash_table.size();
     }
-    // Unused space, allocate new node
+    // Unused space, place new node
     if (!hash_table[pos]) {
-        allocate(pos);
+        place(pos);
     }
     // Otherwise, we are at a stale node, and we can simply return that location
     // The TrainMC will overwrite it
@@ -98,7 +98,12 @@ uint32 Trainer::place_root() {
     return pos;
 }
 
-uint32 Trainer::place_node(uint32 parent_num, uint32 move_choice) {
+// move_choice is uint8 so that we can copy a smaller number as a parameter
+// 1 conversion either way
+// This is very minor though
+// We can't use depth in the hash
+// Since find_next does not have access to this
+uint32 Trainer::place_next(const Game &game, uint8 depth, uint32 parent, uint8 move_choice) {
     uint32 pos = (parent_num * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
     // When placing a node, we can replace a stale node
     while (hash_table[pos] && !hash_table[pos]->is_stale && hash_table[pos]->parent != parent_num) {
@@ -107,16 +112,19 @@ uint32 Trainer::place_node(uint32 parent_num, uint32 move_choice) {
 
     // Unused space, allocate new node
     if (!hash_table[pos]) {
-        allocate(pos);
+        place(pos, game, depth, parent, move_choice);
     }
     // Otherwise, we are at a stale node, and we can simply return that location
-    // The TrainMC will overwrite it
-    // it does not need to tell the difference between a new node and a stale node
+    // Overwrite it
+    else {
+        hash_table[pos]->overwrite(game, depth, parent, move_choice);
+    }
+    // Return the position, same in both cases
     return pos;
 }
 
-uint32 Trainer::find_node(uint32 parent_num, uint8 move_choice) {
-    uint32 pos = (parent_num * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
+uint32 Trainer::find_next(uint32 parent, uint8 move_choice) {
+    uint32 pos = (parent * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
     // We assume matching parent is sufficient
     // We do not want to store more than we need to
     // Parent must be stored to propagate evaluations up
@@ -133,6 +141,10 @@ uint32 Trainer::find_node(uint32 parent_num, uint8 move_choice) {
     }
     // Node should always be found
     return pos;
+}
+
+Node* Trainer::get_node(uint32 id) {
+    return hash_table[id];
 }
 
 void Trainer::rehash() {
@@ -190,12 +202,26 @@ void Trainer::rehash() {
     hash_table = std::move(new_table);
 }
 
-void Trainer::allocate(uint32 pos) {
+void Trainer::place(uint32 pos) {
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        cur_block = new Node[BLOCK_SIZE];
+        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
         cur_ind = 0;
     }
-    hash_table[pos] = cur_block + cur_ind;
+    // Placement new for root node
+    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node();
+
+    ++cur_ind;
+}
+
+void Trainer::place(uint32 pos, const Game &game, uint8 depth, uint32 parent, uint8 move_choice) {
+    // Need a new block
+    if (cur_ind == BLOCK_SIZE) {
+        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_ind = 0;
+    }
+    // Placement new for internal node
+    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game, depth, parent, move_choice);
+
     ++cur_ind;
 }

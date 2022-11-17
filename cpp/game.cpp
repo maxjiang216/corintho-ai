@@ -334,6 +334,10 @@ void Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) {
 // Find lines and then filters through remaining moves to find legal moves
 void Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) {
 
+    // Set all bits to 1
+    // Since apply_line does &=, we need to do this
+    legal_move.set();
+
     // Filter out moves that don't break lines
     get_line_breakers(legal_moves);
 

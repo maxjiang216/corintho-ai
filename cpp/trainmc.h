@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "trainer.h"
+#include "node.h"
 #include "util.h"
 #include <bitset>
 #include <memory>
@@ -14,7 +15,10 @@ using std::shared_ptr;
 class TrainMC {
 
     Trainer *trainer;
-    uint32 root, cur_node;
+    // cur is the index of the current node
+    uint32 root, cur;
+    // We often access as pointer
+    Node *cur_node;
     // Used to keep track of when to choose a move
     uint16 iterations_done;
     bool testing, logging;
@@ -22,8 +26,10 @@ class TrainMC {
     static uint16 max_iterations = 1600;
     static float c_puct = 1.0, epsilon = 0.25;
 
-    int choose_next();
-    void search(float, float &noisy_probabilities[])
+    uint8 choose_next();
+    // I want to keep these as normal arrays instead of std::array for now
+    // For predictability
+    bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_nosie[NUM_MOVES]);
 
   public:
 
@@ -34,8 +40,8 @@ class TrainMC {
     TrainMC(Trainer *trainer, bool logging, bool);
     ~TrainMC() = default;
     
-    void receive_opp_move(int);
-    int do_iterations()
+    void receive_opp_move(uint8 move_choice);
+    uint8 do_iterations()
     void do_first_iteration();
 
 };

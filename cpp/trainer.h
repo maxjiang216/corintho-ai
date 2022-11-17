@@ -21,6 +21,10 @@ class Trainer {
 
     // We use a hash table to store the nodes
     vector<Node*> hash_table;
+    // Keep track of which nodes are stale
+    // We need a move_tree method that takes a tree root
+    // and the move choice to avoid marking that branch for deletion
+    vector<bool> is_stale;
 
     // Blocks used to allocate in chunk, saves on allocation cost
     Node *cur_block;
@@ -42,7 +46,10 @@ class Trainer {
     // Random generator for all operation
     std::mt19937 generator;
 
-    void allocate(uint32 pos);
+    // Place root
+    void place(uint32 pos);
+    // Place node
+    void place(uint32 pos, const Game &game, uint8 depth, uint32 parent, uint8 move_choice);
     void rehash();
 
   public:
@@ -58,8 +65,12 @@ class Trainer {
     // Place root in hash table (different hash function)
     uint32 place_root();
     // Place node in hash table
-    uint32 find_node(uint32 parent_num, uint32 move_choice);
-    uint32 place_node(uint32 parent_num, uint32 move_choice);
+    uint32 place_next(const Game &game, uint8 depth, uint32 parent, uint8 move_choice);
+    // Find the child node
+    uint32 find_next(uint32 parent, uint32 move_choice);
+
+
+    Node* get_node(uint32 id);
 
 };
 

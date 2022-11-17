@@ -1,6 +1,8 @@
 #include "trainmc.h"
 #include "game.h"
 #include "move.h"
+#include "util.h"
+#include "node.h"
 #include <memory>
 #include <bitset>
 #include <math.h>
@@ -12,54 +14,59 @@ using std::memmove;
 
 // Used to initialize tree
 // Training
-TrainMC::TrainMC(Trainer *trainer): trainer{trainer}, iterations_done{0},
+TrainMC::TrainMC(Trainer *trainer): trainer{trainer}, iterations_done{1},
 testing{false}, logging{false},  {
     // We cannot put this in initialization list
     // Evaluation order is not guaranteed
     root = trainer->place_root();
-    cur_node = root;
+    cur = root;
+    cur_node = trainer->get_node(root);
 }
-TrainMC::TrainMC(Trainer *trainer, bool): trainer{trainer}, iterations_done{0}, testing{false}, logging{true} {
+TrainMC::TrainMC(Trainer *trainer, bool): trainer{trainer}, iterations_done{1}, testing{false}, logging{true} {
     root = trainer->place_root();
-    // We need to write the stuff into the node
-    cur_node = root;
+    cur = root;
+    cur_node = trainer->get_node(root);
 }
 // Testing
-TrainMC::TrainMC(Trainer *trainer, bool, bool logging): trainer{trainer}, iterations_done{0}, testing{true}, logging{logging} {
+TrainMC::TrainMC(Trainer *trainer, bool, bool logging): trainer{trainer}, iterations_done{1}, testing{true},
+logging{logging} {
     root = trainer->place_root();
-    cur_node = root;
+    cur = root;
+    cur_node = trainer->get_node(root);
 }
 
 // First search on root node
 // Guaranteed to not yield a move output
+// We need to pass the memory buffers into here
 void do_first_iteration() {
 
-    ++((*trainer)[root]->visits)
-    cur_node = root.get();
-    ++(cur_node->visits);
-    ++iterations_done;
-    // Here we should write the game vector into the numpy array we use for the evaluation
+    // We need to write the game state into the memory buffer here
+    // visits and iterations_done are initialized to 1
+    // So no need to increment
 
 }
 
 // Choose the next child to visit
-int choose_next() {
+uint8 choose_next() {
 
-    float max_value = -2;
-    int move_choice;
+    float max_value = -2.0;
+    uint8 move_choice;
 
-    for (int i = 0; i < LEGAL_MOVE_NUM; ++i) {
-        float u = 0;
+    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+        float u;
         // Check if it is a legal move
         if (cur_node->legal_moves.get(i)) {
             // if not visited, set action value to 0
-            if (!cur_node->children[i]) {
+            if (!(cur_node->visited.get(i))) {
+                // double check the -1 here
                 u = cur_node->probabilities[i] * pow(cur_node->visits - 1, 0.5);
             }
             else {
-                u = -1 * cur_node->children[i]->evaluation / cur_node->children[i]->visits +
-                    cur_node->probabilities[i] * pow(cur_node->visits - 1, 0.5) / (cur_node->children[i]->visits + 1);
+                Node *next = trainer->get_next(cur, i);
+                u = -1 * cur_node-> / next->evaluation +
+                    cur_node->probabilities[i] * pow(cur_node->visits - 1, 0.5) / (next->visits + 1);
             }
+            // We assume there are no ties
             if u > max_value {
                 max_value = u;
                 move_choice = i;
@@ -71,19 +78,42 @@ int choose_next() {
 
 }
 
-bool search(float evaluation, float &noisy_probabilities[LEGAL_MOVE_NUM]) {
+bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_nosie[NUM_MOVES]) {
 
-    // Receive move probabilities
-    std::memmove(&noisy_probabilities, &probabilities, LEGAL_MOVE_NUM);
+    // We need to to figure out how to map the probabilities
+    
+    // Now, apply the legal move filter
+    // Legal moves should be found at node creation
+    // There is no point in doing it lazily (?)
+    // meanwhile, keep track of the total sum so we can normalize afterwards;
+    float sum = 0;
+    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+        if (!(cur_node->legal_moves.get(i))) {
+            cur_node->probabilities[i] = 0;
+        }
+        else {
+            sum += cur_node->probabilities[i];
+        }
+    }
+
+    // Normalize probabilities and apply dirichlet noise
+    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+        // Only application of dirichlet noise needs the if
+        // Could we separate these? The number of branches is the same though
+        if (cur_node->probabilities[i] > 0) {
+            // is it faster to do them together? Then there is no in-place operations
+            cur_node->probabilities[i] /= sum;
+            cur_node->probabilities[i] += dirichlet_noise[i];
+        }
+    }
 
     // Propagate evaluation
     float cur_evaluation = evaluation * pow(-1, to_play);
     while (cur_node != nullptr) {
         cur_node->evaluation += cur_evaluation;
-        // Increment visit count when the evaluation from the visit is received
-        ++(cur_node->visits);
         cur_evaluation *= -1;
-        cur_node = cur_node->parent;
+        cur = cur_node->parent;
+        cur_node = trainer->get_node(cur_node->parent);
     }
 
     bool need_evaluation = false;
@@ -91,24 +121,20 @@ bool search(float evaluation, float &noisy_probabilities[LEGAL_MOVE_NUM]) {
         ++iterations_done;
         while (true) {
 
-            // First time searching this node
-            if (cur_node->children.size() == 0) {
-                cur_node->children.reserve(96);
-            }
-
-            int move_choice = choose_next();
+            uint8 move_choice = choose_next();
 
             // Exploring a new node
-            if (cur_node->children[move_choice].get() == nullptr) {
+            if (!(cur_node->visited.get(move_choice))) {
                 // Create the new node
-                cur_node->children[move_choice] = shared_ptr<Node>(new Node{cur_node->game, cur_node->depth+1, cur_node});
+                uint32 next = trainer->place_next(cur_node->game, cur_node->depth, cur_node->parent, move_choice);
                 cur_node = cur_node->children[move_choice];
-                cur_node->game.do_move_and_rotation(move_choice);
+                cur_node->game.do_move(move_choice);
                 cur_node->game.get_legal_moves(*(cur_node->legal_moves));
                 break;
             }
             // Otherwise, move down normally
             else {
+                ++(cur_node->visits);
                 cur_node = cur_node->children[move_choice];
             }
         }

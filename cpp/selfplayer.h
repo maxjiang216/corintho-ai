@@ -16,6 +16,9 @@ class SelfPlayer {
     // Seed is only used in testing
     uint8 seed;
     TrainMC players[2];
+    // This could be bool, but int is probably faster
+    uint8 to_play;
+    Trainer *trainer;
 
   public:
     
@@ -26,9 +29,9 @@ class SelfPlayer {
     SelfPlayer(bool logging, bool seed, Trainer *trainer);
     ~SelfPlayer() = default;
 
-    void do_first_iteration();
-    void do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
-    float dirichlet_noise[NUM_MOVES]);
+    void do_first_iteration(float game_state[]);
+    void do_iterations(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+    float dirichlet_noise[NUM_MOVES], float game_state[]);
 
 };
 

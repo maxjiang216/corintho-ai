@@ -14,21 +14,13 @@ using std::memmove;
 
 // Used to initialize tree
 // Training
-TrainMC::TrainMC(Trainer *trainer): trainer{trainer}, iterations_done{1},
+TrainMC::TrainMC(Trainer *trainer): trainer{trainer}, cur_node{nullptr}, iterations_done{1},
 testing{false}, logging{false},  {
-    // We cannot put this in initialization list
-    // Evaluation order is not guaranteed
-    root = trainer->place_root();
-    cur = root;
-    cur_node = trainer->get_node(root);
 }
-TrainMC::TrainMC(Trainer *trainer, bool): trainer{trainer}, iterations_done{1}, testing{false}, logging{true} {
-    root = trainer->place_root();
-    cur = root;
-    cur_node = trainer->get_node(root);
+TrainMC::TrainMC(Trainer *trainer, bool): trainer{trainer}, cur_node{nullptr}, iterations_done{1}, testing{false}, logging{true} {
 }
 // Testing
-TrainMC::TrainMC(Trainer *trainer, bool, bool logging): trainer{trainer}, iterations_done{1}, testing{true},
+TrainMC::TrainMC(Trainer *trainer, bool, bool logging): trainer{trainer}, cur_node{nullptr}, iterations_done{1}, testing{true},
 logging{logging} {
     root = trainer->place_root();
     cur = root;
@@ -38,11 +30,29 @@ logging{logging} {
 // First search on root node
 // Guaranteed to not yield a move output
 // We need to pass the memory buffers into here
-void do_first_iteration() {
+void do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
-    // We need to write the game state into the memory buffer here
-    // visits and iterations_done are initialized to 1
-    // So no need to increment
+    // The second TrainMC does not need the starting position root node
+    // Also, doing this here lets us detect the first iteration on the second tree
+    // By testing nullptr for cur_node
+    root = trainer->place_root();
+    cur = root;
+    cur_node = trainer->get_node(root);
+
+    cur_node->write_game_state(game_state);
+
+}
+
+void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]) {
+
+    // The second TrainMC does not need the starting position root node
+    // Also, doing this here lets us detect the first iteration on the second tree
+    // By testing nullptr for cur_node
+    root = trainer->place_root(game, 1);
+    cur = root;
+    cur_node = trainer->get_node(root);
+
+    cur_node->write_game_state(game_state);
 
 }
 
@@ -78,8 +88,7 @@ uint8 choose_next() {
 
 }
 
-bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_nosie[NUM_MOVES]) {
-
+void receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_nosie[NUM_MOVES]) {
     // We need to to figure out how to map the probabilities
     
     // Now, apply the legal move filter
@@ -115,6 +124,13 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
         cur = cur_node->parent;
         cur_node = trainer->get_node(cur_node->parent);
     }
+}
+
+// Figure out what the Python code does for this for the first search of a move, where evaluation is not needed
+// We can overload, factor out the search, add "receive_evaluation" function
+bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
+
+    receive_evaluation(evaluation, probabilities, dirichlet_noise);
 
     bool need_evaluation = false;
     while (!need_evaluation && iterations_done < max_iterations) {
@@ -126,6 +142,7 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
             // Exploring a new node
             if (!(cur_node->visited.get(move_choice))) {
                 // Create the new node
+                // visits is initialized to 1
                 cur = trainer->place_next(cur_node->game, cur_node->depth, cur_node->parent, move_choice);
                 cur_node = trainer->get_node(cur);
                 break;
@@ -139,11 +156,13 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
             }
         }
         // Check for terminal state, otherwise evaluation is needed
-        if (cur_node->legal_moves.none()) {
+        if (cur_node->is_terminal()) {
             // Don't propagate if value is 0
-            if (cur_node->game.outcome != 0) {
+            if (cur_node->game.result != DRAW) {
                 // Propagate evaluation
-                float cur_evaluation = cur_node->game.outcome;
+                // In a decisive terminal state, the person to play is always the loser
+                // It is important we don't add to visits here, because we skip this for draws
+                float cur_evaluation = -1.0;
                 while (cur != root) {
                     cur_node->evaluation += cur_evaluation;
                     cur_evaluation *= -1;
@@ -156,7 +175,7 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
         }
         // Otherwise, request an evaluation
         else {
-            // Game state should be written into memoryview/pointer location here
+            cur_node->write_game_state(game_state);
             need_evaluation = true;
         }
     }
@@ -168,7 +187,7 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
 }
 
 // Choose the best move once searches are done
-int choose_move() {
+uint8 TrainMC::choose_move() {
 
     // Choose weighted random
     // cur_node should always be root after searches
@@ -180,8 +199,6 @@ int choose_move() {
                 total += children_visits[i];
             }
         }
-        // Should we store a pointer to the generator in TrainMC?
-        // Probably no difference
         uint16 id = trainer->generator() % total;
         total = 0;
         for (uint8 i = 0; i < NUM_MOVES - 1; ++i) {
@@ -207,22 +224,42 @@ int choose_move() {
         }
     }
 
+    trainer->move_down(root, move_choice);
+    root = trainer->find_next(root, move_choice);
+    iterations_done = 0;
+    // Where to reset cur_node?
+
     return move_choice;
 }
 
 // Move the tree down a level
 // Used when opponent moves
 // this should call the tree move down method from trainer
-void receive_opp_move(int move_choice) {
+bool receive_opp_move(uint8 move_choice) {
 
-    // Unexplored state (this should really only happen for the first move)
-    if (!root->children[move_choice]) {
-        // Create the new node
-        root = shared_ptr<Node>(new Node{root->game, root->depth+1, nullptr});
-        cur_node->game.do_move_and_rotation(move_choice);
-        cur_node->game.get_legal_moves(*(cur_node->legal_moves)); // Can we delay finding legal moves?
+    // If we have visited the node before; this is the simple case
+    if (trainer->get_node(root)->visited[move_choice]) {
+        trainer->move_down(root, move_choice);
+        root = trainer->find_next(root, move_choice);
+        iterations_done = 0;
+        // we don't need an evaluation
+        return false;
     }
+    // The node doesn't exist
+    // Practically (with sufficient searches) this probably won't happen but it is theoretically possible
+    // Maybe we could empirically track if it happens
     else {
-        root = root->children[move_choice];
+        // Delete the tree
+        // It is more efficient to delete before placing a new node
+        // We are lazily deleting so data is not yet lost
+        Node *root_node = trainer->get_node(root);
+        root = trainer->place_root(root_node->game, root_node->depth);
+        cur = root;
+        cur_node = trainer->get_node(root);
+        cur_node->write_game_state(game_state);
+        // this is the first iteration of the turn
+        iterations_done = 1;
+        // we need an evaluation
+        return true;
     }
 }

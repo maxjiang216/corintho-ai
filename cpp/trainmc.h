@@ -18,6 +18,7 @@ class TrainMC {
     // cur is the index of the current node
     uint32 root, cur;
     // We often access as pointer
+    // Should we store root_node? Check where we use it, if we use it multiple times before it updates
     Node *cur_node;
     // Used to keep track of when to choose a move
     uint16 iterations_done;
@@ -42,7 +43,8 @@ class TrainMC {
     
     void receive_opp_move(uint8 move_choice);
     uint8 do_iterations()
-    void do_first_iteration();
+    void do_first_iteration(float game_state[GAME_STATE_SIZE]);
+    void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]);
 
 };
 

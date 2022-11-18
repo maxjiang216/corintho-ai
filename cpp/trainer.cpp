@@ -225,3 +225,20 @@ void Trainer::place(uint32 pos, const Game &game, uint8 depth, uint32 parent, ui
 
     ++cur_ind;
 }
+
+void Trainer::move_down(uint32 root, uint8 move_choice) {
+    std::queue<uint32> nodes;
+    // Push children except for chosen one
+    Node *root_node = get_node(root);
+    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+        if (root_node->visited.get(i) && i != move_choice) nodes.push(find_next(root, i));
+    }
+    while (!nodes.empty()) {
+        uint32 cur = nodes.front();
+        Node *cur_node = get_node(cur);
+        is_stale[i] = true;
+        for (uint8 i = 0; i < NUM_MOVES; ++i) {
+            if (cur_node->visited.get(i)) nodes.push(find_next(cur, i));
+        }
+    }
+}

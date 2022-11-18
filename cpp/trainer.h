@@ -69,8 +69,9 @@ class Trainer {
     // Find the child node
     uint32 find_next(uint32 parent, uint32 move_choice);
 
-
     Node* get_node(uint32 id);
+
+    void move_down(uint32 root, uint8 move_choice);
 
 };
 

@@ -24,6 +24,7 @@ float dirichlet_noise[NUM_MOVES], float game_state[]) {
         uint8 move_choice = players[to_play].choose_move();
         // We can check if the game is over
         if (trainer->get_node(players[to_play].root)->is_terminal()) {
+            trainer->delete_tree(players[to_play].root);
             // Write training samples using game result, make all nodes stale
             return;
         }

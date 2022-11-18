@@ -227,12 +227,30 @@ void Trainer::place(uint32 pos, const Game &game, uint8 depth, uint32 parent, ui
 }
 
 void Trainer::move_down(uint32 root, uint8 move_choice) {
+    // stale the root
+    is_stale[root] = true;
     std::queue<uint32> nodes;
     // Push children except for chosen one
     Node *root_node = get_node(root);
     for (uint8 i = 0; i < NUM_MOVES; ++i) {
         if (root_node->visited.get(i) && i != move_choice) nodes.push(find_next(root, i));
     }
+    while (!nodes.empty()) {
+        uint32 cur = nodes.front();
+        Node *cur_node = get_node(cur);
+        is_stale[i] = true;
+        for (uint8 i = 0; i < NUM_MOVES; ++i) {
+            if (cur_node->visited.get(i)) nodes.push(find_next(cur, i));
+        }
+    }
+}
+
+// Deletes the whole tree
+// Used when a game is done
+// Or rarely if a tree moves down to a new node
+void Trainer::delete_tree(uint32 root) {
+    std::queue<uint32> nodes;
+    nodes.push(root);
     while (!nodes.empty()) {
         uint32 cur = nodes.front();
         Node *cur_node = get_node(cur);

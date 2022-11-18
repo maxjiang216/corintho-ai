@@ -249,10 +249,9 @@ bool receive_opp_move(uint8 move_choice) {
     // Practically (with sufficient searches) this probably won't happen but it is theoretically possible
     // Maybe we could empirically track if it happens
     else {
-        // Delete the tree
-        // It is more efficient to delete before placing a new node
-        // We are lazily deleting so data is not yet lost
+        // Find node first, then delete tree, then place new node
         Node *root_node = trainer->get_node(root);
+        trainer->delete_tree(root);
         root = trainer->place_root(root_node->game, root_node->depth);
         cur = root;
         cur_node = trainer->get_node(root);

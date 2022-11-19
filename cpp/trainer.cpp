@@ -98,6 +98,44 @@ uint Trainer::place_root() {
     return pos;
 }
 
+uint Trainer::place_root() {
+    // Use random hash value
+    uint pos = generator() % hash_table.size();
+    while (hash_table[pos] && !hash_table[pos]->is_stale) {
+        pos = (pos + 1) % hash_table.size();
+    }
+    // Unused space, place new node
+    if (!hash_table[pos]) {
+        place(pos);
+    }
+    else {
+        hash_table[pos]->overwrite();
+    }
+    // Otherwise, we are at a stale node, and we can simply return that location
+    // The TrainMC will overwrite it
+    // it does not need to tell the difference between a new node and a stale node
+    return pos;
+}
+
+uint Trainer::place_root(const Game &game, uint depth) {
+    // Use random hash value
+    uint pos = generator() % hash_table.size();
+    while (hash_table[pos] && !hash_table[pos]->is_stale) {
+        pos = (pos + 1) % hash_table.size();
+    }
+    // Unused space, place new node
+    if (!hash_table[pos]) {
+        place(pos, game, depth);
+    }
+    else {
+        hash_table[pos]->overwrite(game, depth);
+    }
+    // Otherwise, we are at a stale node, and we can simply return that location
+    // The TrainMC will overwrite it
+    // it does not need to tell the difference between a new node and a stale node
+    return pos;
+}
+
 // move_choice is uint so that we can copy a smaller number as a parameter
 // 1 conversion either way
 // This is very minor though
@@ -210,6 +248,30 @@ void Trainer::place(uint pos) {
     }
     // Placement new for root node
     hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node();
+
+    ++cur_ind;
+}
+
+void Trainer::place(uint pos, const Game &game) {
+    // Need a new block
+    if (cur_ind == BLOCK_SIZE) {
+        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_ind = 0;
+    }
+    // Placement new for root node
+    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game);
+
+    ++cur_ind;
+}
+
+void Trainer::place(uint pos, const Game &game, uint depth) {
+    // Need a new block
+    if (cur_ind == BLOCK_SIZE) {
+        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_ind = 0;
+    }
+    // Placement new for root node
+    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game, depth);
 
     ++cur_ind;
 }

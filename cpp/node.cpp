@@ -31,6 +31,22 @@ depth{depth+1}, parent{parent} {
     visited.reset();
 }
 
+// Overwrite with root node (starting position) (probably not used)
+void Node::overwrite() {
+    game = Game();
+    visits = 1;
+    depth = 0;
+    visited.reset();
+}
+
+// Overwrite with root node (not starting positino)
+void Node::overwrite(const Game &new_game, uint new_depth) {
+    game = new_game;
+    visits = 1;
+    depth = new_depth;
+    visited.reset();
+}
+
 void Node::overwrite(const Game &new_game, uint new_depth, uint new_parent, uint move_choice) {
     game = game;
     visits = 1;

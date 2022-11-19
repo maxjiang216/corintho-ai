@@ -29,7 +29,7 @@ class Trainer {
     // Blocks used to allocate in chunk, saves on allocation cost
     Node *cur_block;
     // Index of first available node in current block
-    int cur_ind;
+    uint cur_ind;
 
     vector<SelfPlayer> games;
     // Number of games to play
@@ -41,6 +41,7 @@ class Trainer {
     uint iterations_done;
 
     // Location to write game states to evaluate
+    // Can we use the same input to the neural net each time?
     float states_to_evaluate[][GAME_STATE_SIZE];
 
     // Random generator for all operation
@@ -48,6 +49,7 @@ class Trainer {
 
     // Place root
     void place(uint pos);
+    void place (uint pos, const Game &game, uint depth);
     // Place node
     void place(uint pos, const Game &game, uint depth, uint parent, uint move_choice);
     void rehash();
@@ -62,8 +64,9 @@ class Trainer {
     void do_iteration(float evaluation_results[], float probability_results[][NUM_TOTAL_MOVES],
     float dirichlet[][NUM_MOVES]);
 
-    // Place root in hash table (different hash function)
+    // Place root in hash table (random hash)
     uint place_root();
+    uint place_root(const Game &game, uint depth);
     // Place node in hash table
     uint place_next(const Game &game, uint depth, uint parent, uint move_choice);
     // Find the child node

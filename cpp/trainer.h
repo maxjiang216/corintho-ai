@@ -33,12 +33,12 @@ class Trainer {
 
     vector<SelfPlayer> games;
     // Number of games to play
-    uint16 num_games;
+    uint num_games;
     
     // Number of iterations per move (used to do offsets and to pass onto SelfPlayer objects)
-    uint16 num_iterations;
+    uint num_iterations;
     // Counter used to keep track of game offsets
-    uint16 iterations_done;
+    uint iterations_done;
 
     // Location to write game states to evaluate
     float states_to_evaluate[][GAME_STATE_SIZE];
@@ -47,9 +47,9 @@ class Trainer {
     std::mt19937 generator;
 
     // Place root
-    void place(uint32 pos);
+    void place(uint pos);
     // Place node
-    void place(uint32 pos, const Game &game, uint8 depth, uint32 parent, uint8 move_choice);
+    void place(uint pos, const Game &game, uint depth, uint parent, uint move_choice);
     void rehash();
 
   public:
@@ -63,15 +63,15 @@ class Trainer {
     float dirichlet[][NUM_MOVES]);
 
     // Place root in hash table (different hash function)
-    uint32 place_root();
+    uint place_root();
     // Place node in hash table
-    uint32 place_next(const Game &game, uint8 depth, uint32 parent, uint8 move_choice);
+    uint place_next(const Game &game, uint depth, uint parent, uint move_choice);
     // Find the child node
-    uint32 find_next(uint32 parent, uint32 move_choice);
+    uint find_next(uint parent, uint move_choice);
 
-    Node* get_node(uint32 id);
+    Node* get_node(uint id);
 
-    void move_down(uint32 root, uint8 move_choice);
+    void move_down(uint root, uint move_choice);
 
 };
 

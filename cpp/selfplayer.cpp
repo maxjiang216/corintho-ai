@@ -21,7 +21,7 @@ float dirichlet_noise[NUM_MOVES], float game_state[]) {
     bool need_evaluation = players[to_play].do_iterations(evaluation_result, probability_result, dirichlet_noise, game_state);
     // Done iterations
     while (!need_evaluation) {
-        uint8 move_choice = players[to_play].choose_move();
+        uint move_choice = players[to_play].choose_move();
         // We can check if the game is over
         if (trainer->get_node(players[to_play].root)->is_terminal()) {
             trainer->delete_tree(players[to_play].root);

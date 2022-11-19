@@ -18,8 +18,8 @@ typedef int_fast32_t fint;
 
 // Ints for memory critical parts
 // Generally use in large arrays
-typedef uint_least8_t uint8s;
-typedef uint_least16_t uint16s;
+typedef uint_least8_t uints;
+typedef uint_least16_t uints;
 
 // Define constants used by the pipeline
 // This is for constants used by more than one file

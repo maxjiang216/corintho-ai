@@ -14,10 +14,10 @@ class SelfPlayer {
 
     bool testing, logging;
     // Seed is only used in testing
-    uint8 seed;
+    uint seed;
     TrainMC players[2];
     // This could be bool, but int is probably faster
-    uint8 to_play;
+    uint to_play;
     Trainer *trainer;
 
   public:

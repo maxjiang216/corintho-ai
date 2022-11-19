@@ -57,12 +57,12 @@ void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]) {
 }
 
 // Choose the next child to visit
-uint8 choose_next() {
+uint choose_next() {
 
     float max_value = -2.0;
-    uint8 move_choice;
+    uint move_choice;
 
-    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+    for (uint i = 0; i < NUM_MOVES; ++i) {
         float u;
         // Check if it is a legal move
         if (cur_node->legal_moves.get(i)) {
@@ -96,7 +96,7 @@ void receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES], 
     // There is no point in doing it lazily (?)
     // meanwhile, keep track of the total sum so we can normalize afterwards;
     float sum = 0;
-    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+    for (uint i = 0; i < NUM_MOVES; ++i) {
         if (!(cur_node->legal_moves.get(i))) {
             cur_node->probabilities[i] = 0;
         }
@@ -106,7 +106,7 @@ void receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES], 
     }
 
     // Normalize probabilities and apply dirichlet noise
-    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+    for (uint i = 0; i < NUM_MOVES; ++i) {
         // Only application of dirichlet noise needs the if
         // Could we separate these? The number of branches is the same though
         if (cur_node->probabilities[i] > 0) {
@@ -137,7 +137,7 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
         ++iterations_done;
         while (true) {
 
-            uint8 move_choice = choose_next();
+            uint move_choice = choose_next();
 
             // Exploring a new node
             if (!(cur_node->visited.get(move_choice))) {
@@ -187,21 +187,21 @@ bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirich
 }
 
 // Choose the best move once searches are done
-uint8 TrainMC::choose_move() {
+uint TrainMC::choose_move() {
 
     // Choose weighted random
     // cur_node should always be root after searches
     if (cur_node->depth < 4 && !testing) {
-        uint16 total = 0, children_visits[i];
-        for (uint8 i = 0; i < LEGAL_MOVE_NUM; ++i) {
+        uint total = 0, children_visits[i];
+        for (uint i = 0; i < LEGAL_MOVE_NUM; ++i) {
             if (cur_node->visited.get(i)) {
                 children_visits[i] = trainer->get_node(trainer->find_next(cur, i))->visits;
                 total += children_visits[i];
             }
         }
-        uint16 id = trainer->generator() % total;
+        uint id = trainer->generator() % total;
         total = 0;
-        for (uint8 i = 0; i < NUM_MOVES - 1; ++i) {
+        for (uint i = 0; i < NUM_MOVES - 1; ++i) {
             if (root->children[i]) {
                 total += children_visits[i];
                 if (total >= id) return i;
@@ -211,12 +211,12 @@ uint8 TrainMC::choose_move() {
     }
     // Otherwise, choose randomly between the moves with the most visits/searches
     // Random offset is the easiest way to randomly break ties
-    uint16 id = trainer->generator() % NUM_MOVES, max_visits = 0, move_choice;
+    uint id = trainer->generator() % NUM_MOVES, max_visits = 0, move_choice;
     // the move choices are all internal, so they can be fit into NUM_MOVES
     // we might have to consider rotations when we add that
-    for (uint8 i = 0; i < NUM_MOVES; ++i) {
+    for (uint i = 0; i < NUM_MOVES; ++i) {
         if (cur_node->visited.get(i)) {
-            uint16 cur_visits = trainer->get_node(trainer->find_next(cur, i))->visits;
+            uint cur_visits = trainer->get_node(trainer->find_next(cur, i))->visits;
             if (cur_visits > max_visits) {
                 max_visits = cur_visits;
                 move_choice = (id + i) % NUM_MOVES;
@@ -235,7 +235,7 @@ uint8 TrainMC::choose_move() {
 // Move the tree down a level
 // Used when opponent moves
 // this should call the tree move down method from trainer
-bool receive_opp_move(uint8 move_choice) {
+bool receive_opp_move(uint move_choice) {
 
     // If we have visited the node before; this is the simple case
     if (trainer->get_node(root)->visited[move_choice]) {

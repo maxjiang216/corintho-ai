@@ -16,7 +16,7 @@ Node::Node(): game{Game()}, visits{1}, depth{0} {
 }
 
 // Occasionally need to create root nodes from arbitrary game states
-Node::Node(const Game &other_game, uint8 depth): game{other_game}, visits{1}, depth{depth} {
+Node::Node(const Game &other_game, uint depth): game{other_game}, visits{1}, depth{depth} {
     game.get_legal_moves(legal_moves);
     visited.reset();
 }
@@ -24,14 +24,14 @@ Node::Node(const Game &other_game, uint8 depth): game{other_game}, visits{1}, de
 // Pass game by reference, then copy it
 // This should be more efficient as only a pointer is passed as an argument
 // Which is smaller
-Node::Node(const Game &other_game, uint8 depth, uint32 parent, uint8 move_choice): game{other_game}, visits{1},
+Node::Node(const Game &other_game, uint depth, uint parent, uint move_choice): game{other_game}, visits{1},
 depth{depth+1}, parent{parent} {
     game.do_move(move_choice);
     game.get_legal_moves(legal_moves);
     visited.reset();
 }
 
-void Node::overwrite(const Game &new_game, uint8 new_depth, uint32 new_parent, uint8 move_choice) {
+void Node::overwrite(const Game &new_game, uint new_depth, uint new_parent, uint move_choice) {
     game = game;
     visits = 1;
     depth = new_depth + 1;

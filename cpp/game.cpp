@@ -71,7 +71,7 @@ bool Game::can_place(uint ptype, uint row, uint col) {
 
 // Returns an int representing the bottom piece of a stack, 3 if empty
 // Used to determine the legality of move moves
-int8 Game::get_bottom(uint row, uint col) {
+fint Game::get_bottom(uint row, uint col) {
     if (board.test(row * 12 + col * 3 + 0)) return 0;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 2)) return 2;
@@ -81,7 +81,7 @@ int8 Game::get_bottom(uint row, uint col) {
 
 // Returns an int representing the top of a stack, -1 if empty
 // Used to determine the legality of move moves
-int8 Game::get_top(uint row, uint col) {
+fint Game::get_top(uint row, uint col) {
     if (board.test(row * 12 + col * 3 + 2)) return 2;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 0)) return 0;

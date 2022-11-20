@@ -27,7 +27,7 @@ void test_basic_run() {
 
     uintf num_games = 3000;
 
-    auto trainer = Trainer(false, num_games, 0, 1600, 1.0, 0.25);
+    auto trainer = Trainer(false, num_games, 0, 200, 1.0, 0.25);
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
@@ -36,7 +36,7 @@ void test_basic_run() {
     uniform_real_distribution<float> random_evals(-1.0, 1.0), random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
 
     auto start = chrono::high_resolution_clock::now();
-    for (uintf i = 0; i < 200; ++i) {
+    for (uintf i = 0; i < 1000; ++i) {
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;

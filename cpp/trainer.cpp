@@ -10,7 +10,7 @@ using std::cout;
 
 // Number of Nodes to allocate together
 // Determine best number for this empirically
-const uintf BLOCK_SIZE = 128;
+const uintf BLOCK_SIZE = 4096;
 
 // Determine best starting size empirically (per game)
 // Should this be prime?
@@ -99,13 +99,21 @@ float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
             games[i].do_first_iteration(game_states[i]);
         }
     }
-    uintf n_nodes = 0;
+    uintf n_nodes = 0, n_stale = 0;
     for (uintf i = 0; i < hash_table.size(); ++i) {
-        if (hash_table[i] != nullptr && !is_stale[i]) {
-            ++n_nodes;
+        if (hash_table[i] != nullptr) {
+            if (is_stale[i]) {
+                ++n_stale;
+            }
+            else {
+                ++n_nodes;
+            }
         }
+        
     }
     cout << "There are " << n_nodes << " nodes in the hash_table and the hash table size is " << hash_table.size() << '\n';
+    cout << "There are " << n_stale << " stale nodes in the hash_table\n";
+    
     ++iterations_done;
 }
 

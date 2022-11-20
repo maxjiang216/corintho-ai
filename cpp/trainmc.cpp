@@ -4,6 +4,8 @@
 #include <bitset>
 #include <math.h>
 #include <random>
+#include <iostream>
+using std::cout;
 
 using std::unique_ptr;
 using std::bitset;
@@ -28,15 +30,19 @@ logging{logging} {
 // Guaranteed to not yield a move output
 // We need to pass the memory buffers into here
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
-
+    cout << "TrainMC::do_first_iteration\n";
     // The second TrainMC does not need the starting position root node
     // Also, doing this here lets us detect the first iteration on the second tree
     // By testing nullptr for cur_node
     root = trainer->place_root();
+    cout << "TrainMC::do_first_iteration 38\n";
     cur = root;
     cur_node = trainer->get_node(root);
+    cout << "TrainMC::do_first_iteration 41\n";
 
     cur_node->write_game_state(game_state);
+
+    cout << "TrainMC::do_first_iteration 45\n";
 
 }
 
@@ -57,7 +63,9 @@ void TrainMC::do_first_iteration(const Game &game, float game_state[GAME_STATE_S
 uintf TrainMC::choose_next() {
 
     float max_value = -2.0;
-    uintf move_choice;
+    // Initialize this variable
+    // Gets rid of a warning, safer, speed is negligible
+    uintf move_choice = 0;
 
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         float u;
@@ -127,11 +135,13 @@ float dirichlet_noise[NUM_MOVES]) {
 }
 
 bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
+    cout << "TrainMC::do_iteration(float*)\n";
     return search(game_state);
 }
 
 bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES],
 float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
+    cout << "TrainMC::do_iteration(float*, float*, float*, float*)\n";
     receive_evaluation(evaluation, probabilities, dirichlet_noise);
     return search(game_state);
 }
@@ -220,7 +230,7 @@ uintf TrainMC::choose_move() {
     }
     // Otherwise, choose randomly between the moves with the most visits/searches
     // Random offset is the easiest way to randomly break ties
-    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0, move_choice;
+    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0, move_choice = 0;
     // the move choices are all internal, so they can be fit into NUM_MOVES
     // we might have to consider rotations when we add that
     for (uintf i = 0; i < NUM_MOVES; ++i) {

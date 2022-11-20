@@ -5,6 +5,8 @@
 #include <chrono>
 #include <queue>
 #include <algorithm>
+#include <iostream>
+using std::cout;
 
 // Number of Nodes to allocate together
 // Determine best number for this empirically
@@ -27,8 +29,9 @@ const uintf MULT_FACTOR = 10009;
 const uintf ADD_FACTOR = 1009;
 
 Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon):
-                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)}, cur_block{new Node[BLOCK_SIZE]},
-                 cur_ind{0}, num_games{num_games}, num_iterations{num_iterations},
+                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
+                 cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
+                 num_games{num_games}, num_iterations{num_iterations}, iterations_done{0},
                  generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
     games.reserve(num_games);
     if (testing) {
@@ -67,6 +70,7 @@ Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iter
             }
         }
     }
+    blocks.emplace_back(cur_block);
     // Set TrainMC static variables
     TrainMC::set_statics(num_iterations, c_puct, epsilon);
 }
@@ -75,19 +79,21 @@ Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iter
 // Boost pool might make this easier
 // Otherwise we need to keep all the char arrays we make?
 Trainer::~Trainer() {
-    for (size_t i = 0; i < hash_table.size(); ++i) {
-        delete hash_table[i];
+    for (size_t i = 0; i < blocks.size(); ++i) {
+        delete[] blocks[i];
     }
 }
 
 // Should we use pointers instead?
-void Trainer::do_iteration(float evaluation_results[], float probability_results[][NUM_TOTAL_MOVES],
+void Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_MOVES],
 float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
+    cout << "88" << '\n';
     // We should first check if rehash is needed
     for (uintf i = 0; i < num_games; ++i) {
+        cout << "Trainer::do_iteration " << i << ' ' << i / num_iterations << ' ' << iterations_done << '\n';
         // Pass neural net results
         if (i / num_iterations < iterations_done) {
-            games[i].do_iteration(evaluation_results[i], probability_results[i], dirichlet_noise[i], game_states[i]);
+            games[i].do_iteration(evaluations[i], probabilities[i], dirichlet_noise[i], game_states[i]);
         }
         // First iteration
         else if (i / num_iterations == iterations_done) {
@@ -98,19 +104,25 @@ float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
 }
 
 uintf Trainer::place_root() {
+    //cout << "place_root()\n";
     // Use random hash value
     uintf pos = generator() % hash_table.size();
+    //cout << "place_root() 108\n";
     while (hash_table[pos] && !is_stale[pos]) {
         pos = (pos + 1) % hash_table.size();
     }
+    //cout << "place_root() 112\n";
     // Unused space, place new node
     if (!hash_table[pos]) {
+        cout << "place_root() 115\n";
         place(pos);
     }
     // Overwrite stale node with starting position
     else {
+        cout << "place_root() 120\n";
         hash_table[pos]->overwrite();
     }
+    //cout << "place_root() 121\n";
     return pos;
 }
 
@@ -240,13 +252,15 @@ void Trainer::rehash() {
 }
 
 void Trainer::place(uintf pos) {
+    //cout << "place() " << cur_block << ' ' << cur_ind << ' ' << cur_block + cur_ind*sizeof(Node) << '\n';
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
+        //cout << "place() 256\n";
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
         cur_ind = 0;
     }
     // Placement new for root node
-    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node();
+    hash_table[pos] = new (cur_block + cur_ind) Node();
 
     ++cur_ind;
 }
@@ -255,6 +269,7 @@ void Trainer::place(uintf pos, const Game &game, uintf depth) {
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
+        blocks.emplace_back(cur_block);
         cur_ind = 0;
     }
     // Placement new for root node
@@ -267,6 +282,7 @@ void Trainer::place(uintf pos, const Game &game, uintf depth, uintf parent, uint
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
+        blocks.emplace_back(cur_block);
         cur_ind = 0;
     }
     // Placement new for internal node

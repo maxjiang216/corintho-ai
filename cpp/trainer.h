@@ -24,6 +24,7 @@ class Trainer {
     // We need a move_tree method that takes a tree root
     // and the move choice to avoid marking that branch for deletion
     vector<bool> is_stale;
+    vector<Node*> blocks;
 
     // Blocks used to allocate in chunk, saves on allocation cost
     Node *cur_block;
@@ -57,7 +58,7 @@ class Trainer {
     ~Trainer();
 
     // We need a testing version of do_iteration, where we pass 2 sets of results, one for each neural net (dirichlet noise can be shared)
-    void do_iteration(float evaluation_results[], float probability_results[][NUM_TOTAL_MOVES],
+    void do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_MOVES],
     float dirichlet[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]);
 
     // Place root in hash table (random hash)

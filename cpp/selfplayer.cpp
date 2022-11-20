@@ -1,5 +1,7 @@
 #include "selfplayer.h"
 #include "trainer.h"
+#include <iostream>
+using std::cout;
 
 SelfPlayer::SelfPlayer(Trainer *trainer): testing{false}, logging{false},
 players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0}, trainer{trainer} {}
@@ -17,6 +19,7 @@ players{TrainMC{trainer, true, true}, TrainMC{trainer, true, true}}, to_play{0},
 // Instead of having an extra if statement in do_iteration, we can split it into 2 functions
 // game_state is where the game_state should be written to be evaluated
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
+    cout << "do_first_iteration\n"; 
     players[0].do_first_iteration(game_state);
 }
 
@@ -24,11 +27,12 @@ void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 // Depends on if we can keep the same one each time
 void SelfPlayer::do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
 float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
-
+    cout << "do_iteration\n";
     bool need_evaluation = players[to_play].do_iteration(evaluation_result, probability_result,
     dirichlet_noise, game_state);
     // Done iterations
     while (!need_evaluation) {
+        cout << "SelfPlayer::do_iteration 35\n";
         uintf move_choice = players[to_play].choose_move();
         // We can check if the game is over
         if (trainer->get_node(players[to_play].get_root())->is_terminal()) {

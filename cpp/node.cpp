@@ -123,3 +123,7 @@ void Node::adjust_probability(uintf id, float scalar, float noise) {
 void Node::write_game_state(float game_state[GAME_STATE_SIZE]) {
     game.write_game_state(game_state);
 }
+
+void Node::set_visit(uintf move_choice) {
+    visited.set(move_choice);
+}

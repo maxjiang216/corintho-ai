@@ -3,7 +3,7 @@
 
 // Convert move_id to Move object
 // We can make this a table in the future, especially if we incude rotations (?)
-Move::Move(uintf move_id) {
+Move::Move(uintf move_id): mtype{move_id >= 48} {
 
     // Place
     // I believe that place is more common

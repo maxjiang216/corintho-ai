@@ -30,6 +30,7 @@ const uintf ADD_FACTOR = 1009;
 
 Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon):
                  hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
+                 is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
                  num_games{num_games}, num_iterations{num_iterations}, iterations_done{0},
                  generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
@@ -151,7 +152,9 @@ uintf Trainer::place_root(const Game &game, uintf depth) {
 // We can't use depth in the hash
 // Since find_next does not have access to this
 uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf move_choice) {
+    cout << "Trainer::place_next(game, depth, parent, move_choice) 155 " << parent << ' ' << move_choice << '\n';
     uintf pos = (parent * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
+    cout << "Trainer::place_next(game, depth, parent, move_choice) 157 " << pos << '\n';
     // When placing a node, we can replace a stale node
     while (hash_table[pos] && !is_stale[pos] && hash_table[pos]->get_parent() != parent) {
         pos = (pos + 1) % hash_table.size();
@@ -273,7 +276,7 @@ void Trainer::place(uintf pos, const Game &game, uintf depth) {
         cur_ind = 0;
     }
     // Placement new for root node
-    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game, depth);
+    hash_table[pos] = new (cur_block + cur_ind) Node(game, depth);
 
     ++cur_ind;
 }
@@ -286,7 +289,7 @@ void Trainer::place(uintf pos, const Game &game, uintf depth, uintf parent, uint
         cur_ind = 0;
     }
     // Placement new for internal node
-    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game, depth, parent, move_choice);
+    hash_table[pos] = new (cur_block + cur_ind) Node(game, depth, parent, move_choice);
 
     ++cur_ind;
 }

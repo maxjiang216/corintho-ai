@@ -25,14 +25,33 @@ void print_class_sizes() {
 // Basic run. 
 void test_basic_run() {
 
-    int num_games = 100;
+    uintf num_games = 1;
 
     auto trainer = Trainer(false, num_games, 0, 1600, 1.0, 0.25);
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
 
-    trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
+    mt19937 generator(0);
+    uniform_real_distribution<float> random_evals(-1.0, 1.0), random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
+
+    for (uintf i = 0; i < 1000; ++i) {
+        for (uintf i = 0; i < num_games; ++i) {
+            evaluations[i] = random_evals(generator);
+            float sum = 0.0;
+            for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
+                probabilities[i][j] = random_probabilities(generator);
+                sum += probabilities[i][j];
+            }
+            for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
+                probabilities[i][j] /= sum;
+            }
+            for (uintf j = 0; j < NUM_MOVES; ++j) {
+                dirichlet_noise[i][j] = random_noise(generator);
+            }
+        }
+        trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
+    }
 
 }
 

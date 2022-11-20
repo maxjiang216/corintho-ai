@@ -57,6 +57,7 @@ using std::bitset;
     float get_probability(uintf id);
     void adjust_probability(uintf id, float scalar, float noise);
     bool is_legal(uintf id);
+    void set_visit(uintf move_choice);
 
     void write_game_state(float game_state[GAME_STATE_SIZE]);
 

@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <iostream>
+using std::cout;
 
 using std::vector;
 using std::string;
@@ -291,6 +293,8 @@ void Game::do_move(uintf move_id) {
     
     Move move{move_id};
 
+    cout << "do_move 294 " << to_play << ' ' << move.ptype << '\n';
+
     // Reset which space is frozen
     frozen.reset();
 
@@ -311,6 +315,9 @@ void Game::do_move(uintf move_id) {
 	    }
     }
     to_play = 1 - to_play;
+
+    cout << "do_move 319 " << to_play << ' ' << move.ptype << '\n';
+
 }
 
 bool Game::is_terminal() {

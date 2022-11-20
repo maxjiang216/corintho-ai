@@ -30,7 +30,7 @@ const uintf GAME_STATE_SIZE = 70;
 // Number of possible legal moves
 const uintf NUM_TOTAL_MOVES = 96;
 // Number of moves the simulator uses
-const uintf NUM_MOVES = 56;
+const uintf NUM_MOVES = 96;
 
 enum Result {NONE, LOSS, DRAW, WIN};
 

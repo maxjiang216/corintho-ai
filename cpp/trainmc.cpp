@@ -33,7 +33,6 @@ void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
     // The second TrainMC does not need the starting position root node
     // Also, doing this here lets us detect the first iteration on the second tree
     // By testing nullptr for cur_node
-    cout << "TrainMC::do_first_iteration\n";
     root = trainer->place_root();
     cur = root;
     cur_node = trainer->get_node(root);

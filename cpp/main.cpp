@@ -25,15 +25,7 @@ void print_class_sizes() {
 // Basic run. 
 void test_basic_run() {
 
-    for (uintf i = 0; j < NUM_MOVES; )
-    for (uintf i = 0; i < 102; ++i) {
-        for (uintf j = 0; j < NUM_MOVES; ++j) {
-            cout << line_breakers[i][j];
-        }
-        cout << '\n';
-    }
-
-    uintf num_games = 1;
+    uintf num_games = 3000;
 
     auto trainer = Trainer(false, num_games, 0, 1600, 1.0, 0.25);
 
@@ -43,7 +35,8 @@ void test_basic_run() {
     mt19937 generator(0);
     uniform_real_distribution<float> random_evals(-1.0, 1.0), random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
 
-    for (uintf i = 0; i < 100; ++i) {
+    auto start = chrono::high_resolution_clock::now();
+    for (uintf i = 0; i < 200; ++i) {
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;
@@ -61,6 +54,15 @@ void test_basic_run() {
         trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
         cout << "Complete iteration " << i + 1 << '\n';
     }
+    auto stop = chrono::high_resolution_clock::now();
+
+    auto duration = duration_cast<chrono::seconds>(stop - start);
+
+    cout << "Took " << duration.count() << " seconds!\n";
+ 
+// To get the value of duration use the count()
+// member function on the duration object
+cout << duration.count() << endl;
 
 }
 

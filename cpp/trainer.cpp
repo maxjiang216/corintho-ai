@@ -191,7 +191,7 @@ uintf Trainer::find_next(uintf parent, uintf move_choice) {
     return pos;
 }
 
-inline Node* Trainer::get_node(uintf id) {
+Node* Trainer::get_node(uintf id) {
     return hash_table[id];
 }
 

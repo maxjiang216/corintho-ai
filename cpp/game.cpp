@@ -32,7 +32,7 @@ const uintf S1 = 7;
 const uintf S2 = 8;
 const uintf S3 = 9;
 
-Game::Game(): board{bitset<3*BOARD_SIZE>().set()}, frozen{bitset<BOARD_SIZE>().set()}, to_play{0},
+Game::Game(): board{bitset<3*BOARD_SIZE>().reset()}, frozen{bitset<BOARD_SIZE>().reset()}, to_play{0},
 pieces{4, 4, 4, 4, 4, 4}, result{NONE} {}
 
 bool Game::is_empty(uintf row, uintf col) {

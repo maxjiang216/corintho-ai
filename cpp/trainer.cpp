@@ -91,11 +91,11 @@ float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
     // We should first check if rehash is needed
     for (uintf i = 0; i < num_games; ++i) {
         // Pass neural net results
-        if (i / num_iterations < iterations_done) {
+        if (i / (num_games / (num_iterations / 2)) < iterations_done) {
             games[i].do_iteration(evaluations[i], probabilities[i], dirichlet_noise[i], game_states[i]);
         }
         // First iteration
-        else if (i / num_iterations == iterations_done) {
+        else if (i / (num_games / (num_iterations / 2)) == iterations_done) {
             games[i].do_first_iteration(game_states[i]);
         }
     }

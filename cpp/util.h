@@ -13,7 +13,7 @@ using std::string;
 
 // Default ints to use
 // Generally memory is not too critical, prioritize speed
-typedef uint_fast32_t uintf ;
+typedef uint_fast32_t uintf;
 typedef int_fast32_t intf;
 
 // Ints for memory critical parts

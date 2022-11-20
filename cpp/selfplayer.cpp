@@ -15,13 +15,17 @@ players{TrainMC{true, logging, trainer}, TrainMC{true, logging, trainer}}, to_pl
 // It is relatively costless to detect when a SelfPlayer will be called by Trainer for the first time
 // Instead of having an extra if statement in do_iteration, we can split it into 2 functions
 // game_state is where the game_state should be written to be evaluated
-void SelfPlayer::do_first_iteration(float game_state[]) {
+void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
     players[0].do_first_iteration(game_state);
 }
 
-void SelfPlayer::do_iterations(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
-float dirichlet_noise[NUM_MOVES], float game_state[]) {
-    bool need_evaluation = players[to_play].do_iterations(evaluation_result, probability_result, dirichlet_noise, game_state);
+// Can we store the game_state array in SelfPlayer instead getting it passed each time?
+// Depends on if we can keep the same one each time
+void SelfPlayer::do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
+
+    bool need_evaluation = players[to_play].do_iteration(evaluation_result, probability_result,
+    dirichlet_noise, game_state);
     // Done iterations
     while (!need_evaluation) {
         uint move_choice = players[to_play].choose_move();
@@ -39,8 +43,11 @@ float dirichlet_noise[NUM_MOVES], float game_state[]) {
                 need_evaluation = true
             }
             else {
-                players[to_play].receive_opp_move(move_choice);
-                need_evaluation = players[to_play].do_iterations(evaluation_result, probability_result, dirichlet_noise, game_state);
+                // it's possible that we need an evaluation for this
+                need_evaluation = players[to_play].receive_opp_move(move_choice, game_state);
+                if (!need_evaluation) {
+                    need_evaluation = players[to_play].do_iteration(game_state);
+                }
             }
         }
     }

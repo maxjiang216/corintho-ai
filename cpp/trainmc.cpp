@@ -126,11 +126,20 @@ void receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES], 
     }
 }
 
+bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
+    return search(game_state);
+}
+
+bool TrainMC::do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
+    receive_evaluation(evaluation, probabilities, dirichlet_noise);
+    return search(game_state);
+}
+
+
 // Figure out what the Python code does for this for the first search of a move, where evaluation is not needed
 // We can overload, factor out the search, add "receive_evaluation" function
-bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
-
-    receive_evaluation(evaluation, probabilities, dirichlet_noise);
+bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
     bool need_evaluation = false;
     while (!need_evaluation && iterations_done < max_iterations) {

@@ -24,35 +24,58 @@ const uint MULT_FACTOR = 10009;
 // Prime number?
 const uint ADD_FACTOR = 1009;
 
-Trainer::Trainer(uint num_games, uint num_logged, uint num_iterations,
+Trainer::Trainer(bool testing, uint num_games, uint num_logged, uint num_iterations,
 float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
                  hash_table{vector<Node*>(nullptr, num_games * HASH_TABLE_SIZE)}, cur_block{new Node[BLOCK_SIZE]},
                  cur_ind{0}, num_games{num_games}, num_iterations{num_iterations},
                  states_to_evaluate{states_to_evaluate},
                  generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
     games.reserve(num_games);
-    if (num_logged <= num_games) {
-        // Is there a way to fill many objects after the fact?
-        // We could construct an object and memcopy a bunch, in theory
-        // Actually memcopy with a loop probably works and is close to optimal
-        // Memcopy might be bad for object, though, only try this to optimize
-        for (uint i = 0; i < num_logged; ++i) {
-            games.push_back(SelfPlayer(true));
+    if (testing) {
+        // this saves taking a max
+        // speed in this part of the code is whatever though, maybe we combine these for brevity
+        if (num_logged <= num_games) {
+            for (uint i = 0; i < num_logged; ++i) {
+                games.emplace_back(true, i % 2, this);
+            }
+            for (uint i = num_logged; i < num_games; ++i) {
+                games.emplace_back(i % 2, this);
+            }
         }
-        for (uint i = num_logged; i < num_games; ++i) {
-            games.push_back(SelfPlayer());
+        else {
+            for (uint i = 0; i < num_games; ++i) {
+                games.emplace_back(true, i % 2, this);
+            }
         }
     }
     else {
-        for (uint i = 0; i < num_games; ++i) {
-            games.push_back(SelfPlayer(true));
+        if (num_logged <= num_games) {
+            // Is there a way to fill many objects after the fact?
+            // We could construct an object and memcopy a bunch, in theory
+            // Actually memcopy with a loop probably works and is close to optimal
+            // Memcopy might be bad for object, though, only try this to optimize
+            for (uint i = 0; i < num_logged; ++i) {
+                games.emplace_back(true, this);
+            }
+            for (uint i = num_logged; i < num_games; ++i) {
+                games.emplace_back(this);
+            }
+        }
+        else {
+            for (uint i = 0; i < num_games; ++i) {
+                games.emplace_back(true, this);
+            }
         }
     }
+    // Set TrainMC static variables
     TrainMC::max_iterations = num_iterations;
     TrainMC::c_puct = c_puct;
     TrainMC::epsilon = epsilon;
 }
 
+// How to prevent memory leak?
+// Boost pool might make this easier
+// Otherwise we need to keep all the char arrays we make?
 Trainer::~Trainer() {
     for (size_t i = 0; i < hash_table.size(); ++i) {
         ~(*(hash_table[i]));
@@ -66,38 +89,16 @@ float dirichlet_noise[][NUM_MOVES]) {
     for (uint i = 0; i < num_games; ++i) {
         // Pass neural net results
         if (i / num_iterations < iterations_done) {
-            games[i].do_iteration(evaluation_results[i], probability_results[i], dirichlet_noise[i]);
+            games[i].do_iteration(evaluation_results[i], probability_results[i], dirichlet_noise[i], game_states[i]);
         }
         // First iteration
         else if (i / num_iterations == iterations_done) {
-            games[i].do_first_iteration();
+            games[i].do_first_iteration(game_states[i]);
         }
     }
     ++iterations_done;
 }
 
-// This function could actually initialize the node
-// Since there is only one possible root node (?)
-uint Trainer::place_root() {
-    // Use random hash value
-    uint pos = generator() % hash_table.size();
-    // We need to continue probing
-    // We keep the capacity of the table below a certain constant (0.6?)
-    // Long clusters are probabilistically almost impossible
-    // We can try other linear probes, but all else equal adding 1 could be faster and is more simple
-    while (hash_table[pos] && !hash_table[pos]->is_stale) {
-        pos = (pos + 1) % hash_table.size();
-    }
-    // Unused space, place new node
-    if (!hash_table[pos]) {
-        place(pos);
-    }
-    // Otherwise, we are at a stale node, and we can simply return that location
-    // The TrainMC will overwrite it
-    // it does not need to tell the difference between a new node and a stale node
-    return pos;
-}
-
 uint Trainer::place_root() {
     // Use random hash value
     uint pos = generator() % hash_table.size();
@@ -108,12 +109,10 @@ uint Trainer::place_root() {
     if (!hash_table[pos]) {
         place(pos);
     }
+    // Overwrite stale node with starting position
     else {
         hash_table[pos]->overwrite();
     }
-    // Otherwise, we are at a stale node, and we can simply return that location
-    // The TrainMC will overwrite it
-    // it does not need to tell the difference between a new node and a stale node
     return pos;
 }
 
@@ -142,9 +141,9 @@ uint Trainer::place_root(const Game &game, uint depth) {
 // We can't use depth in the hash
 // Since find_next does not have access to this
 uint Trainer::place_next(const Game &game, uint depth, uint parent, uint move_choice) {
-    uint pos = (parent_num * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
+    uint pos = (parent * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
     // When placing a node, we can replace a stale node
-    while (hash_table[pos] && !hash_table[pos]->is_stale && hash_table[pos]->parent != parent_num) {
+    while (hash_table[pos] && !hash_table[pos]->is_stale && hash_table[pos]->parent != parent) {
         pos = (pos + 1) % hash_table.size();
     }
 

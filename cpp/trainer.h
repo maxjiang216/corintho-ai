@@ -42,7 +42,7 @@ class Trainer {
 
     // Location to write game states to evaluate
     // Can we use the same input to the neural net each time?
-    float states_to_evaluate[][GAME_STATE_SIZE];
+    float game_states[][GAME_STATE_SIZE];
 
     // Random generator for all operation
     std::mt19937 generator;
@@ -52,11 +52,12 @@ class Trainer {
     void place (uint pos, const Game &game, uint depth);
     // Place node
     void place(uint pos, const Game &game, uint depth, uint parent, uint move_choice);
+    // Rehash
     void rehash();
 
   public:
 
-    Trainer(int num_games, int num_logged, int num_iterations, float states_to_evaluate[][GAME_STATE_SIZE],
+    Trainer(bool testing, uint num_games, uint num_logged, uint num_iterations, float states_to_evaluate[][GAME_STATE_SIZE],
     float c_puct, float epsilon);
     ~Trainer();
 

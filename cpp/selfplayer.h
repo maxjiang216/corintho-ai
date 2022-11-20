@@ -17,6 +17,7 @@ class SelfPlayer {
     uint seed;
     TrainMC players[2];
     // This could be bool, but int is probably faster
+    // Also makes it easier for Trainer to assign seeds
     uint to_play;
     Trainer *trainer;
 
@@ -26,12 +27,13 @@ class SelfPlayer {
     SelfPlayer(Trainer *trainer);
     SelfPlayer(bool, Trainer *trainer);
     // Testing mode
-    SelfPlayer(bool logging, bool seed, Trainer *trainer);
+    SelfPlayer(uint seed, Trainer *trainer);
+    SelfPlayer(bool, uint seed, Trainer *trainer);
     ~SelfPlayer() = default;
 
-    void do_first_iteration(float game_state[]);
-    void do_iterations(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
-    float dirichlet_noise[NUM_MOVES], float game_state[]);
+    void do_first_iteration(float game_state[GAME_STATE_SIZE]);
+    void do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+    float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIE]);
 
 };
 

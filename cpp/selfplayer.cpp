@@ -6,7 +6,10 @@ players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0}, trainer{trainer} {}
 SelfPlayer::SelfPlayer(bool, Trainer *trainer): testing{false}, logging{true},
 players{TrainMC{true, trainer}, TrainMC{true, trainer}}, to_play{0}, trainer{trainer} {}
 
-SelfPlayer::SelfPlayer(bool logging, bool seed, Trainer *trainer): testing{true}, logging{logging}, seed{seed},
+SelfPlayer::SelfPlayer(uint seed, Trainer *trainer): testing{true}, logging{false}, seed{seed},
+players{TrainMC{true, logging, trainer}, TrainMC{true, logging, trainer}}, to_play{0}, trainer{trainer} {}
+
+SelfPlayer::SelfPlayer(bool, uint seed, Trainer *trainer): testing{true}, logging{true}, seed{seed},
 players{TrainMC{true, logging, trainer}, TrainMC{true, logging, trainer}}, to_play{0}, trainer{trainer} {}
 
 // It is relatively costless to detect when a SelfPlayer will be called by Trainer for the first time

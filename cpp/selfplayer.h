@@ -14,11 +14,11 @@ class SelfPlayer {
 
     bool testing, logging;
     // Seed is only used in testing
-    uint seed;
+    uintf seed;
     TrainMC players[2];
     // This could be bool, but int is probably faster
     // Also makes it easier for Trainer to assign seeds
-    uint to_play;
+    uintf to_play;
     Trainer *trainer;
 
   public:
@@ -27,8 +27,8 @@ class SelfPlayer {
     SelfPlayer(Trainer *trainer);
     SelfPlayer(bool, Trainer *trainer);
     // Testing mode
-    SelfPlayer(uint seed, Trainer *trainer);
-    SelfPlayer(bool, uint seed, Trainer *trainer);
+    SelfPlayer(uintf seed, Trainer *trainer);
+    SelfPlayer(bool, uintf seed, Trainer *trainer);
     ~SelfPlayer() = default;
 
     void do_first_iteration(float game_state[GAME_STATE_SIZE]);

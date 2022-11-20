@@ -3,7 +3,7 @@
 
 // Convert move_id to Move object
 // We can make this a table in the future, especially if we incude rotations (?)
-Move::Move(uint move_id) {
+Move::Move(uintf move_id) {
 
     // Place
     // I believe that place is more common
@@ -50,14 +50,14 @@ Move::Move(uint move_id) {
 }
 
 // Convert place move to int
-uint encode_place(uint ptype, uint row, uint col) {
+uintf encode_place(uintf ptype, uintf row, uintf col) {
 
     return 48 + ptype * 16 + row * 4 + col;
 
 }
 
 // Convert move move to int
-uint encode_move(uint row1, uint col1, uint row2, uint col2) {
+uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2) {
 
     // Right
     if (col1 < col2) return row1 * 3 + col1;

@@ -3,6 +3,7 @@
 
 #include "trainmc.h"
 #include "selfplayer.h"
+#include "node.h"
 #include "util.h"
 #include <vector>
 #include <array>
@@ -29,16 +30,16 @@ class Trainer {
     // Blocks used to allocate in chunk, saves on allocation cost
     Node *cur_block;
     // Index of first available node in current block
-    uint cur_ind;
+    uintf cur_ind;
 
     vector<SelfPlayer> games;
     // Number of games to play
-    uint num_games;
+    uintf num_games;
     
     // Number of iterations per move (used to do offsets and to pass onto SelfPlayer objects)
-    uint num_iterations;
+    uintf num_iterations;
     // Counter used to keep track of game offsets
-    uint iterations_done;
+    uintf iterations_done;
 
     // Location to write game states to evaluate
     // Can we use the same input to the neural net each time?
@@ -48,16 +49,16 @@ class Trainer {
     std::mt19937 generator;
 
     // Place root
-    void place(uint pos);
-    void place (uint pos, const Game &game, uint depth);
+    void place(uintf pos);
+    void place (uintf pos, const Game &game, uintf depth);
     // Place node
-    void place(uint pos, const Game &game, uint depth, uint parent, uint move_choice);
+    void place(uintf pos, const Game &game, uintf depth, uintf parent, uintf move_choice);
     // Rehash
     void rehash();
 
   public:
 
-    Trainer(bool testing, uint num_games, uint num_logged, uint num_iterations, float states_to_evaluate[][GAME_STATE_SIZE],
+    Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations, float states_to_evaluate[][GAME_STATE_SIZE],
     float c_puct, float epsilon);
     ~Trainer();
 
@@ -66,16 +67,20 @@ class Trainer {
     float dirichlet[][NUM_MOVES]);
 
     // Place root in hash table (random hash)
-    uint place_root();
-    uint place_root(const Game &game, uint depth);
+    uintf place_root();
+    uintf place_root(const Game &game, uintf depth);
     // Place node in hash table
-    uint place_next(const Game &game, uint depth, uint parent, uint move_choice);
+    uintf place_next(const Game &game, uintf depth, uintf parent, uintf move_choice);
     // Find the child node
-    uint find_next(uint parent, uint move_choice);
+    uintf find_next(uintf parent, uintf move_choice);
 
-    Node* get_node(uint id);
+    Node* get_node(uintf id);
 
-    void move_down(uint root, uint move_choice);
+    void move_down(uintf root, uintf move_choice);
+    void delete_tree(uintf root);
+
+    // used by other classes to generate random numbers
+    uintf generate();
 
 };
 

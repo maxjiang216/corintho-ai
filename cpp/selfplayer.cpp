@@ -6,10 +6,10 @@ players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0}, trainer{trainer} {}
 SelfPlayer::SelfPlayer(bool, Trainer *trainer): testing{false}, logging{true},
 players{TrainMC{true, trainer}, TrainMC{true, trainer}}, to_play{0}, trainer{trainer} {}
 
-SelfPlayer::SelfPlayer(uint seed, Trainer *trainer): testing{true}, logging{false}, seed{seed},
+SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer): testing{true}, logging{false}, seed{seed},
 players{TrainMC{true, logging, trainer}, TrainMC{true, logging, trainer}}, to_play{0}, trainer{trainer} {}
 
-SelfPlayer::SelfPlayer(bool, uint seed, Trainer *trainer): testing{true}, logging{true}, seed{seed},
+SelfPlayer::SelfPlayer(bool, uintf seed, Trainer *trainer): testing{true}, logging{true}, seed{seed},
 players{TrainMC{true, logging, trainer}, TrainMC{true, logging, trainer}}, to_play{0}, trainer{trainer} {}
 
 // It is relatively costless to detect when a SelfPlayer will be called by Trainer for the first time
@@ -28,7 +28,7 @@ float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
     dirichlet_noise, game_state);
     // Done iterations
     while (!need_evaluation) {
-        uint move_choice = players[to_play].choose_move();
+        uintf move_choice = players[to_play].choose_move();
         // We can check if the game is over
         if (trainer->get_node(players[to_play].root)->is_terminal()) {
             trainer->delete_tree(players[to_play].root);

@@ -14,11 +14,11 @@ using std::bitset;
     // Game state
     Game game;
     // visits is number of times this node has been searched
-    uint visits;
+    uintf visits;
     // depth starts at 0
-    uint depth;
+    uintf depth;
     // Index of parent node
-    uint parent;
+    uintf parent;
     float evaluation;
     std::array<float, NUM_MOVES> probabilities;
     // legal_moves denotes which moves are legal, stores in node instead of game since Node is the one using it (?)
@@ -32,14 +32,28 @@ using std::bitset;
     Node(const Game &game);
     // Used when writing into a new node
     // Will copy a game, then apply the move
-    Node(const Game &game, uint depth, uint parent, uint move_choice);
+    Node(const Game &game, uintf depth, uintf parent, uintf move_choice);
     ~Node() = default;
 
     // overwrite relevant parts of node
     // other things will be overwritten lazily
-    void overwrite(const Game &new_game, uint new_depth, uint new_parent, uint move_choice);
+    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice);
 
     bool is_terminal();
+    uintf get_depth();
+    const Game& get_game();
+    Result get_result;
+    bool has_visited(uintf move_choice);
+    uintf get_visits();
+    void add_evaluation(float new_evalution);
+    float get_evaluation();
+    uintf get_parent();
+    void increment_visits();
+    uintf get_to_play();
+    void set_probability(uintf id, float probability);
+    float get_probability(uintf id);
+    void adjust_probability(uintf id, float scalar, float noise);
+    bool is_legal(uintf id);
 
     void write_game_state(float game_state[GAME_STATE_SIZE]);
 

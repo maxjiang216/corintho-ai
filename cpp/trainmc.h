@@ -16,21 +16,23 @@ class TrainMC {
 
     Trainer *trainer;
     // cur is the index of the current node
-    uint root, cur;
+    uintf root, cur;
     // We often access as pointer
     // Should we store root_node? Check where we use it, if we use it multiple times before it updates
     Node *cur_node;
     // Used to keep track of when to choose a move
-    uint iterations_done;
+    uintf iterations_done;
     bool testing, logging;
 
-    static uint max_iterations = 1600;
-    static float c_puct = 1.0, epsilon = 0.25;
+    static uintf max_iterations;
+    static float c_puct, epsilon;
 
-    uint choose_next();
+    uintf choose_next();
     // I want to keep these as normal arrays instead of std::array for now
     // For predictability
-    bool search(float evaluation, float probabilities[NUM_TOTAL_MOVES], float dirichlet_nosie[NUM_MOVES]);
+    bool search(float game_state[GAME_STATE_SIZE]);
+    void receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES],
+    float dirichlet_nosie[NUM_MOVES]);
 
   public:
 
@@ -41,12 +43,14 @@ class TrainMC {
     TrainMC(Trainer *trainer, bool logging, bool);
     ~TrainMC() = default;
     
-    void receive_opp_move(uint move_choice);
+    bool receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SIZE]);
     bool do_iteration(float game_state[GAME_STATE_SIZE]);
-    bool do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
+    bool do_iteration(float evaluation_result, float probabilities[NUM_TOTAL_MOVES],
     float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]);
     void do_first_iteration(float game_state[GAME_STATE_SIZE]);
     void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]);
+
+    uintf choose_move();
 
 };
 

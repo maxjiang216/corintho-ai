@@ -6,13 +6,13 @@
 struct Move {
 
     bool mtype;
-    uint ptype, row1, col1, row2, col2;
+    uintf ptype, row1, col1, row2, col2;
 
-    Move(uint);
+    Move(uintf move_id);
 
 };
 
-uint encode_place(uint ptype, uint row, uint col);
-uint encode_move(uint row1, uint col1, uint row2, uint col2);
+uintf encode_place(uintf ptype, uintf row, uintf col);
+uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2);
 
 #endif

@@ -1,4 +1,6 @@
 #include "trainer.h"
+#include "trainmc.h"
+#include "node.h"
 #include "util.h"
 #include <chrono>
 #include <queue>
@@ -24,11 +26,9 @@ const uintf MULT_FACTOR = 10009;
 // Prime number?
 const uintf ADD_FACTOR = 1009;
 
-Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations,
-float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
-                 hash_table{vector<Node*>(nullptr, num_games * HASH_TABLE_SIZE)}, cur_block{new Node[BLOCK_SIZE]},
+Trainer::Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon):
+                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)}, cur_block{new Node[BLOCK_SIZE]},
                  cur_ind{0}, num_games{num_games}, num_iterations{num_iterations},
-                 states_to_evaluate{states_to_evaluate},
                  generator{std::mt19937{std::chrono::system_clock::now().time_since_epoch().count()}} {
     games.reserve(num_games);
     if (testing) {
@@ -68,9 +68,7 @@ float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
         }
     }
     // Set TrainMC static variables
-    TrainMC::max_iterations = num_iterations;
-    TrainMC::c_puct = c_puct;
-    TrainMC::epsilon = epsilon;
+    TrainMC::set_statics(num_iterations, c_puct, epsilon);
 }
 
 // How to prevent memory leak?
@@ -78,13 +76,13 @@ float states_to_evaluate[][GAME_STATE_SIZE], float c_puct, float epsilon):
 // Otherwise we need to keep all the char arrays we make?
 Trainer::~Trainer() {
     for (size_t i = 0; i < hash_table.size(); ++i) {
-        ~(*(hash_table[i]));
+        delete hash_table[i];
     }
 }
 
 // Should we use pointers instead?
 void Trainer::do_iteration(float evaluation_results[], float probability_results[][NUM_TOTAL_MOVES],
-float dirichlet_noise[][NUM_MOVES]) {
+float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
     // We should first check if rehash is needed
     for (uintf i = 0; i < num_games; ++i) {
         // Pass neural net results
@@ -102,7 +100,7 @@ float dirichlet_noise[][NUM_MOVES]) {
 uintf Trainer::place_root() {
     // Use random hash value
     uintf pos = generator() % hash_table.size();
-    while (hash_table[pos] && !hash_table[pos]->is_stale) {
+    while (hash_table[pos] && !is_stale[pos]) {
         pos = (pos + 1) % hash_table.size();
     }
     // Unused space, place new node
@@ -119,7 +117,7 @@ uintf Trainer::place_root() {
 uintf Trainer::place_root(const Game &game, uintf depth) {
     // Use random hash value
     uintf pos = generator() % hash_table.size();
-    while (hash_table[pos] && !hash_table[pos]->is_stale) {
+    while (hash_table[pos] && !is_stale[pos]) {
         pos = (pos + 1) % hash_table.size();
     }
     // Unused space, place new node
@@ -143,7 +141,7 @@ uintf Trainer::place_root(const Game &game, uintf depth) {
 uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf move_choice) {
     uintf pos = (parent * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
     // When placing a node, we can replace a stale node
-    while (hash_table[pos] && !hash_table[pos]->is_stale && hash_table[pos]->parent != parent) {
+    while (hash_table[pos] && !is_stale[pos] && hash_table[pos]->get_parent() != parent) {
         pos = (pos + 1) % hash_table.size();
     }
 
@@ -173,7 +171,7 @@ uintf Trainer::find_next(uintf parent, uintf move_choice) {
     // When finding a node, we stop at a match
     // The caller must make sure the node exists
     // Otherwise errors will probably happen
-    while (hash_table[pos]->parent != parent_num) {
+    while (hash_table[pos]->get_parent() != parent) {
         pos = (pos + 1) % hash_table.size();
     }
     // Node should always be found
@@ -191,14 +189,16 @@ void Trainer::rehash() {
     // Pointers in the table are small compared to Nodes
     // So space efficiency is also not too important
     uintf new_size = 2 * hash_table.size();
-    vector<Node*> new_table(nullptr, new_size);
+    vector<Node*> new_table(new_size, nullptr);
 
     // Queue for processing nodes
-    std::queue<uint> nodes;
+    // Store the index of the node we wish to rehash and the new hash
+    // which is computed before hand since we need the parent
+    std::queue<std::pair<uintf, uintf>> nodes;
     // Process roots first. We can reseed random values
     for (size_t i = 0; i < games.size(); ++i) {
         for (uintf j = 0; j < 2; ++j) {
-            uintf pos = generator() % new_size, root = games[i].players[j].root;
+            uintf pos = generator() % new_size, root = games[i].get_root(j);
             // There are no stale nodes
             // We only check for spaces already taken, although a collision at this point is very unlikely
             while (new_table[pos]) {
@@ -208,8 +208,8 @@ void Trainer::rehash() {
             new_table[pos] = hash_table[root];
             for (uintf k = 0; k < NUM_MOVES; ++k) {
                 // Only search child nodes that have been visited
-                if (hash_table[root]->visited.get(k)) {
-                    nodes.push((root * MULT_FACTOR + k * ADD_FACTOR) % hash_table.size());
+                if (hash_table[root]->has_visited(k)) {
+                    nodes.push(std::make_pair(find_next(root, k), (root * MULT_FACTOR + k * ADD_FACTOR) % new_size));
                 }
             }
         }
@@ -220,29 +220,29 @@ void Trainer::rehash() {
     // We could use a priority queue based on number of visits
     // But that could be more hassle than is worth it
     while (!nodes.empty()) {
-        uintf pos = queue.front();
-        while (hash_table[pos]->parent != parent_num) {
-            pos = (pos + 1) % hash_table.size();
-        }
+        uintf cur = nodes.front().first, pos = nodes.front().second;
+        Node *cur_node = get_node(cur);
         while (new_table[pos]) {
             pos = (pos + 1) % new_size;
         }
-        new_table[pos] = hash_table[queue.front()];
+        new_table[pos] = cur_node;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             // Only search child nodes that have been visited
-            if (hash_table[queue.front()]->visited.get(i)) {
-                nodes.push((queue.front() * MULT_FACTOR + i * ADD_FACTOR) % hash_table.size());
+            if (cur_node->has_visited(i)) {
+                nodes.push(std::make_pair(find_next(cur, i), (cur * MULT_FACTOR + i * ADD_FACTOR) % new_size));
             }
         }
-        queue.pop();
+        nodes.pop();
     }
     hash_table = std::move(new_table);
+    // None in the new table are stale
+    is_stale = vector<bool>(new_size, false);
 }
 
 void Trainer::place(uintf pos) {
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
         cur_ind = 0;
     }
     // Placement new for root node
@@ -251,22 +251,10 @@ void Trainer::place(uintf pos) {
     ++cur_ind;
 }
 
-void Trainer::place(uintf pos, const Game &game) {
-    // Need a new block
-    if (cur_ind == BLOCK_SIZE) {
-        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
-        cur_ind = 0;
-    }
-    // Placement new for root node
-    hash_table[pos] = new (cur_block + cur_ind*sizeof(Node)) Node(game);
-
-    ++cur_ind;
-}
-
 void Trainer::place(uintf pos, const Game &game, uintf depth) {
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
         cur_ind = 0;
     }
     // Placement new for root node
@@ -278,7 +266,7 @@ void Trainer::place(uintf pos, const Game &game, uintf depth) {
 void Trainer::place(uintf pos, const Game &game, uintf depth, uintf parent, uintf move_choice) {
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        cur_block = new char[BLOCK_SIZE*sizeof(Node)];
+        cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
         cur_ind = 0;
     }
     // Placement new for internal node
@@ -294,14 +282,14 @@ void Trainer::move_down(uintf root, uintf move_choice) {
     // Push children except for chosen one
     Node *root_node = get_node(root);
     for (uintf i = 0; i < NUM_MOVES; ++i) {
-        if (root_node->visited.get(i) && i != move_choice) nodes.push(find_next(root, i));
+        if (root_node->has_visited(i) && i != move_choice) nodes.push(find_next(root, i));
     }
     while (!nodes.empty()) {
         uintf cur = nodes.front();
         Node *cur_node = get_node(cur);
-        is_stale[i] = true;
+        is_stale[cur] = true;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
-            if (cur_node->visited.get(i)) nodes.push(find_next(cur, i));
+            if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));
         }
     }
 }
@@ -315,13 +303,13 @@ void Trainer::delete_tree(uintf root) {
     while (!nodes.empty()) {
         uintf cur = nodes.front();
         Node *cur_node = get_node(cur);
-        is_stale[i] = true;
+        is_stale[cur] = true;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
-            if (cur_node->visited.get(i)) nodes.push(find_next(cur, i));
+            if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));
         }
     }
 }
 
-uintf generate() {
+uintf Trainer::generate() {
     return generator();
 }

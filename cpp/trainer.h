@@ -1,9 +1,7 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
-#include "trainmc.h"
 #include "selfplayer.h"
-#include "node.h"
 #include "util.h"
 #include <vector>
 #include <array>
@@ -41,10 +39,6 @@ class Trainer {
     // Counter used to keep track of game offsets
     uintf iterations_done;
 
-    // Location to write game states to evaluate
-    // Can we use the same input to the neural net each time?
-    float game_states[][GAME_STATE_SIZE];
-
     // Random generator for all operation
     std::mt19937 generator;
 
@@ -58,13 +52,13 @@ class Trainer {
 
   public:
 
-    Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations, float states_to_evaluate[][GAME_STATE_SIZE],
+    Trainer(bool testing, uintf num_games, uintf num_logged, uintf num_iterations,
     float c_puct, float epsilon);
     ~Trainer();
 
     // We need a testing version of do_iteration, where we pass 2 sets of results, one for each neural net (dirichlet noise can be shared)
     void do_iteration(float evaluation_results[], float probability_results[][NUM_TOTAL_MOVES],
-    float dirichlet[][NUM_MOVES]);
+    float dirichlet[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]);
 
     // Place root in hash table (random hash)
     uintf place_root();

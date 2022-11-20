@@ -71,7 +71,7 @@ bool Game::can_place(uintf ptype, uintf row, uintf col) {
 
 // Returns an int representing the bottom piece of a stack, 3 if empty
 // Used to determine the legality of move moves
-fint Game::get_bottom(uintf row, uintf col) {
+intf Game::get_bottom(uintf row, uintf col) {
     if (board.test(row * 12 + col * 3 + 0)) return 0;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 2)) return 2;
@@ -81,7 +81,7 @@ fint Game::get_bottom(uintf row, uintf col) {
 
 // Returns an int representing the top of a stack, -1 if empty
 // Used to determine the legality of move moves
-fint Game::get_top(uintf row, uintf col) {
+intf Game::get_top(uintf row, uintf col) {
     if (board.test(row * 12 + col * 3 + 2)) return 2;
     if (board.test(row * 12 + col * 3 + 1)) return 1;
     if (board.test(row * 12 + col * 3 + 0)) return 0;
@@ -112,7 +112,7 @@ bool Game::is_legal(uintf move_id) {
 // we could also have it not be static and change a member that tracks whether there are lines
 // since this is only called if there is a line
 void apply_line(bitset<NUM_MOVES> &legal_moves, uintf line) {
-    legal_moves &= line_breakers[uint];
+    legal_moves &= line_breakers[line];
 }
 
 // Finds lines and moves that break all lines
@@ -120,7 +120,7 @@ void apply_line(bitset<NUM_MOVES> &legal_moves, uintf line) {
 bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) {
 
     bool is_lines = false;
-    int8 space_0, space_1, space_2, space_3;
+    intf space_0, space_1, space_2, space_3;
 
     // Rows
     for (uintf i = 0; i < 4; ++i) {
@@ -246,6 +246,8 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) {
         apply_line(legal_moves, 72 + S3 * 3 + space_1);
     }
 
+    return is_lines;
+
 }
 
 // Find lines and then filters through remaining moves to find legal moves
@@ -253,10 +255,10 @@ void Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) {
 
     // Set all bits to 1
     // Since apply_line does &=, we need to do this
-    legal_move.set();
+    legal_moves.set();
 
     // Filter out moves that don't break lines
-    is_lines = get_line_breakers(legal_moves);
+    bool is_lines = get_line_breakers(legal_moves);
 
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (legal_moves.test(i) && !is_legal(i)) {
@@ -303,7 +305,7 @@ void Game::do_move(uintf move_id) {
 	        board.set(
 	            move.row2 * 12 + move.col2 * 3 + i,
 		        board.test(move.row1 * 12 + move.col1 * 3 + i) ||
-		        board.test(move.row2 * 12 + move.col2 & 3 + i)
+		        board.test(move.row2 * 12 + move.col2 * 3 + i)
 	        );
             board.reset(move.row1 * 12 + move.col1 * 3 + i);
 	    }

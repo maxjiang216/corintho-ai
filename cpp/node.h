@@ -30,6 +30,7 @@ using std::bitset;
     // Used to create the root node
     Node();
     Node(const Game &game);
+    Node(const Game &game, uintf depth);
     // Used when writing into a new node
     // Will copy a game, then apply the move
     Node(const Game &game, uintf depth, uintf parent, uintf move_choice);
@@ -37,12 +38,14 @@ using std::bitset;
 
     // overwrite relevant parts of node
     // other things will be overwritten lazily
+    void overwrite();
+    void overwrite(const Game &new_game, uintf new_depth);
     void overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice);
 
     bool is_terminal();
     uintf get_depth();
     const Game& get_game();
-    Result get_result;
+    Result get_result();
     bool has_visited(uintf move_choice);
     uintf get_visits();
     void add_evaluation(float new_evalution);

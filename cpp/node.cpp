@@ -68,7 +68,7 @@ uintf Node::get_depth() {
 
 // return a const ref to game
 const Game& Node::get_game() {
-    return &game;
+    return game;
 }
 
 Result Node::get_result() {
@@ -104,22 +104,22 @@ uintf Node::get_to_play() {
     return game.get_to_play();
 }
 
-void set_probability(uintf id, float probability) {
+void Node::set_probability(uintf id, float probability) {
     probabilities[id] = probability;
 }
 
-float get_probability(uintf id) {
-    return probabilities[i];
+float Node::get_probability(uintf id) {
+    return probabilities[id];
 }
 
-bool is_legal(uintf id) {
-    return legal_moves[i];
+bool Node::is_legal(uintf id) {
+    return legal_moves[id];
 }
 
-void adjust_probability(uintf id, float scalar, float noise) {
+void Node::adjust_probability(uintf id, float scalar, float noise) {
     probabilities[id] = probabilities[id] * scalar + noise;
 }
 
-void write_game_state(float game_state[GAME_STATE_SIZE]) {
+void Node::write_game_state(float game_state[GAME_STATE_SIZE]) {
     game.write_game_state(game_state);
 }

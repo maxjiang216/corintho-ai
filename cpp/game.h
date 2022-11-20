@@ -17,7 +17,7 @@ class Game {
     // Is it better to store this as 1/2 ints?
     bitset<BOARD_SIZE> frozen;
     // We want to add orientation later
-    uintf pieces[6], to_play;
+    uintf to_play, pieces[6];
     // Game result, Game needs to have it because it knows which lines exist
     Result result;
 

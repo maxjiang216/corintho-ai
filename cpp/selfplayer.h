@@ -1,7 +1,6 @@
 #ifndef SELFPLAYER_H
 #define SELFPLAYER_H
 
-#include "trainer.h"
 #include "trainmc.h"
 #include "util.h"
 #include <vector>
@@ -33,7 +32,9 @@ class SelfPlayer {
 
     void do_first_iteration(float game_state[GAME_STATE_SIZE]);
     void do_iteration(float evaluation_result, float probability_result[NUM_TOTAL_MOVES],
-    float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIE]);
+    float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]);
+    
+    uintf get_root(uintf player_num);
 
 };
 

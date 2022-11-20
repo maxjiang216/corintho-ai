@@ -1,8 +1,5 @@
 #include "trainmc.h"
-#include "game.h"
-#include "move.h"
-#include "util.h"
-#include "node.h"
+#include "trainer.h"
 #include <memory>
 #include <bitset>
 #include <math.h>
@@ -273,4 +270,22 @@ bool TrainMC::receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SI
         // we need an evaluation
         return true;
     }
+}
+
+uintf TrainMC::get_root() {
+    return root;
+}
+
+bool TrainMC::is_uninitialized() {
+    return cur_node == nullptr;
+}
+
+const Game& TrainMC::get_game() {
+    return cur_node->get_game();
+}
+
+void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct, float new_epsilon) {
+    max_iterations = new_max_iterations;
+    c_puct = new_c_puct;
+    epsilon = new_epsilon;
 }

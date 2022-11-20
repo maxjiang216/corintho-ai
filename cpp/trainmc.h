@@ -1,8 +1,6 @@
 #ifndef TRAINMC_H
 #define TRAINMC_H
 
-#include "game.h"
-#include "trainer.h"
 #include "node.h"
 #include "util.h"
 #include <bitset>
@@ -11,6 +9,9 @@
 using std::bitset;
 using std::unique_ptr;
 using std::shared_ptr;
+
+class Trainer;
+class Game;
 
 class TrainMC {
 
@@ -24,8 +25,8 @@ class TrainMC {
     uintf iterations_done;
     bool testing, logging;
 
-    static uintf max_iterations;
-    static float c_puct, epsilon;
+    inline static uintf max_iterations = 1600;
+    inline static float c_puct = 1.0, epsilon = 0.25;
 
     uintf choose_next();
     // I want to keep these as normal arrays instead of std::array for now
@@ -51,6 +52,12 @@ class TrainMC {
     void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]);
 
     uintf choose_move();
+
+    uintf get_root();
+    bool is_uninitialized();
+    const Game& get_game();
+
+    static void set_statics(uintf new_max_iterations, float new_c_puct, float new_epsilon);
 
 };
 

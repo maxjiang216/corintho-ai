@@ -88,10 +88,8 @@ Trainer::~Trainer() {
 // Should we use pointers instead?
 void Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_MOVES],
 float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
-    cout << "88" << '\n';
     // We should first check if rehash is needed
     for (uintf i = 0; i < num_games; ++i) {
-        cout << "Trainer::do_iteration " << i << ' ' << i / num_iterations << ' ' << iterations_done << '\n';
         // Pass neural net results
         if (i / num_iterations < iterations_done) {
             games[i].do_iteration(evaluations[i], probabilities[i], dirichlet_noise[i], game_states[i]);
@@ -101,29 +99,31 @@ float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
             games[i].do_first_iteration(game_states[i]);
         }
     }
+    uintf n_nodes = 0;
+    for (uintf i = 0; i < hash_table.size(); ++i) {
+        if (hash_table[i] != nullptr && !is_stale[i]) {
+            ++n_nodes;
+        }
+    }
+    cout << "There are " << n_nodes << " nodes in the hash_table and the hash table size is " << hash_table.size() << '\n';
     ++iterations_done;
 }
 
 uintf Trainer::place_root() {
-    //cout << "place_root()\n";
     // Use random hash value
     uintf pos = generator() % hash_table.size();
-    //cout << "place_root() 108\n";
     while (hash_table[pos] && !is_stale[pos]) {
+        cout << pos << '\n';
         pos = (pos + 1) % hash_table.size();
     }
-    //cout << "place_root() 112\n";
     // Unused space, place new node
     if (!hash_table[pos]) {
-        cout << "place_root() 115\n";
         place(pos);
     }
     // Overwrite stale node with starting position
     else {
-        cout << "place_root() 120\n";
         hash_table[pos]->overwrite();
     }
-    //cout << "place_root() 121\n";
     return pos;
 }
 
@@ -152,9 +152,7 @@ uintf Trainer::place_root(const Game &game, uintf depth) {
 // We can't use depth in the hash
 // Since find_next does not have access to this
 uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf move_choice) {
-    cout << "Trainer::place_next(game, depth, parent, move_choice) 155 " << parent << ' ' << move_choice << '\n';
     uintf pos = (parent * MULT_FACTOR + move_choice * ADD_FACTOR) % hash_table.size();
-    cout << "Trainer::place_next(game, depth, parent, move_choice) 157 " << pos << '\n';
     // When placing a node, we can replace a stale node
     while (hash_table[pos] && !is_stale[pos] && hash_table[pos]->get_parent() != parent) {
         pos = (pos + 1) % hash_table.size();
@@ -193,7 +191,7 @@ uintf Trainer::find_next(uintf parent, uintf move_choice) {
     return pos;
 }
 
-Node* Trainer::get_node(uintf id) {
+inline Node* Trainer::get_node(uintf id) {
     return hash_table[id];
 }
 
@@ -255,10 +253,8 @@ void Trainer::rehash() {
 }
 
 void Trainer::place(uintf pos) {
-    //cout << "place() " << cur_block << ' ' << cur_ind << ' ' << cur_block + cur_ind*sizeof(Node) << '\n';
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        //cout << "place() 256\n";
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
         cur_ind = 0;
     }
@@ -310,6 +306,7 @@ void Trainer::move_down(uintf root, uintf move_choice) {
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));
         }
+        nodes.pop();
     }
 }
 
@@ -326,6 +323,7 @@ void Trainer::delete_tree(uintf root) {
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));
         }
+        nodes.pop();
     }
 }
 

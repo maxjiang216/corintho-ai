@@ -1,6 +1,8 @@
 #include "node.h"
 #include "util.h"
 #include "game.h"
+#include <iostream>
+using std::cout;
 
 #include <bitset>
 

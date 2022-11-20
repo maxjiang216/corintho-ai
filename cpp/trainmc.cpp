@@ -30,19 +30,15 @@ logging{logging} {
 // Guaranteed to not yield a move output
 // We need to pass the memory buffers into here
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
-    cout << "TrainMC::do_first_iteration\n";
     // The second TrainMC does not need the starting position root node
     // Also, doing this here lets us detect the first iteration on the second tree
     // By testing nullptr for cur_node
+    cout << "TrainMC::do_first_iteration\n";
     root = trainer->place_root();
-    cout << "TrainMC::do_first_iteration 38\n";
     cur = root;
     cur_node = trainer->get_node(root);
-    cout << "TrainMC::do_first_iteration 41\n";
 
     cur_node->write_game_state(game_state);
-
-    cout << "TrainMC::do_first_iteration 45\n";
 
 }
 
@@ -96,7 +92,6 @@ uintf TrainMC::choose_next() {
 void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES],
 float dirichlet_noise[NUM_MOVES]) {
 
-    cout << "TrainMC::receive_evaluation\n";
     // We need to to figure out how to map the probabilities
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         cur_node->set_probability(i, probabilities[i]);
@@ -132,7 +127,6 @@ float dirichlet_noise[NUM_MOVES]) {
     // Propagate evaluation
     float cur_evaluation = evaluation * pow(-1.0, (float)cur_node->get_to_play());
     while (cur != root) {
-        cout << "TrainMC::receive_evaluation 130 " << cur_node << ' ' << cur << '\n';
         cur_node->add_evaluation(cur_evaluation);
         cur_evaluation *= -1;
         cur = cur_node->get_parent();
@@ -140,17 +134,14 @@ float dirichlet_noise[NUM_MOVES]) {
     }
     // Propagate to root
     cur_node->add_evaluation(cur_evaluation);
-    cout << "TrainMC::receive_evaluation 143 " << cur_node << ' ' << cur << ' ' << root << '\n';
 }
 
 bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
-    cout << "TrainMC::do_iteration(float*)\n";
     return search(game_state);
 }
 
 bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES],
 float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
-    cout << "TrainMC::do_iteration(float*, float*, float*, float*)\n";
     receive_evaluation(evaluation, probabilities, dirichlet_noise);
     return search(game_state);
 }
@@ -160,11 +151,8 @@ float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]) {
 // We can overload, factor out the search, add "receive_evaluation" function
 bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
-    // cout << "TrainMC::search 163\n";
-
     bool need_evaluation = false;
     while (!need_evaluation && iterations_done < max_iterations) {
-        // cout << "TrainMC::search 167\n";
         ++iterations_done;
         while (true) {
 
@@ -173,7 +161,6 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
             // Exploring a new node
             if (!(cur_node->has_visited(move_choice))) {
                 cur_node->set_visit(move_choice);
-                // cout << "TrainMC::search 175 " << move_choice << '\n';
                 // Create the new node
                 // visits is initialized to 1
                 cur = trainer->place_next(cur_node->get_game(), cur_node->get_depth(), cur,
@@ -183,16 +170,13 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
             }
             // Otherwise, move down normally
             else {
-                // cout << "TrainMC::search 185 " << move_choice << '\n';
                 cur_node->increment_visits();
                 cur = trainer->find_next(cur, move_choice);
                 cur_node = trainer->get_node(cur);
             }
         }
-        // cout << "TrainMC::search 191 " << cur << '\n';
         // Check for terminal state, otherwise evaluation is needed
         if (cur_node->is_terminal()) {
-            // cout << "TrainMC::search 193 " << '\n';
             // Don't propagate if value is 0
             if (cur_node->get_result() != DRAW) {
                 // Propagate evaluation
@@ -200,10 +184,6 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
                 // It is important we don't add to visits here, because we skip this for draws
                 float cur_evaluation = -1.0;
                 while (cur != root) {
-                    // cout << "TrainMC::search 189 " << cur << ' ' << cur_node->get_parent() << ' ' << root << '\n';
-                    if (cur == 0) {
-                        exit(0);
-                    }
                     cur_node->add_evaluation(cur_evaluation);
                     cur_evaluation *= -1;
                     cur = cur_node->get_parent();
@@ -228,7 +208,6 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
 // Choose the best move once searches are done
 uintf TrainMC::choose_move() {
-    cout << "TrainMC::choose_move\n";
     // Choose weighted random
     // cur_node should always be root after searches
     if (cur_node->get_depth() < 4 && !testing) {
@@ -239,7 +218,6 @@ uintf TrainMC::choose_move() {
                 total += children_visits[i];
             }
         }
-        cout << "TrainMC::choose_move 241 " << total << ' ' << cur << ' ' << cur_node << '\n';
         uintf id = trainer->generate() % total;
         total = 0;
         for (uintf i = 0; i < NUM_MOVES - 1; ++i) {

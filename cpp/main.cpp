@@ -25,6 +25,14 @@ void print_class_sizes() {
 // Basic run. 
 void test_basic_run() {
 
+    for (uintf i = 0; j < NUM_MOVES; )
+    for (uintf i = 0; i < 102; ++i) {
+        for (uintf j = 0; j < NUM_MOVES; ++j) {
+            cout << line_breakers[i][j];
+        }
+        cout << '\n';
+    }
+
     uintf num_games = 1;
 
     auto trainer = Trainer(false, num_games, 0, 1600, 1.0, 0.25);
@@ -35,7 +43,7 @@ void test_basic_run() {
     mt19937 generator(0);
     uniform_real_distribution<float> random_evals(-1.0, 1.0), random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
 
-    for (uintf i = 0; i < 1000; ++i) {
+    for (uintf i = 0; i < 100; ++i) {
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;
@@ -51,6 +59,7 @@ void test_basic_run() {
             }
         }
         trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
+        cout << "Complete iteration " << i + 1 << '\n';
     }
 
 }

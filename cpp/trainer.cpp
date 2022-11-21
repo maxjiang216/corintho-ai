@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
-#include <fstream>
 using std::cout;
 
 using std::vector;
@@ -189,8 +188,6 @@ uintf Trainer::find_next(uintf parent, uintf move_choice) const {
         ++counter;
     }
 
-    if (counter > 1) std::cerr << "probed " << counter << " times!\n";
-
     // We assume the node is always found
     return pos;
 
@@ -203,8 +200,6 @@ Node* Trainer::get_node(uintf id) const {
 void Trainer::move_down(uintf root, uintf move_choice) {
 
     // Stale the root
-    //std::fstream fs ("over.txt", std::fstream::app);
-    //fs << "stale move_down " << root << '\n';
     is_stale[root] = true;
 
     std::queue<uintf> nodes;
@@ -240,7 +235,7 @@ void Trainer::rehash_if_full() {
         }
     }
 
-    std::cerr << "active nodes " << active_nodes << " table size " << hash_table.size() << '\n';
+    //std::cerr << "active nodes " << active_nodes << " table size " << hash_table.size() << '\n';
 
     // Rehash if too full
     if ((float)active_nodes / hash_table.size() > LOAD_FACTOR) {
@@ -340,8 +335,6 @@ void Trainer::stale_all(std::queue<uintf> &nodes) {
     while (!nodes.empty()) {
         uintf cur = nodes.front();
         Node *cur_node = get_node(cur);
-        std::fstream fs ("over.txt", std::fstream::app);
-        fs << "stale stale_all " << cur << '\n';
         is_stale[cur] = true;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));

@@ -1,8 +1,10 @@
 #include "selfplayer.h"
 #include "trainer.h"
+#include "move.h"
 #include "util.h"
 #include <iostream>
-using std::cout;
+#include <fstream>
+using std::cerr;
 
 SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
                                           logging{false}, trainer{trainer} {}
@@ -65,7 +67,6 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
         // Check if the game is over
         if (trainer->get_node(players[to_play].get_root())->is_terminal()) {
-            cout << "Node " << players[to_play].get_root() << " is terminal!\n";
             // Make all nodes stale
             trainer->delete_tree(players[0].get_root());
             trainer->delete_tree(players[1].get_root());

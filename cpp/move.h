@@ -2,6 +2,7 @@
 #define MOVE_H
 
 #include "util.h"
+#include <ostream>
 
 struct Move {
 
@@ -9,6 +10,8 @@ struct Move {
     uintf ptype, row1, col1, row2, col2;
 
     Move(uintf move_id);
+
+    friend std::ostream& operator<<(std::ostream& os, const Move &move);
 
 };
 

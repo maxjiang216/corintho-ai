@@ -38,36 +38,36 @@ pieces{4, 4, 4, 4, 4, 4}, result{NONE} {}
 bool Game::is_empty(uintf row, uintf col) {
     return !(
         board.test(row * 12 + col * 3 + 0) ||
-	board.test(row * 12 + col * 3 + 1) ||
-	board.test(row * 12 + col * 3 + 2)
+        board.test(row * 12 + col * 3 + 1) ||
+        board.test(row * 12 + col * 3 + 2)
     ); // Is there a faster way to test this given the consecutive addresses?
 }
 
 bool Game::can_place(uintf ptype, uintf row, uintf col) {
 
+    // Check if player has the piece left
+    if (pieces[to_play * 3 + ptype] == 0) return false;
     // Check if space is empty
     // This is more common than frozen spaces
     // An empty space cannot be frozen
     if (is_empty(row, col)) return true;
-    // Check if player has the piece left
-    if (pieces[to_play * 3 + ptype]  == 0) return false;
     // Check if space is frozen
     if (frozen.test(row * 4 + col)) return false;
     // Bases can only be placed on empty spaces
-    if (ptype == 0) return false; // is if (!ptype) faster?
+    if (ptype == 0) return false;
     // Column
     // Check for absence of column and capital
     if (ptype == 1) {
         return !(
             board.test(row * 12 + col * 3 + 1) ||
-	    board.test(row * 12 + col * 3 + 2)
-	);
+	        board.test(row * 12 + col * 3 + 2)
+	    );
     }
     // Capital
     // Check for absence of base without column and capital
     return !(
         board.test(row * 12 + col * 3 + 2) ||
-	(board.test(row * 12 + col * 3 + 0) && !board.test(row * 12 + col * 3 + 1))
+	    (board.test(row * 12 + col * 3 + 0) && !board.test(row * 12 + col * 3 + 1))
     );
 }
 
@@ -264,7 +264,7 @@ void Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) {
 
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (legal_moves.test(i) && !is_legal(i)) {
-            legal_moves.flip(i);
+            legal_moves.reset(i);
 	    }
     }
 
@@ -290,16 +290,31 @@ void Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) {
 
 // Apply move to game. Does not check for legality
 void Game::do_move(uintf move_id) {
+    //std::cout << "------------\n";
+    //std::cout << *this << '\n';
     
     Move move{move_id};
+    //std::cout << to_play << ' ' << move.mtype << ' ' << move.ptype << ' ' << move.row1 << ' ' << move.col1 << '\n';
 
     // Reset which space is frozen
     frozen.reset();
 
     // Place
     if (move.mtype) {
-        pieces[to_play * 3 + move.ptype] -= 1;
+        bool flag = false;
+        if (pieces[to_play * 3 + move.ptype] == 0) {
+            std::cout << "---------------------------\n";
+            std::cout << *this << '\n';
+            std:: cout << move << '\n';
+            flag = true;
+        }
+        --pieces[to_play * 3 + move.ptype];
 	    board.set(move.row1 * 12 + move.col1 * 3 + move.ptype);
+        frozen.set(move.row1 * 4 + move.col1);
+        if (flag) {
+            std::cout << *this << '\n';
+            std::cout << "---------------------------\n";
+        }
     }
     // Move
     else {
@@ -311,8 +326,12 @@ void Game::do_move(uintf move_id) {
 	        );
             board.reset(move.row1 * 12 + move.col1 * 3 + i);
 	    }
+        frozen.set(move.row2 * 4 + move.col2);
     }
     to_play = 1 - to_play;
+
+    //std::cout << *this << '\n';
+    //std::cout << "------------\n";
 
 }
 
@@ -350,4 +369,33 @@ Result Game::get_result() {
 
 uintf Game::get_to_play() {
     return to_play;
+}
+
+std::ostream& operator<<(std::ostream& os, const Game &game) {
+
+    // Print board
+    for (uintf i = 0; i < 4; ++i) {
+        for (uint j = 0; j < 4; ++j) {
+            if (game.board.test(i * 12 + j * 3 + 0)) os << 'B';
+            else os << ' ';
+            if (game.board.test(i * 12 + j * 3 + 1)) os << 'C';
+            else os << ' ';
+            if (game.board.test(i * 12 + j * 3 + 2)) os << 'A';
+            else os << ' ';
+            if (game.frozen.test(i * 4 + j)) os << '#';
+            else os << ' ';
+            if (j < 3) os << '|';
+        }
+        if (i < 3) os << "\n-------------------\n";
+    }
+    os << '\n';
+    for (uintf i = 0; i < 2; ++i) {
+        os << "Player " << i+1 << ": ";
+        os << "B: " << game.pieces[i * 3 + 0] << ' ';
+        os << "C: " << game.pieces[i * 3 + 1] << ' ';
+        os << "A: " << game.pieces[i * 3 + 2] << '\n';
+    }
+
+    return os;
+
 }

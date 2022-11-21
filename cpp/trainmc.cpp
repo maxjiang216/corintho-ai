@@ -1,11 +1,10 @@
 #include "trainmc.h"
 #include "trainer.h"
+#include "move.h"
 #include <bitset>
 #include <cmath>
 #include <random>
-#include <iostream>
 #include <fstream>
-using std::cout;
 
 using std::bitset;
 
@@ -24,8 +23,6 @@ void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
     root = trainer->place_root();
     cur = root;
     cur_node = trainer->get_node(root);
-    std::fstream fs ("over.txt", std::fstream::app);
-    fs << "trainmc " << root << ' ' << cur << ' ' << cur_node->get_parent() <<'\n';
 
     cur_node->write_game_state(game_state);
 
@@ -37,8 +34,6 @@ void TrainMC::do_first_iteration(const Game &game, float game_state[GAME_STATE_S
     root = trainer->place_root(game, 1);
     cur = root;
     cur_node = trainer->get_node(root);
-    std::fstream fs ("over.txt", std::fstream::app);
-    fs << "trainmc " << root << ' ' << cur << ' ' << cur_node->get_parent() <<'\n';
 
     cur_node->write_game_state(game_state);
 
@@ -56,6 +51,8 @@ bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES
 
 uintf TrainMC::choose_move() {
 
+    uintf move_choice = 0;
+
     // In training, choose weighted random
     // For the first few moves
     if (cur_node->get_depth() < NUM_OPENING_MOVES && !testing) {
@@ -70,15 +67,15 @@ uintf TrainMC::choose_move() {
         for (uintf i = 0; i < NUM_MOVES - 1; ++i) {
             if (cur_node->has_visited(i)) {
                 cur_total += children_visits[i];
-                if (cur_total >= total) return i;
+                if (cur_total >= total) move_choice = i;
             }
         }
-        return NUM_MOVES - 1;
+        move_choice = NUM_MOVES - 1;
     }
 
     // Otherwise, choose randomly between the moves with the most visits/searches
     // Random offset is the easiest way to randomly break ties
-    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0, move_choice = 0;
+    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0;
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         uintf cur_move = (id + i) % NUM_MOVES;
         if (cur_node->has_visited(cur_move)) {
@@ -102,9 +99,10 @@ uintf TrainMC::choose_move() {
     // Should either be stale
     // Our have itself as its parent
     cur_node->null_parent();
-    std::fstream fs ("over.txt", std::fstream::app);
-    fs << "trainmc " << root << ' ' << cur << ' ' << cur_node->get_parent() <<'\n';
     iterations_done = 0;
+
+    std::fstream fs("log.txt", std::fstream::app);
+    fs << cur_node->get_depth() << '\n' << Move{move_choice} << '\n' << cur_node->get_game() << '\n';
 
     return move_choice;
 
@@ -124,8 +122,6 @@ bool TrainMC::receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SI
         cur = root;
         cur_node = trainer->get_node(cur);
         cur_node->null_parent();
-        std::fstream fs ("over.txt", std::fstream::app);
-        fs << "trainmc " << root << ' ' << cur << ' ' << cur_node->get_parent() <<'\n';
         iterations_done = 0;
         // we don't need an evaluation
         return false;
@@ -140,8 +136,6 @@ bool TrainMC::receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SI
         root = trainer->place_root(game, depth);
         cur = root;
         cur_node = trainer->get_node(root);
-        std::fstream fs ("over.txt", std::fstream::app);
-        fs << "trainmc " << root << ' ' << cur << ' ' << cur_node->get_parent() <<'\n';
         // We need an evaluation
         cur_node->write_game_state(game_state);
         // this is the first iteration of the turn
@@ -177,14 +171,10 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct, float new_
 void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES],
                                  float dirichlet_noise[NUM_MOVES]) {
 
-    //std::cerr << root << ' ' << cur << ' ' << cur_node << '\n';
-
     // We need to to figure out how to map the probabilities
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         cur_node->set_probability(i, probabilities[i]);
     }
-
-    //std::cerr << root << ' ' << cur << ' ' << cur_node << '\n';
     
     // Apply the legal move filter
     // and keep track of the total sum so we can normalize afterwards
@@ -198,8 +188,6 @@ void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL
         }
     }
 
-    //std::cerr << root << ' ' << cur << ' ' << cur_node << '\n';
-
     // Multiplying by this is more efficient
     float scalar = 1.0 / sum;
 
@@ -210,22 +198,10 @@ void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL
         }
     }
 
-    //std::cerr << root << ' ' << cur << ' ' << cur_node << '\n';
-
     // Propagate evaluation
     float cur_evaluation = evaluation;
     if (cur_node->get_to_play() % 2 == 1) cur_evaluation *= -1.0;
-    cout << "receive evaluation!\n";
     while (cur != root) {
-        if (cur_node == nullptr) {
-            for (uintf k = 0; k < NUM_MOVES; ++k) {
-                std::cerr << k << ' ' << trainer->get_node(root)->children[k] << ' ';
-            }
-            std::cerr << '\n';
-            exit(-1);
-        } else {
-            std::cerr << root << ' ' << trainer->get_node(root)->get_visits() << ' ' << cur << ' ' << trainer->get_node(cur)->get_visits() << '\n';
-        }
         cur_node->add_evaluation(cur_evaluation);
         cur_evaluation *= -1.0;
         cur = cur_node->get_parent();

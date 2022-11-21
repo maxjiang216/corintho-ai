@@ -72,3 +72,24 @@ uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2) {
     return 36 + (row1 - 1) * 4 + col1;
 
 }
+
+std::ostream& operator<<(std::ostream& os, const Move &move) {
+
+    if (move.mtype) {
+        if (move.ptype == 0) {
+            os << "PB" << move.row1 << move.col1;
+        }
+        else if (move.ptype == 1) {
+            os << "PC" << move.row1 << move.col1;
+        }
+        else if (move.ptype == 2) {
+            os << "PA" << move.row1 << move.col1;
+        }
+    }
+    else {
+        os << move.row1 << move.col1 << move.row2 << move.col2;
+    }
+
+    return os;
+
+}

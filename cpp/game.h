@@ -4,8 +4,7 @@
 // Bitset can save on memory and make resetting all bits faster
 #include "util.h"
 #include <bitset>
-#include <memory>
-#include <cstdint>
+#include <ostream>
 
 using std::bitset;
 
@@ -41,6 +40,8 @@ class Game {
     Result get_result();
     uintf get_to_play();
     void write_game_state(float game_state[GAME_STATE_SIZE]);
+
+    friend std::ostream& operator<<(std::ostream& stream, const Game &game);
 
 };
 

@@ -1,10 +1,6 @@
 #include "node.h"
 #include "util.h"
 #include "game.h"
-#include <iostream>
-#include <fstream>
-using std::cout;
-
 #include <bitset>
 
 using std::bitset;
@@ -33,8 +29,6 @@ depth{depth+1}, parent{parent} {
     game.do_move(move_choice);
     game.get_legal_moves(legal_moves);
     visited.reset();
-    std::fstream fs ("over.txt", std::fstream::app);
-    fs << "node parent " << parent << ' ' << pos << '\n';
 }
 
 // Overwrite with root node (starting position) (probably not used)
@@ -43,6 +37,7 @@ void Node::overwrite() {
     visits = 1;
     depth = 0;
     parent = 0;
+    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 
@@ -52,20 +47,18 @@ void Node::overwrite(const Game &new_game, uintf new_depth) {
     visits = 1;
     depth = new_depth;
     parent = 0;
+    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 
 void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice, uintf pos,
                      bool is_stale) {
-    //std::fstream fs ("over.txt", std::fstream::app);
-    //fs << "overwrite " << parent << ' ' << new_parent << ' ' << this << ' ' << pos << ' ' << is_stale << '\n';
-    std::fstream fs ("over.txt", std::fstream::app);
-    fs << "node overwrite 3 " << pos << ' ' << parent <<'\n';
-    game = game;
+    game = new_game;
     visits = 1;
     depth = new_depth + 1;
     parent = new_parent;
     game.do_move(move_choice);
+    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 

@@ -22,12 +22,18 @@ void print_class_sizes() {
     cout << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
 }
 
+void print_game() {
+
+    cout << Game() << '\n';
+
+}
+
 // Basic run. 
 void test_basic_run() {
 
-    uintf num_games = 300;
+    uintf num_games = 1;
 
-    auto trainer = Trainer{num_games, 0, 200, 1.0, 0.25};
+    auto trainer = Trainer{num_games, 0, 100, 1.0, 0.25};
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
@@ -38,7 +44,7 @@ void test_basic_run() {
     auto start = chrono::high_resolution_clock::now();
     uintf counter = 0;
     while (true) {
-        trainer.rehash_if_full();
+        //trainer.rehash_if_full();
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;
@@ -55,7 +61,8 @@ void test_basic_run() {
         }
         bool is_done = trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
         if (is_done) break;
-        cout << "Complete iteration " << ++counter << '\n';
+        ++counter;
+        if (counter % 1000 == 0) cout << "Complete iteration " << counter << '\n';
     }
     auto stop = chrono::high_resolution_clock::now();
 
@@ -72,6 +79,8 @@ cout << duration.count() << endl;
 int main() {
 
     print_class_sizes();
+
+    print_game();
 
     test_basic_run();
 

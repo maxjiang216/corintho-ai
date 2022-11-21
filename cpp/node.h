@@ -26,6 +26,8 @@ using std::bitset;
     bitset<NUM_MOVES> legal_moves, visited;
 
   public:
+
+    std::array<uintf, NUM_MOVES> children;
     
     // Used to create the root node
     Node();
@@ -33,14 +35,14 @@ using std::bitset;
     Node(const Game &game, uintf depth);
     // Used when writing into a new node
     // Will copy a game, then apply the move
-    Node(const Game &game, uintf depth, uintf parent, uintf move_choice);
+    Node(const Game &game, uintf depth, uintf parent, uintf move_choice, uintf pos);
     ~Node() = default;
 
     // overwrite relevant parts of node
     // other things will be overwritten lazily
     void overwrite();
     void overwrite(const Game &new_game, uintf new_depth);
-    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice);
+    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice, uintf pos, bool);
 
     bool is_terminal();
     uintf get_depth();
@@ -51,6 +53,7 @@ using std::bitset;
     void add_evaluation(float new_evalution);
     float get_evaluation();
     uintf get_parent();
+    void null_parent();
     void increment_visits();
     uintf get_to_play();
     void set_probability(uintf id, float probability);

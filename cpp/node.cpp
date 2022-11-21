@@ -2,6 +2,7 @@
 #include "util.h"
 #include "game.h"
 #include <iostream>
+#include <fstream>
 using std::cout;
 
 #include <bitset>
@@ -9,7 +10,7 @@ using std::cout;
 using std::bitset;
 
 // Only used to create the root node (starting position)
-Node::Node(): game{Game()}, visits{1}, depth{0} {
+Node::Node(): game{Game()}, visits{1}, depth{0}, parent{0} {
 
     // Get legal moves in starting position. Cannot be terminal node
     game.get_legal_moves(legal_moves);
@@ -18,7 +19,8 @@ Node::Node(): game{Game()}, visits{1}, depth{0} {
 }
 
 // Occasionally need to create root nodes from arbitrary game states
-Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1}, depth{depth} {
+Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1},
+                                                            depth{depth}, parent{0} {
     game.get_legal_moves(legal_moves);
     visited.reset();
 }
@@ -26,11 +28,13 @@ Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1}, de
 // Pass game by reference, then copy it
 // This should be more efficient as only a pointer is passed as an argument
 // Which is smaller
-Node::Node(const Game &other_game, uintf depth, uintf parent, uintf move_choice): game{other_game}, visits{1},
+Node::Node(const Game &other_game, uintf depth, uintf parent, uintf move_choice, uintf pos): game{other_game}, visits{1},
 depth{depth+1}, parent{parent} {
     game.do_move(move_choice);
     game.get_legal_moves(legal_moves);
     visited.reset();
+    std::fstream fs ("over.txt", std::fstream::app);
+    fs << "node parent " << parent << ' ' << pos << '\n';
 }
 
 // Overwrite with root node (starting position) (probably not used)
@@ -38,18 +42,25 @@ void Node::overwrite() {
     game = Game();
     visits = 1;
     depth = 0;
+    parent = 0;
     visited.reset();
 }
 
-// Overwrite with root node (not starting positino)
+// Overwrite with root node (not starting position)
 void Node::overwrite(const Game &new_game, uintf new_depth) {
     game = new_game;
     visits = 1;
     depth = new_depth;
+    parent = 0;
     visited.reset();
 }
 
-void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice) {
+void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice, uintf pos,
+                     bool is_stale) {
+    //std::fstream fs ("over.txt", std::fstream::app);
+    //fs << "overwrite " << parent << ' ' << new_parent << ' ' << this << ' ' << pos << ' ' << is_stale << '\n';
+    std::fstream fs ("over.txt", std::fstream::app);
+    fs << "node overwrite 3 " << pos << ' ' << parent <<'\n';
     game = game;
     visits = 1;
     depth = new_depth + 1;
@@ -96,6 +107,10 @@ float Node::get_evaluation() {
 
 uintf Node::get_parent() {
     return parent;
+}
+
+void Node::null_parent() {
+    parent = 0;
 }
 
 void Node::increment_visits() {

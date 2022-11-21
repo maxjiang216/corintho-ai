@@ -25,9 +25,9 @@ void print_class_sizes() {
 // Basic run. 
 void test_basic_run() {
 
-    uintf num_games = 3000;
+    uintf num_games = 300;
 
-    auto trainer = Trainer(false, num_games, 0, 1600, 1.0, 0.25);
+    auto trainer = Trainer{num_games, 0, 200, 1.0, 0.25};
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
@@ -36,7 +36,9 @@ void test_basic_run() {
     uniform_real_distribution<float> random_evals(-1.0, 1.0), random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
 
     auto start = chrono::high_resolution_clock::now();
-    for (uintf i = 0; i < 1400; ++i) {
+    uintf counter = 0;
+    while (true) {
+        trainer.rehash_if_full();
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;
@@ -51,8 +53,9 @@ void test_basic_run() {
                 dirichlet_noise[i][j] = random_noise(generator);
             }
         }
-        trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
-        cout << "Complete iteration " << i + 1 << '\n';
+        bool is_done = trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
+        if (is_done) break;
+        cout << "Complete iteration " << ++counter << '\n';
     }
     auto stop = chrono::high_resolution_clock::now();
 

@@ -1,64 +1,43 @@
 #include "node.h"
-#include "util.h"
 #include "game.h"
+#include "util.h"
 #include <bitset>
 
 using std::bitset;
 
-// Only used to create the root node (starting position)
-Node::Node(): game{Game()}, visits{1}, depth{0}, parent{0} {
+Node::Node(): game{Game()}, visits{1}, depth{0}, parent{0}, visited{bitset<NUM_MOVES>()} {}
 
-    // Get legal moves in starting position. Cannot be terminal node
-    game.get_legal_moves(legal_moves);
-    visited.reset();
+Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1}, depth{depth},
+                                                 parent{0}, visited{bitset<NUM_MOVES>()} {}
 
-}
-
-// Occasionally need to create root nodes from arbitrary game states
-Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1},
-                                                            depth{depth}, parent{0} {
-    game.get_legal_moves(legal_moves);
-    visited.reset();
-}
-
-// Pass game by reference, then copy it
-// This should be more efficient as only a pointer is passed as an argument
-// Which is smaller
-Node::Node(const Game &other_game, uintf depth, uintf parent, uintf move_choice, uintf pos): game{other_game}, visits{1},
-depth{depth+1}, parent{parent} {
+Node::Node(const Game &other_game, uintf depth, uintf parent, uintf move_choice, uintf pos):
+           game{other_game}, visits{1}, depth{depth+1}, parent{parent}, visited{bitset<NUM_MOVES>()} {
     game.do_move(move_choice);
-    game.get_legal_moves(legal_moves);
-    visited.reset();
 }
 
-// Overwrite with root node (starting position) (probably not used)
 void Node::overwrite() {
     game = Game();
     visits = 1;
     depth = 0;
     parent = 0;
-    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 
-// Overwrite with root node (not starting position)
 void Node::overwrite(const Game &new_game, uintf new_depth) {
     game = new_game;
     visits = 1;
     depth = new_depth;
     parent = 0;
-    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 
-void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice, uintf pos,
-                     bool is_stale) {
+void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent,
+                     uintf move_choice, uintf pos, bool is_stale) {
     game = new_game;
     visits = 1;
     depth = new_depth + 1;
     parent = new_parent;
     game.do_move(move_choice);
-    game.get_legal_moves(legal_moves);
     visited.reset();
 }
 

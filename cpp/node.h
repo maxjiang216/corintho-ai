@@ -4,9 +4,6 @@
 #include "game.h"
 #include "util.h"
 #include <bitset>
-#include <array>
-
-using std::bitset;
 
 // Node in Monte Carlo Tree
   class Node {
@@ -19,18 +16,18 @@ using std::bitset;
     uintf depth;
     // Index of parent node
     uintf parent;
-    float evaluation;
-    std::array<float, NUM_MOVES> probabilities;
-    // legal_moves denotes which moves are legal, stores in node instead of game since Node is the one using it (?)
-    // visited denotes which children have been visited, useful for many computations
-    bitset<NUM_MOVES> legal_moves, visited;
+
+    // Evaluations
+    float evaluation, probabilities[NUM_MOVES];
+
+    // Which children have been visited
+    std::bitset<NUM_MOVES> visited;
 
   public:
-
-    std::array<uintf, NUM_MOVES> children;
     
-    // Used to create the root node
+    // Used to create root nodes
     Node();
+    // Occasionally need to create root nodes from arbitrary game states
     Node(const Game &game);
     Node(const Game &game, uintf depth);
     // Used when writing into a new node
@@ -39,27 +36,30 @@ using std::bitset;
     ~Node() = default;
 
     // overwrite relevant parts of node
-    // other things will be overwritten lazily
     void overwrite();
     void overwrite(const Game &new_game, uintf new_depth);
-    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent, uintf move_choice, uintf pos, bool);
+    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent,
+                   uintf move_choice, uintf pos, bool);
 
-    bool is_terminal();
-    uintf get_depth();
-    const Game& get_game();
-    Result get_result();
-    bool has_visited(uintf move_choice);
-    uintf get_visits();
-    void add_evaluation(float new_evalution);
-    float get_evaluation();
-    uintf get_parent();
-    void null_parent();
+    // Accessors
+    const Game& get_game() const;
+    uintf get_to_play() const;
+    bool is_legal(uintf id) const;
+    Result get_result() const;
+    bool is_terminal() const;
+    uintf get_visits() const;
+    uintf get_parent() const;
+    float get_evaluation() const;
+    bool has_visited(uintf move_choice) const;
+    float get_probability(uintf id) const;
+
+    // Modifiers
     void increment_visits();
-    uintf get_to_play();
+    uintf get_depth();
+    void null_parent();
+    void add_evaluation(float new_evalution);
     void set_probability(uintf id, float probability);
-    float get_probability(uintf id);
     void adjust_probability(uintf id, float scalar, float noise);
-    bool is_legal(uintf id);
     void set_visit(uintf move_choice);
 
     void write_game_state(float game_state[GAME_STATE_SIZE]);

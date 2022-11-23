@@ -15,6 +15,10 @@ class Game {
     bitset<3*BOARD_SIZE> board;
     // Is it better to store this as 1/2 ints?
     bitset<BOARD_SIZE> frozen;
+    // no need to compute lazily, just put in game
+    // makes more sense
+    // also allows us to copy it
+    bitset<NUM_MOVES> legal_moves;
     // We want to add orientation later
     uintf to_play, pieces[6];
     // Game result, Game needs to have it because it knows which lines exist

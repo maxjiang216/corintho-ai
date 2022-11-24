@@ -6,6 +6,7 @@
 #include <vector>
 #include <random>
 #include <queue>
+#include <string>
 
 // This is the class that should interact with Cython
 
@@ -59,11 +60,14 @@ class Trainer {
     // List of blocks that have been allocated so we can delete them appropriately
     std::vector<Node*> blocks;
 
+    // Add some std::fstreams for logging files
+
     // Random generator for all operations
     std::mt19937 generator;
 
     // Initialize SelfPlayers (factored out of different version of constructor)
-    void initialize(bool testing, uintf num_games, uintf num_logged, float c_puct, float epsilon);
+    void initialize(bool testing, uintf num_games, uintf num_logged,
+                    float c_puct, float epsilon, const std::string &logging_folder);
 
     // Hash child nodes
     static uintf hash(uintf parent, uintf move_choice, uintf table_size);
@@ -83,9 +87,11 @@ class Trainer {
   public:
 
     // Training
-    Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon);
+    Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
+            float c_puct, float epsilon, const std::string &logging_folder);
     // Testing
-    Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, bool);
+    Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
+            float c_puct, float epsilon, const std::string &logging_folder, bool);
     ~Trainer();
 
     // Main function that will be called by Cython

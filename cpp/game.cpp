@@ -116,9 +116,9 @@ std::ostream& operator<<(std::ostream& os, const Game &game) {
     // Print pieces
     for (uintf i = 0; i < 2; ++i) {
         os << "Player " << i+1 << ": ";
-        os << "B: " << game.pieces[i * 3 + 0] << ' ';
-        os << "C: " << game.pieces[i * 3 + 1] << ' ';
-        os << "A: " << game.pieces[i * 3 + 2] << '\n';
+        os << "B: " << (uintf)game.pieces[i * 3 + 0] << ' ';
+        os << "C: " << (uintf)game.pieces[i * 3 + 1] << ' ';
+        os << "A: " << (uintf)game.pieces[i * 3 + 2] << '\n';
     }
     os << "Player " << game.to_play+1 << " to play";
 

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -MMD -O3 -g #-pg
+CXXFLAGS = -std=c++20 -Wall -MMD -O3 #-g #-pg
 
 SRC = ./cpp
 

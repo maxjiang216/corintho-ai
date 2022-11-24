@@ -15,7 +15,7 @@ class Game {
     bitset<3*BOARD_SIZE> board;
     bitset<BOARD_SIZE> frozen;
     // We want to add orientation later
-    uintf to_play, pieces[6];
+    uint_least8_t to_play, pieces[6];
     bitset<NUM_MOVES> legal_moves;
     // Game result
     // Game needs to have it because it knows which lines exist

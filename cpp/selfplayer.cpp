@@ -2,23 +2,31 @@
 #include "trainer.h"
 #include "move.h"
 #include "util.h"
-#include <iostream>
 #include <fstream>
-using std::cerr;
+#include <string>
 
 SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
                                           logging{false}, trainer{trainer} {}
 
-SelfPlayer::SelfPlayer(Trainer *trainer, bool): players{TrainMC{trainer, true}, TrainMC{trainer, true}},
-                                                to_play{0}, logging{true}, trainer{trainer} {}
+SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_folder):
+                       players{TrainMC{trainer, true}, TrainMC{trainer, true}},
+                       to_play{0}, logging{true},
+                       logging_file{new std::ofstream{logging_folder + "/game_" +
+                                                                   std::to_string(id) + ".txt",
+                                                  std::ofstream::out}},
+                       trainer{trainer} {}
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer):
-    players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}}, to_play{0},
-    logging{false}, trainer{trainer} {}
+                       players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}},
+                       to_play{0}, logging{false}, trainer{trainer} {}
 
-SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, bool):
-    players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}}, to_play{0},
-    logging{true}, trainer{trainer} {}
+SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string &logging_folder):
+                       players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}},
+                       to_play{0}, logging{true},
+                       logging_file{new std::ofstream{logging_folder + "/game_" +
+                                                                   std::to_string(id) + ".txt",
+                                                  std::ofstream::out}},
+                       trainer{trainer} {}
 
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
     players[0].do_first_iteration(game_state);
@@ -64,6 +72,10 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
         // This function will automatically apply the move to the TrainMC
         uintf move_choice = players[to_play].choose_move();
+
+        if (logging) {
+            *logging_file << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
+        }
 
         // Check if the game is over
         if (trainer->get_node(players[to_play].get_root())->is_terminal()) {

@@ -12,19 +12,20 @@ using namespace std;
 // Print the size of the classes we're using
 void print_class_sizes() {
 
-    cout << "sizeof(uintf): " << sizeof(uintf) << '\n';
-    cout << "sizeof(Move): " << sizeof(Move) << '\n';
-    cout << "sizeof(Game): " << sizeof(Game) << '\n';
-    cout << "sizeof(Node): " << sizeof(Node) << '\n';
-    cout << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
-    cout << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
-    cout << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
-    cout << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+    cerr << "sizeof(uintf): " << sizeof(uintf) << '\n';
+    cerr << "sizeof(Move): " << sizeof(Move) << '\n';
+    cerr << "sizeof(Game): " << sizeof(Game) << '\n';
+    cerr << "sizeof(Node): " << sizeof(Node) << '\n';
+    cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
+    cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
+    cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
+    cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
+    cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
 }
 
 void print_game() {
 
-    cout << Game() << '\n';
+    cerr << Game() << '\n';
 
 }
 
@@ -33,7 +34,7 @@ void test_basic_run() {
 
     uintf num_games = 1;
 
-    auto trainer = Trainer{num_games, 0, 100, 1.0, 0.25};
+    auto trainer = Trainer{num_games, 1, 100, 1.0, 0.25, "logging"};
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
@@ -62,17 +63,17 @@ void test_basic_run() {
         bool is_done = trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
         if (is_done) break;
         ++counter;
-        if (counter % 1000 == 0) cout << "Complete iteration " << counter << '\n';
+        if (counter % 1000 == 0) cerr << "Complete iteration " << counter << '\n';
     }
     auto stop = chrono::high_resolution_clock::now();
 
     auto duration = duration_cast<chrono::seconds>(stop - start);
 
-    cout << "Took " << duration.count() << " seconds!\n";
+    cerr << "Took " << duration.count() << " seconds!\n";
  
 // To get the value of duration use the count()
 // member function on the duration object
-cout << duration.count() << endl;
+cerr << duration.count() << endl;
 
 }
 

@@ -6,33 +6,33 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
+#include <string>
 #include <iostream>
-using std::cout;
 
 using std::vector;
+using std::string;
+using std::cerr;
 
-// PUBLIC METHODS
-
-// Check if using Node* instead of char* constructs the object prematurely
-// We can print from the Node constructor to see
-Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon):
+Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
+                 float c_puct, float epsilon, const string &logging_folder):
                  num_games{std::max(num_games, (uintf)1)}, num_iterations{std::max(num_iterations, (uintf)2)},
                  iterations_done{0}, games_done{0}, is_done{vector<bool>(num_games, false)},
                  hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE + 1, nullptr)},
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE + 1, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
                  generator{std::mt19937{(uintf)std::chrono::system_clock::now().time_since_epoch().count()}} {
-    initialize(false, num_games, num_logged, c_puct, epsilon);
+    initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
-Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, bool):
+Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
+                 float c_puct, float epsilon, const string &logging_folder, bool):
                  num_games{std::max(num_games, (uintf)1)}, num_iterations{std::max(num_iterations, (uintf)2)},
                  iterations_done{0}, games_done{0}, is_done{vector<bool>(num_games, false)},
                  hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE + 1, nullptr)},
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE + 1, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
                  generator{std::mt19937{(uintf)std::chrono::system_clock::now().time_since_epoch().count()}} {
-    initialize(true, num_games, num_logged, c_puct, epsilon);
+    initialize(true, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
 Trainer::~Trainer() {
@@ -52,7 +52,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_
                 bool is_completed = games[i].do_iteration(evaluations[i], probabilities[i],
                                                           dirichlet_noise[i], game_states[i]);
                 if (is_completed) {
-                    cout << "Game " << i << " is complete!\n";
+                    cerr << "Game " << i << " is complete!\n";
                     is_done[i] = true;
                     ++games_done;
                     if (games_done == num_games) {
@@ -248,7 +248,8 @@ uintf Trainer::generate() {
     return generator();
 }
 
-void Trainer::initialize(bool testing, uintf num_games, uintf num_logged, float c_puct, float epsilon) {
+void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
+                         float c_puct, float epsilon, const string &logging_folder) {
 
     games.reserve(num_games);
 
@@ -256,7 +257,7 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged, float 
 
     if (testing) {
         for (uintf i = 0; i < num_logged; ++i) {
-            games.emplace_back(i % 2, this, true);
+            games.emplace_back(i % 2, this, i, logging_folder);
         }
         for (uintf i = num_logged; i < num_games; ++i) {
             games.emplace_back(i % 2, this);
@@ -264,7 +265,7 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged, float 
     }
     else {
         for (uintf i = 0; i < num_logged; ++i) {
-            games.emplace_back(this, true);
+            games.emplace_back(this, i, logging_folder);
         }
         for (uintf i = num_logged; i < num_games; ++i) {
             games.emplace_back(this);

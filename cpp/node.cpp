@@ -41,78 +41,75 @@ void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent,
     visited.reset();
 }
 
-// Check for terminal state
-bool Node::is_terminal() {
-    return game.is_terminal();
-}
-
-// Returns depth of node
-uintf Node::get_depth() {
-    return depth;
-}
-
-// return a const ref to game
-const Game& Node::get_game() {
+const Game& Node::get_game() const {
     return game;
 }
 
-Result Node::get_result() {
+uintf Node::get_to_play() const {
+    return game.get_to_play();
+}
+
+bool Node::is_legal(uintf id) const {
+    return game.is_legal(id);
+}
+
+Result Node::get_result() const {
     return game.get_result();
 }
 
-// returns whether child is visited
-bool Node::has_visited(uintf move_choice) {
-    return visited[move_choice];
+bool Node::is_terminal() const {
+    return game.is_terminal();
 }
 
-uintf Node::get_visits() {
+uintf Node::get_visits() const {
     return visits;
 }
 
-void Node::add_evaluation(float new_evaluation) {
-    evaluation += new_evaluation;
+uintf Node::get_depth() const {
+    return depth;
 }
 
-float Node::get_evaluation() {
-    return evaluation;
-}
-
-uintf Node::get_parent() {
+uintf Node::get_parent() const {
     return parent;
 }
 
-void Node::null_parent() {
-    parent = 0;
+float Node::get_evaluation() const {
+    return evaluation;
+}
+
+bool Node::has_visited(uintf move_choice) const {
+    return visited[move_choice];
+}
+
+float Node::get_probability(uintf move_choice) const {
+    return probabilities[move_choice];
 }
 
 void Node::increment_visits() {
     ++visits;
 }
 
-uintf Node::get_to_play() {
-    return game.get_to_play();
+void Node::null_parent() {
+    parent = 0;
 }
 
-void Node::set_probability(uintf id, float probability) {
-    probabilities[id] = probability;
+void Node::add_evaluation(float new_evaluation) {
+    evaluation += new_evaluation;
 }
 
-float Node::get_probability(uintf id) {
-    return probabilities[id];
+void Node::set_probability(uintf move_choice, float probability) {
+    probabilities[move_choice] = probability;
 }
 
-bool Node::is_legal(uintf id) {
-    return legal_moves[id];
-}
-
-void Node::adjust_probability(uintf id, float scalar, float noise) {
-    probabilities[id] = probabilities[id] * scalar + noise;
-}
-
-void Node::write_game_state(float game_state[GAME_STATE_SIZE]) {
-    game.write_game_state(game_state);
+void Node::adjust_probability(uintf move_choice, float scalar, float noise) {
+    probabilities[move_choice] = probabilities[move_choice] * scalar + noise;
 }
 
 void Node::set_visit(uintf move_choice) {
     visited.set(move_choice);
 }
+
+void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
+    game.write_game_state(game_state);
+}
+

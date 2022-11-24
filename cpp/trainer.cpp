@@ -166,8 +166,6 @@ uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf mov
         hash_table[pos]->overwrite(game, depth, parent, move_choice, pos, is_stale[pos]);
         is_stale[pos] = false;
     }
-
-    hash_table[parent]->children[move_choice] = pos;
     
     return pos;
 

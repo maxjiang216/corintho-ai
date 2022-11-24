@@ -48,21 +48,21 @@
     Result get_result() const;
     bool is_terminal() const;
     uintf get_visits() const;
+    uintf get_depth() const;
     uintf get_parent() const;
     float get_evaluation() const;
     bool has_visited(uintf move_choice) const;
-    float get_probability(uintf id) const;
+    float get_probability(uintf move_choice) const;
 
     // Modifiers
     void increment_visits();
-    uintf get_depth();
     void null_parent();
     void add_evaluation(float new_evalution);
-    void set_probability(uintf id, float probability);
-    void adjust_probability(uintf id, float scalar, float noise);
+    void set_probability(uintf move_choice, float probability);
+    void adjust_probability(uintf move_choice, float scalar, float noise);
     void set_visit(uintf move_choice);
 
-    void write_game_state(float game_state[GAME_STATE_SIZE]);
+    void write_game_state(float game_state[GAME_STATE_SIZE]) const;
 
   };
 

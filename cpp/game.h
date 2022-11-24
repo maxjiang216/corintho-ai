@@ -13,24 +13,30 @@ const uintf BOARD_SIZE = 16;
 class Game {
 
     bitset<3*BOARD_SIZE> board;
-    // Is it better to store this as 1/2 ints?
     bitset<BOARD_SIZE> frozen;
-    // no need to compute lazily, just put in game
-    // makes more sense
-    // also allows us to copy it
-    bitset<NUM_MOVES> legal_moves;
     // We want to add orientation later
     uintf to_play, pieces[6];
-    // Game result, Game needs to have it because it knows which lines exist
+    bitset<NUM_MOVES> legal_moves;
+    // Game result
+    // Game needs to have it because it knows which lines exist
     Result result;
 
-    bool is_empty(uintf row, uintf col);
-    bool can_place(uintf ptype, uintf row, uintf col);
-    intf get_bottom(uintf row, uintf col);
-    intf get_top(uintf row, uintf col);
-    bool can_move(uintf row1, uintf col1, uintf row2, uintf col2);
-    bool is_legal(uintf move_id);
-    bool get_line_breakers(bitset<NUM_MOVES> &legal_moves);
+    void get_legal_moves();
+    // Finds lines and moves that break all lines
+    // Returns whether there were lines
+    bool get_line_breakers();
+
+    // Returns an int representing the top of a stack, -1 if empty
+    intf get_top(uintf row, uintf col) const;
+    // Returns an int representing the bottom piece of a stack, 3 if empty
+    intf get_bottom(uintf row, uintf col) const;
+
+    void apply_line(uintf line);
+
+    bool is_legal_move(uintf move_id) const;
+    bool can_place(uintf ptype, uintf row, uintf col) const;
+    bool can_move(uintf row1, uintf col1, uintf row2, uintf col2) const;
+    bool is_empty(uintf row, uintf col) const;
 
   public:
 
@@ -38,12 +44,15 @@ class Game {
     Game(const Game &game) = default;
     ~Game() = default;
 
-    void get_legal_moves(bitset<NUM_MOVES> &legal_moves);
+    // Accessors
+    bool is_legal(uintf move_choice) const;
+    uintf get_to_play() const;
+    Result get_result() const;
+    bool is_terminal() const;
+
     void do_move(uintf move_id);
-    bool is_terminal();
-    Result get_result();
-    uintf get_to_play();
-    void write_game_state(float game_state[GAME_STATE_SIZE]);
+    
+    void write_game_state(float game_state[GAME_STATE_SIZE]) const;
 
     friend std::ostream& operator<<(std::ostream& stream, const Game &game);
 

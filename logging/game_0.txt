@@ -20,201 +20,181 @@ Player 2: B: 3 C: 4 A: 4
 Player 1 to play
 B   |    |    |    
 -------------------
-    |    |    |    
--------------------
-    |B  #|    |    
+ C #|    |    |    
 -------------------
     |    |    |    
-Player 1: B: 3 C: 4 A: 4
+-------------------
+    |    |    |    
+Player 1: B: 4 C: 3 A: 4
 Player 2: B: 3 C: 4 A: 4
 Player 2 to play
 B   |    |    |    
 -------------------
-    |    |    |    
--------------------
-    |B   |B  #|    
+ C  |    |  A#|    
 -------------------
     |    |    |    
-Player 1: B: 3 C: 4 A: 4
-Player 2: B: 2 C: 4 A: 4
+-------------------
+    |    |    |    
+Player 1: B: 4 C: 3 A: 4
+Player 2: B: 3 C: 4 A: 3
 Player 1 to play
 B   |    |    |    
 -------------------
-    |    |    |    
+ C  |    |  A |    
 -------------------
-    |B   |B   | C #
+    |    |    | C #
 -------------------
     |    |    |    
-Player 1: B: 3 C: 3 A: 4
-Player 2: B: 2 C: 4 A: 4
+Player 1: B: 4 C: 2 A: 4
+Player 2: B: 3 C: 4 A: 3
 Player 2 to play
-B   |    |    |    
+B   | C #|    |    
 -------------------
-B  #|    |    |    
+ C  |    |  A |    
 -------------------
-    |B   |B   | C  
+    |    |    | C  
 -------------------
     |    |    |    
-Player 1: B: 3 C: 3 A: 4
-Player 2: B: 1 C: 4 A: 4
+Player 1: B: 4 C: 2 A: 4
+Player 2: B: 3 C: 3 A: 3
 Player 1 to play
-B   |    |    |    
+B   | C  |B  #|    
 -------------------
-B   |    | C #|    
+ C  |    |  A |    
 -------------------
-    |B   |B   | C  
+    |    |    | C  
 -------------------
     |    |    |    
 Player 1: B: 3 C: 2 A: 4
-Player 2: B: 1 C: 4 A: 4
+Player 2: B: 3 C: 3 A: 3
 Player 2 to play
-B   |    |    |    
+B   | C  |B   |    
 -------------------
-B   |    | C  |    
+ C  |    |  A |    
 -------------------
-  A#|B   |B   | C  
+B  #|    |    | C  
 -------------------
     |    |    |    
 Player 1: B: 3 C: 2 A: 4
-Player 2: B: 1 C: 4 A: 3
+Player 2: B: 2 C: 3 A: 3
 Player 1 to play
-BC #|    |    |    
+B   | C  |B   |    
 -------------------
-B   |    | C  |    
+ C  |    |  A |    
 -------------------
-  A |B   |B   | C  
+B   |    |  A#| C  
 -------------------
     |    |    |    
-Player 1: B: 3 C: 1 A: 4
-Player 2: B: 1 C: 4 A: 3
+Player 1: B: 3 C: 2 A: 3
+Player 2: B: 2 C: 3 A: 3
 Player 2 to play
-BC  |    |    |B  #
--------------------
-B   |    | C  |    
--------------------
-  A |B   |B   | C  
--------------------
-    |    |    |    
-Player 1: B: 3 C: 1 A: 4
-Player 2: B: 0 C: 4 A: 3
-Player 1 to play
-BC  |    |    |B   
--------------------
-B   |    | CA#|    
--------------------
-  A |B   |B   | C  
--------------------
-    |    |    |    
-Player 1: B: 3 C: 1 A: 3
-Player 2: B: 0 C: 4 A: 3
-Player 2 to play
-BC  |    |    |B   
--------------------
-B   |    | CA |    
--------------------
-  A |B   |B   | C  
--------------------
-    |    |  A#|    
-Player 1: B: 3 C: 1 A: 3
-Player 2: B: 0 C: 4 A: 2
-Player 1 to play
-BC  |    |    |B   
--------------------
-B   |    | CA |    
--------------------
-  A |B   |B   | CA#
+BC #| C  |B   |    
 -------------------
     |    |  A |    
-Player 1: B: 3 C: 1 A: 2
-Player 2: B: 0 C: 4 A: 2
-Player 2 to play
-BC  |    |    |B   
 -------------------
-B   |    | CA |    
+B   |    |  A | C  
 -------------------
-  A |B   |B   | CA 
--------------------
-    | C #|  A |    
-Player 1: B: 3 C: 1 A: 2
-Player 2: B: 0 C: 3 A: 2
+    |    |    |    
+Player 1: B: 3 C: 2 A: 3
+Player 2: B: 2 C: 3 A: 3
 Player 1 to play
-BC  |  A#|    |B   
+BC  | C  |B   | C #
 -------------------
-B   |    | CA |    
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |    |  A | C  
 -------------------
-    | C  |  A |    
-Player 1: B: 3 C: 1 A: 1
-Player 2: B: 0 C: 3 A: 2
+    |    |    |    
+Player 1: B: 3 C: 1 A: 3
+Player 2: B: 2 C: 3 A: 3
 Player 2 to play
-BC  |  A | C #|B   
+BC  | C  |B   | C  
 -------------------
-B   |    | CA |    
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |    |  A | C  
 -------------------
-    | C  |  A |    
-Player 1: B: 3 C: 1 A: 1
-Player 2: B: 0 C: 2 A: 2
+    |    |    |  A#
+Player 1: B: 3 C: 1 A: 3
+Player 2: B: 2 C: 3 A: 2
 Player 1 to play
-BC  |  A | C  |B   
+BC  | C  |B   | C  
 -------------------
-B   |    | CA |    
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |    |  A | C  
 -------------------
-    | C  |  A |  A#
-Player 1: B: 3 C: 1 A: 0
-Player 2: B: 0 C: 2 A: 2
+    | C #|    |  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 2 C: 3 A: 2
 Player 2 to play
-BC  |  A | C  |B   
+BC  | C  |B   | C  
 -------------------
-B   |    | CA |    
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |B  #|  A | C  
 -------------------
- C #| C  |  A |  A 
-Player 1: B: 3 C: 1 A: 0
-Player 2: B: 0 C: 1 A: 2
+    | C  |    |  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 1 C: 3 A: 2
 Player 1 to play
-BC  |  A | C  |B   
+BC  |    |BC #| C  
 -------------------
-B   |    | CA | C #
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |B   |  A | C  
 -------------------
- C  | C  |  A |  A 
-Player 1: B: 3 C: 0 A: 0
-Player 2: B: 0 C: 1 A: 2
+    | C  |    |  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 1 C: 3 A: 2
 Player 2 to play
-BC  |  A | CA#|B   
+BC  |    |BC  | C  
 -------------------
-B   |    | CA | C  
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |BC #|  A | C  
 -------------------
- C  | C  |  A |  A 
-Player 1: B: 3 C: 0 A: 0
-Player 2: B: 0 C: 1 A: 1
+    |    |    |  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 1 C: 3 A: 2
 Player 1 to play
-BC  |  A | CA |B   
+BC  |    |BC  | C  
 -------------------
-B   |B  #| CA | C  
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |BC  |    | CA#
 -------------------
- C  | C  |  A |  A 
-Player 1: B: 2 C: 0 A: 0
-Player 2: B: 0 C: 1 A: 1
+    |    |    |  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 1 C: 3 A: 2
 Player 2 to play
-BC  |  A | CA |BC #
+BC  |    |BC  | C  
 -------------------
-B   |B   | CA | C  
+    |    |  A |    
 -------------------
-  A |B   |B   | CA 
+B   |BC  |    | CA 
 -------------------
- C  | C  |  A |  A 
-Player 1: B: 2 C: 0 A: 0
-Player 2: B: 0 C: 0 A: 1
+    |    |  A#|  A 
+Player 1: B: 3 C: 0 A: 3
+Player 2: B: 1 C: 3 A: 1
+Player 1 to play
+BC  |    |BC  | C  
+-------------------
+    |    |  A |    
+-------------------
+B   |BC  |  A#| CA 
+-------------------
+    |    |  A |  A 
+Player 1: B: 3 C: 0 A: 2
+Player 2: B: 1 C: 3 A: 1
+Player 2 to play
+BC  |    |BC  | C  
+-------------------
+    |    |  A |  A#
+-------------------
+B   |BC  |  A | CA 
+-------------------
+    |    |  A |  A 
+Player 1: B: 3 C: 0 A: 2
+Player 2: B: 1 C: 3 A: 0
 Player 1 to play

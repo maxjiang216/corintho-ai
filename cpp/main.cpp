@@ -34,6 +34,15 @@ void print_line_breakers(uintf line) {
 
     for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
         if (line_breakers[line][i]) {
+            cerr << 1;
+        }
+        else {
+            cerr << 0;
+        }
+    }
+    cerr << '\n';
+    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+        if (line_breakers[line][i]) {
             cerr << Move{i} << ' ';
         }
     }

@@ -21,12 +21,23 @@ void print_class_sizes() {
     cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
     cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
     cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+
 }
 
 void print_game() {
 
     cerr << Game() << '\n';
 
+}
+
+void print_line_breakers(uintf line) {
+
+    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+        if (line_breakers[line][i]) {
+            cerr << Move{i} << ' ';
+        }
+    }
+    cerr << '\n';
 }
 
 // Basic run. 
@@ -82,6 +93,8 @@ int main() {
     print_class_sizes();
 
     print_game();
+
+    print_line_breakers(0);
 
     test_basic_run();
 

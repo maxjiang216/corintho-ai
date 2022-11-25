@@ -7,7 +7,7 @@ Move::Move(uintf move_id): mtype{move_id >= 48} {
 
     // Place
     // I believe that place is more common
-    if (move_id >= 48) {
+    if (mtype) {
         ptype = (move_id - 48) / 16;
         row1 = (move_id % 16) / 4;
         col1 = move_id % 4;
@@ -19,32 +19,32 @@ Move::Move(uintf move_id): mtype{move_id >= 48} {
     else if (move_id < 12) {
         row1 = move_id / 3;
         col1 = move_id % 3;
-        row2 = move_id / 3;
-        col2 = move_id % 3 + 1;
+        row2 = row1;
+        col2 = col1 + 1;
     }
 	
     // Down
     else if (move_id < 24) {
         row1 = (move_id - 12) / 4;
         col1 = move_id % 4;
-        row2 = (move_id - 8) / 4;
-        col2 = move_id % 4;
+        row2 = row1 + 1;
+        col2 = col1;
     }
 
     // Left
     else if (move_id < 36) {
         row1 = (move_id - 24) / 3;
         col1 = move_id % 3 + 1;
-        row2 = (move_id - 24) / 3;
-        col2 = move_id % 3;
+        row2 = row1;
+        col2 = col1 - 1;
     }
 
     // Up
     else {
         row1 = (move_id - 32) / 4;
         col1 = move_id % 4;
-        row2 = (move_id - 36) / 4;
-        col2 = move_id % 4;
+        row2 = row1 - 1;
+        col2 = col1;
     }
 	
 }

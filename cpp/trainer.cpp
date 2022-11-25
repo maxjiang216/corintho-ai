@@ -21,7 +21,6 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
                  generator{random_seed} {
-    cerr << "Constructor " << hash_table.size() << '\n';
     initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -45,9 +44,8 @@ Trainer::~Trainer() {
 
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float dirichlet_noise[], float game_states[]) {
-    cerr << "do_iteration!\n";
+
     for (uintf i = 0; i < num_games; ++i) {
-        cerr << "do_iteration! " << i << '\n';
         if (!is_done[i]) {
             // Avoid division by 0 in the rare case than num_games < num_iterations / 2
             if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) < iterations_done) {
@@ -63,7 +61,6 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
                 }
             }
             else if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) == iterations_done) {
-                cerr << "do_first_iteration " << i << '\n';
                 games[i]->do_first_iteration(&game_states[i*GAME_STATE_SIZE]);
             }
         }
@@ -105,36 +102,24 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
 
 uintf Trainer::place_root() {
 
-    cerr << "Trainer::place_root()!\n";
-
     // Use random hash value
     uintf new_hash = generator();
 
-    cerr << "Trainer::place_root()! " << new_hash << ' ' << hash_table.size() << '\n';
-
     uintf pos = new_hash % hash_table.size();
-
-    cerr << "Trainer::place_root() 1!\n";
 
     // Probe for usable space
     while (hash_table[pos] != nullptr && !is_stale[pos]) {
         pos = (pos + 1) % hash_table.size();
     }
 
-    cerr << "Trainer::place_root() 2!\n";
-
     // Unused space, place new node
     if (hash_table[pos] == nullptr) {
-        cerr << "Trainer::place_root() 3!\n";
         place(pos, new_hash);
-        cerr << "Trainer::place_root() 4!\n";
     }
     // Overwrite stale node with starting position
     else {
-        cerr << "Trainer::place_root() 5!\n";
         hash_table[pos]->overwrite(new_hash);
         is_stale[pos] = false;
-        cerr << "Trainer::place_root() 6!\n";
     }
 
     return pos;
@@ -301,27 +286,18 @@ uintf Trainer::hash(uintf seed, uintf move_choice) {
 }
 
 void Trainer::place(uintf pos, uintf seed) {
-
-    cerr << "Trainer::place(uintf, uintf)!\n";
     
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
-        cerr << "Trainer::place(uintf, uintf)! 1\n";
         // Record the old block so we can delete it later
         blocks.emplace_back(cur_block);
-        cerr << "Trainer::place(uintf, uintf)! 2\n";
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
-        cerr << "Trainer::place(uintf, uintf)! 3\n";
         cur_ind = 0;
     }
 
-    cerr << "Trainer::place(uintf, uintf)! 4 " << pos << ' ' << seed << ' ' << cur_ind << ' ' << BLOCK_SIZE << '\n';
-
     // Placement new
-    hash_table[pos] = new Node(seed);
-    //hash_table[pos] = new (cur_block + cur_ind) Node(seed);
-    cerr << "Trainer::place(uintf, uintf)! 5\n";
-    //++cur_ind;
+    hash_table[pos] = new (cur_block + cur_ind) Node(seed);
+    ++cur_ind;
 
 }
 

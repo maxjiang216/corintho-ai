@@ -37,7 +37,6 @@ SelfPlayer::~SelfPlayer() {
 }
 
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
-    cerr << "SelfPlayer::do_first_iteration!\n";
     players[0].do_first_iteration(game_state);
 }
 

@@ -12,3 +12,6 @@ pipe
 /cpp/*.o
 /cpp/*.d
 *.so
+llvm.sh
+llvm.sh.1
+utils

@@ -16,6 +16,11 @@
     uintf depth;
     // Index of parent node
     uintf parent;
+    // Seed
+    // Probably not necessary, but otherwise there are complex collisions
+    // This is at least a 32-bit integer
+    // We can just use unsigned int to take mod
+    uintf seed;
 
     // Evaluations
     float evaluation, probabilities[NUM_MOVES];
@@ -26,20 +31,20 @@
   public:
     
     // Used to create root nodes
-    Node();
+    Node(uintf seed);
     // Occasionally need to create root nodes from arbitrary game states
-    Node(const Game &game);
-    Node(const Game &game, uintf depth);
+    Node(uintf seed, const Game &game);
+    Node(uintf seed, const Game &game, uintf depth);
     // Used when writing into a new node
     // Will copy a game, then apply the move
-    Node(const Game &game, uintf depth, uintf parent, uintf move_choice, uintf pos);
+    Node(uintf seed, const Game &game, uintf depth, uintf parent, uintf move_choice);
     ~Node() = default;
 
     // overwrite relevant parts of node
-    void overwrite();
-    void overwrite(const Game &new_game, uintf new_depth);
-    void overwrite(const Game &new_game, uintf new_depth, uintf new_parent,
-                   uintf move_choice, uintf pos, bool);
+    void overwrite(uintf seed);
+    void overwrite(uintf seed, const Game &new_game, uintf new_depth);
+    void overwrite(uintf seed, const Game &new_game, uintf new_depth, uintf new_parent,
+                   uintf move_choice);
 
     // Accessors
     const Game& get_game() const;
@@ -50,6 +55,7 @@
     uintf get_visits() const;
     uintf get_depth() const;
     uintf get_parent() const;
+    uintf get_seed() const;
     float get_evaluation() const;
     bool has_visited(uintf move_choice) const;
     float get_probability(uintf move_choice) const;

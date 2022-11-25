@@ -5,6 +5,8 @@
 #include <cmath>
 #include <random>
 #include <fstream>
+#include <iostream>
+using std::cerr;
 
 using std::bitset;
 
@@ -59,36 +61,39 @@ uintf TrainMC::choose_move() {
         uintf total = 0, children_visits[NUM_MOVES];
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             if (cur_node->has_visited(i)) {
-                children_visits[i] = trainer->get_node(trainer->find_next(cur, i))->get_visits();
+                children_visits[i] = trainer->get_node(trainer->find_next(cur_node->get_seed(), i))->get_visits();
                 total += children_visits[i];
             }
         }
         uintf cur_total = 0;
-        for (uintf i = 0; i < NUM_MOVES - 1; ++i) {
+        for (uintf i = 0; i < NUM_MOVES; ++i) {
             if (cur_node->has_visited(i)) {
                 cur_total += children_visits[i];
                 if (cur_total >= total) move_choice = i;
             }
-        }
-        move_choice = NUM_MOVES - 1;
+        }   
     }
 
-    // Otherwise, choose randomly between the moves with the most visits/searches
-    // Random offset is the easiest way to randomly break ties
-    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0;
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
-        uintf cur_move = (id + i) % NUM_MOVES;
-        if (cur_node->has_visited(cur_move)) {
-            uintf cur_visits = trainer->get_node(trainer->find_next(cur, cur_move))->get_visits();
-            if (cur_visits > max_visits) {
-                max_visits = cur_visits;
-                move_choice = cur_move;
+    else {
+
+        // Otherwise, choose randomly between the moves with the most visits/searches
+        // Random offset is the easiest way to randomly break ties
+        uintf id = trainer->generate() % NUM_MOVES, max_visits = 0;
+        for (uintf i = 0; i < NUM_MOVES; ++i) {
+            uintf cur_move = (id + i) % NUM_MOVES;
+            if (cur_node->has_visited(cur_move)) {
+                uintf cur_visits = trainer->get_node(trainer->find_next(cur_node->get_seed(), cur_move))->get_visits();
+                if (cur_visits > max_visits) {
+                    max_visits = cur_visits;
+                    move_choice = cur_move;
+                }
             }
         }
+
     }
 
     uintf old_root = root;
-    root = trainer->find_next(root, move_choice);
+    root = trainer->find_next(trainer->get_node(root)->get_seed(), move_choice);
     trainer->move_down(old_root, move_choice);
     // Set cur_node here, but this is not needed if the game is complete
     // We can try to find a better place, but it's pretty insignificant and avoid possible hassle
@@ -115,13 +120,12 @@ bool TrainMC::receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SI
     // Simply move the tree down
     if (trainer->get_node(root)->has_visited(move_choice)) {
         uintf old_root = root;
-        root = trainer->find_next(root, move_choice);
+        root = trainer->find_next(trainer->get_node(root)->get_seed(), move_choice);
         // We should stale things afterwards now
         // Since find_next skips over stale nodes
         trainer->move_down(old_root, move_choice);
         cur = root;
         cur_node = trainer->get_node(cur);
-        cur_node->null_parent();
         iterations_done = 0;
         // we don't need an evaluation
         return false;
@@ -228,14 +232,15 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
             if (!(cur_node->has_visited(move_choice))) {
                 cur_node->set_visit(move_choice);
                 // Create the new node
-                cur = trainer->place_next(cur_node->get_game(), cur_node->get_depth(), cur,move_choice);
+                cur = trainer->place_next(cur_node->get_seed(), cur_node->get_game(),
+                                          cur_node->get_depth(), cur, move_choice);
                 cur_node = trainer->get_node(cur);
                 break;
             }
             // Otherwise, move down normally
             else {
                 cur_node->increment_visits();
-                cur = trainer->find_next(cur, move_choice);
+                cur = trainer->find_next(cur_node->get_seed(), move_choice);
                 cur_node = trainer->get_node(cur);
             }
         }
@@ -256,6 +261,10 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
                 }
                 // We need to propagate to root
                 cur_node->add_evaluation(cur_evaluation);
+            }
+            else {
+                cur = root;
+                cur_node = trainer->get_node(cur);
             }
         }
         // Otherwise, request an evaluation
@@ -282,7 +291,7 @@ uintf TrainMC::choose_next() {
         // Check if it is a legal move
         if (cur_node->is_legal(i)) {
             if (cur_node->has_visited(i)) {
-                Node *next = trainer->get_node(trainer->find_next(cur, i));
+                Node *next = trainer->get_node(trainer->find_next(cur_node->get_seed(), i));
                 u = -1.0 * next->get_evaluation() / (float)next->get_visits() +
                     cur_node->get_probability(i) * sqrt((float)cur_node->get_visits() - 1.0) /
                     ((float)next->get_visits() + 1);

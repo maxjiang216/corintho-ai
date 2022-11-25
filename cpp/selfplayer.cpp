@@ -4,6 +4,8 @@
 #include "util.h"
 #include <fstream>
 #include <string>
+#include <iostream>
+using std::cerr;
 
 SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
                                           logging{false}, trainer{trainer} {}

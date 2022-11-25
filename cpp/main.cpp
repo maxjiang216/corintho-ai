@@ -52,9 +52,9 @@ void print_line_breakers(uintf line) {
 // Basic run. 
 void test_basic_run() {
 
-    uintf num_games = 1;
+    uintf num_games = 3000;
 
-    auto trainer = Trainer{num_games, 1, 100, 1.0, 0.25, "logging"};
+    auto trainer = Trainer{num_games, 1, 200, 1.0, 0.25, "logging", 2003};
 
     float evaluations[num_games], probabilities[num_games][NUM_TOTAL_MOVES],
     dirichlet_noise[num_games][NUM_MOVES], game_states[num_games][GAME_STATE_SIZE];
@@ -65,7 +65,6 @@ void test_basic_run() {
     auto start = chrono::high_resolution_clock::now();
     uintf counter = 0;
     while (true) {
-        //trainer.rehash_if_full();
         for (uintf i = 0; i < num_games; ++i) {
             evaluations[i] = random_evals(generator);
             float sum = 0.0;
@@ -83,7 +82,10 @@ void test_basic_run() {
         bool is_done = trainer.do_iteration(evaluations, probabilities, dirichlet_noise, game_states);
         if (is_done) break;
         ++counter;
-        if (counter % 1000 == 0) cerr << "Complete iteration " << counter << '\n';
+        if (counter % 1000 == 0) {
+            cerr << "Complete iteration " << counter << '\n';
+            trainer.rehash_if_full();
+        }
     }
     auto stop = chrono::high_resolution_clock::now();
 

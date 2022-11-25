@@ -14,24 +14,24 @@ using std::string;
 using std::cerr;
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, const string &logging_folder):
+                 float c_puct, float epsilon, const string &logging_folder, uintf random_seed):
                  num_games{std::max(num_games, (uintf)1)}, num_iterations{std::max(num_iterations, (uintf)2)},
                  iterations_done{0}, games_done{0}, is_done{vector<bool>(num_games, false)},
-                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE + 1, nullptr)},
-                 is_stale{vector<bool>(num_games * HASH_TABLE_SIZE + 1, false)},
+                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
+                 is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
-                 generator{std::mt19937{(uintf)std::chrono::system_clock::now().time_since_epoch().count()}} {
+                 generator{random_seed} {
     initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, const string &logging_folder, bool):
+                 float c_puct, float epsilon, const string &logging_folder, uintf random_seed, bool):
                  num_games{std::max(num_games, (uintf)1)}, num_iterations{std::max(num_iterations, (uintf)2)},
                  iterations_done{0}, games_done{0}, is_done{vector<bool>(num_games, false)},
-                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE + 1, nullptr)},
-                 is_stale{vector<bool>(num_games * HASH_TABLE_SIZE + 1, false)},
+                 hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
+                 is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
-                 generator{std::mt19937{(uintf)std::chrono::system_clock::now().time_since_epoch().count()}} {
+                 generator{random_seed} {
     initialize(true, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -52,9 +52,9 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_
                 bool is_completed = games[i].do_iteration(evaluations[i], probabilities[i],
                                                           dirichlet_noise[i], game_states[i]);
                 if (is_completed) {
-                    cerr << "Game " << i << " is complete!\n";
                     is_done[i] = true;
                     ++games_done;
+                    cerr << games_done << " games completed!\n";
                     if (games_done == num_games) {
                         return true;
                     }
@@ -103,7 +103,8 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[][NUM_TO
 uintf Trainer::place_root() {
 
     // Use random hash value
-    uintf pos = generator() % hash_table.size();
+    uintf new_hash = generator();
+    uintf pos = new_hash % hash_table.size();
 
     // Probe for usable space
     while (hash_table[pos] != nullptr && !is_stale[pos]) {
@@ -112,11 +113,11 @@ uintf Trainer::place_root() {
 
     // Unused space, place new node
     if (hash_table[pos] == nullptr) {
-        place(pos);
+        place(pos, new_hash);
     }
     // Overwrite stale node with starting position
     else {
-        hash_table[pos]->overwrite();
+        hash_table[pos]->overwrite(new_hash);
         is_stale[pos] = false;
     }
 
@@ -127,20 +128,21 @@ uintf Trainer::place_root() {
 uintf Trainer::place_root(const Game &game, uintf depth) {
 
     // Use random hash value
-    uintf pos = generator() % (hash_table.size() - 1) + 1;
+    uintf new_hash = generator();
+    uintf pos = new_hash % hash_table.size();
 
     // Probe for usable space
     while (hash_table[pos] != nullptr && !is_stale[pos]) {
-        pos = pos % (hash_table.size() - 1) + 1;
+        pos = (pos + 1) % hash_table.size();
     }
 
     // Unused space, place new node
     if (hash_table[pos] == nullptr) {
-        place(pos, game, depth);
+        place(pos, new_hash, game, depth);
     }
     // Overwrite stale node
     else {
-        hash_table[pos]->overwrite(game, depth);
+        hash_table[pos]->overwrite(new_hash, game, depth);
         is_stale[pos] = false;
     }
 
@@ -148,22 +150,23 @@ uintf Trainer::place_root(const Game &game, uintf depth) {
 
 }
 
-uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf move_choice) {
+uintf Trainer::place_next(uintf seed, const Game &game, uintf depth, uintf parent, uintf move_choice) {
 
-    uintf pos = hash(parent, move_choice, hash_table.size());
+    uintf new_hash = hash(seed, move_choice);
+    uintf pos = (new_hash) % hash_table.size();
 
     // Probe for usable space
     while (hash_table[pos] != nullptr && !is_stale[pos]) {
-        pos = pos % (hash_table.size() - 1) + 1;
+        pos = (pos + 1) % hash_table.size();
     }
 
     // Unused space, allocate new node
     if (hash_table[pos] == nullptr) {
-        place(pos, game, depth, parent, move_choice);
+        place(pos, new_hash, game, depth, parent, move_choice);
     }
     // Overwrite stale node
     else {
-        hash_table[pos]->overwrite(game, depth, parent, move_choice, pos, is_stale[pos]);
+        hash_table[pos]->overwrite(new_hash, game, depth, parent, move_choice);
         is_stale[pos] = false;
     }
     
@@ -171,18 +174,18 @@ uintf Trainer::place_next(const Game &game, uintf depth, uintf parent, uintf mov
 
 }
 
-uintf Trainer::find_next(uintf parent, uintf move_choice) const {
+uintf Trainer::find_next(uintf seed, uintf move_choice) const {
 
     // Match hash function from place_next
-    uintf pos = hash(parent, move_choice, hash_table.size());
+    uintf new_hash = hash(seed, move_choice);
+    uintf pos = new_hash % hash_table.size();
 
     // We assume matching parent is sufficient
     // and we assume no nullptrs are encountered
     // Be wary of matching parents due to overwrite nodes, though
     uintf counter = 0;
-    while (hash_table[pos]->get_parent() != parent || is_stale[pos]) {
-        //std::cerr << pos << ' ' << hash_table[pos] << ' ' << hash_table[pos]->get_parent() << ' ' << parent << ' ' << hash_table[parent]->children[move_choice] << '\n';
-        pos = pos % (hash_table.size() - 1) + 1;
+    while (is_stale[pos] || hash_table[pos]->get_seed() != new_hash) {
+        pos = (pos + 1) % hash_table.size();
         ++counter;
     }
 
@@ -205,7 +208,7 @@ void Trainer::move_down(uintf root, uintf move_choice) {
     // Push children except for chosen one
     Node *root_node = get_node(root);
     for (uintf i = 0; i < NUM_MOVES; ++i) {
-        if (root_node->has_visited(i) && i != move_choice) nodes.push(find_next(root, i));
+        if (root_node->has_visited(i) && i != move_choice) nodes.push(find_next(root_node->get_seed(), i));
     }
 
     // Stale all descendents
@@ -233,7 +236,7 @@ void Trainer::rehash_if_full() {
         }
     }
 
-    //std::cerr << "active nodes " << active_nodes << " table size " << hash_table.size() << '\n';
+    std::cerr << "active nodes " << active_nodes << " table size " << hash_table.size() << '\n';
 
     // Rehash if too full
     if ((float)active_nodes / hash_table.size() > LOAD_FACTOR) {
@@ -277,11 +280,11 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
     
 }
 
-uintf Trainer::hash(uintf parent, uintf move_choice, uintf table_size) {
-    return (parent * MULT_FACTOR + move_choice * ADD_FACTOR + 1) % (table_size - 1) + 1;
+uintf Trainer::hash(uintf seed, uintf move_choice) {
+    return seed * MULT_FACTOR + move_choice * ADD_FACTOR + 1;
 }
 
-void Trainer::place(uintf pos) {
+void Trainer::place(uintf pos, uintf seed) {
     
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
@@ -292,12 +295,12 @@ void Trainer::place(uintf pos) {
     }
 
     // Placement new
-    hash_table[pos] = new (cur_block + cur_ind) Node();
+    hash_table[pos] = new (cur_block + cur_ind) Node(seed);
     ++cur_ind;
 
 }
 
-void Trainer::place(uintf pos, const Game &game, uintf depth) {
+void Trainer::place(uintf pos, uintf seed, const Game &game, uintf depth) {
 
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
@@ -308,12 +311,12 @@ void Trainer::place(uintf pos, const Game &game, uintf depth) {
     }
 
     // Placement new
-    hash_table[pos] = new (cur_block + cur_ind) Node(game, depth);
+    hash_table[pos] = new (cur_block + cur_ind) Node(seed, game, depth);
     ++cur_ind;
 
 }
 
-void Trainer::place(uintf pos, const Game &game, uintf depth, uintf parent, uintf move_choice) {
+void Trainer::place(uintf pos, uintf seed, const Game &game, uintf depth, uintf parent, uintf move_choice) {
 
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
@@ -324,19 +327,20 @@ void Trainer::place(uintf pos, const Game &game, uintf depth, uintf parent, uint
     }
 
     // Placement new
-    hash_table[pos] = new (cur_block + cur_ind) Node(game, depth, parent, move_choice, pos);
+    hash_table[pos] = new (cur_block + cur_ind) Node(seed, game, depth, parent, move_choice);
     ++cur_ind;
 
 }
 
 void Trainer::stale_all(std::queue<uintf> &nodes) {
-    //std::cerr << "stale_all " << nodes.front() << '\n';
     while (!nodes.empty()) {
         uintf cur = nodes.front();
         Node *cur_node = get_node(cur);
         is_stale[cur] = true;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
-            if (cur_node->has_visited(i)) nodes.push(find_next(cur, i));
+            if (cur_node->has_visited(i)) {
+                nodes.push(find_next(cur_node->get_seed(), i));
+            }
         }
         nodes.pop();
     }
@@ -347,8 +351,10 @@ void Trainer::rehash() {
     // Double the size
     // This constant should be good enough
     // And it is easy to work with
-    uintf new_size = hash_table.size() * 2;
+    uintf new_size = hash_table.size() * 2 + 1;
     vector<Node*> new_table(new_size, nullptr);
+
+    std::cerr << "Rehashing! Old size: " << hash_table.size() << " New size: " << new_size << '\n';
 
     // We need to store the old index to reference it later
     // As well as the new hash
@@ -358,7 +364,8 @@ void Trainer::rehash() {
     // We reseed random values
     for (uintf i = 0; i < games.size(); ++i) {
         for (uintf j = 0; j < 2; ++j) {
-            uintf pos = generator() % new_size, root = games[i].get_root(j);
+            uintf root = games[i].get_root(j), root_seed = get_node(root)->get_seed();
+            uintf pos = root_seed % new_size;
             // There are no stale nodes in the new table yet
             // A collision at this point is very unlikely
             while (new_table[pos] != nullptr) {
@@ -369,23 +376,23 @@ void Trainer::rehash() {
             for (uintf k = 0; k < NUM_MOVES; ++k) {
                 // Only search child nodes that have been visited
                 if (hash_table[root]->has_visited(k)) {
-                    nodes.push(std::make_pair(find_next(root, k),
-                               hash(root, k, new_size)));
+                    nodes.push(std::make_pair(find_next(root_seed, k),
+                               hash(root_seed, k)));
                 }
             }
         }
     }
 
     while (!nodes.empty()) {
-        uintf cur = nodes.front().first, pos = nodes.front().second;
+        uintf cur = nodes.front().first, seed = nodes.front().second, pos = seed % new_size;
         Node *cur_node = get_node(cur);
         while (new_table[pos]) {
             pos = (pos + 1) % new_size;
         }
         new_table[pos] = cur_node;
         for (uintf i = 0; i < NUM_MOVES; ++i) {
-            if (cur_node->has_visited(i)) nodes.push(std::make_pair(find_next(cur, i),
-                                                     hash(cur, i, new_size)));
+            if (cur_node->has_visited(i)) nodes.push(std::make_pair(find_next(seed, i),
+                                                     hash(seed, i)));
         }
         nodes.pop();
     }

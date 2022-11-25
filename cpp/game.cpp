@@ -22,7 +22,7 @@ const uintf S1 = 7;
 const uintf S2 = 8;
 const uintf S3 = 9;
 
-Game::Game(): board{bitset<3*BOARD_SIZE>()}, frozen{bitset<BOARD_SIZE>()}, to_play{0},
+Game::Game(): board{}, frozen{}, to_play{0},
 pieces{4, 4, 4, 4, 4, 4}, result{NONE} {}
 
 bool Game::is_legal(uintf move_choice) const {

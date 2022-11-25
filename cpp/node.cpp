@@ -2,41 +2,46 @@
 #include "game.h"
 #include "util.h"
 #include <bitset>
-
+#include <iostream> 
+using std::cerr;
 using std::bitset;
 
-Node::Node(): game{Game()}, visits{1}, depth{0}, parent{0}, visited{bitset<NUM_MOVES>()} {}
+Node::Node(uintf seed): game{Game()}, visits{1}, depth{0},
+                        parent{0}, seed{seed}, visited{} {}
 
-Node::Node(const Game &other_game, uintf depth): game{other_game}, visits{1}, depth{depth},
-                                                 parent{0}, visited{bitset<NUM_MOVES>()} {}
+Node::Node(uintf seed, const Game &other_game, uintf depth):
+           game{other_game}, visits{1}, depth{depth},
+           parent{0}, seed{seed}, visited{} {}
 
-Node::Node(const Game &other_game, uintf depth, uintf parent, uintf move_choice, uintf pos):
-           game{other_game}, visits{1}, depth{depth+1}, parent{parent}, visited{bitset<NUM_MOVES>()} {
+Node::Node(uintf seed, const Game &other_game, uintf depth, uintf parent, uintf move_choice):
+           game{other_game}, visits{1}, depth{depth+1},
+           parent{parent}, seed{seed}, visited{} {
     game.do_move(move_choice);
 }
 
-void Node::overwrite() {
+void Node::overwrite(uintf new_seed) {
     game = Game();
     visits = 1;
     depth = 0;
-    parent = 0;
+    seed = new_seed;
     visited.reset();
 }
 
-void Node::overwrite(const Game &new_game, uintf new_depth) {
+void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth) {
     game = new_game;
     visits = 1;
     depth = new_depth;
-    parent = 0;
+    seed = new_seed;
     visited.reset();
 }
 
-void Node::overwrite(const Game &new_game, uintf new_depth, uintf new_parent,
-                     uintf move_choice, uintf pos, bool is_stale) {
+void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth, uintf new_parent,
+                     uintf move_choice) {
     game = new_game;
     visits = 1;
     depth = new_depth + 1;
     parent = new_parent;
+    seed = new_seed;
     game.do_move(move_choice);
     visited.reset();
 }
@@ -71,6 +76,10 @@ uintf Node::get_depth() const {
 
 uintf Node::get_parent() const {
     return parent;
+}
+
+uintf Node::get_seed() const {
+    return seed;
 }
 
 float Node::get_evaluation() const {

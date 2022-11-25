@@ -18,7 +18,7 @@ class Trainer {
     static const uintf BLOCK_SIZE = 4096;
 
     // Determine best starting size empirically (per game)
-    static const uintf HASH_TABLE_SIZE = 2003;
+    static const uintf HASH_TABLE_SIZE = 5003;
 
     // Prime multiplicative factor used in hashing child from parent node
     // We can tinker with this constant to minimize collisions
@@ -28,7 +28,7 @@ class Trainer {
     // Average capacity <LOAD_FACTOR should probabilistically prevent long clusters
     // Largest prime less than HASH_TABLE_SIZE / NUM_MOVES, so that we never wrap around
     // Guarantees no collision amongst siblings as long as probe length is sufficiently short
-    static const uintf ADD_FACTOR = 31;
+    static const uintf ADD_FACTOR = 23;
 
     // Load factor for hash table rehashing
     static constexpr float LOAD_FACTOR = 0.75;
@@ -70,13 +70,13 @@ class Trainer {
                     float c_puct, float epsilon, const std::string &logging_folder);
 
     // Hash child nodes
-    static uintf hash(uintf parent, uintf move_choice, uintf table_size);
+    static uintf hash(uintf seed, uintf move_choice);
 
     // Place root
-    void place(uintf pos);
-    void place (uintf pos, const Game &game, uintf depth);
+    void place(uintf pos, uintf seed);
+    void place (uintf pos, uintf seed, const Game &game, uintf depth);
     // Place node
-    void place(uintf pos, const Game &game, uintf depth, uintf parent, uintf move_choice);
+    void place(uintf pos, uintf seed, const Game &game, uintf depth, uintf parent, uintf move_choice);
 
     // Stale all nodes in the queue and their descendents
     void stale_all(std::queue<uintf> &nodes);
@@ -88,10 +88,10 @@ class Trainer {
 
     // Training
     Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-            float c_puct, float epsilon, const std::string &logging_folder);
+            float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed);
     // Testing
     Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-            float c_puct, float epsilon, const std::string &logging_folder, bool);
+            float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed, bool);
     ~Trainer();
 
     // Main function that will be called by Cython
@@ -111,9 +111,9 @@ class Trainer {
     uintf place_root(const Game &game, uintf depth);
 
     // Place child node in hash table
-    uintf place_next(const Game &game, uintf depth, uintf parent, uintf move_choice);
+    uintf place_next(uintf seed, const Game &game, uintf depth, uintf parent, uintf move_choice);
     // Find the child node
-    uintf find_next(uintf parent, uintf move_choice) const;
+    uintf find_next(uintf seed, uintf move_choice) const;
 
     // Get the pointer to a Node given the index
     Node* get_node(uintf id) const;

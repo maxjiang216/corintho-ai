@@ -181,6 +181,7 @@ bool Game::get_line_breakers() {
                     else {
                         is_lines = true;
                         apply_line(RL * 12 + i * 3 + space_0);
+                        // add the capital case
                     }
                 }
                 else if (space_2 == space_3) {

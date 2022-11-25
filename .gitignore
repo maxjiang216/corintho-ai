@@ -11,3 +11,4 @@ gmon.out
 pipe
 /cpp/*.o
 /cpp/*.d
+*.so

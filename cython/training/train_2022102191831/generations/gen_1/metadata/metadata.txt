@@ -1,7 +1,0 @@
-Playing model: 0
-Number of games: 100
-Number of searches: 100
-Number of test games: 400
-Training sample batch size: 2048
-Number of training epochs: 1
-Number of processes used: 1

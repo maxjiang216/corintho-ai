@@ -7,7 +7,7 @@ models
 *.prof
 /cython/*.so
 dump.txt
-gmon.out
+*.out
 pipe
 /cpp/*.o
 /cpp/*.d

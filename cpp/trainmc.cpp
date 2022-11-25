@@ -21,12 +21,21 @@ TrainMC::TrainMC(bool logging, Trainer *trainer, bool): cur_node{nullptr}, itera
 
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
+    cerr << "TrainMC::do_first_iteration!\n";
+
     // Create the root node
     root = trainer->place_root();
+
+    cerr << "TrainMC::do_first_iteration! 1\n";
+
     cur = root;
     cur_node = trainer->get_node(root);
 
+    cerr << "TrainMC::do_first_iteration! 2\n";
+
     cur_node->write_game_state(game_state);
+
+    cerr << "TrainMC::do_first_iteration! 3\n";
 
 }
 

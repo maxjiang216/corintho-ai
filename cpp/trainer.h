@@ -43,7 +43,7 @@ class Trainer {
     uintf games_done;
 
     // SelfPlayer objects
-    std::vector<SelfPlayer> games;
+    std::vector<SelfPlayer*> games;
     // Track which games are done
     std::vector<bool> is_done;
 
@@ -87,21 +87,23 @@ class Trainer {
   public:
 
     // Training
+    Trainer() = default;
     Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
             float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed);
     // Testing
     Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
             float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed, bool);
+    //Trainer(const Trainer&) = default;
     ~Trainer();
 
     // Main function that will be called by Cython
     // Training version
-    bool do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_MOVES], float dirichlet[][NUM_MOVES],
-                      float game_states[][GAME_STATE_SIZE]);
+    bool do_iteration(float evaluations[], float probabilities[], float dirichlet[],
+                      float game_states[]);
     // Testing version
-    bool do_iteration(float evaluations_1[], float probabilities_1[][NUM_TOTAL_MOVES],
-                      float evaluations_2[], float probabilities_2[][NUM_TOTAL_MOVES],
-                      float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]);
+    bool do_iteration(float evaluations_1[], float probabilities_1[],
+                      float evaluations_2[], float probabilities_2[],
+                      float dirichlet_noise[], float game_states[]);
 
     // Place root in hash table (random hash)
     // Place starting position

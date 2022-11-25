@@ -21,6 +21,7 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
                  generator{random_seed} {
+    cerr << "Constructor " << hash_table.size() << '\n';
     initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -42,15 +43,16 @@ Trainer::~Trainer() {
     delete[] cur_block;
 }
 
-bool Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_MOVES],
-                           float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
-
+bool Trainer::do_iteration(float evaluations[], float probabilities[],
+                           float dirichlet_noise[], float game_states[]) {
+    cerr << "do_iteration!\n";
     for (uintf i = 0; i < num_games; ++i) {
+        cerr << "do_iteration! " << i << '\n';
         if (!is_done[i]) {
             // Avoid division by 0 in the rare case than num_games < num_iterations / 2
             if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) < iterations_done) {
-                bool is_completed = games[i].do_iteration(evaluations[i], probabilities[i],
-                                                          dirichlet_noise[i], game_states[i]);
+                bool is_completed = games[i]->do_iteration(evaluations[i], &probabilities[i*NUM_TOTAL_MOVES],
+                                                           &dirichlet_noise[i*NUM_MOVES], &game_states[i*GAME_STATE_SIZE]);
                 if (is_completed) {
                     is_done[i] = true;
                     ++games_done;
@@ -61,7 +63,8 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_
                 }
             }
             else if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) == iterations_done) {
-                games[i].do_first_iteration(game_states[i]);
+                cerr << "do_first_iteration " << i << '\n';
+                games[i]->do_first_iteration(&game_states[i*GAME_STATE_SIZE]);
             }
         }
     }
@@ -71,16 +74,16 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[][NUM_TOTAL_
 
 }
 
-bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[][NUM_TOTAL_MOVES],
-                           float evaluations_2[], float probabilities_2[][NUM_TOTAL_MOVES],
-                           float dirichlet_noise[][NUM_MOVES], float game_states[][GAME_STATE_SIZE]) {
+bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
+                           float evaluations_2[], float probabilities_2[],
+                           float dirichlet_noise[], float game_states[]) {
     for (uintf i = 0; i < num_games; ++i) {
         if (!is_done[i]) {
             // Avoid division by 0 in the rare case than num_games < num_iterations / 2
             if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) < iterations_done) {
-                bool is_completed = games[i].do_iteration(evaluations_1[i], probabilities_1[i],
-                                                          evaluations_2[i], probabilities_2[i],
-                                                          dirichlet_noise[i], game_states[i]);
+                bool is_completed = games[i]->do_iteration(evaluations_1[i], &probabilities_1[i*NUM_TOTAL_MOVES],
+                                                           evaluations_2[i], &probabilities_2[i*NUM_TOTAL_MOVES],
+                                                           &dirichlet_noise[i*NUM_MOVES], &game_states[i*GAME_STATE_SIZE]);
                 if (is_completed) {
                     is_done[i] = true;
                     ++games_done;
@@ -90,7 +93,7 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[][NUM_TO
                 }
             }
             else if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) == iterations_done) {
-                games[i].do_first_iteration(game_states[i]);
+                games[i]->do_first_iteration(&game_states[i*GAME_STATE_SIZE]);
             }
         }
     }
@@ -102,23 +105,36 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[][NUM_TO
 
 uintf Trainer::place_root() {
 
+    cerr << "Trainer::place_root()!\n";
+
     // Use random hash value
     uintf new_hash = generator();
+
+    cerr << "Trainer::place_root()! " << new_hash << ' ' << hash_table.size() << '\n';
+
     uintf pos = new_hash % hash_table.size();
+
+    cerr << "Trainer::place_root() 1!\n";
 
     // Probe for usable space
     while (hash_table[pos] != nullptr && !is_stale[pos]) {
         pos = (pos + 1) % hash_table.size();
     }
 
+    cerr << "Trainer::place_root() 2!\n";
+
     // Unused space, place new node
     if (hash_table[pos] == nullptr) {
+        cerr << "Trainer::place_root() 3!\n";
         place(pos, new_hash);
+        cerr << "Trainer::place_root() 4!\n";
     }
     // Overwrite stale node with starting position
     else {
+        cerr << "Trainer::place_root() 5!\n";
         hash_table[pos]->overwrite(new_hash);
         is_stale[pos] = false;
+        cerr << "Trainer::place_root() 6!\n";
     }
 
     return pos;
@@ -260,18 +276,18 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
 
     if (testing) {
         for (uintf i = 0; i < num_logged; ++i) {
-            games.emplace_back(i % 2, this, i, logging_folder);
+            games.emplace_back(new SelfPlayer{i % 2, this, i, logging_folder});
         }
         for (uintf i = num_logged; i < num_games; ++i) {
-            games.emplace_back(i % 2, this);
+            games.emplace_back(new SelfPlayer{i % 2, this});
         }
     }
     else {
         for (uintf i = 0; i < num_logged; ++i) {
-            games.emplace_back(this, i, logging_folder);
+            games.emplace_back(new SelfPlayer{this, i, logging_folder});
         }
         for (uintf i = num_logged; i < num_games; ++i) {
-            games.emplace_back(this);
+            games.emplace_back(new SelfPlayer{this});
         }
     }
 
@@ -285,18 +301,27 @@ uintf Trainer::hash(uintf seed, uintf move_choice) {
 }
 
 void Trainer::place(uintf pos, uintf seed) {
+
+    cerr << "Trainer::place(uintf, uintf)!\n";
     
     // Need a new block
     if (cur_ind == BLOCK_SIZE) {
+        cerr << "Trainer::place(uintf, uintf)! 1\n";
         // Record the old block so we can delete it later
         blocks.emplace_back(cur_block);
+        cerr << "Trainer::place(uintf, uintf)! 2\n";
         cur_block = (Node*)(new char[BLOCK_SIZE*sizeof(Node)]);
+        cerr << "Trainer::place(uintf, uintf)! 3\n";
         cur_ind = 0;
     }
 
+    cerr << "Trainer::place(uintf, uintf)! 4 " << pos << ' ' << seed << ' ' << cur_ind << ' ' << BLOCK_SIZE << '\n';
+
     // Placement new
-    hash_table[pos] = new (cur_block + cur_ind) Node(seed);
-    ++cur_ind;
+    hash_table[pos] = new Node(seed);
+    //hash_table[pos] = new (cur_block + cur_ind) Node(seed);
+    cerr << "Trainer::place(uintf, uintf)! 5\n";
+    //++cur_ind;
 
 }
 
@@ -364,7 +389,7 @@ void Trainer::rehash() {
     // We reseed random values
     for (uintf i = 0; i < games.size(); ++i) {
         for (uintf j = 0; j < 2; ++j) {
-            uintf root = games[i].get_root(j), root_seed = get_node(root)->get_seed();
+            uintf root = games[i]->get_root(j), root_seed = get_node(root)->get_seed();
             uintf pos = root_seed % new_size;
             // There are no stale nodes in the new table yet
             // A collision at this point is very unlikely

@@ -4,11 +4,8 @@
 #include "node.h"
 #include "util.h"
 #include <bitset>
-#include <memory>
 
 using std::bitset;
-using std::unique_ptr;
-using std::shared_ptr;
 
 class Trainer;
 class Game;
@@ -45,6 +42,7 @@ class TrainMC {
     TrainMC(Trainer *trainer, bool);
     // Testing
     TrainMC(bool logging, Trainer *trainer, bool);
+    TrainMC(TrainMC&&) = default;
     ~TrainMC() = default;
 
     // First iterations are guaranteed not to end a turn

@@ -8,7 +8,7 @@
 using std::cerr;
 
 SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
-                                          logging{false}, trainer{trainer} {}
+                                          logging{false}, logging_file{nullptr}, trainer{trainer} {}
 
 SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{trainer, true}, TrainMC{trainer, true}},
@@ -20,7 +20,7 @@ SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_fo
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer):
                        players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}},
-                       to_play{0}, logging{false}, trainer{trainer} {}
+                       to_play{0}, logging{false}, logging_file{nullptr}, trainer{trainer} {}
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}},
@@ -30,7 +30,14 @@ SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string
                                                   std::ofstream::out}},
                        trainer{trainer} {}
 
+SelfPlayer::~SelfPlayer() {
+    if (logging_file != nullptr) {
+        delete logging_file;
+    }
+}
+
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
+    cerr << "SelfPlayer::do_first_iteration!\n";
     players[0].do_first_iteration(game_state);
 }
 

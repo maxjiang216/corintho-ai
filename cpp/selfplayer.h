@@ -3,9 +3,7 @@
 
 #include "trainmc.h"
 #include "util.h"
-#include <vector>
 #include <string>
-#include <memory>
 #include <fstream>
 
 class Trainer;
@@ -23,7 +21,7 @@ class SelfPlayer {
     uintf seed;
 
     // This way we don't allocate memory if there is no logging file
-    std::unique_ptr<std::ofstream> logging_file;
+    std::ofstream *logging_file;
     
     Trainer *trainer;
 
@@ -38,8 +36,7 @@ class SelfPlayer {
     SelfPlayer(uintf seed, Trainer *trainer);
     // This is slightly inefficient, but more general, and only happens at most once per testing run
     SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string &logging_folder);
-    SelfPlayer(SelfPlayer&&) = default;
-    ~SelfPlayer() = default;
+    ~SelfPlayer();
 
     void do_first_iteration(float game_state[GAME_STATE_SIZE]);
     // Training

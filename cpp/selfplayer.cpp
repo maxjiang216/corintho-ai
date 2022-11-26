@@ -8,7 +8,9 @@
 using std::cerr;
 
 SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
-                                          logging{false}, logging_file{nullptr}, trainer{trainer} {}
+                                          logging{false}, logging_file{nullptr}, trainer{trainer} {
+    samples.reserve(30);
+}
 
 SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{trainer, true}, TrainMC{trainer, true}},
@@ -16,11 +18,15 @@ SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_fo
                        logging_file{new std::ofstream{logging_folder + "/game_" +
                                                                    std::to_string(id) + ".txt",
                                                   std::ofstream::out}},
-                       trainer{trainer} {}
+                       trainer{trainer} {
+    samples.reserve(30);
+}
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer):
                        players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}},
-                       to_play{0}, logging{false}, logging_file{nullptr}, trainer{trainer} {}
+                       to_play{0}, logging{false}, logging_file{nullptr}, trainer{trainer} {
+    samples.reserve(30);
+}
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}},
@@ -28,7 +34,9 @@ SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string
                        logging_file{new std::ofstream{logging_folder + "/game_" +
                                                                    std::to_string(id) + ".txt",
                                                   std::ofstream::out}},
-                       trainer{trainer} {}
+                       trainer{trainer} {
+    samples.reserve(30);
+}
 
 SelfPlayer::~SelfPlayer() {
     if (logging_file != nullptr) {
@@ -79,7 +87,11 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
     while (!need_evaluation) {
 
         // This function will automatically apply the move to the TrainMC
-        uintf move_choice = players[to_play].choose_move();
+        // Also write samples
+        float evaluation_sample;
+        std::array<float, NUM_TOTAL_MOVES> probability_sample;
+        uintf move_choice = players[to_play].choose_move(evaluation_sample, probability_sample);
+        samples.emplace_back(evaluation_sample, probability_sample);
 
         if (logging) {
             *logging_file << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
@@ -122,4 +134,20 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
     // Game is not done
     return false;
 
+}
+
+uintf SelfPlayer::count_samples() const {
+    return samples.size();
+}
+
+uintf SelfPlayer::write_samples(float *evaluation_samples, float *probability_samples) const {
+    uintf offset = 0;
+    for (uintf i = 0; i < samples.size(); ++i) {
+        *(evaluation_samples+offset) = samples[i].first;
+        for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
+            *(probability_samples+offset*NUM_TOTAL_MOVES+j) = samples[i].second[j];
+        }
+        ++offset;
+    }
+    return samples.size();
 }

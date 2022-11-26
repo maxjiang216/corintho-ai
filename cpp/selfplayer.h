@@ -5,6 +5,9 @@
 #include "util.h"
 #include <string>
 #include <fstream>
+#include <vector>
+#include <array>
+#include <utility>
 
 class Trainer;
 
@@ -19,6 +22,8 @@ class SelfPlayer {
 
     // seed is only used in testing
     uintf seed;
+
+    std::vector<std::pair<float,std::array<float,NUM_TOTAL_MOVES>>> samples;
 
     // This way we don't allocate memory if there is no logging file
     std::ofstream *logging_file;
@@ -48,6 +53,10 @@ class SelfPlayer {
                       float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]);
     
     uintf get_root(uintf player_num) const;
+
+    uintf count_samples() const;
+
+    uintf write_samples(float *evaluation_samples, float *probability_samples) const;
 
 };
 

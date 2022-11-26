@@ -6,6 +6,7 @@
 #include <random>
 #include <fstream>
 #include <iostream>
+#include <array>
 using std::cerr;
 
 using std::bitset;
@@ -52,7 +53,7 @@ bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES
     return search(game_state);
 }
 
-uintf TrainMC::choose_move() {
+uintf TrainMC::choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL_MOVES> &probability_sample) {
 
     uintf move_choice = 0;
 
@@ -93,8 +94,23 @@ uintf TrainMC::choose_move() {
 
     }
 
+    // Before moving down, read the samples from the root node
+    Node *root_node = trainer->get_node(root);
+    evaluation_sample = root_node->get_evaluation();
+    // We will have to map this later
+    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+        if (root_node->has_visited(i)) {
+            probability_sample[i] =
+                (float)trainer->get_node(trainer->find_next(root_node->get_seed(), i))->get_visits() /
+                ((float)root_node->get_visits() - 1.0);
+        }
+        else {
+            probability_sample[i] = 0.0;
+        }
+    }
+
     uintf old_root = root;
-    root = trainer->find_next(trainer->get_node(root)->get_seed(), move_choice);
+    root = trainer->find_next(root_node->get_seed(), move_choice);
     trainer->move_down(old_root, move_choice);
     // Set cur_node here, but this is not needed if the game is complete
     // We can try to find a better place, but it's pretty insignificant and avoid possible hassle

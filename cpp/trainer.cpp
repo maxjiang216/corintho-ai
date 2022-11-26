@@ -20,7 +20,7 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
-                 generator{random_seed} {
+                 logging_folder{logging_folder}, generator{random_seed} {
     initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -31,7 +31,7 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  hash_table{vector<Node*>(num_games * HASH_TABLE_SIZE, nullptr)},
                  is_stale{vector<bool>(num_games * HASH_TABLE_SIZE, false)},
                  cur_block{(Node*)(new char[BLOCK_SIZE*sizeof(Node)])}, cur_ind{0},
-                 generator{random_seed} {
+                 logging_folder{logging_folder}, generator{random_seed} {
     initialize(true, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -279,6 +279,23 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
     // Set TrainMC static variables
     TrainMC::set_statics(num_iterations, c_puct, epsilon);
     
+}
+
+uintf Trainer::count_samples() const {
+    uintf counter = 0;
+    for (uintf i = 0; i < num_games; ++i) {
+        counter += games[i]->count_samples();
+    }
+    return counter;
+}
+
+void Trainer::write_samples(float *evaluation_samples, float *probability_samples) const {
+    uintf offset = 0;
+    for (uintf i = 0; i < num_games; ++i) {
+        uintf num_samples = games[i]->write_samples(evaluation_samples + offset,
+                                                    probability_samples + offset * NUM_TOTAL_MOVES);
+        offset += num_samples;
+    }
 }
 
 uintf Trainer::hash(uintf seed, uintf move_choice) {

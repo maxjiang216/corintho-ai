@@ -4,6 +4,7 @@
 #include "node.h"
 #include "util.h"
 #include <bitset>
+#include <array>
 
 using std::bitset;
 
@@ -56,7 +57,7 @@ class TrainMC {
                       float dirichlet_noise[NUM_MOVES], float game_state[GAME_STATE_SIZE]);
     
     // Choose the next child to visit
-    uintf choose_move();
+    uintf choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL_MOVES> &probability_sample);
 
     bool receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SIZE],
                           const Game &game, uintf depth);

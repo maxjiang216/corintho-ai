@@ -60,7 +60,7 @@ class Trainer {
     // List of blocks that have been allocated so we can delete them appropriately
     std::vector<Node*> blocks;
 
-    // Add some std::fstreams for logging files
+    std::string logging_folder;
 
     // Random generator for all operations
     std::mt19937 generator;
@@ -93,7 +93,6 @@ class Trainer {
     // Testing
     Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
             float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed, bool);
-    //Trainer(const Trainer&) = default;
     ~Trainer();
 
     // Main function that will be called by Cython
@@ -132,6 +131,11 @@ class Trainer {
 
     // used by other classes to generate random numbers
     uintf generate();
+
+    // Counts the number of samples in all the games
+    uintf count_samples() const;
+
+    void write_samples(float *evaluation_samples, float *probability_samples) const;
 
 };
 

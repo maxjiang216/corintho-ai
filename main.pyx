@@ -10,10 +10,6 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
-from keras.api._v2.keras import Input, regularizers
-from keras.api._v2.keras.models import Model
-from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
-from keras.api._v2.keras.optimizers import Adam
 from keras.api._v2.keras.models import load_model
 from keras import backend as K
 
@@ -34,7 +30,7 @@ cdef extern from "cpp/trainer.cpp":
         float get_score();
 
 NUM_TOTAL_MOVES = 96
-NUM_MOVES = 56
+NUM_MOVES = 96
 GAME_STATE_SIZE = 70
 
 def format_time(t):
@@ -53,7 +49,7 @@ def train_generation(*,
     new_model_location,  # location to save new model (is this a folder or a file?)
     train_log_folder,
     test_log_folder,
-    train_sample_file,  # String path to write training samples into
+    train_sample_folder,  # String path to write training samples into
     num_games=25000,
     iterations=1600,
     num_test_games=400,
@@ -65,7 +61,7 @@ def train_generation(*,
     learning_rate=0.01,
     batch_size=2048,
     epochs=1,
-    old_training_samples=[],  # list of files containing training samples from previous generations to use
+    old_training_samples=[],  # list of folders containing training sample files from previous generations to use
 ):
 
     # Training
@@ -79,7 +75,7 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
-        train_log_folder,
+        train_log_folder.encode(),
         0,  # Random seed
     )
 
@@ -99,9 +95,11 @@ def train_generation(*,
 
     while True:
 
-        evaluations, probabilities = model.predict(
+        res = model.predict(
             x=game_states, batch_size=num_games, verbose=0
         )
+        evaluations = res[0].flatten()
+        probabiltiies = res[1]
 
         for i in range(num_games):
             dirichlet[i] = np.random.dirichlet((0.3,), 96).reshape((96,))
@@ -124,6 +122,17 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_TOTAL_MOVES), dtype=np.float32)
     trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
 
+    # Save training samples
+    np.save(f"{train_sample_folder}/game_states", sample_states)
+    np.save(f"{train_sample_folder}/evaluation_labels", evaluation_labels)
+    np.save(f"{train_sample_folder}/probability_labels", probability_labels)
+
+    # Add old training samples
+    for cur_path in old_training_samples:
+        np.concatenate((sample_states, np.load(f"{cur_path}/game_states.npy")))
+        np.concatenate((evaluation_labels, np.load(f"{cur_path}/evaluation_labels.npy")))
+        np.concatenate((probability_labels, np.load(f"{cur_path}/probability_labels.npy")))
+
     # Load training model
     training_model = load_model(cur_gen_location)
     # Set learning rate
@@ -141,7 +150,7 @@ def train_generation(*,
     training_model.save(new_model_location)
 
     # Do we want to save this time?
-    print(f"Trained for {time.perf_counter() - start_time} seconds!")
+    print(f"Training took {format_time(time.perf_counter() - start_time)}!")
 
     # Testing
 
@@ -188,6 +197,8 @@ def train_generation(*,
 
         if res:
             break
+
+    print(f"Testing took {format_time(time.perf_counter() - start_time)}!")
 
     # Clear old models
     # Do we need to do this?

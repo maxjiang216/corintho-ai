@@ -3,6 +3,8 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 import numpy
 
+#cython: language_level=3str
+
 setup(
     ext_modules=cythonize(
         Extension(

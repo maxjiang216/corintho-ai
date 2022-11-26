@@ -53,7 +53,23 @@ bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES
     return search(game_state);
 }
 
-uintf TrainMC::choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL_MOVES> &probability_sample) {
+uintf TrainMC::choose_move(std::array<float, GAME_STATE_SIZE> game_state,
+                           std::array<float, NUM_TOTAL_MOVES> probability_sample) {
+
+    // Before moving down, read the samples from the root node
+    Node *root_node = trainer->get_node(root);
+    root_node->write_game_state(game_state);
+    // We will have to map this later
+    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+        if (root_node->has_visited(i)) {
+            probability_sample[i] =
+                (float)trainer->get_node(trainer->find_next(root_node->get_seed(), i))->get_visits() /
+                ((float)root_node->get_visits() - 1.0);
+        }
+        else {
+            probability_sample[i] = 0.0;
+        }
+    }
 
     uintf move_choice = 0;
 
@@ -84,7 +100,8 @@ uintf TrainMC::choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL
         for (uintf i = 0; i < NUM_MOVES; ++i) {
             uintf cur_move = (id + i) % NUM_MOVES;
             if (cur_node->has_visited(cur_move)) {
-                uintf cur_visits = trainer->get_node(trainer->find_next(cur_node->get_seed(), cur_move))->get_visits();
+                uintf cur_visits = trainer->get_node(trainer->find_next(cur_node->get_seed(),
+                                                                        cur_move))->get_visits();
                 if (cur_visits > max_visits) {
                     max_visits = cur_visits;
                     move_choice = cur_move;
@@ -92,21 +109,6 @@ uintf TrainMC::choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL
             }
         }
 
-    }
-
-    // Before moving down, read the samples from the root node
-    Node *root_node = trainer->get_node(root);
-    evaluation_sample = root_node->get_evaluation();
-    // We will have to map this later
-    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-        if (root_node->has_visited(i)) {
-            probability_sample[i] =
-                (float)trainer->get_node(trainer->find_next(root_node->get_seed(), i))->get_visits() /
-                ((float)root_node->get_visits() - 1.0);
-        }
-        else {
-            probability_sample[i] = 0.0;
-        }
     }
 
     uintf old_root = root;
@@ -122,9 +124,6 @@ uintf TrainMC::choose_move(float &evaluation_sample, std::array<float, NUM_TOTAL
     // Our have itself as its parent
     cur_node->null_parent();
     iterations_done = 0;
-
-    std::fstream fs("log.txt", std::fstream::app);
-    fs << cur_node->get_depth() << '\n' << Move{move_choice} << '\n' << cur_node->get_game() << '\n';
 
     return move_choice;
 

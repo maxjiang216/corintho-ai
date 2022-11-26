@@ -289,10 +289,11 @@ uintf Trainer::count_samples() const {
     return counter;
 }
 
-void Trainer::write_samples(float *evaluation_samples, float *probability_samples) const {
+void Trainer::write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const {
     uintf offset = 0;
     for (uintf i = 0; i < num_games; ++i) {
-        uintf num_samples = games[i]->write_samples(evaluation_samples + offset,
+        uintf num_samples = games[i]->write_samples(game_states + offset * GAME_STATE_SIZE,
+                                                    evaluation_samples + offset,
                                                     probability_samples + offset * NUM_TOTAL_MOVES);
         offset += num_samples;
     }
@@ -421,4 +422,12 @@ void Trainer::rehash() {
     // We need to use the old is_stale in the function so replace at the end
     is_stale = vector<bool>(new_size, false);
 
+}
+
+float Trainer::get_score() const {
+    float score = 0;
+    for (uintf i = 0; i < num_games; ++i) {
+        score += games[i]->get_score();
+    }
+    return score / (float)num_games;
 }

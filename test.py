@@ -1,3 +1,7 @@
-from corintho import do
+from corintho import train_generation
 
-do()
+def main():
+
+
+if __name__ == "__main__":
+    main()

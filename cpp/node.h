@@ -4,6 +4,7 @@
 #include "game.h"
 #include "util.h"
 #include <bitset>
+#include <array>
 
 // Node in Monte Carlo Tree
   class Node {
@@ -69,6 +70,7 @@
     void set_visit(uintf move_choice);
 
     void write_game_state(float game_state[GAME_STATE_SIZE]) const;
+    void write_game_state(std::array<float,GAME_STATE_SIZE> game_state) const;
 
   };
 

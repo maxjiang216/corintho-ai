@@ -11,6 +11,12 @@
 
 class Trainer;
 
+struct Sample {
+    // We do not store the evaluation as it is only computable once the game is complete
+    std::array<float, GAME_STATE_SIZE> game_state;
+    std::array<float, NUM_TOTAL_MOVES> probabilities;
+};
+
 class SelfPlayer {
 
     TrainMC players[2];
@@ -18,12 +24,15 @@ class SelfPlayer {
     // Also makes it easier for Trainer to assign seeds
     uintf to_play;
 
+    // Game result for first player
+    Result result;
+
     bool logging;
 
     // seed is only used in testing
     uintf seed;
 
-    std::vector<std::pair<float,std::array<float,NUM_TOTAL_MOVES>>> samples;
+    std::vector<Sample> samples;
 
     // This way we don't allocate memory if there is no logging file
     std::ofstream *logging_file;
@@ -56,7 +65,9 @@ class SelfPlayer {
 
     uintf count_samples() const;
 
-    uintf write_samples(float *evaluation_samples, float *probability_samples) const;
+    uintf write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const;
+
+    float get_score() const;
 
 };
 

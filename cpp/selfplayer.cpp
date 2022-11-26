@@ -7,14 +7,14 @@
 #include <iostream>
 using std::cerr;
 
-SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0},
+SelfPlayer::SelfPlayer(Trainer *trainer): players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0}, result{NONE},
                                           logging{false}, logging_file{nullptr}, trainer{trainer} {
     samples.reserve(30);
 }
 
 SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{trainer, true}, TrainMC{trainer, true}},
-                       to_play{0}, logging{true},
+                       to_play{0}, result{NONE}, logging{true},
                        logging_file{new std::ofstream{logging_folder + "/game_" +
                                                                    std::to_string(id) + ".txt",
                                                   std::ofstream::out}},
@@ -24,13 +24,13 @@ SelfPlayer::SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_fo
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer):
                        players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}},
-                       to_play{0}, logging{false}, logging_file{nullptr}, trainer{trainer} {
+                       to_play{0}, result{NONE}, logging{false}, logging_file{nullptr}, trainer{trainer} {
     samples.reserve(30);
 }
 
 SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id, const std::string &logging_folder):
                        players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}},
-                       to_play{0}, logging{true},
+                       to_play{0}, result{NONE}, logging{true},
                        logging_file{new std::ofstream{logging_folder + "/game_" +
                                                                    std::to_string(id) + ".txt",
                                                   std::ofstream::out}},
@@ -88,17 +88,20 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
         // This function will automatically apply the move to the TrainMC
         // Also write samples
-        float evaluation_sample;
+        std::array<float, GAME_STATE_SIZE> sample_state;
         std::array<float, NUM_TOTAL_MOVES> probability_sample;
-        uintf move_choice = players[to_play].choose_move(evaluation_sample, probability_sample);
-        samples.emplace_back(evaluation_sample, probability_sample);
+        uintf move_choice = players[to_play].choose_move(sample_state, probability_sample);
+        samples.emplace_back(sample_state, probability_sample);
 
         if (logging) {
-            *logging_file << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
+            *logging_file << Move{move_choice} << '\n'
+                          << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
         }
 
         // Check if the game is over
         if (trainer->get_node(players[to_play].get_root())->is_terminal()) {
+            // Get result
+            result = trainer->get_node(players[to_play].get_root())->get_result();
             // Make all nodes stale
             trainer->delete_tree(players[0].get_root());
             trainer->delete_tree(players[1].get_root());
@@ -140,14 +143,30 @@ uintf SelfPlayer::count_samples() const {
     return samples.size();
 }
 
-uintf SelfPlayer::write_samples(float *evaluation_samples, float *probability_samples) const {
+uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const {
     uintf offset = 0;
-    for (uintf i = 0; i < samples.size(); ++i) {
-        *(evaluation_samples+offset) = samples[i].first;
+    // The last player to play a move is the winner, except in a draw
+    float evaluation = 1.0;
+    if (result != DRAW) {
+        evaluation = 0.0;
+    }
+    // Start from back to front to figure out evaluations more easily
+    for (uintf i = samples.size()-1; i >= 0; --i) {
+        for (uintf j = 0; j < GAME_STATE_SIZE; ++j) {
+            *(game_states+offset*GAME_STATE_SIZE+j) = samples[i].game_state[j];
+        }
+        *(evaluation_samples+offset) = evaluation;
         for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
-            *(probability_samples+offset*NUM_TOTAL_MOVES+j) = samples[i].second[j];
+            *(probability_samples+offset*NUM_TOTAL_MOVES+j) = samples[i].probabilities[j];
         }
         ++offset;
+        evaluation *= -1.0;
     }
     return samples.size();
+}
+
+float SelfPlayer::get_score() const {
+    if (result == WIN) return 1.0;
+    if (result == LOSS) return 0.0;
+    return 0.5;
 }

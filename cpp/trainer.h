@@ -135,7 +135,9 @@ class Trainer {
     // Counts the number of samples in all the games
     uintf count_samples() const;
 
-    void write_samples(float *evaluation_samples, float *probability_samples) const;
+    void write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const;
+
+    float get_score() const;
 
 };
 

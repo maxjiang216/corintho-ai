@@ -95,6 +95,29 @@ void Game::write_game_state(float game_state[GAME_STATE_SIZE]) const {
     }
 }
 
+void Game::write_game_state(std::array<float,GAME_STATE_SIZE> game_state) const {
+    for (uintf i = 0; i < 3 * BOARD_SIZE; ++i) {
+        if (board[i]) {
+            game_state[i] = 1.0;
+        }
+        else {
+            game_state[i] = 0.0;
+        }
+    }
+    for (uintf i = 0; i < BOARD_SIZE; ++i) {
+        if (frozen[i]) {
+            game_state[3 * BOARD_SIZE + i] = 1.0;
+        }
+        else {
+            game_state[3 * BOARD_SIZE + i] = 0.0;
+        }
+    }
+    // Canonize the pieces
+    for (uintf i = 0; i < 6; ++i) {
+        game_state[4 * BOARD_SIZE + i] = (float)pieces[(to_play * 3 + i) % 6] * 0.25;
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, const Game &game) {
 
     // Print board

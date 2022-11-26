@@ -15,6 +15,7 @@ from keras.api._v2.keras.models import Model
 from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 from keras.api._v2.keras.models import load_model
+from keras import backend as K
 
 cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
@@ -28,14 +29,28 @@ cdef extern from "cpp/trainer.cpp":
         bool do_iteration(float *evaluations_1, float *probabilities_1,
                           float *evaluations_2, float *probabilities_2,
                           float *dirichlet_noise, float *game_states)
+        int count_samples();
+        void write_samples(float *game_states, float *evaluation_samples, float *probability_samples);
+        float get_score();
 
 NUM_TOTAL_MOVES = 96
 NUM_MOVES = 56
 GAME_STATE_SIZE = 70
 
+def format_time(t):
+    """Format string
+    t is time in seconds"""
+
+    if t < 60:
+        return f"{t:.1f} seconds"
+    if t < 3600:
+        return f"{t/60:.1f} minutes"
+    return f"{t/60/60:.1f} hours"
+
 def train_generation(*,
     cur_gen_location,  # neural network to train on
     best_gen_location,  # opponent to test against
+    new_model_location,  # location to save new model (is this a folder or a file?)
     train_log_folder,
     test_log_folder,
     train_sample_file,  # String path to write training samples into
@@ -55,8 +70,8 @@ def train_generation(*,
 
     # Training
 
-    # Load model
-    model = load_model(cur_gen_location)
+    # Load playing model
+    model = load_model(best_gen_location)
 
     cdef Trainer* trainer = new Trainer(
         num_games,
@@ -73,7 +88,10 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=2] dirichlet = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
 
-    counter = 0
+    evaluations_done = 0
+
+    print(f"Begin training!")
+
     start_time = time.perf_counter()
 
     # First iteration
@@ -90,8 +108,96 @@ def train_generation(*,
         res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
         if res:
             break
-        counter += 1
-        if counter % 1000 == 0:
-            print(f"{counter} iterations done!")
+        evaluations_done += 1
+        if evaluations_done % max(1, 15 * iterations // 100) == 0:
+            time_taken = time.perf_counter() - start_time
+            print(
+                f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+            )
 
-    print(f"Took {time.perf_counter() - start_time} seconds!")
+    # Get training samples
+    num_samples = trainer.count_samples()
+    cdef np.ndarray[np.float32_t, ndim=2] sample_states = np.zeros((num_samples, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluation_labels = np.zeros(num_samples, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_TOTAL_MOVES), dtype=np.float32)
+    trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
+
+    # Load training model
+    training_model = load_model(cur_gen_location)
+    # Set learning rate
+    K.set_value(training_model.optimizer.learning_rate, learning_rate)
+    # Train neural net
+    training_model.fit(
+        x=sample_states,
+        y=[evaluation_labels, probability_labels],
+        batch_size=batch_size,
+        epochs=epochs,
+        shuffle=True,
+    )
+
+    # Save model
+    training_model.save(new_model_location)
+
+    # Do we want to save this time?
+    print(f"Trained for {time.perf_counter() - start_time} seconds!")
+
+    # Testing
+
+    cdef Trainer* tester = new Trainer(
+        num_test_games,
+        num_logged,
+        iterations,
+        c_puct,
+        epsilon,
+        test_log_folder,
+        0,  # Random seed
+    )
+
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations_1 = np.zeros(num_test_games, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations_2 = np.zeros(num_test_games, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] test_dirichlet = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
+
+    print(f"Begin testing!")
+
+    start_time = time.perf_counter()
+
+    # First iteration
+    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_dirichlet[0,0], &test_game_states[0,0])
+
+    while True:
+
+        evaluations_2, probabilities_2 = training_model.predict(
+            x=game_states, batch_size=num_test_games, verbose=0
+        )
+        evaluations_1, probabilities_1 = model.predict(
+            x=game_states, batch_size=num_test_games, verbose=0
+        )
+
+        for i in range(num_games):
+            dirichlet[i] = np.random.dirichlet((0.3,), 96).reshape((96,))
+
+        res = tester.do_iteration(&evaluations_1[0], &evaluations_1[0],
+            &probabilities_1[0,0], &probabilities_2[0,0],
+            &test_dirichlet[0,0], &test_game_states[0,0],
+        )
+
+        if res:
+            break
+
+    # Clear old models
+    # Do we need to do this?
+    keras.backend.clear_session()
+
+    score = tester.get_score()
+
+    if score > testing_threshold:
+        return True
+
+    return False
+
+

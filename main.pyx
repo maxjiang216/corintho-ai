@@ -29,6 +29,10 @@ cdef extern from "cpp/trainer.cpp":
                           float *evaluations_2, float *probabilities_2,
                           float *dirichlet_noise, float *game_states)
 
+NUM_TOTAL_MOVES = 96
+NUM_MOVES = 56
+GAME_STATE_SIZE = 70
+
 def train_generation(*,
     cur_gen_location,  # neural network to train on
     best_gen_location,  # opponent to test against
@@ -38,10 +42,12 @@ def train_generation(*,
     num_games=25000,
     iterations=1600,
     num_test_games=400,
+    num_logged=10,
     testing_threshold=0.5,  # Non-inclusive lower bound for new generation to pass
     c_puct=1.0,
     epsilon=0.25,
     processes=1,
+    learning_rate=0.01,
     batch_size=2048,
     epochs=1,
     old_training_samples=[],  # list of files containing training samples from previous generations to use
@@ -52,31 +58,40 @@ def train_generation(*,
     # Load model
     model = load_model(cur_gen_location)
 
-    cdef Trainer* x = new Trainer(
+    cdef Trainer* trainer = new Trainer(
         num_games,
-        1,
-        200,
-        1,
-        0.25,
-        "test",
-        0)
+        num_logged,
+        iterations,
+        c_puct,
+        epsilon,
+        train_log_folder,
+        0,  # Random seed
+    )
+
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, 96), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] dirichlet = np.zeros((num_games, 96), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, 70), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] dirichlet = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
+
     counter = 0
     start_time = time.perf_counter()
+
+    # First iteration
+    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
+
     while True:
-        np.random.random_sample()
+
+        evaluations, probabilities = model.predict(
+            x=game_states, batch_size=num_games, verbose=0
+        )
+
         for i in range(num_games):
-            evaluations[i] = np.random.random_sample() * 2 - 1
-            probabilities[i] = np.random.random_sample(96)
-            probabilities[i] /= sum(probabilities[i])
             dirichlet[i] = np.random.dirichlet((0.3,), 96).reshape((96,))
-        res = x.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
+        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
         if res:
             break
         counter += 1
         if counter % 1000 == 0:
             print(f"{counter} iterations done!")
+
     print(f"Took {time.perf_counter() - start_time} seconds!")

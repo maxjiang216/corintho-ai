@@ -1,5 +1,5 @@
 from corintho import train_generation
-import argparse 
+import argparse
 import os
 import shutil
 import time
@@ -14,6 +14,7 @@ from keras.api._v2.keras.optimizers import Adam
 
 GAME_STATE_SIZE = 70
 NUM_TOTAL_MOVES = 96
+
 
 def main():
 
@@ -114,7 +115,7 @@ def main():
     NUM_GAMES = PROCESSES * (max(1, args["num_games"] // PROCESSES))
     ITERATIONS = max(2, args["iterations"])
     C_PUCT = max(0.0, args["c_puct"])
-    EPSILON = min(1.0, max(0.0, args["c_puct"]))
+    EPSILON = min(1.0, max(0.0, args["epsilon"]))
     # Enforce even number (first player bias)
     NUM_TEST_GAMES = 2 * PROCESSES * max(1, args["num_test_games"] // (2 * PROCESSES))
     TEST_THRESHOLD = min(1.0, max(0.5, args["test_threshold"]))
@@ -132,17 +133,25 @@ def main():
 
     # Find needed resources when the run already exists
     if len(NAME) > 0 and os.path.isdir(os.path.join(cwd, f"{NAME}")):
-        current_generation = open(
-            f"{cwd}/{NAME}/metadata/current_generation.txt",
-            encoding="utf-8",
-        ).read().strip()
-        best_generation = open(
-            f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8"
-        ).read().strip()
+        current_generation = int(
+            open(
+                f"{cwd}/{NAME}/metadata/current_generation.txt",
+                encoding="utf-8",
+            )
+            .read()
+            .strip()
+        )
+        best_generation = int(
+            open(f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8")
+            .read()
+            .strip()
+        )
         cur_gen_location = f"{cwd}/{NAME}/generations/gen_{current_generation}/model"
         best_gen_location = f"{cwd}/{NAME}/generations/gen_{best_generation}/model"
         old_training_samples = []
-        for gen in range(max(1, current_generation-NUM_OLD_GENS+1), current_generation+1):
+        for gen in range(
+            max(1, current_generation - NUM_OLD_GENS + 1), current_generation + 1
+        ):
             location = f"{cwd}/{NAME}/generations/gen_{gen}/training_samples"
             if os.path.isdir(location):
                 old_training_samples.append(location)
@@ -244,6 +253,7 @@ def main():
     train_sample_folder = f"{new_gen_folder}/training_samples"
     os.mkdir(train_log_folder)
     os.mkdir(test_log_folder)
+    os.mkdir(train_sample_folder)
 
     open(f"{new_gen_folder}/metadata.txt", "w+", encoding="utf-8").write(
         f"Number of games: {NUM_GAMES}\n"
@@ -278,6 +288,7 @@ def main():
         epochs=EPOCHS,
         old_training_samples=old_training_samples,
     )
+
 
 if __name__ == "__main__":
     main()

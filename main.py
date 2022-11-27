@@ -8,7 +8,9 @@ if __name__ == "__main__":
     # Parse flags
     parser = argparse.ArgumentParser()
 
-    parser = argparse.ArgumentParser(description='Generates a command line function based on a configuration file.')
+    parser = argparse.ArgumentParser(
+        description="Generates a command line function based on a configuration file."
+    )
 
     parser.add_argument(
         "program",
@@ -29,11 +31,13 @@ if __name__ == "__main__":
 
     commands = []
 
-    with open(path,'r') as f:
+    with open(path, "r") as f:
         config = toml.load(f)
         hyperparameters = config["hyperparameters"]
-        hyperparameters_flags = ' '.join(["--"+x+"="+str(hyperparameters[x]) for x in hyperparameters])
-        commands.append('python '+program+' '+hyperparameters_flags)
+        hyperparameters_flags = " ".join(
+            ["--" + x + "=" + str(hyperparameters[x]) for x in hyperparameters]
+        )
+        commands.append("python3 " + program + " " + hyperparameters_flags)
 
     for element in commands:
         os.system(element)

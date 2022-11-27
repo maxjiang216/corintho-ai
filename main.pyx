@@ -195,7 +195,6 @@ def train_generation(*,
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
-    print(num_samples)
     training_model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
@@ -252,8 +251,8 @@ def train_generation(*,
 
         test_dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
 
-        res = tester.do_iteration(&evaluations_1[0], &evaluations_2[0],
-            &probabilities_1[0,0], &probabilities_2[0,0],
+        res = tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0],
+            &evaluations_2[0], &probabilities_2[0,0],
             &test_dirichlet[0], &test_game_states[0,0],
         )
 

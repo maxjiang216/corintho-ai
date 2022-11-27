@@ -102,9 +102,9 @@ public:
   bool do_iteration(float evaluations[], float probabilities[],
                     float dirichlet[], float game_states[]);
   // Testing version
-  bool do_iteration(float evaluations_1[], float probabilities_1[],
-                    float evaluations_2[], float probabilities_2[],
-                    float dirichlet_noise[], float game_states[]);
+  bool do_iteration(const float evaluations_1[], const float probabilities_1[],
+                    const float evaluations_2[], const float probabilities_2[],
+                    const float dirichlet_noise[], float game_states[]);
 
   // Place root in hash table (random hash)
   // Place starting position

@@ -32,8 +32,8 @@ class TrainMC {
   Trainer *trainer;
 
   void receive_evaluation(float evaluation,
-                          float probabilities[NUM_TOTAL_MOVES],
-                          float dirichlet_nosie[NUM_MOVES]);
+                          const float probabilities[NUM_TOTAL_MOVES],
+                          const float dirichlet_nosie[NUM_MOVES]);
   bool search(float game_state[GAME_STATE_SIZE]);
   uintf choose_next();
 
@@ -54,8 +54,8 @@ public:
   // First iteration of move
   bool do_iteration(float game_state[GAME_STATE_SIZE]);
   bool do_iteration(float evaluation_result,
-                    float probabilities[NUM_TOTAL_MOVES],
-                    float dirichlet_noise[NUM_MOVES],
+                    const float probabilities[NUM_TOTAL_MOVES],
+                    const float dirichlet_noise[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   // Choose the next child to visit

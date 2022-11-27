@@ -16,6 +16,7 @@ public:
   Manager(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,
           float epsilon, const std::string &logging_folder, uintf random_seed,
           uintf processes);
+  ~Manager();
 
   bool do_iteration(float evaluations[], float probabilities[],
                     float dirichlet[], float game_states[]);

@@ -60,9 +60,11 @@ public:
                     float dirichlet_noise[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
   // Testing
-  bool do_iteration(float evaluation_1, float probabilities_1[NUM_TOTAL_MOVES],
-                    float evaluation_2, float probabilities_2[NUM_TOTAL_MOVES],
-                    float dirichlet_noise[NUM_MOVES],
+  bool do_iteration(float evaluation_1,
+                    const float probabilities_1[NUM_TOTAL_MOVES],
+                    float evaluation_2,
+                    const float probabilities_2[NUM_TOTAL_MOVES],
+                    const float dirichlet_noise[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   uintf get_root(uintf player_num) const;

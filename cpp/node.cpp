@@ -7,15 +7,15 @@ using std::cerr;
 using std::bitset;
 
 Node::Node(uintf seed): game{Game()}, visits{1}, depth{0},
-                        parent{0}, seed{seed}, visited{} {}
+                        parent{0}, seed{seed}, visited{bitset<NUM_MOVES>()} {}
 
 Node::Node(uintf seed, const Game &other_game, uintf depth):
            game{other_game}, visits{1}, depth{depth},
-           parent{0}, seed{seed}, visited{} {}
+           parent{0}, seed{seed}, visited{bitset<NUM_MOVES>()} {}
 
 Node::Node(uintf seed, const Game &other_game, uintf depth, uintf parent, uintf move_choice):
            game{other_game}, visits{1}, depth{depth+1},
-           parent{parent}, seed{seed}, visited{} {
+           parent{parent}, seed{seed}, visited{bitset<NUM_MOVES>()} {
     game.do_move(move_choice);
 }
 
@@ -91,7 +91,7 @@ bool Node::has_visited(uintf move_choice) const {
 }
 
 float Node::get_probability(uintf move_choice) const {
-    return probabilities[move_choice];
+    return (float)probabilities[move_choice] * (1.0 / 120.0);
 }
 
 void Node::increment_visits() {
@@ -106,12 +106,8 @@ void Node::add_evaluation(float new_evaluation) {
     evaluation += new_evaluation;
 }
 
-void Node::set_probability(uintf move_choice, float probability) {
+void Node::set_probability(uintf move_choice, unsigned char probability) {
     probabilities[move_choice] = probability;
-}
-
-void Node::adjust_probability(uintf move_choice, float scalar, float noise) {
-    probabilities[move_choice] = probabilities[move_choice] * scalar + noise;
 }
 
 void Node::set_visit(uintf move_choice) {

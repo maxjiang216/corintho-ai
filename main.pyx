@@ -158,6 +158,8 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_TOTAL_MOVES), dtype=np.float32)
     trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
 
+    del trainer
+
     # Save training samples
     np.save(f"{train_sample_folder}/game_states", sample_states)
     np.save(f"{train_sample_folder}/evaluation_labels", evaluation_labels)
@@ -218,6 +220,7 @@ def train_generation(*,
         epsilon,
         test_log_folder.encode(),
         rng.integers(65536),  # Random seed
+        True,  # Testing
     )
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_1 = np.zeros(num_test_games, dtype=np.float32)
@@ -249,7 +252,7 @@ def train_generation(*,
 
         test_dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
 
-        res = tester.do_iteration(&evaluations_1[0], &evaluations_1[0],
+        res = tester.do_iteration(&evaluations_1[0], &evaluations_2[0],
             &probabilities_1[0,0], &probabilities_2[0,0],
             &test_dirichlet[0], &test_game_states[0,0],
         )
@@ -264,6 +267,8 @@ def train_generation(*,
     keras.backend.clear_session()
 
     score = tester.get_score()
+
+    del tester
 
     print(f"New agent score {score:1f}!")
 

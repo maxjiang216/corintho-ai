@@ -15,7 +15,7 @@ class Trainer {
     // Number of Nodes to allocate together
     // Determine best number for this empirically
     // This will be deprecated once we use Boost pools
-    static const uintf BLOCK_SIZE = 4096;
+    static const uintf BLOCK_SIZE = 8192;
 
     // Determine best starting size empirically (per game)
     static const uintf HASH_TABLE_SIZE = 5003;

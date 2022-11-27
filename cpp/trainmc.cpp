@@ -190,20 +190,16 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct, float new_
 
 void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL_MOVES],
                                  float dirichlet_noise[NUM_MOVES]) {
-
-    // We need to to figure out how to map the probabilities
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
-        cur_node->set_probability(i, probabilities[i]);
-    }
     
     // Apply the legal move filter
     // and keep track of the total sum so we can normalize afterwards
-    float sum = 0;
+    float sum = 0, p[NUM_TOTAL_MOVES];
     for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (!(cur_node->is_legal(i))) {
-            cur_node->set_probability(i, 0.0);
+            p[i] = 0.0;
         }
         else {
+            p[i] = probabilities[i];
             sum += cur_node->get_probability(i);
         }
     }
@@ -213,9 +209,13 @@ void TrainMC::receive_evaluation(float evaluation, float probabilities[NUM_TOTAL
 
     // Normalize probabilities and apply dirichlet noise
     for (uintf i = 0; i < NUM_MOVES; ++i) {
-        if (cur_node->get_probability(i) > 0) {
-            cur_node->adjust_probability(i, scalar, dirichlet_noise[i]);
+        if (p[i] > 0) {
+            p[i] = p[i] * scalar + dirichlet_noise[i];
         }
+    }
+
+    for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+        cur_node->set_probability(i, (unsigned char)lround(p[i]*120));
     }
 
     // Propagate evaluation
@@ -242,7 +242,7 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
         ++iterations_done;
 
-        while (true) {
+        while (!cur_node->is_terminal()) {
             cur_node->increment_visits();
             uintf move_choice = choose_next();
             // Exploring a new node

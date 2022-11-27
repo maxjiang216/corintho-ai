@@ -12,9 +12,9 @@
     // Game state
     Game game;
     // visits is number of times this node has been searched
-    uintf visits;
+    unsigned short visits;
     // depth starts at 0
-    uintf depth;
+    unsigned char depth;
     // Index of parent node
     uintf parent;
     // Seed
@@ -24,7 +24,8 @@
     uintf seed;
 
     // Evaluations
-    float evaluation, probabilities[NUM_MOVES];
+    float evaluation;
+    unsigned char probabilities[NUM_MOVES];
 
     // Which children have been visited
     std::bitset<NUM_MOVES> visited;
@@ -65,8 +66,7 @@
     void increment_visits();
     void null_parent();
     void add_evaluation(float new_evalution);
-    void set_probability(uintf move_choice, float probability);
-    void adjust_probability(uintf move_choice, float scalar, float noise);
+    void set_probability(uintf move_choice, unsigned char probability);
     void set_visit(uintf move_choice);
 
     void write_game_state(float game_state[GAME_STATE_SIZE]) const;

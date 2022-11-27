@@ -2,8 +2,10 @@
 
 Manager::Manager(uintf num_games, uintf num_logged, uintf num_iterations,
             float c_puct, float epsilon, const std::string &logging_folder, uintf random_seed, uintf processes): games_each{num_games/processes} {
-    for (uintf i = 0; i < processes; ++i) {
-        trainers.push_back(new Trainer{games_each, num_logged, num_iterations, c_puct, epsilon, logging_folder, random_seed});
+    trainers.push_back(new Trainer{games_each, num_logged, num_iterations, c_puct, epsilon, logging_folder, random_seed});
+    is_done.push_back(false);
+    for (uintf i = 0; i < processes-1; ++i) {
+        trainers.push_back(new Trainer{games_each, 0, num_iterations, c_puct, epsilon, logging_folder, random_seed});
         is_done.push_back(false);
     }
 }

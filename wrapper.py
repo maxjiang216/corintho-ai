@@ -114,7 +114,7 @@ def main():
     NUM_GAMES = PROCESSES * (max(1, args["num_games"] // PROCESSES))
     ITERATIONS = max(2, args["iterations"])
     C_PUCT = max(0.0, args["c_puct"])
-    EPSILON = min(1.0, max(0.0, args["c_puct"]))
+    EPSILON = min(1.0, max(0.0, args["epsilon"]))
     # Enforce even number (first player bias)
     NUM_TEST_GAMES = 2 * PROCESSES * max(1, args["num_test_games"] // (2 * PROCESSES))
     TEST_THRESHOLD = min(1.0, max(0.5, args["test_threshold"]))
@@ -244,6 +244,7 @@ def main():
     train_sample_folder = f"{new_gen_folder}/training_samples"
     os.mkdir(train_log_folder)
     os.mkdir(test_log_folder)
+    os.mkdir(train_sample_folder)
 
     open(f"{new_gen_folder}/metadata.txt", "w+", encoding="utf-8").write(
         f"Number of games: {NUM_GAMES}\n"

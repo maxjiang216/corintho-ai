@@ -1,9 +1,9 @@
-Number of games: 396
-Number of iterations per turn: 100
+Number of games: 3000
+Number of iterations per turn: 200
 c_puct: 1.0
-epsilon: 1.0
-Number of test games: 396
-Number of processes used in self play: 6
+epsilon: 0.25
+Number of test games: 400
+Number of processes used in self play: 8
 Learning rate: 0.01
 Batch size used in training: 2048
 Epochs used in training: 1

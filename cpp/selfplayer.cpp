@@ -147,11 +147,11 @@ uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples, f
     uintf offset = 0;
     // The last player to play a move is the winner, except in a draw
     float evaluation = 1.0;
-    if (result != DRAW) {
+    if (result == DRAW) {
         evaluation = 0.0;
     }
     // Start from back to front to figure out evaluations more easily
-    for (uintf i = samples.size()-1; i >= 0; --i) {
+    for (intf i = samples.size()-1; i >= 0; --i) {
         for (uintf j = 0; j < GAME_STATE_SIZE; ++j) {
             *(game_states+offset*GAME_STATE_SIZE+j) = samples[i].game_state[j];
         }

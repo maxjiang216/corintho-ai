@@ -95,7 +95,7 @@ void Game::write_game_state(float game_state[GAME_STATE_SIZE]) const {
     }
 }
 
-void Game::write_game_state(std::array<float,GAME_STATE_SIZE> game_state) const {
+void Game::write_game_state(std::array<float,GAME_STATE_SIZE> &game_state) const {
     for (uintf i = 0; i < 3 * BOARD_SIZE; ++i) {
         if (board[i]) {
             game_state[i] = 1.0;

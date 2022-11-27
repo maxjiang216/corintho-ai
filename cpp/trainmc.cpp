@@ -53,8 +53,8 @@ bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_TOTAL_MOVES
     return search(game_state);
 }
 
-uintf TrainMC::choose_move(std::array<float, GAME_STATE_SIZE> game_state,
-                           std::array<float, NUM_TOTAL_MOVES> probability_sample) {
+uintf TrainMC::choose_move(std::array<float, GAME_STATE_SIZE> &game_state,
+                           std::array<float, NUM_TOTAL_MOVES> &probability_sample) {
 
     // Before moving down, read the samples from the root node
     Node *root_node = trainer->get_node(root);
@@ -243,6 +243,7 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
         ++iterations_done;
 
         while (true) {
+            cur_node->increment_visits();
             uintf move_choice = choose_next();
             // Exploring a new node
             if (!(cur_node->has_visited(move_choice))) {
@@ -255,7 +256,6 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
             }
             // Otherwise, move down normally
             else {
-                cur_node->increment_visits();
                 cur = trainer->find_next(cur_node->get_seed(), move_choice);
                 cur_node = trainer->get_node(cur);
             }

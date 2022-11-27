@@ -37,7 +37,7 @@ uintf Manager::count_samples() const {
 void Manager::write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const {
     uintf counter = 0;
     for (uintf i = 0; i < trainers.size(); ++i) {
-        trainers[i]->write_samples(game_states + GAME_STATE_SIZE * i * counter,
+        trainers[i]->write_samples(game_states + GAME_STATE_SIZE * counter,
         evaluation_samples + counter,
         probability_samples + NUM_TOTAL_MOVES * counter);
         counter += trainers[i]->count_samples();

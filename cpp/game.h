@@ -54,7 +54,7 @@ class Game {
     void do_move(uintf move_id);
     
     void write_game_state(float game_state[GAME_STATE_SIZE]) const;
-    void write_game_state(std::array<float, GAME_STATE_SIZE> game_state) const;
+    void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;
 
     friend std::ostream& operator<<(std::ostream& stream, const Game &game);
 

@@ -122,7 +122,7 @@ void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
     game.write_game_state(game_state);
 }
 
-void Node::write_game_state(std::array<float,GAME_STATE_SIZE> game_state) const {
+void Node::write_game_state(std::array<float,GAME_STATE_SIZE> &game_state) const {
     game.write_game_state(game_state);
 }
 

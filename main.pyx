@@ -169,11 +169,31 @@ def train_generation(*,
         np.concatenate((evaluation_labels, np.load(f"{cur_path}/evaluation_labels.npy")))
         np.concatenate((probability_labels, np.load(f"{cur_path}/probability_labels.npy")))
 
+    counter = 0
+    for x in sample_states:
+        if np.amin(x) < 0 or np.amax(x) > 1:
+            print(x)
+            counter += 1
+            if counter > 20:
+                break
+    for x in probability_labels:
+        if np.amin(x) < 0 or np.amax(x) > 1:
+            print(x)
+            counter += 1
+            if counter > 40:
+                break
+    for x in evaluation_labels:
+        if x < -1 or x > 1:
+            print(x)
+            counter += 1
+            if counter > 60:
+                break
     # Load training model
     training_model = load_model(cur_gen_location)
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
+    print(num_samples)
     training_model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
@@ -196,7 +216,7 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
-        test_log_folder,
+        test_log_folder.encode(),
         rng.integers(65536),  # Random seed
     )
 
@@ -204,7 +224,7 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_2 = np.zeros(num_test_games, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] test_dirichlet = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] test_dirichlet = np.zeros(num_test_games*NUM_MOVES, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
 
     print(f"Begin testing!")
@@ -212,23 +232,26 @@ def train_generation(*,
     start_time = time.perf_counter()
 
     # First iteration
-    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_dirichlet[0,0], &test_game_states[0,0])
+    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_dirichlet[0], &test_game_states[0,0])
 
     while True:
 
-        evaluations_2, probabilities_2 = training_model.predict(
+        res = training_model.predict(
             x=game_states, batch_size=num_test_games, verbose=0
         )
-        evaluations_1, probabilities_1 = model.predict(
+        evaluations_1 = res[0].flatten()
+        probabilities_1 = res[1]
+        res = model.predict(
             x=game_states, batch_size=num_test_games, verbose=0
         )
+        evaluations_2 = res[0].flatten()
+        probabilities_2 = res[1]
 
-        for i in range(num_games):
-            dirichlet[i] = rng.dirichlet((0.3,), 96).reshape((96,))
+        test_dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
 
         res = tester.do_iteration(&evaluations_1[0], &evaluations_1[0],
             &probabilities_1[0,0], &probabilities_2[0,0],
-            &test_dirichlet[0,0], &test_game_states[0,0],
+            &test_dirichlet[0], &test_game_states[0,0],
         )
 
         if res:
@@ -241,6 +264,8 @@ def train_generation(*,
     keras.backend.clear_session()
 
     score = tester.get_score()
+
+    print(f"New agent score {score:1f}!")
 
     if score > testing_threshold:
         return True

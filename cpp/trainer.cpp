@@ -54,7 +54,6 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
                 if (is_completed) {
                     is_done[i] = true;
                     ++games_done;
-                    cerr << games_done << " games completed!\n";
                     if (games_done == num_games) {
                         return true;
                     }
@@ -430,4 +429,8 @@ float Trainer::get_score() const {
         score += games[i]->get_score();
     }
     return score / (float)num_games;
+}
+
+bool Trainer::is_all_done() const {
+    return games_done == num_games;
 }

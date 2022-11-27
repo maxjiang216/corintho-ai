@@ -25,13 +25,19 @@ cdef extern from "cpp/trainer.cpp":
         bool do_iteration(float *evaluations_1, float *probabilities_1,
                           float *evaluations_2, float *probabilities_2,
                           float *dirichlet_noise, float *game_states)
-        int count_samples();
-        void write_samples(float *game_states, float *evaluation_samples, float *probability_samples);
-        float get_score();
+        int count_samples()
+        void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
+        float get_score()
 
-NUM_TOTAL_MOVES = 96
-NUM_MOVES = 96
-GAME_STATE_SIZE = 70
+cdef extern from "cpp/manager.cpp":
+    cdef cppclass Manager:
+        Manager()
+        Manager(int num_games, int num_logged, int num_iterations,
+                float c_puct, float epsilon, string logging_folder, int random_seed, int processes)
+        bool do_iteration(float *evaluations, float *probabilities, float *dirichlet,
+                          float *game_states)
+        int count_samples()
+        void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
 
 def format_time(t):
     """Format string
@@ -50,7 +56,7 @@ def train_generation(*,
     train_log_folder,
     test_log_folder,
     train_sample_folder,  # String path to write training samples into
-    num_games=25000,
+    unsigned int num_games=25000,
     iterations=1600,
     num_test_games=400,
     num_logged=10,
@@ -64,11 +70,18 @@ def train_generation(*,
     old_training_samples=[],  # list of folders containing training sample files from previous generations to use
 ):
 
+    cdef unsigned int NUM_TOTAL_MOVES = 96
+    cdef unsigned int NUM_MOVES = 96
+    cdef unsigned int GAME_STATE_SIZE = 70
+
+    rng = np.random.default_rng(int(time.time()))
+
     # Training
 
     # Load playing model
     model = load_model(best_gen_location)
 
+    '''
     cdef Trainer* trainer = new Trainer(
         num_games,
         num_logged,
@@ -76,43 +89,66 @@ def train_generation(*,
         c_puct,
         epsilon,
         train_log_folder.encode(),
-        0,  # Random seed
+        rng.integers(65536),  # Random seed
+    )'''
+    cdef Manager* trainer = new Manager(
+        num_games,
+        num_logged,
+        iterations,
+        c_puct,
+        epsilon,
+        train_log_folder.encode(),
+        rng.integers(65536),  # Random seed
+        processes,
     )
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_TOTAL_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] dirichlet = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] dirichlet = np.zeros(num_games*NUM_MOVES, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
 
-    evaluations_done = 0
+    cdef int evaluations_done = 0
 
     print(f"Begin training!")
 
     start_time = time.perf_counter()
 
     # First iteration
-    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
+    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0], &game_states[0,0])
+
+    predict_time = 0
+    play_time = 0
+    d_time = 0
 
     while True:
 
+        pred_start = time.perf_counter()
         res = model.predict(
-            x=game_states, batch_size=num_games, verbose=0
+            x=game_states, batch_size=num_games, verbose=0, use_multiprocessing=True
         )
+        predict_time += time.perf_counter()-pred_start
         evaluations = res[0].flatten()
         probabiltiies = res[1]
 
-        for i in range(num_games):
-            dirichlet[i] = np.random.dirichlet((0.3,), 96).reshape((96,))
-        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0,0], &game_states[0,0])
+        d_start = time.perf_counter()
+        dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
+        d_time += time.perf_counter() - d_start
+        play_start = time.perf_counter()
+        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0], &game_states[0,0])
+        play_time += time.perf_counter()-play_start
         if res:
+            print("Done all")
             break
         evaluations_done += 1
-        if evaluations_done % max(1, 15 * iterations // 100) == 0:
+        if evaluations_done % max(1, 15 * iterations // 1000) == 0:
             time_taken = time.perf_counter() - start_time
             print(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
                 f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Prediction time so far: {format_time(predict_time)}\n"
+                f"Play time so far: {format_time(play_time)}\n"
+                f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
     # Get training samples
@@ -161,7 +197,7 @@ def train_generation(*,
         c_puct,
         epsilon,
         test_log_folder,
-        0,  # Random seed
+        rng.integers(65536),  # Random seed
     )
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_1 = np.zeros(num_test_games, dtype=np.float32)
@@ -188,7 +224,7 @@ def train_generation(*,
         )
 
         for i in range(num_games):
-            dirichlet[i] = np.random.dirichlet((0.3,), 96).reshape((96,))
+            dirichlet[i] = rng.dirichlet((0.3,), 96).reshape((96,))
 
         res = tester.do_iteration(&evaluations_1[0], &evaluations_1[0],
             &probabilities_1[0,0], &probabilities_2[0,0],

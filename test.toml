@@ -1,0 +1,15 @@
+[hyperparameters]
+num_games = 400
+iterations = 100
+c_puct = 1.0
+epsilon = 0.25
+num_test_games = 400
+test_threshold = 0.5
+processes = 4
+learning_rate = 0.01
+batch_size = 2048
+epochs = 1
+num_old_gens = 20
+name = "test"
+cwd = "./logs"
+num_logged = 10

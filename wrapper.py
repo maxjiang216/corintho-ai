@@ -132,13 +132,13 @@ def main():
 
     # Find needed resources when the run already exists
     if len(NAME) > 0 and os.path.isdir(os.path.join(cwd, f"{NAME}")):
-        current_generation = open(
+        current_generation = int(open(
             f"{cwd}/{NAME}/metadata/current_generation.txt",
             encoding="utf-8",
-        ).read().strip()
-        best_generation = open(
+        ).read().strip())
+        best_generation = int(open(
             f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8"
-        ).read().strip()
+        ).read().strip())
         cur_gen_location = f"{cwd}/{NAME}/generations/gen_{current_generation}/model"
         best_gen_location = f"{cwd}/{NAME}/generations/gen_{best_generation}/model"
         old_training_samples = []

@@ -139,6 +139,8 @@ class Trainer {
 
     float get_score() const;
 
+    bool is_all_done() const;
+
 };
 
 #endif

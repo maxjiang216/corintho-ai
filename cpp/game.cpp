@@ -23,7 +23,9 @@ const uintf S2 = 8;
 const uintf S3 = 9;
 
 Game::Game()
-    : board{}, frozen{}, to_play{0}, pieces{4, 4, 4, 4, 4, 4}, result{NONE} {}
+    : board{}, frozen{}, to_play{0}, pieces{4, 4, 4, 4, 4, 4}, result{NONE} {
+  get_legal_moves();
+}
 
 bool Game::is_legal(uintf move_choice) const {
   return legal_moves[move_choice];

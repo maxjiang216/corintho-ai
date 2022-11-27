@@ -79,9 +79,11 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   return false;
 }
 
-bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
-                           float evaluations_2[], float probabilities_2[],
-                           float dirichlet_noise[], float game_states[]) {
+bool Trainer::do_iteration(const float evaluations_1[],
+                           const float probabilities_1[],
+                           const float evaluations_2[],
+                           const float probabilities_2[],
+                           const float dirichlet_noise[], float game_states[]) {
   for (uintf i = 0; i < num_games; ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
@@ -430,8 +432,11 @@ void Trainer::rehash() {
 
 float Trainer::get_score() const {
   float score = 0;
-  for (uintf i = 0; i < num_games; ++i) {
+  for (uintf i = 0; i < num_games; i += 2) {
     score += games[i]->get_score();
+  }
+  for (uintf i = 1; i < num_games; i += 2) {
+    score += 1.0 - games[i]->get_score();
   }
   return score / (float)num_games;
 }

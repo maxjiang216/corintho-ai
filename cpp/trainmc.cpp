@@ -50,8 +50,8 @@ bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
 }
 
 bool TrainMC::do_iteration(float evaluation,
-                           float probabilities[NUM_TOTAL_MOVES],
-                           float dirichlet_noise[NUM_MOVES],
+                           const float probabilities[NUM_TOTAL_MOVES],
+                           const float dirichlet_noise[NUM_MOVES],
                            float game_state[GAME_STATE_SIZE]) {
   receive_evaluation(evaluation, probabilities, dirichlet_noise);
   return search(game_state);
@@ -80,19 +80,19 @@ uintf TrainMC::choose_move(
 
   // In training, choose weighted random
   // For the first few moves
-  if (cur_node->get_depth() < NUM_OPENING_MOVES && !testing) {
+  if (root_node->get_depth() < NUM_OPENING_MOVES && !testing) {
     uintf total = 0, children_visits[NUM_MOVES];
     for (uintf i = 0; i < NUM_MOVES; ++i) {
-      if (cur_node->has_visited(i)) {
+      if (root_node->has_visited(i)) {
         children_visits[i] =
-            trainer->get_node(trainer->find_next(cur_node->get_seed(), i))
+            trainer->get_node(trainer->find_next(root_node->get_seed(), i))
                 ->get_visits();
         total += children_visits[i];
       }
     }
     uintf cur_total = 0;
     for (uintf i = 0; i < NUM_MOVES; ++i) {
-      if (cur_node->has_visited(i)) {
+      if (root_node->has_visited(i)) {
         cur_total += children_visits[i];
         if (cur_total >= total)
           move_choice = i;
@@ -103,14 +103,14 @@ uintf TrainMC::choose_move(
   else {
 
     // Otherwise, choose randomly between the moves with the most
-    // visits/searches Random offset is the easiest way to randomly break ties
+    // visits/searches. Random offset is the easiest way to randomly break ties
     uintf id = trainer->generate() % NUM_MOVES, max_visits = 0;
     for (uintf i = 0; i < NUM_MOVES; ++i) {
       uintf cur_move = (id + i) % NUM_MOVES;
-      if (cur_node->has_visited(cur_move)) {
+      if (root_node->has_visited(cur_move)) {
         uintf cur_visits =
             trainer
-                ->get_node(trainer->find_next(cur_node->get_seed(), cur_move))
+                ->get_node(trainer->find_next(root_node->get_seed(), cur_move))
                 ->get_visits();
         if (cur_visits > max_visits) {
           max_visits = cur_visits;
@@ -191,8 +191,8 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
 }
 
 void TrainMC::receive_evaluation(float evaluation,
-                                 float probabilities[NUM_TOTAL_MOVES],
-                                 float dirichlet_noise[NUM_MOVES]) {
+                                 const float probabilities[NUM_TOTAL_MOVES],
+                                 const float dirichlet_noise[NUM_MOVES]) {
 
   // Apply the legal move filter
   // and keep track of the total sum so we can normalize afterwards

@@ -66,10 +66,10 @@ bool SelfPlayer::do_iteration(float evaluation,
 }
 
 bool SelfPlayer::do_iteration(float evaluation_1,
-                              float probabilities_1[NUM_TOTAL_MOVES],
+                              const float probabilities_1[NUM_TOTAL_MOVES],
                               float evaluation_2,
-                              float probabilities_2[NUM_TOTAL_MOVES],
-                              float dirichlet_noise[NUM_MOVES],
+                              const float probabilities_2[NUM_TOTAL_MOVES],
+                              const float dirichlet_noise[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation;
   if (to_play == seed) {
@@ -108,6 +108,12 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       *logging_file
           << Move{move_choice} << '\n'
           << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
+      for (uintf i = 0; i < NUM_MOVES; ++i) {
+        if (trainer->get_node(players[to_play].get_root())->is_legal(i)) {
+          *logging_file << Move{i} << ' ';
+        }
+      }
+      *logging_file << "\n\n";
     }
 
     // Check if the game is over

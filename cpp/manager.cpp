@@ -33,6 +33,12 @@ bool Manager::do_iteration(float evaluations[], float probabilities[],
   return done_all;
 }
 
+Manager::~Manager() {
+  for (uintf i = 0; i < trainers.size(); ++i) {
+    delete trainers[i];
+  }
+}
+
 uintf Manager::count_samples() const {
   uintf num_samples = 0;
   for (uintf i = 0; i < trainers.size(); ++i) {

@@ -6322,7 +6322,7 @@ static PyObject *__pyx_pf_8corintho_2train_generation(CYTHON_UNUSED PyObject *__
  *         evaluations_1 = res[0].flatten()
  *         probabilities_1 = res[1]             # <<<<<<<<<<<<<<
  *         res = model.predict(
- *             x=game_states, batch_size=num_test_games, verbose=0
+ *             x=test_game_states, batch_size=num_test_games, verbose=0
  */
     __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_res, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -6353,7 +6353,7 @@ static PyObject *__pyx_pf_8corintho_2train_generation(CYTHON_UNUSED PyObject *__
  *         evaluations_1 = res[0].flatten()
  *         probabilities_1 = res[1]
  *         res = model.predict(             # <<<<<<<<<<<<<<
- *             x=game_states, batch_size=num_test_games, verbose=0
+ *             x=test_game_states, batch_size=num_test_games, verbose=0
  *         )
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_model, __pyx_n_s_predict); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
@@ -6362,13 +6362,13 @@ static PyObject *__pyx_pf_8corintho_2train_generation(CYTHON_UNUSED PyObject *__
     /* "main.pyx":248
  *         probabilities_1 = res[1]
  *         res = model.predict(
- *             x=game_states, batch_size=num_test_games, verbose=0             # <<<<<<<<<<<<<<
+ *             x=test_game_states, batch_size=num_test_games, verbose=0             # <<<<<<<<<<<<<<
  *         )
  *         evaluations_2 = res[0].flatten()
  */
     __pyx_t_26 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_26)) __PYX_ERR(0, 248, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_26);
-    if (PyDict_SetItem(__pyx_t_26, __pyx_n_s_x, ((PyObject *)__pyx_v_game_states)) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_26, __pyx_n_s_x, ((PyObject *)__pyx_v_test_game_states)) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_26, __pyx_n_s_batch_size, __pyx_v_num_test_games) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_26, __pyx_n_s_verbose, __pyx_int_0) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
 
@@ -6376,7 +6376,7 @@ static PyObject *__pyx_pf_8corintho_2train_generation(CYTHON_UNUSED PyObject *__
  *         evaluations_1 = res[0].flatten()
  *         probabilities_1 = res[1]
  *         res = model.predict(             # <<<<<<<<<<<<<<
- *             x=game_states, batch_size=num_test_games, verbose=0
+ *             x=test_game_states, batch_size=num_test_games, verbose=0
  *         )
  */
     __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_26); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 247, __pyx_L1_error)
@@ -6387,7 +6387,7 @@ static PyObject *__pyx_pf_8corintho_2train_generation(CYTHON_UNUSED PyObject *__
     __pyx_t_5 = 0;
 
     /* "main.pyx":250
- *             x=game_states, batch_size=num_test_games, verbose=0
+ *             x=test_game_states, batch_size=num_test_games, verbose=0
  *         )
  *         evaluations_2 = res[0].flatten()             # <<<<<<<<<<<<<<
  *         probabilities_2 = res[1]

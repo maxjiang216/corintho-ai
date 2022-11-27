@@ -36,10 +36,13 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
 }
 
 Trainer::~Trainer() {
-    for (size_t i = 0; i < blocks.size(); ++i) {
+    for (uintf i = 0; i < blocks.size(); ++i) {
         delete[] blocks[i];
     }
     delete[] cur_block;
+    for (uintf i = 0; i < games.size(); ++i) {
+        delete games[i];
+    }
 }
 
 bool Trainer::do_iteration(float evaluations[], float probabilities[],

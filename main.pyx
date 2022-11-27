@@ -245,7 +245,7 @@ def train_generation(*,
         evaluations_1 = res[0].flatten()
         probabilities_1 = res[1]
         res = model.predict(
-            x=game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0
         )
         evaluations_2 = res[0].flatten()
         probabilities_2 = res[1]

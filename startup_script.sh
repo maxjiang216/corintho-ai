@@ -5,6 +5,8 @@ pip install numpy # 17MB
 pip install keras==2.9 # 5MB
 pip install tf-nightly # 588MB
 pip install cython # 5MB
+pip install toml
 export PATH="~/.local/bin:$PATH"
 git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai
+python3 setup.py build_ext --inplace

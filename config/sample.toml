@@ -1,0 +1,10 @@
+# This is a TOML document
+
+[hyperparameters]
+    num_games = 3000
+    iterations = 200
+    num_test_games = 400
+    series_length = 1
+    processes = 1
+    batch_size = 2048
+    epochs = 1

@@ -81,16 +81,6 @@ def train_generation(*,
     # Load playing model
     model = load_model(best_gen_location)
 
-    '''
-    cdef Trainer* trainer = new Trainer(
-        num_games,
-        num_logged,
-        iterations,
-        c_puct,
-        epsilon,
-        train_log_folder.encode(),
-        rng.integers(65536),  # Random seed
-    )'''
     cdef Manager* trainer = new Manager(
         num_games,
         num_logged,
@@ -140,9 +130,9 @@ def train_generation(*,
             print("Done all")
             break
         evaluations_done += 1
-        if evaluations_done % max(1, 15 * iterations // 1000) == 0:
+        if evaluations_done % max(1, 15 * iterations // 100) == 0:
             time_taken = time.perf_counter() - start_time
-            print(
+            open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
                 f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
@@ -171,25 +161,6 @@ def train_generation(*,
         np.concatenate((evaluation_labels, np.load(f"{cur_path}/evaluation_labels.npy")))
         np.concatenate((probability_labels, np.load(f"{cur_path}/probability_labels.npy")))
 
-    counter = 0
-    for x in sample_states:
-        if np.amin(x) < 0 or np.amax(x) > 1:
-            print(x)
-            counter += 1
-            if counter > 20:
-                break
-    for x in probability_labels:
-        if np.amin(x) < 0 or np.amax(x) > 1:
-            print(x)
-            counter += 1
-            if counter > 40:
-                break
-    for x in evaluation_labels:
-        if x < -1 or x > 1:
-            print(x)
-            counter += 1
-            if counter > 60:
-                break
     # Load training model
     training_model = load_model(cur_gen_location)
     # Set learning rate
@@ -229,6 +200,8 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=1] test_dirichlet = np.zeros(num_test_games*NUM_MOVES, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
 
+    evaluations_done = 0
+
     print(f"Begin testing!")
 
     start_time = time.perf_counter()
@@ -259,6 +232,15 @@ def train_generation(*,
         if res:
             break
 
+        evaluations_done += 1
+        if evaluations_done % max(1, 15 * iterations // 100) == 0:
+            time_taken = time.perf_counter() - start_time
+            open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+                f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+            )
+
     print(f"Testing took {format_time(time.perf_counter() - start_time)}!")
 
     # Clear old models
@@ -269,7 +251,7 @@ def train_generation(*,
 
     del tester
 
-    print(f"New agent score {score:1f}!")
+    open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!")
 
     if score > testing_threshold:
         return True

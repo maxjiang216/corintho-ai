@@ -210,8 +210,8 @@ def main():
                 )(layer_3)
             )
         )
-        eval_output = Dense(units=1, activation="tanh")(layer_4)
-        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_4)
+        eval_output = Dense(units=1, activation="tanh")(layer_3)
+        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_3)
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(

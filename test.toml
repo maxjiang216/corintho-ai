@@ -1,9 +1,9 @@
 [hyperparameters]
-num_games = 5000
-iterations = 400
+num_games = 300
+iterations = 100
 c_puct = 1.0
 epsilon = 0.25
-num_test_games = 400
+num_test_games = 2
 test_threshold = 0.5
 processes = 1
 learning_rate = 0.01

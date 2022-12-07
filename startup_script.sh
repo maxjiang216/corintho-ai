@@ -11,4 +11,5 @@ pip install black
 export PATH="~/.local/bin:$PATH"
 git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai
-python3 setup.py build_ext --inplace
+chmod +x train.sh
+nohup ~/corintho-ai/train.sh

@@ -217,7 +217,7 @@ void TrainMC::receive_evaluation(float evaluation,
   }
 
   for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-    cur_node->set_probability(i, (unsigned char)lround(p[i] * 120));
+    cur_node->set_probability(i, (unsigned char)lround(p[i] * 127));
   }
 
   // Propagate evaluation

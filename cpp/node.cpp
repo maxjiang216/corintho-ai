@@ -71,7 +71,7 @@ float Node::get_evaluation() const { return evaluation; }
 bool Node::has_visited(uintf move_choice) const { return visited[move_choice]; }
 
 float Node::get_probability(uintf move_choice) const {
-  return (float)probabilities[move_choice] * (1.0 / 120.0);
+  return (float)probabilities[move_choice] * (1.0 / 127.0);
 }
 
 void Node::increment_visits() { ++visits; }

@@ -4,3 +4,4 @@ clang-format -i --verbose cpp/*
 black *.py
 # Build Cython module
 python3 setup.py build_ext --inplace
+rm main.cpp

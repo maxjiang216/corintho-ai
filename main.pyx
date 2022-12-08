@@ -143,6 +143,15 @@ def train_generation(*,
                 f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
+    time_taken = time.perf_counter() - start_time
+    open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+        "Training Complete!\n"
+        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+        f"Total prediction time: {format_time(predict_time)}\n"
+        f"Total play time: {format_time(play_time)}\n"
+        f"Total dirichlet time: {format_time(d_time)}\n"
+    )
+
     # Get training samples
     num_samples = trainer.count_samples()
     cdef np.ndarray[np.float32_t, ndim=2] sample_states = np.zeros((num_samples, GAME_STATE_SIZE), dtype=np.float32)
@@ -219,12 +228,12 @@ def train_generation(*,
 
         pred_start = time.perf_counter()
         res = training_model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
         )
         evaluations_1 = res[0].flatten()
         probabilities_1 = res[1]
         res = model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
         )
         evaluations_2 = res[0].flatten()
         probabilities_2 = res[1]
@@ -256,7 +265,7 @@ def train_generation(*,
                 f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
-    print(f"Testing took {format_time(time.perf_counter() - start_time)}!")
+    time_taken = time.perf_counter() - start_time
 
     # Clear old models
     # Do we need to do this?
@@ -266,7 +275,16 @@ def train_generation(*,
 
     del tester
 
-    open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!")
+    open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+        "Testing Complete!\n"
+        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+        f"Total prediction time: {format_time(predict_time)}\n"
+        f"Total play time: {format_time(play_time)}\n"
+        f"Total dirichlet time: {format_time(d_time)}\n"
+        f"New agent score {score:1f}!\n"
+    )
+
+    open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
 
     if score > testing_threshold:
         return True

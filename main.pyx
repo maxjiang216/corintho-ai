@@ -5,7 +5,6 @@ from libcpp cimport bool
 import numpy as np
 cimport numpy as np
 import time
-import datetime
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -99,7 +98,7 @@ def train_generation(*,
 
     cdef int evaluations_done = 0
 
-    print(f"Begin training!")
+    print("Begin training!")
 
     start_time = time.perf_counter()
 
@@ -116,9 +115,9 @@ def train_generation(*,
         res = model.predict(
             x=game_states, batch_size=num_games, verbose=0, use_multiprocessing=True
         )
-        predict_time += time.perf_counter()-pred_start
         evaluations = res[0].flatten()
         probabiltiies = res[1]
+        predict_time += time.perf_counter()-pred_start
 
         d_start = time.perf_counter()
         dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
@@ -126,10 +125,13 @@ def train_generation(*,
         play_start = time.perf_counter()
         res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0], &game_states[0,0])
         play_time += time.perf_counter()-play_start
+
         if res:
             print("Done all")
             break
+
         evaluations_done += 1
+
         if evaluations_done % max(1, 15 * iterations // 100) == 0:
             time_taken = time.perf_counter() - start_time
             open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
@@ -202,17 +204,22 @@ def train_generation(*,
 
     evaluations_done = 0
 
-    print(f"Begin testing!")
+    print("Begin testing!")
 
     start_time = time.perf_counter()
 
     # First iteration
     tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_dirichlet[0], &test_game_states[0,0])
 
+    predict_time = 0
+    play_time = 0
+    d_time = 0
+
     while True:
 
+        pred_start = time.perf_counter()
         res = training_model.predict(
-            x=game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0
         )
         evaluations_1 = res[0].flatten()
         probabilities_1 = res[1]
@@ -221,13 +228,18 @@ def train_generation(*,
         )
         evaluations_2 = res[0].flatten()
         probabilities_2 = res[1]
+        predict_time += time.perf_counter()-pred_start
 
-        test_dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
+        d_start = time.perf_counter()
+        test_dirichlet = rng.dirichlet((0.3,), num_test_games * NUM_MOVES).reshape((num_test_games * NUM_MOVES,)).astype(np.float32)
+        d_time += time.perf_counter() - d_start
 
+        play_start = time.perf_counter()
         res = tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0],
             &evaluations_2[0], &probabilities_2[0,0],
             &test_dirichlet[0], &test_game_states[0,0],
         )
+        play_time += time.perf_counter()-play_start
 
         if res:
             break
@@ -239,6 +251,9 @@ def train_generation(*,
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
                 f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Prediction time so far: {format_time(predict_time)}\n"
+                f"Play time so far: {format_time(play_time)}\n"
+                f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
     print(f"Testing took {format_time(time.perf_counter() - start_time)}!")

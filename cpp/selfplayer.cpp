@@ -107,10 +107,14 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
     if (logging) {
       *logging_file
           << Move{move_choice} << '\n'
-          << trainer->get_node(players[to_play].get_root())->get_game() << '\n';
+          << trainer->get_node(players[to_play].get_root())->get_game() << '\n'
+          << trainer->get_node(players[to_play].get_root())->get_evaluation()
+          << '\n';
       for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (trainer->get_node(players[to_play].get_root())->is_legal(i)) {
-          *logging_file << Move{i} << ' ';
+          *logging_file << Move{i} << ' '
+                        << trainer->get_node(players[to_play].get_root())->get_probability(i)
+                        << ' ';
         }
       }
       *logging_file << "\n\n";

@@ -63,7 +63,6 @@ uintf TrainMC::choose_move(
   // Before moving down, read the samples from the root node
   Node *root_node = trainer->get_node(root);
   root_node->write_game_state(game_state);
-  // We will have to map this later
   for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
     if (root_node->has_visited(i)) {
       probability_sample[i] =
@@ -89,12 +88,14 @@ uintf TrainMC::choose_move(
         total += children_visits[i];
       }
     }
-    uintf cur_total = 0;
+    uintf cur_total = 0, target = trainer->generate() % total;
     for (uintf i = 0; i < NUM_MOVES; ++i) {
       if (root_node->has_visited(i)) {
         cur_total += children_visits[i];
-        if (cur_total >= total)
+        if (cur_total >= target) {
           move_choice = i;
+          break;
+        }
       }
     }
   }
@@ -197,12 +198,12 @@ void TrainMC::receive_evaluation(float evaluation,
   float sum = 0.0, p[NUM_TOTAL_MOVES];
   uintf legal_move_num = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (!(cur_node->is_legal(i))) {
-      p[i] = 0.0;
-    } else {
+    if (cur_node->is_legal(i)) {
       p[i] = probabilities[i];
       sum += p[i];
       ++legal_move_num;
+    } else {
+      p[i] = 0.0;
     }
   }
 
@@ -222,7 +223,7 @@ void TrainMC::receive_evaluation(float evaluation,
   // Normalize probabilities and apply dirichlet noise
   uintf cur_dirichlet = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (p[i] > 0) {
+    if (cur_node->is_legal(i)) {
       p[i] = p[i] * scalar + dirichlet_noise[cur_dirichlet] * dirichlet_scalar;
       ++cur_dirichlet;
     }
@@ -231,13 +232,11 @@ void TrainMC::receive_evaluation(float evaluation,
   delete dirichlet_noise;
 
   for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-    cur_node->set_probability(i, (unsigned char)lround(p[i] * 127));
+    cur_node->set_probability(i, (unsigned short)lround(p[i] * 511.0));
   }
-
   // Propagate evaluation
+  // Set evaluation for first node? Must work with terminal evals as well
   float cur_evaluation = evaluation;
-  if (cur_node->get_to_play() % 2 == 1)
-    cur_evaluation *= -1.0;
   while (cur != root) {
     cur_node->add_evaluation(cur_evaluation);
     cur_evaluation *= -1.0;
@@ -280,6 +279,8 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
     // Check for terminal state, otherwise evaluation is needed
     if (cur_node->is_terminal()) {
+      // Otherwise visits is not incremented
+      cur_node->increment_visits();
       // Don't propagate if value is 0
       if (cur_node->get_result() != DRAW) {
         // Propagate evaluation
@@ -293,7 +294,7 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
           cur = cur_node->get_parent();
           cur_node = trainer->get_node(cur);
         }
-        // We need to propagate to root
+        // We need to propagate to root (do we?)
         cur_node->add_evaluation(cur_evaluation);
       } else {
         cur = root;
@@ -325,14 +326,14 @@ uintf TrainMC::choose_next() {
         Node *next =
             trainer->get_node(trainer->find_next(cur_node->get_seed(), i));
         u = -1.0 * next->get_evaluation() / (float)next->get_visits() +
-            cur_node->get_probability(i) *
+            c_puct * cur_node->get_probability(i) *
                 sqrt((float)cur_node->get_visits() - 1.0) /
                 ((float)next->get_visits() + 1);
 
       }
       // If not visited, set action value to 0
       else {
-        u = cur_node->get_probability(i) *
+        u = c_puct * cur_node->get_probability(i) *
             sqrt((float)cur_node->get_visits() - 1.0);
       }
       // We assume there are no ties

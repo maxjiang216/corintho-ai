@@ -1,3 +1,4 @@
+dos2unix *
 # Format C++
 clang-format -i --verbose cpp/*
 # Format Python

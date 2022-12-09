@@ -98,6 +98,31 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
     // Also write samples
     std::array<float, GAME_STATE_SIZE> sample_state;
     std::array<float, NUM_TOTAL_MOVES> probability_sample;
+    if (logging) {
+      for (uintf i = 0; i < NUM_MOVES; ++i) {
+        if (trainer->get_node(players[to_play].get_root())->is_legal(i) &&
+            trainer->get_node(players[to_play].get_root())->has_visited(i)) {
+          *logging_file
+              << Move{i} << ' '
+              << trainer
+                     ->get_node(trainer->find_next(
+                         trainer->get_node(players[to_play].get_root())
+                             ->get_seed(),
+                         i))
+                     ->get_visits()
+              << ' '
+              << trainer
+                     ->get_node(trainer->find_next(
+                         trainer->get_node(players[to_play].get_root())
+                             ->get_seed(),
+                         i))
+                     ->get_evaluation()
+              << ' ';
+        }
+      }
+      *logging_file << '\n';
+    }
+
     uintf move_choice =
         players[to_play].choose_move(sample_state, probability_sample);
     samples.emplace_back(sample_state, probability_sample);
@@ -107,6 +132,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
           << Move{move_choice} << '\n'
           << trainer->get_node(players[to_play].get_root())->get_game() << '\n'
           << trainer->get_node(players[to_play].get_root())->get_evaluation()
+          << ' ' << trainer->get_node(players[to_play].get_root())->get_visits()
           << '\n';
       for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (trainer->get_node(players[to_play].get_root())->is_legal(i)) {

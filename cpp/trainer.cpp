@@ -84,6 +84,10 @@ bool Trainer::do_iteration(const float evaluations_1[],
                            const float evaluations_2[],
                            const float probabilities_2[], float game_states[]) {
   for (uintf i = 0; i < num_games; ++i) {
+    if (evaluations_1[i] > 2 || evaluations_1[i] < -2 || evaluations_2[i] > 2 ||
+        evaluations_2[i] < -2) {
+      cerr << evaluations_1[i] << ' ' << evaluations_2[i] << '\n';
+    }
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
       // 2

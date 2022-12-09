@@ -25,7 +25,7 @@ class Node {
 
   // Evaluations
   float evaluation;
-  unsigned char probabilities[NUM_MOVES];
+  unsigned short probabilities[NUM_MOVES];
 
   // Which children have been visited
   std::bitset<NUM_MOVES> visited;
@@ -66,7 +66,7 @@ public:
   void increment_visits();
   void null_parent();
   void add_evaluation(float new_evalution);
-  void set_probability(uintf move_choice, unsigned char probability);
+  void set_probability(uintf move_choice, unsigned short probability);
   void set_visit(uintf move_choice);
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;

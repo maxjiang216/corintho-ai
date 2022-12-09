@@ -133,7 +133,7 @@ def train_generation(*,
                 f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
-                f"Play time so far: {format_time(play_time)}\n"
+                f"Play time so far: {format_time(play_time)}\n\n"
             )
 
     time_taken = time.perf_counter() - start_time
@@ -218,12 +218,12 @@ def train_generation(*,
 
         pred_start = time.perf_counter()
         res = training_model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+            x=test_game_states, batch_size=num_test_games, verbose=0
         )
         evaluations_1 = res[0].flatten()
         probabilities_1 = res[1]
         res = model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+            x=test_game_states, batch_size=num_test_games, verbose=0
         )
         evaluations_2 = res[0].flatten()
         probabilities_2 = res[1]
@@ -247,7 +247,7 @@ def train_generation(*,
                 f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
-                f"Play time so far: {format_time(play_time)}\n"
+                f"Play time so far: {format_time(play_time)}\n\n"
             )
 
     time_taken = time.perf_counter() - start_time

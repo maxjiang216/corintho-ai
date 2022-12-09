@@ -8,16 +8,16 @@ using std::cerr;
 
 Node::Node(uintf seed)
     : game{Game()}, visits{1}, depth{0}, parent{0}, seed{seed},
-      visited{bitset<NUM_MOVES>()} {}
+      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {}
 
 Node::Node(uintf seed, const Game &other_game, uintf depth)
     : game{other_game}, visits{1}, depth{depth}, parent{0}, seed{seed},
-      visited{bitset<NUM_MOVES>()} {}
+      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {}
 
 Node::Node(uintf seed, const Game &other_game, uintf depth, uintf parent,
            uintf move_choice)
     : game{other_game}, visits{1}, depth{depth + 1}, parent{parent}, seed{seed},
-      visited{bitset<NUM_MOVES>()} {
+      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {
   game.do_move(move_choice);
 }
 
@@ -26,6 +26,7 @@ void Node::overwrite(uintf new_seed) {
   visits = 1;
   depth = 0;
   seed = new_seed;
+  evaluation = 0.0;
   visited.reset();
 }
 
@@ -34,6 +35,7 @@ void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth) {
   visits = 1;
   depth = new_depth;
   seed = new_seed;
+  evaluation = 0.0;
   visited.reset();
 }
 
@@ -44,6 +46,7 @@ void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth,
   depth = new_depth + 1;
   parent = new_parent;
   seed = new_seed;
+  evaluation = 0.0;
   game.do_move(move_choice);
   visited.reset();
 }

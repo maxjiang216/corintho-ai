@@ -222,7 +222,6 @@ void TrainMC::receive_evaluation(float evaluation,
 
   // Normalize probabilities and apply dirichlet noise
   uintf cur_dirichlet = 0;
-  float past[NUM_MOVES], past2[NUM_MOVES];
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (cur_node->is_legal(i)) {
       p[i] = p[i] * scalar + dirichlet_noise[cur_dirichlet] * dirichlet_scalar;
@@ -234,9 +233,6 @@ void TrainMC::receive_evaluation(float evaluation,
 
   for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
     cur_node->set_probability(i, (unsigned short)lround(p[i] * 511.0));
-  }
-  if (evaluation > 2 || evaluation < -2) {
-    cerr << evaluation << '\n';
   }
   // Propagate evaluation
   float cur_evaluation = evaluation;

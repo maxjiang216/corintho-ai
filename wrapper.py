@@ -4,6 +4,7 @@ import os
 import shutil
 import time
 import datetime
+from multiprocessing import cpu_count
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
@@ -110,7 +111,7 @@ def main():
     # Dictionary of flag values
     args = vars(parser.parse_args())
 
-    PROCESSES = max(1, args["processes"])
+    PROCESSES = min(cpu_count(), max(1, args["processes"]))
     # Divisible by the number of processes
     NUM_GAMES = PROCESSES * (max(1, args["num_games"] // PROCESSES))
     ITERATIONS = max(2, args["iterations"])

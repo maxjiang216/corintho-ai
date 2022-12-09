@@ -49,8 +49,8 @@ Trainer::~Trainer() {
   }
 }
 
-bool Trainer::do_iteration(float evaluations[], float probabilities[],
-                           float dirichlet_noise[], float game_states[]) {
+bool Trainer::do_iteration(const float evaluations[],
+                           const float probabilities[], float game_states[]) {
 
   for (uintf i = 0; i < num_games; ++i) {
     if (!is_done[i]) {
@@ -60,7 +60,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
             evaluations[i], &probabilities[i * NUM_TOTAL_MOVES],
-            &dirichlet_noise[i * NUM_MOVES], &game_states[i * GAME_STATE_SIZE]);
+            &game_states[i * GAME_STATE_SIZE]);
         if (is_completed) {
           is_done[i] = true;
           ++games_done;
@@ -82,8 +82,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 bool Trainer::do_iteration(const float evaluations_1[],
                            const float probabilities_1[],
                            const float evaluations_2[],
-                           const float probabilities_2[],
-                           const float dirichlet_noise[], float game_states[]) {
+                           const float probabilities_2[], float game_states[]) {
   for (uintf i = 0; i < num_games; ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
@@ -93,7 +92,7 @@ bool Trainer::do_iteration(const float evaluations_1[],
         bool is_completed = games[i]->do_iteration(
             evaluations_1[i], &probabilities_1[i * NUM_TOTAL_MOVES],
             evaluations_2[i], &probabilities_2[i * NUM_TOTAL_MOVES],
-            &dirichlet_noise[i * NUM_MOVES], &game_states[i * GAME_STATE_SIZE]);
+            &game_states[i * GAME_STATE_SIZE]);
         if (is_completed) {
           is_done[i] = true;
           ++games_done;

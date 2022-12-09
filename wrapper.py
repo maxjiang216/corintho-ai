@@ -118,7 +118,9 @@ def main():
     EPSILON = min(1.0, max(0.0, args["epsilon"]))
     # Enforce even number (first player bias)
     NUM_TEST_GAMES = 2 * PROCESSES * max(1, args["num_test_games"] // (2 * PROCESSES))
-    TEST_THRESHOLD = min((NUM_TEST_GAMES - 0.5) / NUM_TEST_GAMES, max(0.5, args["test_threshold"]))
+    TEST_THRESHOLD = min(
+        (NUM_TEST_GAMES - 0.5) / NUM_TEST_GAMES, max(0.5, args["test_threshold"])
+    )
     LEARNING_RATE = max(0.0, args["learning_rate"])
     BATCH_SIZE = max(1, args["batch_size"])
     EPOCHS = max(1, args["epochs"])

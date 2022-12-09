@@ -52,12 +52,11 @@ void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   players[0].do_first_iteration(game_state);
 }
 
-bool SelfPlayer::do_iteration(float evaluation,
-                              float probabilities[NUM_TOTAL_MOVES],
-                              float dirichlet_noise[NUM_MOVES],
+bool SelfPlayer::do_iteration(const float evaluation,
+                              const float probabilities[NUM_TOTAL_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
-  bool need_evaluation = players[to_play].do_iteration(
-      evaluation, probabilities, dirichlet_noise, game_state);
+  bool need_evaluation =
+      players[to_play].do_iteration(evaluation, probabilities, game_state);
   // If we don't need an evaluation
   // Then we have completed a turn
   if (!need_evaluation)
@@ -69,15 +68,14 @@ bool SelfPlayer::do_iteration(float evaluation_1,
                               const float probabilities_1[NUM_TOTAL_MOVES],
                               float evaluation_2,
                               const float probabilities_2[NUM_TOTAL_MOVES],
-                              const float dirichlet_noise[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation;
   if (to_play == seed) {
     need_evaluation = players[to_play].do_iteration(
-        evaluation_1, probabilities_1, dirichlet_noise, game_state);
+        evaluation_1, probabilities_1, game_state);
   } else {
     need_evaluation = players[to_play].do_iteration(
-        evaluation_2, probabilities_2, dirichlet_noise, game_state);
+        evaluation_2, probabilities_2, game_state);
   }
   // If we don't need an evaluation
   // Then we have completed a turn
@@ -113,7 +111,8 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (trainer->get_node(players[to_play].get_root())->is_legal(i)) {
           *logging_file << Move{i} << ' '
-                        << trainer->get_node(players[to_play].get_root())->get_probability(i)
+                        << trainer->get_node(players[to_play].get_root())
+                               ->get_probability(i)
                         << ' ';
         }
       }

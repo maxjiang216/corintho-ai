@@ -51,9 +51,8 @@ bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
 bool TrainMC::do_iteration(float evaluation,
                            const float probabilities[NUM_TOTAL_MOVES],
-                           const float dirichlet_noise[NUM_MOVES],
                            float game_state[GAME_STATE_SIZE]) {
-  receive_evaluation(evaluation, probabilities, dirichlet_noise);
+  receive_evaluation(evaluation, probabilities);
   return search(game_state);
 }
 
@@ -191,30 +190,45 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
 }
 
 void TrainMC::receive_evaluation(float evaluation,
-                                 const float probabilities[NUM_TOTAL_MOVES],
-                                 const float dirichlet_noise[NUM_MOVES]) {
+                                 const float probabilities[NUM_TOTAL_MOVES]) {
 
   // Apply the legal move filter
   // and keep track of the total sum so we can normalize afterwards
-  float sum = 0, p[NUM_TOTAL_MOVES];
+  float sum = 0.0, p[NUM_TOTAL_MOVES];
+  uintf legal_move_num = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (!(cur_node->is_legal(i))) {
       p[i] = 0.0;
     } else {
       p[i] = probabilities[i];
-      sum += cur_node->get_probability(i);
+      sum += p[i];
+      ++legal_move_num;
     }
   }
 
   // Multiplying by this is more efficient
-  float scalar = 1.0 / sum;
+  float scalar = 1.0 / sum * (1 - epsilon);
+
+  // Generate dirichlet noise (approximation)
+  sum = 0.0;
+  float *dirichlet_noise = new float[legal_move_num];
+
+  for (uintf i = 0; i < legal_move_num; ++i) {
+    dirichlet_noise[i] = gamma_samples[trainer->generate() % GAMMA_BUCKETS];
+    sum += dirichlet_noise[i];
+  }
+  float dirichlet_scalar = 1.0 / sum * epsilon;
 
   // Normalize probabilities and apply dirichlet noise
+  uintf cur_dirichlet = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (p[i] > 0) {
-      p[i] = p[i] * scalar + dirichlet_noise[i];
+      p[i] = p[i] * scalar + dirichlet_noise[cur_dirichlet] * dirichlet_scalar;
+      ++cur_dirichlet;
     }
   }
+
+  delete dirichlet_noise;
 
   for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
     cur_node->set_probability(i, (unsigned char)lround(p[i] * 127));

@@ -51,12 +51,11 @@ void test_basic_run() {
   auto trainer = Trainer{num_games, 1, 200, 1.0, 0.25, "logging", 2003};
 
   float evaluations[num_games], probabilities[num_games * NUM_TOTAL_MOVES],
-      dirichlet_noise[num_games * NUM_MOVES],
       game_states[num_games * GAME_STATE_SIZE];
 
   mt19937 generator(0);
   uniform_real_distribution<float> random_evals(-1.0, 1.0),
-      random_probabilities(0.0, 1.0), random_noise(-0.1, 0.1);
+      random_probabilities(0.0, 1.0);
 
   auto start = chrono::high_resolution_clock::now();
   uintf counter = 0;
@@ -72,12 +71,9 @@ void test_basic_run() {
       for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
         probabilities[i * NUM_TOTAL_MOVES + j] /= sum;
       }
-      for (uintf j = 0; j < NUM_MOVES; ++j) {
-        dirichlet_noise[i * NUM_MOVES + j] = random_noise(generator);
-      }
     }
-    bool is_done = trainer.do_iteration(evaluations, probabilities,
-                                        dirichlet_noise, game_states);
+    bool is_done =
+        trainer.do_iteration(evaluations, probabilities, game_states);
     if (is_done)
       break;
     ++counter;

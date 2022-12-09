@@ -18,8 +18,8 @@ public:
           uintf processes);
   ~Manager();
 
-  bool do_iteration(float evaluations[], float probabilities[],
-                    float dirichlet[], float game_states[]);
+  bool do_iteration(const float evaluations[], const float probabilities[],
+                    float game_states[]);
 
   uintf count_samples() const;
   void write_samples(float *game_states, float *evaluation_samples,

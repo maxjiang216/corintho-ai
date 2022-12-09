@@ -14,15 +14,14 @@ Manager::Manager(uintf num_games, uintf num_logged, uintf num_iterations,
   }
 }
 
-bool Manager::do_iteration(float evaluations[], float probabilities[],
-                           float dirichlet[], float game_states[]) {
+bool Manager::do_iteration(const float evaluations[],
+                           const float probabilities[], float game_states[]) {
 #pragma omp parallel for
   for (uintf i = 0; i < trainers.size(); ++i) {
     if (!is_done[i]) {
       is_done[i] = trainers[i]->do_iteration(
           evaluations + i * games_each,
           probabilities + NUM_TOTAL_MOVES * i * games_each,
-          dirichlet + NUM_MOVES * i * games_each,
           game_states + GAME_STATE_SIZE * i * games_each);
     }
   }

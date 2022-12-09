@@ -19,11 +19,11 @@ cdef extern from "cpp/trainer.cpp":
                 float c_puct, float epsilon, string logging_folder, int random_seed)
         Trainer(int num_games, int num_logged, int num_iterations,
                 float c_puct, float epsilon, string logging_folder, int random_seed, bool)
-        bool do_iteration(float *evaluations, float *probabilities, float *dirichlet,
+        bool do_iteration(float *evaluations, float *probabilities,
                           float *game_states)
         bool do_iteration(float *evaluations_1, float *probabilities_1,
                           float *evaluations_2, float *probabilities_2,
-                          float *dirichlet_noise, float *game_states)
+                          float *game_states)
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
         float get_score()
@@ -33,7 +33,7 @@ cdef extern from "cpp/manager.cpp":
         Manager()
         Manager(int num_games, int num_logged, int num_iterations,
                 float c_puct, float epsilon, string logging_folder, int random_seed, int processes)
-        bool do_iteration(float *evaluations, float *probabilities, float *dirichlet,
+        bool do_iteration(float *evaluations, float *probabilities,
                           float *game_states)
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
@@ -93,7 +93,6 @@ def train_generation(*,
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_TOTAL_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=1] dirichlet = np.zeros(num_games*NUM_MOVES, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
 
     cdef int evaluations_done = 0
@@ -103,31 +102,26 @@ def train_generation(*,
     start_time = time.perf_counter()
 
     # First iteration
-    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0], &game_states[0,0])
+    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &game_states[0,0])
 
     predict_time = 0
     play_time = 0
-    d_time = 0
 
     while True:
 
         pred_start = time.perf_counter()
         res = model.predict(
-            x=game_states, batch_size=num_games, verbose=0, use_multiprocessing=True
+            x=game_states, batch_size=num_games, verbose=0
         )
         evaluations = res[0].flatten()
-        probabiltiies = res[1]
+        probabilities = res[1]
         predict_time += time.perf_counter()-pred_start
 
-        d_start = time.perf_counter()
-        dirichlet = rng.dirichlet((0.3,), num_games*NUM_MOVES).reshape((num_games*NUM_MOVES,)).astype(np.float32)
-        d_time += time.perf_counter() - d_start
         play_start = time.perf_counter()
-        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &dirichlet[0], &game_states[0,0])
+        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &game_states[0,0])
         play_time += time.perf_counter()-play_start
 
         if res:
-            print("Done all")
             break
 
         evaluations_done += 1
@@ -140,7 +134,6 @@ def train_generation(*,
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n"
-                f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
     time_taken = time.perf_counter() - start_time
@@ -149,7 +142,6 @@ def train_generation(*,
         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
         f"Total prediction time: {format_time(predict_time)}\n"
         f"Total play time: {format_time(play_time)}\n"
-        f"Total dirichlet time: {format_time(d_time)}\n"
     )
 
     # Get training samples
@@ -208,7 +200,6 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_2 = np.zeros(num_test_games, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=1] test_dirichlet = np.zeros(num_test_games*NUM_MOVES, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
 
     evaluations_done = 0
@@ -218,11 +209,10 @@ def train_generation(*,
     start_time = time.perf_counter()
 
     # First iteration
-    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_dirichlet[0], &test_game_states[0,0])
+    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_game_states[0,0])
 
     predict_time = 0
     play_time = 0
-    d_time = 0
 
     while True:
 
@@ -239,14 +229,10 @@ def train_generation(*,
         probabilities_2 = res[1]
         predict_time += time.perf_counter()-pred_start
 
-        d_start = time.perf_counter()
-        test_dirichlet = rng.dirichlet((0.3,), num_test_games * NUM_MOVES).reshape((num_test_games * NUM_MOVES,)).astype(np.float32)
-        d_time += time.perf_counter() - d_start
-
         play_start = time.perf_counter()
         res = tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0],
             &evaluations_2[0], &probabilities_2[0,0],
-            &test_dirichlet[0], &test_game_states[0,0],
+            &test_game_states[0,0],
         )
         play_time += time.perf_counter()-play_start
 
@@ -262,7 +248,6 @@ def train_generation(*,
                 f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n"
-                f"Dirichlet time so far: {format_time(d_time)}\n"
             )
 
     time_taken = time.perf_counter() - start_time
@@ -280,7 +265,6 @@ def train_generation(*,
         f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
         f"Total prediction time: {format_time(predict_time)}\n"
         f"Total play time: {format_time(play_time)}\n"
-        f"Total dirichlet time: {format_time(d_time)}\n"
         f"New agent score {score:1f}!\n"
     )
 

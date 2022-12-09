@@ -235,6 +235,7 @@ void TrainMC::receive_evaluation(float evaluation,
     cur_node->set_probability(i, (unsigned short)lround(p[i] * 511.0));
   }
   // Propagate evaluation
+  // Set evaluation for first node? Must work with terminal evals as well
   float cur_evaluation = evaluation;
   while (cur != root) {
     cur_node->add_evaluation(cur_evaluation);

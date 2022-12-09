@@ -122,6 +122,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       }
       *logging_file << '\n';
     }
+
     uintf move_choice =
         players[to_play].choose_move(sample_state, probability_sample);
     samples.emplace_back(sample_state, probability_sample);

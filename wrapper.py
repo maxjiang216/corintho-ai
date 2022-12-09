@@ -223,6 +223,7 @@ def main():
                 keras.losses.MeanSquaredError(),
                 keras.losses.CategoricalCrossentropy(),
             ],
+            jit_compile=True,
         )
 
         # Gen 0 only holdes the random weight neural network

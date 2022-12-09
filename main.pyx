@@ -110,8 +110,11 @@ def train_generation(*,
     while True:
 
         pred_start = time.perf_counter()
+        # use_multiprocessing probably does nothing
+        # but it does not hurt
+        # and in one case it was removed and NN evals became much slower
         res = model.predict(
-            x=game_states, batch_size=num_games, verbose=0
+            x=game_states, batch_size=num_games, verbose=0, use_multiprocessing=True
         )
         evaluations = res[0].flatten()
         probabilities = res[1]
@@ -218,12 +221,12 @@ def train_generation(*,
 
         pred_start = time.perf_counter()
         res = training_model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
         )
         evaluations_1 = res[0].flatten()
         probabilities_1 = res[1]
         res = model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0
+            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
         )
         evaluations_2 = res[0].flatten()
         probabilities_2 = res[1]

@@ -270,6 +270,7 @@ def main():
         f"Batch size used in training: {BATCH_SIZE}\n"
         f"Epochs used in training: {EPOCHS}\n"
         f"Old samples used: {old_training_samples}"
+        f"Start time: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}"
     )
 
     res = train_generation(

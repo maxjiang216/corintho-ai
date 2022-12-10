@@ -14,4 +14,4 @@ git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai
 dos2linux *
 chmod +x train.sh
-nohup ~/corintho-ai/train.sh
+nohup ~/corintho-ai/train.sh &

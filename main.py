@@ -14,13 +14,23 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "program",
+        type=str,
         help="Path to the program to be run.",
     )
 
     parser.add_argument(
         "-p",
         "--path",
+        type=str,
         help="Path to the configuration file.",
+    )
+
+    parser.add_argument(
+        "-n",
+        "--num_generations",
+        type=int,
+        default=1,
+        help="Number of generations to train",
     )
 
     # Dictionary of flag values
@@ -28,6 +38,7 @@ if __name__ == "__main__":
 
     program = args["program"]
     path = args["path"]
+    num_gens = args["num_generations"]
 
     commands = []
 
@@ -37,7 +48,8 @@ if __name__ == "__main__":
         hyperparameters_flags = " ".join(
             ["--" + x + "=" + str(hyperparameters[x]) for x in hyperparameters]
         )
-        commands.append("python3 " + program + " " + hyperparameters_flags)
+        for _ in range(num_gens):
+            commands.append("python3 " + program + " " + hyperparameters_flags)
 
     for element in commands:
         os.system(element)

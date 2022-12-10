@@ -272,7 +272,7 @@ def main():
         f"Old samples used: {old_training_samples}"
     )
 
-    train_generation(
+    res = train_generation(
         cur_gen_location=cur_gen_location,
         best_gen_location=best_gen_location,
         new_model_location=new_model_location,
@@ -292,6 +292,28 @@ def main():
         epochs=EPOCHS,
         old_training_samples=old_training_samples,
     )
+
+    current_generation = int(
+        open(
+            f"{cwd}/{NAME}/metadata/current_generation.txt",
+            encoding="utf-8",
+        )
+        .read()
+        .strip()
+    )
+
+    # Generation passed, update best gen
+    if res:
+        open(
+            f"{cwd}/{NAME}/metadata/best_generation.txt",
+            "w+",
+            encoding="utf-8",
+        ).write(f"{current_generation+1}")
+    open(
+        f"{cwd}/{NAME}/metadata/current_generation.txt",
+        "w+",
+        encoding="utf-8",
+    ).write(f"{current_generation+1}")
 
 
 if __name__ == "__main__":

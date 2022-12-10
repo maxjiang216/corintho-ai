@@ -201,11 +201,46 @@ bool Game::get_line_breakers() {
           } else {
             is_lines = true;
             apply_line(RL * 12 + i * 3 + space_0);
-            // add the capital case
+            if (space_0 == 2) {
+              // Capital must be used to extend line when moving
+              // We don't need to know which row it is
+              // If it is wrong, the move is illegal anyways
+              if (!board[0 * 12 + 3 * 3 + 2]) {
+                legal_moves.reset(encode_move(0, 3, 1, 3));
+              }
+              if (!board[1 * 12 + 3 * 3 + 2]) {
+                legal_moves.reset(encode_move(1, 3, 0, 3));
+                legal_moves.reset(encode_move(1, 3, 2, 3));
+              }
+              if (!board[2 * 12 + 3 * 3 + 2]) {
+                legal_moves.reset(encode_move(2, 3, 1, 3));
+                legal_moves.reset(encode_move(2, 3, 3, 3));
+              }
+              if (!board[3 * 12 + 3 * 3 + 2]) {
+                legal_moves.reset(encode_move(3, 3, 2, 3));
+              }
+            }
           }
         } else if (space_2 == space_3) {
           is_lines = true;
           apply_line(RR * 12 + i * 3 + space_3);
+          if (space_3 == 2) {
+            // Capital must be used to extend line when moving
+            if (!board[0 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(0, 0, 1, 0));
+            }
+            if (!board[1 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(1, 0, 0, 0));
+              legal_moves.reset(encode_move(1, 0, 2, 0));
+            }
+            if (!board[2 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(2, 0, 1, 0));
+              legal_moves.reset(encode_move(2, 0, 3, 0));
+            }
+            if (!board[3 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(3, 0, 2, 0));
+            }
+          }
         }
       }
     }
@@ -225,10 +260,48 @@ bool Game::get_line_breakers() {
           } else {
             is_lines = true;
             apply_line(CU * 12 + j * 3 + space_0);
+            if (space_0 == 2) {
+              // Capital must be used to extend line when moving
+              // We don't need to know which column it is
+              // If it is wrong, the move is illegal anyways
+              if (!board[3 * 12 + 0 * 3 + 2]) {
+                legal_moves.reset(encode_move(3, 0, 3, 1));
+              }
+              if (!board[3 * 12 + 1 * 3 + 2]) {
+                legal_moves.reset(encode_move(3, 1, 3, 0));
+                legal_moves.reset(encode_move(3, 1, 3, 2));
+              }
+              if (!board[3 * 12 + 2 * 3 + 2]) {
+                legal_moves.reset(encode_move(3, 2, 3, 1));
+                legal_moves.reset(encode_move(3, 2, 3, 3));
+              }
+              if (!board[3 * 12 + 3 * 3 + 2]) {
+                legal_moves.reset(encode_move(3, 3, 3, 2));
+              }
+            }
           }
         } else if (space_2 == space_3) {
           is_lines = true;
           apply_line(CD * 12 + j * 3 + space_3);
+          if (space_3 == 2) {
+            // Capital must be used to extend line when moving
+            // We don't need to know which column it is
+            // If it is wrong, the move is illegal anyways
+            if (!board[0 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(0, 0, 0, 1));
+            }
+            if (!board[0 * 12 + 1 * 3 + 2]) {
+              legal_moves.reset(encode_move(0, 1, 0, 0));
+              legal_moves.reset(encode_move(0, 1, 0, 2));
+            }
+            if (!board[0 * 12 + 2 * 3 + 2]) {
+              legal_moves.reset(encode_move(0, 2, 0, 1));
+              legal_moves.reset(encode_move(0, 2, 0, 3));
+            }
+            if (!board[0 * 12 + 3 * 3 + 2]) {
+              legal_moves.reset(encode_move(0, 3, 0, 2));
+            }
+          }
         }
       }
     }
@@ -247,10 +320,28 @@ bool Game::get_line_breakers() {
         } else {
           is_lines = true;
           apply_line(72 + D0U * 3 + space_0);
+          if (space_0 == 2) {
+            // Capital must be used to extend line when moving
+            if (!board[2 * 12 + 3 * 3 + 2]) {
+              legal_moves.reset(encode_move(2, 3, 3, 3));
+            }
+            if (!board[3 * 12 + 2 * 3 + 2]) {
+              legal_moves.reset(encode_move(3, 2, 3, 3));
+            }
+          }
         }
       } else if (space_2 == space_3) {
         is_lines = true;
         apply_line(72 + D0D * 3 + space_3);
+        if (space_3 == 2) {
+          // Capital must be used to extend line when moving
+          if (!board[0 * 12 + 1 * 3 + 2]) {
+            legal_moves.reset(encode_move(0, 1, 0, 0));
+          }
+          if (!board[1 * 12 + 0 * 3 + 2]) {
+            legal_moves.reset(encode_move(1, 0, 0, 0));
+          }
+        }
       }
     }
   }
@@ -268,10 +359,28 @@ bool Game::get_line_breakers() {
         } else {
           is_lines = true;
           apply_line(72 + D1U * 3 + space_0);
+          if (space_0 == 2) {
+            // Capital must be used to extend line when moving
+            if (!board[2 * 12 + 0 * 3 + 2]) {
+              legal_moves.reset(encode_move(2, 0, 3, 0));
+            }
+            if (!board[3 * 12 + 1 * 3 + 2]) {
+              legal_moves.reset(encode_move(3, 1, 3, 0));
+            }
+          }
         }
       } else if (space_2 == space_3) {
         is_lines = true;
         apply_line(72 + D1D * 3 + space_3);
+        if (space_3 == 2) {
+          // Capital must be used to extend line when moving
+          if (!board[0 * 12 + 2 * 3 + 2]) {
+            legal_moves.reset(encode_move(0, 2, 0, 3));
+          }
+          if (!board[1 * 12 + 3 * 3 + 2]) {
+            legal_moves.reset(encode_move(1, 3, 0, 3));
+          }
+        }
       }
     }
   }

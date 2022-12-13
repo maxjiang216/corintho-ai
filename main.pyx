@@ -163,9 +163,15 @@ def train_generation(*,
 
     # Add old training samples
     for cur_path in old_training_samples:
-        np.concatenate((sample_states, np.load(f"{cur_path}/game_states.npy")))
-        np.concatenate((evaluation_labels, np.load(f"{cur_path}/evaluation_labels.npy")))
-        np.concatenate((probability_labels, np.load(f"{cur_path}/probability_labels.npy")))
+        old_sample_states = np.load(f"{cur_path}/game_states.npz")
+        old_evaluation_labels = np.load(f"{cur_path}/evaluation_labels.npz")
+        old_probability_labels = np.load(f"{cur_path}/probability_labels.npz")
+        np.concatenate((sample_states, np.reshape(old_sample_states["arr_0"], (-1, GAME_STATE_SIZE))))
+        np.concatenate((evaluation_labels, old_evaluation_labels["arr_0"]))
+        np.concatenate((probability_labels, np.reshape(old_probability_labels["arr_0"], (-1, NUM_TOTAL_MOVES))))
+        old_sample_states.close()
+        old_evaluation_labels.close()
+        old_probability_labels.close()
 
     # Load training model
     training_model = load_model(cur_gen_location)

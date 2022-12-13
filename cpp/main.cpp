@@ -106,5 +106,5 @@ int main() {
     print_line_breakers(i);
   }
 
-  //test_basic_run();
+  test_basic_run();
 }

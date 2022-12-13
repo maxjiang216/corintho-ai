@@ -59,7 +59,7 @@ def train_generation(*,
     iterations=1600,
     num_test_games=400,
     num_logged=10,
-    testing_threshold=0.5,  # Non-inclusive lower bound for new generation to pass
+    testing_threshold=0.55,  # Non-inclusive lower bound for new generation to pass
     c_puct=1.0,
     epsilon=0.25,
     processes=1,
@@ -157,9 +157,9 @@ def train_generation(*,
     del trainer
 
     # Save training samples
-    np.save(f"{train_sample_folder}/game_states", sample_states)
-    np.save(f"{train_sample_folder}/evaluation_labels", evaluation_labels)
-    np.save(f"{train_sample_folder}/probability_labels", probability_labels)
+    np.savez_compressed(f"{train_sample_folder}/game_states", sample_states)
+    np.savez_compressed(f"{train_sample_folder}/evaluation_labels", evaluation_labels)
+    np.savez_compressed(f"{train_sample_folder}/probability_labels", probability_labels)
 
     # Add old training samples
     for cur_path in old_training_samples:

@@ -95,11 +95,16 @@ void test_basic_run() {
 
 int main() {
 
+  cerr << encode_move(3, 3, 3, 2);
+
   print_class_sizes();
 
   print_game();
 
-  print_line_breakers(0);
+  for (int i = 0; i < 102; ++i) {
+    cerr << i << '\n';
+    print_line_breakers(i);
+  }
 
-  test_basic_run();
+  //test_basic_run();
 }

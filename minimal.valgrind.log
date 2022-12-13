@@ -1,7 +1,0 @@
-==3203== Memcheck, a memory error detector
-==3203== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==3203== Using Valgrind-3.16.1 and LibVEX; rerun with -h for copyright info
-==3203== Command: python3 main.py wrapper.py -p test.toml
-==3203== Parent PID: 604
-==3203== 
-==3203== FATAL: can't open suppressions file "valgrind-python.supp"

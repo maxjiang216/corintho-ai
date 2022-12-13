@@ -316,6 +316,13 @@ def main():
         encoding="utf-8",
     ).write(f"{current_generation+1}")
 
+    # Zip logs
+    shutil.make_archive(
+        f"{NAME}_{current_generation+1}",
+        "zip",
+        f"{cwd}/{NAME}/generations/gen_{current_generation+1}",
+    )
+
 
 if __name__ == "__main__":
     main()

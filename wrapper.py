@@ -184,7 +184,7 @@ def main():
         layer_1 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(input_layer)
             )
@@ -192,7 +192,7 @@ def main():
         layer_2 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_1)
             )
@@ -200,7 +200,7 @@ def main():
         layer_3 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_2)
             )
@@ -208,7 +208,7 @@ def main():
         layer_4 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_3)
             )
@@ -216,7 +216,7 @@ def main():
         layer_5 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_4)
             )
@@ -224,7 +224,7 @@ def main():
         layer_6 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_5)
             )
@@ -232,7 +232,7 @@ def main():
         layer_7 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_6)
             )
@@ -240,7 +240,7 @@ def main():
         layer_8 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_7)
             )
@@ -248,7 +248,7 @@ def main():
         layer_9 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_8)
             )
@@ -256,7 +256,7 @@ def main():
         layer_10 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_9)
             )
@@ -264,7 +264,7 @@ def main():
         layer_11 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_10)
             )
@@ -272,13 +272,61 @@ def main():
         layer_12 = Activation("relu")(
             BatchNormalization()(
                 Dense(
-                    units=100,
+                    units=128,
                     kernel_regularizer=regularizers.L2(1e-4),
                 )(layer_11)
             )
         )
-        eval_output = Dense(units=1, activation="tanh")(layer_12)
-        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_12)
+        layer_13 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_12)
+            )
+        )
+        layer_14 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_13)
+            )
+        )
+        layer_15 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_14)
+            )
+        )
+        layer_16 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_15)
+            )
+        )
+        layer_17 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_16)
+            )
+        )
+        layer_18 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_17)
+            )
+        )
+        eval_output = Dense(units=1, activation="tanh")(layer_18)
+        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_18)
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(

@@ -43,10 +43,10 @@ def format_time(t):
     t is time in seconds"""
 
     if t < 60:
-        return f"{t:.1f} seconds"
+        return f"{t:.2f}s"
     if t < 3600:
-        return f"{t/60:.1f} minutes"
-    return f"{t/60/60:.1f} hours"
+        return f"{int(t//60)}m{round(t)%60:02d}s"
+    return f"{int(t//3600)}h{int((t % 3600)//60):02d}m{round(t)%60:02d}s"
 
 def train_generation(*,
     cur_gen_location,  # neural network to train on

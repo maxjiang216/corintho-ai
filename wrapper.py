@@ -2,8 +2,8 @@ from corintho import train_generation
 import argparse
 import os
 import shutil
-import time
 import datetime
+import pytz
 from multiprocessing import cpu_count
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -382,7 +382,7 @@ def main():
         f"Batch size used in training: {BATCH_SIZE}\n"
         f"Epochs used in training: {EPOCHS}\n"
         f"Old samples used: {old_training_samples}\n"
-        f"""Start time: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}\n"""
+        f"""Start time: {datetime.datetime.now(tz=pytz.timezone("America/Toronto"))}\n"""
     )
 
     res = train_generation(

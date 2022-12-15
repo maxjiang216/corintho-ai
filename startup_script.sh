@@ -6,6 +6,7 @@ sudo apt-get dos2linux -y
 pip install numpy # 17MB
 pip install keras==2.9 # 5MB
 pip install tf-nightly # 588MB
+pip install pytz
 pip install cython # 5MB
 pip install toml
 pip install black

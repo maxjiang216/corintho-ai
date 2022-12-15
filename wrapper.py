@@ -213,8 +213,72 @@ def main():
                 )(layer_3)
             )
         )
-        eval_output = Dense(units=1, activation="tanh")(layer_3)
-        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_3)
+        layer_5 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_4)
+            )
+        )
+        layer_6 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_5)
+            )
+        )
+        layer_7 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_6)
+            )
+        )
+        layer_8 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_7)
+            )
+        )
+        layer_9 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_8)
+            )
+        )
+        layer_10 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_9)
+            )
+        )
+        layer_11 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_10)
+            )
+        )
+        layer_12 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=100,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_11)
+            )
+        )
+        eval_output = Dense(units=1, activation="tanh")(layer_12)
+        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_12)
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(

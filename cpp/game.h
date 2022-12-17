@@ -13,21 +13,27 @@ const uintf BOARD_SIZE = 16;
 
 class Game {
 
-  bitset<3 * BOARD_SIZE> board;
-  bitset<BOARD_SIZE> frozen;
-  // We want to add orientation later
+  // Includes the pieces and if the space is frozen
+  // bitsets come in multiples of 8 byte sizes
+  // So it saves 8 bytes to combine these
+  bitset<4 * BOARD_SIZE> board;
   uint_least8_t to_play, pieces[6];
 
   // Finds lines and moves that break all lines
   // Returns whether there were lines
-  bool get_line_breakers(std::array<bool, NUM_TOTAL_MOVES> &legal_moves) const;
+  bool get_line_breakers(bitset<NUM_TOTAL_MOVES> &legal_moves) const;
 
   // Returns an int representing the top of a stack, -1 if empty
   intf get_top(uintf row, uintf col) const;
   // Returns an int representing the bottom piece of a stack, 3 if empty
   intf get_bottom(uintf row, uintf col) const;
 
-  void apply_line(uintf line, std::array<bool, NUM_TOTAL_MOVES> &legal_moves) const;
+  bool get_board(uintf row, uintf col, uintf ptype) const;
+  bool get_frozen(uintf row, uintf col) const;
+  void set_board(uintf row, uintf col, uintf ptype, bool state=true);
+  void set_frozen(uintf row, uintf col, bool state=true);
+
+  void apply_line(uintf line, bitset<NUM_TOTAL_MOVES> &legal_moves) const;
 
   bool is_legal_move(uintf move_id) const;
   bool can_place(uintf ptype, uintf row, uintf col) const;

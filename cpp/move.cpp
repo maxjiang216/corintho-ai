@@ -73,18 +73,30 @@ uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2) {
   return 36 + (row1 - 1) * 4 + col1;
 }
 
+char get_col_name(uintf col) {
+  if (col == 0) return 'a';
+  if (col == 1) return 'b';
+  if (col == 2) return 'c';
+  return 'd';
+}
+
 std::ostream &operator<<(std::ostream &os, const Move &move) {
 
   if (move.mtype) {
     if (move.ptype == 0) {
-      os << "PB" << move.row1 << move.col1;
+      os << "B";
     } else if (move.ptype == 1) {
-      os << "PC" << move.row1 << move.col1;
+      os << "C";
     } else if (move.ptype == 2) {
-      os << "PA" << move.row1 << move.col1;
+      os << "A";
     }
+    os << get_col_name(move.col1) << 4 - move.row1;
   } else {
-    os << move.row1 << move.col1 << move.row2 << move.col2;
+    os << get_col_name(move.col1) << 4 - move.row1;
+    if (move.col2 < move.col1) os << 'L';
+    else if (move.col2 > move.col1) os << 'R';
+    else if (move.row2 < move.row1) os << 'U';
+    else os << 'D';
   }
 
   return os;

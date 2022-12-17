@@ -14,6 +14,7 @@ struct Move {
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
 };
 
+char get_col_name(uintf col);
 uintf encode_place(uintf ptype, uintf row, uintf col);
 uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2);
 

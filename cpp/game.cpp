@@ -3,25 +3,6 @@
 #include "util.h"
 #include <ostream>
 
-// Indexing for lines
-const uintf RL = 0;
-const uintf RR = 1;
-const uintf RB = 2;
-const uintf CU = 3;
-const uintf CD = 4;
-const uintf CB = 5;
-
-const uintf D0U = 0;
-const uintf D0D = 1;
-const uintf D0B = 2;
-const uintf D1U = 3;
-const uintf D1D = 4;
-const uintf D1B = 5;
-const uintf S0 = 6;
-const uintf S1 = 7;
-const uintf S2 = 8;
-const uintf S3 = 9;
-
 Game::Game()
     : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
@@ -58,21 +39,27 @@ void Game::do_move(uintf move_id) {
 bool Game::get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const {
 
   // Find line breakers using full set of moves
-  bitset<NUM_LEGAL_MOVES> full_legal_moves;
+  bitset<NUM_TOTAL_MOVES> full_legal_moves;
   full_legal_moves.set();
 
   // Filter out moves that don't break lines
   bool is_lines = get_line_breakers(full_legal_moves);
 
   // Apply other rules
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
+  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
     if (full_legal_moves[i] && !is_legal_move(i)) {
       full_legal_moves[i] = false;
     }
   }
 
+  // Reset legal_moves as we need to use |=
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
+    legal_moves[i] = false;
+  }
   // Shrink legal moves
-  
+  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+    legal_moves[compressed_moves[i]] |= full_legal_moves[i];
+  }
 
   // Node will decide if it is a terminal state and if so the game result
   return is_lines;

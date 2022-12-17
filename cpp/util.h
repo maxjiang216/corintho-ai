@@ -34,6 +34,25 @@ const uintf NUM_MOVES = 96;
 
 enum Result { NONE, LOSS, DRAW, WIN };
 
+// Indexing for lines
+const uintf RL = 0;
+const uintf RR = 1;
+const uintf RB = 2;
+const uintf CU = 3;
+const uintf CD = 4;
+const uintf CB = 5;
+
+const uintf D0U = 0;
+const uintf D0D = 1;
+const uintf D0B = 2;
+const uintf D1U = 3;
+const uintf D1D = 4;
+const uintf D1B = 5;
+const uintf S0 = 6;
+const uintf S1 = 7;
+const uintf S2 = 8;
+const uintf S3 = 9;
+
 inline std::array<bitset<NUM_TOTAL_MOVES>, 102> line_breakers = {
     bitset<NUM_TOTAL_MOVES>("00000000000000000000000000000111000000000000100000"
                             "0000000111000000000100000000000000000000000000"),
@@ -586,6 +605,105 @@ const float gamma_samples[GAMMA_BUCKETS] = {
     3.0195804879399892,     3.1610474401586304,     3.332261695301172,
     3.5486912140325937,     3.8422918584780588,     4.299511456383946,
     5.539093437027215,
+};
+
+uintf compressed_moves[NUM_TOTAL_MOVES] = {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        0,
+        1,
+        2,
+        15,
+        12,
+        4,
+        18,
+        19,
+        16,
+        17,
+        7,
+        23,
+        20,
+        9,
+        10,
+        11,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
 };
 
 #endif

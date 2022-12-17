@@ -1,9 +1,11 @@
 #include "game.h"
 #include "move.h"
+/*
 #include "node.h"
 #include "selfplayer.h"
 #include "trainer.h"
 #include "trainmc.h"
+*/
 #include "util.h"
 #include <bits/stdc++.h>
 
@@ -15,12 +17,18 @@ void print_class_sizes() {
   cerr << "sizeof(uintf): " << sizeof(uintf) << '\n';
   cerr << "sizeof(Move): " << sizeof(Move) << '\n';
   cerr << "sizeof(Game): " << sizeof(Game) << '\n';
-  cerr << "sizeof(Node): " << sizeof(Node) << '\n';
-  cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
-  cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
-  cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
-  cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
-  cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+  //cerr << "sizeof(Node): " << sizeof(Node) << '\n';
+  //cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
+  //cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
+  //cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
+  //cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
+  //cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+}
+
+void print_moves() {
+  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+    cerr << i << ' ' << Move{i} << '\n';
+  }
 }
 
 void print_game() { cerr << Game() << '\n'; }
@@ -42,7 +50,7 @@ void print_line_breakers(uintf line) {
   }
   cerr << '\n';
 }
-
+/*
 // Basic run.
 void test_basic_run() {
 
@@ -92,12 +100,14 @@ void test_basic_run() {
   // member function on the duration object
   cerr << duration.count() << endl;
 }
+*/
 
 int main() {
 
-  cerr << encode_move(3, 3, 3, 2);
 
   print_class_sizes();
+
+  print_moves();
 
   print_game();
 
@@ -106,5 +116,5 @@ int main() {
     print_line_breakers(i);
   }
 
-  test_basic_run();
+  // test_basic_run();
 }

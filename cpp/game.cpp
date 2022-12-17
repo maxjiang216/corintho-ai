@@ -23,17 +23,11 @@ const uintf S2 = 8;
 const uintf S3 = 9;
 
 Game::Game()
-    : board{}, frozen{}, to_play{0}, pieces{4, 4, 4, 4, 4, 4}, result{NONE} {
-  get_legal_moves();
-}
+    : to_play{0}, pieces{4, 4, 4, 4, 4, 4}, result{NONE} {}
 
 bool Game::is_legal(uintf move_choice) const {
   return legal_moves[move_choice];
 }
-
-uintf Game::get_to_play() const { return to_play; }
-
-Result Game::get_result() const { return result; }
 
 bool Game::is_terminal() const { return result != NONE; }
 
@@ -61,30 +55,26 @@ void Game::do_move(uintf move_id) {
     frozen.set(move.row2 * 4 + move.col2);
   }
   to_play = 1 - to_play;
-
-  get_legal_moves();
 }
 
-void Game::write_game_state(float game_state[GAME_STATE_SIZE]) const {
-  for (uintf i = 0; i < 3 * BOARD_SIZE; ++i) {
-    if (board[i]) {
-      game_state[i] = 1.0;
-    } else {
-      game_state[i] = 0.0;
+void Game::get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const {
+
+  // Set all bits to 1
+  // Since apply_line does &=, we need to do this
+  legal_moves.set();
+
+  // Filter out moves that don't break lines
+  bool is_lines = get_line_breakers(legal_moves);
+
+  // Apply other rules
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
+    if (legal_moves[i] && !is_legal_move(i)) {
+      legal_moves.reset(i);
     }
   }
-  for (uintf i = 0; i < BOARD_SIZE; ++i) {
-    if (frozen[i]) {
-      game_state[3 * BOARD_SIZE + i] = 1.0;
-    } else {
-      game_state[3 * BOARD_SIZE + i] = 0.0;
-    }
-  }
-  // Canonize the pieces
-  for (uintf i = 0; i < 6; ++i) {
-    game_state[4 * BOARD_SIZE + i] =
-        (float)pieces[(to_play * 3 + i) % 6] * 0.25;
-  }
+
+  // Node will decide if it is a terminal state and if so the game result
+  return is_lines;
 }
 
 void Game::write_game_state(
@@ -150,39 +140,7 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   return os;
 }
 
-void Game::get_legal_moves() {
-
-  // Set all bits to 1
-  // Since apply_line does &=, we need to do this
-  legal_moves.set();
-
-  // Filter out moves that don't break lines
-  bool is_lines = get_line_breakers();
-
-  // Apply other rules
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (legal_moves[i] && !is_legal_move(i)) {
-      legal_moves.reset(i);
-    }
-  }
-
-  // Terminal state
-  if (legal_moves.none()) {
-    // There is a line
-    if (is_lines) {
-      // Person to play is lost
-      if (to_play == 0) {
-        result = LOSS;
-      } else {
-        result = WIN;
-      }
-    } else {
-      result = DRAW;
-    }
-  }
-}
-
-bool Game::get_line_breakers() {
+bool Game::get_line_breakers(std::array<bool, NUM_TOTAL_MOVES> &legal_moves) {
 
   bool is_lines = false;
   intf space_0, space_1, space_2, space_3;

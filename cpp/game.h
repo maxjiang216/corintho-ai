@@ -17,22 +17,17 @@ class Game {
   bitset<BOARD_SIZE> frozen;
   // We want to add orientation later
   uint_least8_t to_play, pieces[6];
-  bitset<NUM_MOVES> legal_moves;
-  // Game result
-  // Game needs to have it because it knows which lines exist
-  Result result;
 
-  void get_legal_moves();
   // Finds lines and moves that break all lines
   // Returns whether there were lines
-  bool get_line_breakers();
+  bool get_line_breakers(std::array<bool, NUM_TOTAL_MOVES> &legal_moves) const;
 
   // Returns an int representing the top of a stack, -1 if empty
   intf get_top(uintf row, uintf col) const;
   // Returns an int representing the bottom piece of a stack, 3 if empty
   intf get_bottom(uintf row, uintf col) const;
 
-  void apply_line(uintf line);
+  void apply_line(uintf line, std::array<bool, NUM_TOTAL_MOVES> &legal_moves) const;
 
   bool is_legal_move(uintf move_id) const;
   bool can_place(uintf ptype, uintf row, uintf col) const;
@@ -44,13 +39,12 @@ public:
   Game(const Game &game) = default;
   ~Game() = default;
 
-  // Accessors
-  bool is_legal(uintf move_choice) const;
-  uintf get_to_play() const;
-  Result get_result() const;
   bool is_terminal() const;
 
   void do_move(uintf move_id);
+
+  // Returns whether there are lines
+  bool get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const;
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
   void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;

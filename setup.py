@@ -17,11 +17,19 @@ setup(
                 "cpp/game.cpp",
                 "cpp/move.cpp",
             ],
-            extra_compile_args=["-O3", "-std=c++20", "-fopenmp"],
+            extra_compile_args=[
+                "-O3",
+                #"-Ofast",
+                "-std=c++20",
+                "-fopenmp",
+                #"-g0",
+                #"-fstrict-overflow",
+            ],
             language="c++",
             include_dirs=[numpy.get_include()],
             extra_link_args=["-fopenmp"],
-        )
+        ),
+        nthreads=4,
     ),
     zip_safe=False,
 )

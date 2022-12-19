@@ -32,83 +32,64 @@ bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_MOVES],
   return search(game_state);
 }
 
-uintf TrainMC::choose_move(std::array<float, GAME_STATE_SIZE> &game_state,
-                           std::array<float, NUM_MOVES> &probability_sample) {
+uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
+                           float probability_sample[NUM_MOVES]) {
 
   // Before moving down, read the samples from the root node
-  Node *root_node = trainer->get_node(root);
-  root_node->write_game_state(game_state);
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (root_node->has_visited(i)) {
-      probability_sample[i] =
-          (float)trainer->get_node(trainer->find_next(root_node->get_seed(), i))
-              ->get_visits() /
-          ((float)root_node->get_visits() - 1.0);
-    } else {
-      probability_sample[i] = 0.0;
-    }
+  root->write_game_state(game_state);
+  // Clear probabilities first
+  // Most moves are not legal
+  std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
+  Node *cur_child = cur->first_child;
+  float denominator = 1.0 / ((float)root->visits - 1.0);
+  while (cur_child != nullptr) {
+    probability_sample[i] = (float)cur_child->visits * denominator;
   }
 
   uintf move_choice = 0;
+  // Keep track of the previous sibling of the chosen node
+  // For when we delete deprecated nodes
+  Node *best_prev_node = nullptr;
 
   // In training, choose weighted random
   // For the first few moves
-  if (root_node->get_depth() < NUM_OPENING_MOVES && !testing) {
-    uintf total = 0, children_visits[NUM_MOVES];
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
-      if (root_node->has_visited(i)) {
-        children_visits[i] =
-            trainer->get_node(trainer->find_next(root_node->get_seed(), i))
-                ->get_visits();
-        total += children_visits[i];
+  if (root->depth < NUM_OPENING_MOVES && !testing) {
+    uintf total = 0, target = generator->() % (cur->visits - 1);
+    Node *cur_child = cur->first_child;
+    // This loop will always break out
+    // There is always at least one child
+    while (true) {
+      total += cur_child->visits;
+      if (total >= target) {
+        move_choice = i;
+        break;
       }
-    }
-    uintf cur_total = 0, target = trainer->generate() % total;
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
-      if (root_node->has_visited(i)) {
-        cur_total += children_visits[i];
-        if (cur_total >= target) {
-          move_choice = i;
-          break;
-        }
-      }
+      best_prev_node = cur_child;
+      cur_child = cur_child->next_sibling;
     }
   }
 
   else {
 
-    // Otherwise, choose randomly between the moves with the most
-    // visits/searches. Random offset is the easiest way to randomly break ties
-    uintf id = trainer->generate() % NUM_MOVES, max_visits = 0;
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
-      uintf cur_move = (id + i) % NUM_MOVES;
-      if (root_node->has_visited(cur_move)) {
-        uintf cur_visits =
-            trainer
-                ->get_node(trainer->find_next(root_node->get_seed(), cur_move))
-                ->get_visits();
-        if (cur_visits > max_visits) {
-          max_visits = cur_visits;
-          move_choice = cur_move;
-        }
+    // Otherwise, choose the move with the most searches
+    // Breaking ties with evaluation
+    uintf max_visits = 0;
+    float max_eval = 0.0;
+    Node *cur_child = cur->first_child, prev_node = nullptr;
+    while (cur_child != nullptr) {
+      if (cur_child->visits > max_visits ||
+          cur_child->visits == max_visits && cur_child->evaluation > max_eval) {
+        move_choice = cur_child->move_id;
+        best_prev_node = prev_node;
+        max_visits = cur_child->visits;
+        max_eval = cur_child->evaluation;
       }
+      prev_node = cur_child;
+      cur_child = cur_child->next_sibling;
     }
   }
 
-  uintf old_root = root;
-  root = trainer->find_next(root_node->get_seed(), move_choice);
-  trainer->move_down(old_root, move_choice);
-  // Set cur_node here, but this is not needed if the game is complete
-  // We can try to find a better place, but it's pretty insignificant and avoid
-  // possible hassle
-  cur = root;
-  cur_node = trainer->get_node(cur);
-  // Do this to avoid clashing parents
-  // All nodes with possibly overwritten parents
-  // Should either be stale
-  // Our have itself as its parent
-  cur_node->null_parent();
-  iterations_done = 0;
+  move_down(best_prev_node);
 
   return move_choice;
 }
@@ -117,37 +98,28 @@ bool TrainMC::receive_opp_move(uintf move_choice,
                                float game_state[GAME_STATE_SIZE],
                                const Game &game, uintf depth) {
 
-  // If we have visited the node before
-  // Simply move the tree down
-  if (trainer->get_node(root)->has_visited(move_choice)) {
-    uintf old_root = root;
-    root = trainer->find_next(trainer->get_node(root)->get_seed(), move_choice);
-    // We should stale things afterwards now
-    // Since find_next skips over stale nodes
-    trainer->move_down(old_root, move_choice);
-    cur = root;
-    cur_node = trainer->get_node(cur);
-    iterations_done = 0;
-    // we don't need an evaluation
-    return false;
+  Node *prev_node = nullptr, cur_child = root->first_child;
+  while (cur_child != nullptr) {
+    if (cur_child->child_num == move_choice) {
+      move_down(prev_node);
+      // we don't need an evaluation
+      return false;
+    }
+    prev_node = cur_child;
+    cur_child = cur_child->next_sibling;
   }
 
-  // The node doesn't exist
-  // Practically (with sufficient searches) this probably won't happen but it is
-  // theoretically possible Maybe we could empirically track if it happens
-  else {
-    trainer->delete_tree(root);
-    // Copy opponent game state into our root
-    root = trainer->place_root(game, depth);
-    cur = root;
-    cur_node = trainer->get_node(root);
-    // We need an evaluation
-    cur_node->write_game_state(game_state);
-    // this is the first iteration of the turn
-    iterations_done = 1;
-    // we need an evaluation
-    return true;
-  }
+  // The node doesn't exist, delete tree
+  delete root;
+  // Copy opponent game state into our root
+  root = new Node(game, depth);
+  cur = root;
+  // We need an evaluation
+  cur->write_game_state(game_state);
+  // this is the first iteration of the turn
+  iterations_done = 1;
+  // we need an evaluation
+  return true;
 }
 
 uintf TrainMC::get_root() const { return root; }
@@ -349,38 +321,21 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
   return need_evaluation;
 }
 
-uintf TrainMC::choose_next() {
+void Trainer::move_down(Node *prev_node) {
 
-  // Random value lower than -1.0
-  float max_value = -2.0;
-  // Initialize this variable to be safe
-  uintf move_choice = 0;
-
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
-    float u;
-    // Check if it is a legal move
-    if (cur_node->is_legal(i)) {
-      if (cur_node->has_visited(i)) {
-        Node *next =
-            trainer->get_node(trainer->find_next(cur_node->get_seed(), i));
-        u = -1.0 * next->get_evaluation() / (float)next->get_visits() +
-            c_puct * cur_node->get_probability(i) *
-                sqrt((float)cur_node->get_visits() - 1.0) /
-                ((float)next->get_visits() + 1);
-
-      }
-      // If not visited, set action value to 0
-      else {
-        u = c_puct * cur_node->get_probability(i) *
-            sqrt((float)cur_node->get_visits() - 1.0);
-      }
-      // We assume there are no ties
-      if (u > max_value) {
-        max_value = u;
-        move_choice = i;
-      }
-    }
+  // Extricate the node we want
+  Node *new_root;
+  // Chosen node is first child
+  if (prev_node == nullptr) {
+    new_root = root->first_child;
+    root->first_child = new_root->next_sibling;
+  } else {
+    new_root = prev_node->next_sibling;
+    prev_node->next_sibling = new_root->next_sibling;
   }
 
-  return move_choice;
+  delete root;
+  root = new_root;
+  cur = root;
+  iterations_done = 0;
 }

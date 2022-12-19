@@ -26,7 +26,7 @@ class Node {
   Edge *edges;
   float denominator;
 
-  Node *parent, *first_child, *next_sibling;
+  Node *parent, *next_sibling, *first_child;
   uint8s child_num;
 
   void initialize_edges();

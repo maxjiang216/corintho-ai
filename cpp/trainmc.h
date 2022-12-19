@@ -31,7 +31,6 @@ class TrainMC {
   void receive_evaluation(float evaluation,
                           const float probabilities[NUM_MOVES]);
   bool search(float game_state[GAME_STATE_SIZE]);
-  uintf choose_next();
 
 public:
   // Training
@@ -50,14 +49,13 @@ public:
                     float game_state[GAME_STATE_SIZE]);
 
   // Choose the next child to visit
-  uintf choose_move(std::array<float, GAME_STATE_SIZE> &game_state,
-                    std::array<float, NUM_MOVES> &probability_sample);
+  uintf choose_move(float game_state[GAME_STATE_SIZE],
+                    float probability_sample[NUM_MOVES]);
 
   bool receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SIZE],
                         const Game &game, uintf depth);
 
   // Accessors
-  uintf get_root() const;
   const Game &get_game() const;
   uintf get_depth() const;
   bool is_uninitialized() const;

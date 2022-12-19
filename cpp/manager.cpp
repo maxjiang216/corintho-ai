@@ -21,7 +21,7 @@ bool Manager::do_iteration(const float evaluations[],
     if (!is_done[i]) {
       is_done[i] = trainers[i]->do_iteration(
           evaluations + i * games_each,
-          probabilities + NUM_TOTAL_MOVES * i * games_each,
+          probabilities + NUM_MOVES * i * games_each,
           game_states + GAME_STATE_SIZE * i * games_each);
     }
   }
@@ -52,7 +52,7 @@ void Manager::write_samples(float *game_states, float *evaluation_samples,
   for (uintf i = 0; i < trainers.size(); ++i) {
     trainers[i]->write_samples(game_states + GAME_STATE_SIZE * counter,
                                evaluation_samples + counter,
-                               probability_samples + NUM_TOTAL_MOVES * counter);
+                               probability_samples + NUM_MOVES * counter);
     counter += trainers[i]->count_samples();
   }
 }

@@ -21,7 +21,7 @@ class Game {
 
   // Finds lines and moves that break all lines
   // Returns whether there were lines
-  bool get_line_breakers(bitset<NUM_TOTAL_MOVES> &legal_moves) const;
+  bool get_line_breakers(bitset<NUM_MOVES> &legal_moves) const;
 
   // Returns an int representing the top of a stack, -1 if empty
   intf get_top(uintf row, uintf col) const;
@@ -33,7 +33,7 @@ class Game {
   void set_board(uintf row, uintf col, uintf ptype, bool state=true);
   void set_frozen(uintf row, uintf col, bool state=true);
 
-  void apply_line(uintf line, bitset<NUM_TOTAL_MOVES> &legal_moves) const;
+  void apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const;
 
   bool is_legal_move(uintf move_id) const;
   bool can_place(uintf ptype, uintf row, uintf col) const;
@@ -50,10 +50,9 @@ public:
   void do_move(uintf move_id);
 
   // Returns whether there are lines
-  bool get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const;
+  bool get_legal_moves(bitset<NUM_MOVES> &legal_moves) const;
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
-  void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
 };

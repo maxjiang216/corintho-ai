@@ -53,7 +53,7 @@ void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 }
 
 bool SelfPlayer::do_iteration(const float evaluation,
-                              const float probabilities[NUM_TOTAL_MOVES],
+                              const float probabilities[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation =
       players[to_play].do_iteration(evaluation, probabilities, game_state);
@@ -65,9 +65,9 @@ bool SelfPlayer::do_iteration(const float evaluation,
 }
 
 bool SelfPlayer::do_iteration(float evaluation_1,
-                              const float probabilities_1[NUM_TOTAL_MOVES],
+                              const float probabilities_1[NUM_MOVES],
                               float evaluation_2,
-                              const float probabilities_2[NUM_TOTAL_MOVES],
+                              const float probabilities_2[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation;
   if (to_play == seed) {
@@ -97,7 +97,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
     // This function will automatically apply the move to the TrainMC
     // Also write samples
     std::array<float, GAME_STATE_SIZE> sample_state;
-    std::array<float, NUM_TOTAL_MOVES> probability_sample;
+    std::array<float, NUM_MOVES> probability_sample;
     if (logging) {
       for (uintf i = 0; i < NUM_MOVES; ++i) {
         if (trainer->get_node(players[to_play].get_root())->is_legal(i) &&
@@ -200,8 +200,8 @@ uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
       *(game_states + offset * GAME_STATE_SIZE + j) = samples[i].game_state[j];
     }
     *(evaluation_samples + offset) = evaluation;
-    for (uintf j = 0; j < NUM_TOTAL_MOVES; ++j) {
-      *(probability_samples + offset * NUM_TOTAL_MOVES + j) =
+    for (uintf j = 0; j < NUM_MOVES; ++j) {
+      *(probability_samples + offset * NUM_MOVES + j) =
           samples[i].probabilities[j];
     }
     ++offset;

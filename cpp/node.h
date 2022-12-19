@@ -3,11 +3,12 @@
 
 #include "game.h"
 #include "util.h"
-#include <array>
 #include <bitset>
 
 // Node in Monte Carlo Tree
 class Node {
+
+  const float MAX_PROBABILITY = 511.0;
 
   struct Edge {
     uint8s move_id:7, probability:9;
@@ -37,11 +38,16 @@ public:
   Node(const Game &game, uint8s depth, Node *parent, Node *next_sibling, uintf move_choice);
   ~Node() = default;
 
+  // Returns whether there are lines
+  bool get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const;
+
   // Accessors
   bool is_terminal() const;
   float get_probability(uintf move_choice) const;
 
-  void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;
+  void write_game_state(float game_state[GAME_STATE_SIZE]) const;
+
+  friend class TrainMC
 };
 
 #endif

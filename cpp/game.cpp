@@ -36,29 +36,18 @@ void Game::do_move(uintf move_id) {
   to_play = 1 - to_play;
 }
 
-bool Game::get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const {
+bool Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) const {
 
-  // Find line breakers using full set of moves
-  bitset<NUM_TOTAL_MOVES> full_legal_moves;
-  full_legal_moves.set();
+  legal_moves.set();
 
   // Filter out moves that don't break lines
-  bool is_lines = get_line_breakers(full_legal_moves);
+  bool is_lines = get_line_breakers(legal_moves);
 
   // Apply other rules
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-    if (full_legal_moves[i] && !is_legal_move(i)) {
-      full_legal_moves[i] = false;
-    }
-  }
-
-  // Reset legal_moves as we need to use |=
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    legal_moves[i] = false;
-  }
-  // Shrink legal moves
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-    legal_moves[compressed_moves[i]] |= full_legal_moves[i];
+    if (legal_moves[i] && !is_legal_move(i)) {
+      legal_moves[i] = false;
+    }
   }
 
   // Node will decide if it is a terminal state and if so the game result
@@ -66,7 +55,7 @@ bool Game::get_legal_moves(std::array<bool, NUM_MOVES> &legal_moves) const {
 }
 
 void Game::write_game_state(
-    std::array<float, GAME_STATE_SIZE> &game_state) const {
+    float game_state[GAME_STATE_SIZE]) const {
   for (uintf i = 0; i < 4 * BOARD_SIZE; ++i) {
     if (board[i]) {
       game_state[i] = 1.0;
@@ -121,7 +110,7 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   return os;
 }
 
-bool Game::get_line_breakers(bitset<NUM_TOTAL_MOVES> &legal_moves) const {
+bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
 
   bool is_lines = false;
   intf space_0, space_1, space_2, space_3;
@@ -389,7 +378,7 @@ void Game::set_frozen(uintf row, uintf col, bool state) {
   board[row * 16 + col * 4 + 3] = state;
 }
 
-void Game::apply_line(uintf line, bitset<NUM_TOTAL_MOVES> &legal_moves) const { legal_moves &= line_breakers[line]; }
+void Game::apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const { legal_moves &= line_breakers[line]; }
 
 bool Game::is_legal_move(uintf move_id) const {
   Move move{move_id};

@@ -1,6 +1,6 @@
 #include "trainmc.h"
 #include "move.h"
-#include "trainer.h"
+#include "node.h"
 #include <array>
 #include <bitset>
 #include <cmath>
@@ -11,46 +11,25 @@ using std::cerr;
 
 using std::bitset;
 
-TrainMC::TrainMC(Trainer *trainer)
-    : cur_node{nullptr},
-      iterations_done{1}, testing{false}, logging{false}, trainer{trainer} {}
+TrainMC::TrainMC(std::mt19937 *generator)
+    :
+      iterations_done{0}, testing{false}, generator{generator} {}
 
 TrainMC::TrainMC(Trainer *trainer, bool)
-    : cur_node{nullptr},
-      iterations_done{1}, testing{false}, logging{true}, trainer{trainer} {}
-
-TrainMC::TrainMC(bool logging, Trainer *trainer, bool)
-    : cur_node{nullptr},
-      iterations_done{1}, testing{true}, logging{true}, trainer{trainer} {}
+    :
+      iterations_done{0}, testing{true}, generator{generator} {}
 
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
   // Create the root node
-  root = trainer->place_root();
-
+  root = new Node();
   cur = root;
-  cur_node = trainer->get_node(root);
 
-  cur_node->write_game_state(game_state);
-}
-
-void TrainMC::do_first_iteration(const Game &game,
-                                 float game_state[GAME_STATE_SIZE]) {
-
-  // Create the new root node
-  root = trainer->place_root(game, 1);
-  cur = root;
-  cur_node = trainer->get_node(root);
-
-  cur_node->write_game_state(game_state);
-}
-
-bool TrainMC::do_iteration(float game_state[GAME_STATE_SIZE]) {
-  return search(game_state);
+  cur->write_game_state(game_state);
 }
 
 bool TrainMC::do_iteration(float evaluation,
-                           const float probabilities[NUM_TOTAL_MOVES],
+                           float probabilities[NUM_MOVES],
                            float game_state[GAME_STATE_SIZE]) {
   receive_evaluation(evaluation, probabilities);
   return search(game_state);
@@ -58,12 +37,12 @@ bool TrainMC::do_iteration(float evaluation,
 
 uintf TrainMC::choose_move(
     std::array<float, GAME_STATE_SIZE> &game_state,
-    std::array<float, NUM_TOTAL_MOVES> &probability_sample) {
+    std::array<float, NUM_MOVES> &probability_sample) {
 
   // Before moving down, read the samples from the root node
   Node *root_node = trainer->get_node(root);
   root_node->write_game_state(game_state);
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (root_node->has_visited(i)) {
       probability_sample[i] =
           (float)trainer->get_node(trainer->find_next(root_node->get_seed(), i))
@@ -191,28 +170,33 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
 }
 
 void TrainMC::receive_evaluation(float evaluation,
-                                 const float probabilities[NUM_TOTAL_MOVES]) {
+                                 const float probabilities[NUM_MOVES]) {
 
   // Apply the legal move filter
-  // and keep track of the total sum so we can normalize afterwards
-  float sum = 0.0, p[NUM_TOTAL_MOVES];
-  uintf legal_move_num = 0;
+  // Legal moves can be deduced from edges
+  // We should find the legal moves when the node is created
+  // Since we want to avoid evaluating the node if it is terminal
+  uintf edge_index = 0, legal_move_num = 0;
+  float sum = 0.0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (cur_node->is_legal(i)) {
-      p[i] = probabilities[i];
-      sum += p[i];
+    // Don't make these 0
+    if (cur->edges[edge_index]->move_id == i) {
+      sum += probabilities[i];
       ++legal_move_num;
-    } else {
-      p[i] = 0.0;
+      ++edge_index;
+    }
+    else {
+      probabilities[i] = 0.0;
     }
   }
 
   // Multiplying by this is more efficient
   float scalar = 1.0 / sum * (1 - epsilon);
 
-  // Generate dirichlet noise (approximation)
+  // Generate Dirichlet noise (approximation)
+  // We cannot generate this at node creation as we don't store floats in the node
   sum = 0.0;
-  float *dirichlet_noise = new float[legal_move_num];
+  float dirichlet_noise[legal_move_num];
 
   for (uintf i = 0; i < legal_move_num; ++i) {
     dirichlet_noise[i] = gamma_samples[trainer->generate() % GAMMA_BUCKETS];
@@ -220,20 +204,29 @@ void TrainMC::receive_evaluation(float evaluation,
   }
   float dirichlet_scalar = 1.0 / sum * epsilon;
 
-  // Normalize probabilities and apply dirichlet noise
-  uintf cur_dirichlet = 0;
+  // Weighted average of probabilities and Dirichlet noise
+  float weighted_probabilities[num_legal_moves], max_probability = 0.0;
+  edge_index = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (cur_node->is_legal(i)) {
-      p[i] = p[i] * scalar + dirichlet_noise[cur_dirichlet] * dirichlet_scalar;
-      ++cur_dirichlet;
+    if (cur->edges[edge_index]->move_id == i) {
+      // Make all legal moves have positive probability
+      weighted_probabilities[edge_index] = probabilities[i] * scalar + dirichlet_noise[edge_index] * dirichlet_scalar;
+      max_probability = std::max(weighted_probabilities[edge_index], max_probability);
+      ++edge_index;
     }
   }
 
-  delete dirichlet_noise;
-
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
-    cur_node->set_probability(i, (unsigned short)lround(p[i] * 511.0));
+  // Compute final scaled probabilities
+  float denominator = Node.MAX_PROBABILITY / max_probability;
+  uintf final_sum = 0;
+  for (uintf i = 0; i < num_legal_moves; ++i) {
+    // Make all probabilities positive
+    cur->edges[i]->probability = std::max(1, lround(weighted_probabilities * denominator));
+    final_sum += cur->edges[i]->probability;
   }
+
+  cur->denominator = 1.0 / (float)final_sum;
+
   // Propagate evaluation
   // Set evaluation for first node? Must work with terminal evals as well
   float cur_evaluation = evaluation;

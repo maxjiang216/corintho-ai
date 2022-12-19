@@ -15,7 +15,7 @@ struct Sample {
   // We do not store the evaluation as it is only computable once the game is
   // complete
   std::array<float, GAME_STATE_SIZE> game_state;
-  std::array<float, NUM_TOTAL_MOVES> probabilities;
+  std::array<float, NUM_MOVES> probabilities;
 };
 
 class SelfPlayer {
@@ -57,13 +57,13 @@ public:
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
   // Training
   bool do_iteration(const float evaluation,
-                    const float probabilities[NUM_TOTAL_MOVES],
+                    const float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
   // Testing
   bool do_iteration(float evaluation_1,
-                    const float probabilities_1[NUM_TOTAL_MOVES],
+                    const float probabilities_1[NUM_MOVES],
                     float evaluation_2,
-                    const float probabilities_2[NUM_TOTAL_MOVES],
+                    const float probabilities_2[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   uintf get_root(uintf player_num) const;

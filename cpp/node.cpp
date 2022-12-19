@@ -18,6 +18,10 @@ Node::Node(const Game &game, uint8s depth, Node *parent, Node *next_sibling, uin
   game.do_move(move_choice);
 }
 
+bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
+  return game.get_legal_moves(legal_moves);
+}
+
 bool Node::is_terminal() const { return resul != NONE; }
 
 float Node::get_probability(uintf move_choice) const {
@@ -25,6 +29,6 @@ float Node::get_probability(uintf move_choice) const {
 }
 
 void Node::write_game_state(
-    std::array<float, GAME_STATE_SIZE> &game_state) const {
+    float game_state[GAME_STATE_SIZE]) const {
   game.write_game_state(game_state);
 }

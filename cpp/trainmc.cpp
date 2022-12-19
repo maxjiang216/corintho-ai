@@ -124,8 +124,6 @@ bool TrainMC::receive_opp_move(uintf move_choice,
 
 const Game &TrainMC::get_game() const { return root->game; }
 
-uintf TrainMC::get_depth() const { return root->depth; }
-
 bool TrainMC::is_uninitialized() const { return root == nullptr; }
 
 void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,

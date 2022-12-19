@@ -5,66 +5,58 @@
 #include "util.h"
 #include <array>
 #include <fstream>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
 
-class Trainer;
-
 struct Sample {
   // We do not store the evaluation as it is only computable once the game is
   // complete
-  std::array<float, GAME_STATE_SIZE> game_state;
-  std::array<float, NUM_MOVES> probabilities;
+  float game_state[GAME_STATE_SIZE], probabilities[NUM_MOVES];
 };
 
 class SelfPlayer {
 
+  // Monte Carlo tree for the players
   TrainMC players[2];
-  // This could be bool, but int is probably faster
-  // Also makes it easier for Trainer to assign seeds
+
   uintf to_play;
+
+  // Random generator for all operations
+  std::mt19937 *generator;
+
+  // Training samples
+  std::vector<Sample> samples;
 
   // Game result for first player
   Result result;
 
-  bool logging;
-
   // seed is only used in testing
   uintf seed;
 
-  std::vector<Sample> samples;
-
   // This way we don't allocate memory if there is no logging file
   std::ofstream *logging_file;
-
-  Trainer *trainer;
 
   bool do_iteration(float game_state[GAME_STATE_SIZE]);
 
 public:
   // Training mode
-  SelfPlayer(Trainer *trainer);
-  SelfPlayer(Trainer *trainer, uintf id, const std::string &logging_folder);
+  SelfPlayer(std::mt19937 *generator);
+  SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file);
   // Testing mode
-  SelfPlayer(uintf seed, Trainer *trainer);
-  // This is slightly inefficient, but more general, and only happens at most
-  // once per testing run
-  SelfPlayer(uintf seed, Trainer *trainer, uintf id,
-             const std::string &logging_folder);
+  SelfPlayer(uintf seed, std::mt19937 *generator);
+  SelfPlayer(uintf seed, std::mt19937 *generator, std::ofstream *logging_file);
   ~SelfPlayer();
 
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
   // Training
-  bool do_iteration(const float evaluation,
-                    const float probabilities[NUM_MOVES],
+  bool do_iteration(float evaluation, float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
   // Testing
-  bool do_iteration(float evaluation_1, const float probabilities_1[NUM_MOVES],
-                    float evaluation_2, const float probabilities_2[NUM_MOVES],
+  bool do_iteration(float evaluation_1, float probabilities_1[NUM_MOVES],
+                    float evaluation_2, float probabilities_2[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
-
-  uintf get_root(uintf player_num) const;
 
   uintf count_samples() const;
 

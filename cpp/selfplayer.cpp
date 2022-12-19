@@ -1,73 +1,63 @@
 #include "selfplayer.h"
 #include "move.h"
 #include "trainer.h"
+#incude "node.h"
 #include "util.h"
+#include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <string>
+#include <utility>
+#include <vector>
 using std::cerr;
+using std::make_pair;
+using std::pair;
 
-SelfPlayer::SelfPlayer(Trainer *trainer)
-    : players{TrainMC{trainer}, TrainMC{trainer}}, to_play{0}, result{NONE},
-      logging{false}, logging_file{nullptr}, trainer{trainer} {
-  samples.reserve(30);
+SelfPlayer::SelfPlayer(std::mt19937 *generator)
+    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+      generator{generator}, result{NONE}, logging_file{nullptr} {
+  samples.reserve(32);
 }
 
-SelfPlayer::SelfPlayer(Trainer *trainer, uintf id,
-                       const std::string &logging_folder)
-    : players{TrainMC{trainer, true}, TrainMC{trainer, true}}, to_play{0},
-      result{NONE}, logging{true}, logging_file{new std::ofstream{
-                                       logging_folder + "/game_" +
-                                           std::to_string(id) + ".txt",
-                                       std::ofstream::out}},
-      trainer{trainer} {
-  samples.reserve(30);
+SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
+    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+      generator{generator}, result{NONE}, logging_file{logging_file} {
+  samples.reserve(32);
 }
 
-SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer)
-    : players{TrainMC{false, trainer, true}, TrainMC{false, trainer, true}},
-      to_play{0}, result{NONE}, logging{false},
-      logging_file{nullptr}, trainer{trainer} {
-  samples.reserve(30);
-}
+SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
+    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+      generator{generator}, result{NONE}, seed{seed}, logging_file{nullptr} {}
 
-SelfPlayer::SelfPlayer(uintf seed, Trainer *trainer, uintf id,
-                       const std::string &logging_folder)
-    : players{TrainMC{true, trainer, true}, TrainMC{true, trainer, true}},
-      to_play{0}, result{NONE}, logging{true},
-      logging_file{new std::ofstream{logging_folder + "/game_" +
-                                         std::to_string(id) + ".txt",
-                                     std::ofstream::out}},
-      trainer{trainer} {
-  samples.reserve(30);
-}
+SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
+                       std::ofstream *logging_file)
+    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+      generator{generator}, result{NONE}, seed{seed}, logging_file{
+                                                          logging_file} {}
 
-SelfPlayer::~SelfPlayer() {
-  if (logging_file != nullptr) {
-    delete logging_file;
-  }
-}
+SelfPlayer::~SelfPlayer() { delete logging_file; }
 
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   players[0].do_first_iteration(game_state);
 }
 
-bool SelfPlayer::do_iteration(const float evaluation,
-                              const float probabilities[NUM_MOVES],
+bool SelfPlayer::do_iteration(float evaluation, float probabilities[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation =
       players[to_play].do_iteration(evaluation, probabilities, game_state);
   // If we don't need an evaluation
   // Then we have completed a turn
+  // Call do_iteration without passing in evaluations
   if (!need_evaluation)
     return do_iteration(game_state);
   return false;
 }
 
 bool SelfPlayer::do_iteration(float evaluation_1,
-                              const float probabilities_1[NUM_MOVES],
+                              float probabilities_1[NUM_MOVES],
                               float evaluation_2,
-                              const float probabilities_2[NUM_MOVES],
+                              float probabilities_2[NUM_MOVES],
                               float game_state[GAME_STATE_SIZE]) {
   bool need_evaluation;
   if (to_play == seed) {
@@ -79,13 +69,10 @@ bool SelfPlayer::do_iteration(float evaluation_1,
   }
   // If we don't need an evaluation
   // Then we have completed a turn
+  // Call do_iteration without passing in evaluations
   if (!need_evaluation)
     return do_iteration(game_state);
   return false;
-}
-
-uintf SelfPlayer::get_root(uintf player_num) const {
-  return players[player_num].get_root();
 }
 
 bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
@@ -96,29 +83,47 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
     // This function will automatically apply the move to the TrainMC
     // Also write samples
-    std::array<float, GAME_STATE_SIZE> sample_state;
-    std::array<float, NUM_MOVES> probability_sample;
-    if (logging) {
-      for (uintf i = 0; i < NUM_MOVES; ++i) {
-        if (trainer->get_node(players[to_play].get_root())->is_legal(i) &&
-            trainer->get_node(players[to_play].get_root())->has_visited(i)) {
-          *logging_file
-              << Move{i} << ' '
-              << trainer
-                     ->get_node(trainer->find_next(
-                         trainer->get_node(players[to_play].get_root())
-                             ->get_seed(),
-                         i))
-                     ->get_visits()
-              << ' '
-              << trainer
-                     ->get_node(trainer->find_next(
-                         trainer->get_node(players[to_play].get_root())
-                             ->get_seed(),
-                         i))
-                     ->get_evaluation()
-              << ' ';
-        }
+    float sample_state[GAME_STATE_SIZE], probability_sample[NUM_MOVES];
+    if (logging_file != nullptr) {
+      *logging_file << "TURN " << players[to_play].root->depth << '\n'
+                    << "PLAYER " << to_play + 1
+                    << " TO PLAY\nPOSITION EVALUATION " << std::fixed
+                    << std::setprecision(6) << players[to_play].root->evaluation
+                    << "\nLEGAL MOVES:\n";
+      // Get and sort moves by visit count and evaluation
+      std::vector<pair<pair<uintf, float>, pair<float, uintf>>> moves;
+      Node *cur_child = players[to_play].root->first_child;
+      uintf edge_index = 0;
+      while (cur_child != nullptr) {
+        moves.emplace_back(
+            make_pair(cur_child->visits, cur_child->evaluation),
+            make_pair(root->get_probability(edge_index), cur_child->child_num));
+        ++edge_index;
+      }
+      sort(moves.begin(), moves.end(),
+           [](const pair<pair<pair<uintf, float>, float, uintf>> > &A,
+              const pair<pair<pair<uintf, float>, float, uintf>> > &B) -> bool {
+             if (A.first.first > B.first.first)
+               return true;
+             if (A.first.first < B.first.first)
+               return false;
+             if (A.first.second > B.first.second)
+               return true;
+             if (A.first.second < B.first.second)
+               return false;
+             return A.second.second < B.second.second;
+           });
+      // Print chosen move (should always be one with highest visit then eval
+      // then lowest id)
+      *logging_file << Move{moves[0].second.second}
+                    << " V: " << moves[0].first.first << std::setprecision(2)
+                    << " E: " << moves[0].first.second
+                    << " P: " << moves[0].second.first << '\n';
+      for (uintf i = 1; i < moves.size(); ++i) {
+        *logging_file << Move{moves[i].second.second}
+                      << " V: " << moves[i].first.first
+                      << " E: " << moves[i].first.second
+                      << " P: " << moves[i].second.first << "  ";
       }
       *logging_file << '\n';
     }
@@ -127,33 +132,25 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
         players[to_play].choose_move(sample_state, probability_sample);
     samples.emplace_back(sample_state, probability_sample);
 
-    if (logging) {
-      *logging_file
-          << Move{move_choice} << '\n'
-          << trainer->get_node(players[to_play].get_root())->get_game() << '\n'
-          << trainer->get_node(players[to_play].get_root())->get_evaluation()
-          << ' ' << trainer->get_node(players[to_play].get_root())->get_visits()
-          << '\n';
-      for (uintf i = 0; i < NUM_MOVES; ++i) {
-        if (trainer->get_node(players[to_play].get_root())->is_legal(i)) {
-          *logging_file << Move{i} << ' '
-                        << trainer->get_node(players[to_play].get_root())
-                               ->get_probability(i)
-                        << ' ';
-        }
-      }
-      *logging_file << "\n\n";
+    if (logging_file != nullptr) {
+      *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
+                    << players[to_player].game << "\n\n";
     }
 
     // Check if the game is over
-    if (trainer->get_node(players[to_play].get_root())->is_terminal()) {
+    if (players[to_play].root->is_terminal()) {
       // Get result
-      result = trainer->get_node(players[to_play].get_root())->get_result();
-      // Make all nodes stale
-      trainer->delete_tree(players[0].get_root());
-      trainer->delete_tree(players[1].get_root());
-      // Write training samples using game result
-      // Exit the loop, nothing more to be done
+      result = players[to_play].root->get_result();
+      // Log game result
+      if (logging_file != nullptr) {
+        if (result == DRAW) {
+          *logging_file << "GAME IS DRAWN.\n";
+        } else {
+          *logging_file << "PLAYER " << to_play + 1 << " WON!\n";
+        }
+      }
+      delete players[0].root;
+      delete players[1].root;
       // Return that the game is complete
       return true;
     }
@@ -164,17 +161,19 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       if (players[to_play].is_uninitialized()) {
         players[to_play].do_first_iteration(players[1 - to_play].get_game(),
                                             game_state);
-        need_evaluation = true;
+        // Game is not over, evaluation is needed
+        return false;
       } else {
         // It's possible that we need an evaluation for this
         // in the case that received move has not been searched
         need_evaluation = players[to_play].receive_opp_move(
             move_choice, game_state, players[1 - to_play].get_game(),
-            players[1 - to_play].get_depth());
+            players[1 - to_play].root.depth);
         if (!need_evaluation) {
-          // If no evaluation is need, this player also did all its iterations
-          // without needing evaluations, so we loop again
+          // Otherwise, we search again
           need_evaluation = players[to_play].do_iteration(game_state);
+          // If no evaluation is needed, this player also did all its iterations
+          // without needing evaluations, so we loop again
         }
       }
     }

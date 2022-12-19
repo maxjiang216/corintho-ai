@@ -34,9 +34,9 @@ class TrainMC {
 
 public:
   // Training
-  TrainMC(Trainer *trainer);
+  TrainMC(std::mt19937 *generator);
   // Testing
-  TrainMC(Trainer *trainer, bool);
+  TrainMC(std::mt19937 *generator, bool);
 
   TrainMC(TrainMC &&) = default;
   ~TrainMC() = default;
@@ -57,11 +57,12 @@ public:
 
   // Accessors
   const Game &get_game() const;
-  uintf get_depth() const;
   bool is_uninitialized() const;
 
   static void set_statics(uintf new_max_iterations, float new_c_puct,
                           float new_epsilon);
+
+  friend class SelfPlayer;
 };
 
 #endif

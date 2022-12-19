@@ -11,22 +11,25 @@ class Node {
   const float MAX_PROBABILITY = 511.0;
 
   struct Edge {
-    uint8s move_id:7, probability:9;
+    uint8s move_id : 7, probability : 9;
   };
 
   // Game state
   Game game;
-  
+
   float evaluation;
   uint16s visits;
   uint8s depth;
   Result result;
 
   uint8s num_legal_moves;
-  Edge* edges;
+  Edge *edges;
   float denominator;
 
   Node *parent, *first_child, *next_sibling;
+  uint8s child_num;
+
+  void initialize_edges();
 
 public:
   // Used to create root nodes
@@ -35,8 +38,9 @@ public:
   Node(const Game &game, uint8s depth);
   // Common create new node function
   // Will copy a game, then apply the move
-  Node(const Game &game, uint8s depth, Node *parent, Node *next_sibling, uintf move_choice);
-  ~Node() = default;
+  Node(const Game &game, uint8s depth, Node *parent, Node *next_sibling,
+       uintf move_choice);
+  ~Node();
 
   // Returns whether there are lines
   bool get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const;

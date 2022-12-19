@@ -45,9 +45,8 @@ public:
   // First iterations are guaranteed not to end a turn
   // First iteration on starting position
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
-  
-  bool do_iteration(float evaluation_result,
-                    float probabilities[NUM_MOVES],
+
+  bool do_iteration(float evaluation_result, float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   // Choose the next child to visit

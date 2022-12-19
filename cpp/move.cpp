@@ -74,9 +74,12 @@ uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2) {
 }
 
 char get_col_name(uintf col) {
-  if (col == 0) return 'a';
-  if (col == 1) return 'b';
-  if (col == 2) return 'c';
+  if (col == 0)
+    return 'a';
+  if (col == 1)
+    return 'b';
+  if (col == 2)
+    return 'c';
   return 'd';
 }
 
@@ -93,10 +96,14 @@ std::ostream &operator<<(std::ostream &os, const Move &move) {
     os << get_col_name(move.col1) << 4 - move.row1;
   } else {
     os << get_col_name(move.col1) << 4 - move.row1;
-    if (move.col2 < move.col1) os << 'L';
-    else if (move.col2 > move.col1) os << 'R';
-    else if (move.row2 < move.row1) os << 'U';
-    else os << 'D';
+    if (move.col2 < move.col1)
+      os << 'L';
+    else if (move.col2 > move.col1)
+      os << 'R';
+    else if (move.row2 < move.row1)
+      os << 'U';
+    else
+      os << 'D';
   }
 
   return os;

@@ -90,9 +90,8 @@ bool Trainer::do_iteration(const float evaluations_1[],
       if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
-            evaluations_1[i], &probabilities_1[i * NUM_MOVES],
-            evaluations_2[i], &probabilities_2[i * NUM_MOVES],
-            &game_states[i * GAME_STATE_SIZE]);
+            evaluations_1[i], &probabilities_1[i * NUM_MOVES], evaluations_2[i],
+            &probabilities_2[i * NUM_MOVES], &game_states[i * GAME_STATE_SIZE]);
         if (is_completed) {
           is_done[i] = true;
           ++games_done;

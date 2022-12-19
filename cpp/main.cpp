@@ -17,12 +17,12 @@ void print_class_sizes() {
   cerr << "sizeof(uintf): " << sizeof(uintf) << '\n';
   cerr << "sizeof(Move): " << sizeof(Move) << '\n';
   cerr << "sizeof(Game): " << sizeof(Game) << '\n';
-  //cerr << "sizeof(Node): " << sizeof(Node) << '\n';
-  //cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
-  //cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
-  //cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
-  //cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
-  //cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+  // cerr << "sizeof(Node): " << sizeof(Node) << '\n';
+  // cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
+  // cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
+  // cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
+  // cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
+  // cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
 }
 
 void print_moves() {
@@ -103,7 +103,6 @@ void test_basic_run() {
 */
 
 int main() {
-
 
   print_class_sizes();
 

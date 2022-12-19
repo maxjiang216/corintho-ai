@@ -60,10 +60,8 @@ public:
                     const float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
   // Testing
-  bool do_iteration(float evaluation_1,
-                    const float probabilities_1[NUM_MOVES],
-                    float evaluation_2,
-                    const float probabilities_2[NUM_MOVES],
+  bool do_iteration(float evaluation_1, const float probabilities_1[NUM_MOVES],
+                    float evaluation_2, const float probabilities_2[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   uintf get_root(uintf player_num) const;

@@ -30,8 +30,8 @@ class Game {
 
   bool get_board(uintf row, uintf col, uintf ptype) const;
   bool get_frozen(uintf row, uintf col) const;
-  void set_board(uintf row, uintf col, uintf ptype, bool state=true);
-  void set_frozen(uintf row, uintf col, bool state=true);
+  void set_board(uintf row, uintf col, uintf ptype, bool state = true);
+  void set_frozen(uintf row, uintf col, bool state = true);
 
   void apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const;
 

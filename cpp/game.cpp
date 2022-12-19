@@ -3,8 +3,7 @@
 #include "util.h"
 #include <ostream>
 
-Game::Game()
-    : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
+Game::Game() : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
 void Game::do_move(uintf move_id) {
 
@@ -54,8 +53,7 @@ bool Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) const {
   return is_lines;
 }
 
-void Game::write_game_state(
-    float game_state[GAME_STATE_SIZE]) const {
+void Game::write_game_state(float game_state[GAME_STATE_SIZE]) const {
   for (uintf i = 0; i < 4 * BOARD_SIZE; ++i) {
     if (board[i]) {
       game_state[i] = 1.0;
@@ -144,7 +142,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
                 legal_moves[encode_move(2, 3, 1, 3)] = false;
                 legal_moves[encode_move(2, 3, 3, 3)] = false;
               }
-              if (!get_board(3, 3 ,2)) {
+              if (!get_board(3, 3, 2)) {
                 legal_moves[encode_move(3, 3, 2, 3)] = false;
               }
             }
@@ -346,8 +344,8 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
 
 intf Game::get_top(uintf row, uintf col) const {
   for (uintf i = 0; i < 3; ++i) {
-    if (get_board(row, col, 2-i))
-      return 2-i;
+    if (get_board(row, col, 2 - i))
+      return 2 - i;
   }
   // Empty
   return -1;
@@ -378,7 +376,9 @@ void Game::set_frozen(uintf row, uintf col, bool state) {
   board[row * 16 + col * 4 + 3] = state;
 }
 
-void Game::apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const { legal_moves &= line_breakers[line]; }
+void Game::apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const {
+  legal_moves &= line_breakers[line];
+}
 
 bool Game::is_legal_move(uintf move_id) const {
   Move move{move_id};

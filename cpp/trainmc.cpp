@@ -12,12 +12,10 @@ using std::cerr;
 using std::bitset;
 
 TrainMC::TrainMC(std::mt19937 *generator)
-    :
-      iterations_done{0}, testing{false}, generator{generator} {}
+    : iterations_done{0}, testing{false}, generator{generator} {}
 
 TrainMC::TrainMC(Trainer *trainer, bool)
-    :
-      iterations_done{0}, testing{true}, generator{generator} {}
+    : iterations_done{0}, testing{true}, generator{generator} {}
 
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
@@ -28,16 +26,14 @@ void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   cur->write_game_state(game_state);
 }
 
-bool TrainMC::do_iteration(float evaluation,
-                           float probabilities[NUM_MOVES],
+bool TrainMC::do_iteration(float evaluation, float probabilities[NUM_MOVES],
                            float game_state[GAME_STATE_SIZE]) {
   receive_evaluation(evaluation, probabilities);
   return search(game_state);
 }
 
-uintf TrainMC::choose_move(
-    std::array<float, GAME_STATE_SIZE> &game_state,
-    std::array<float, NUM_MOVES> &probability_sample) {
+uintf TrainMC::choose_move(std::array<float, GAME_STATE_SIZE> &game_state,
+                           std::array<float, NUM_MOVES> &probability_sample) {
 
   // Before moving down, read the samples from the root node
   Node *root_node = trainer->get_node(root);
@@ -176,16 +172,14 @@ void TrainMC::receive_evaluation(float evaluation,
   // Legal moves can be deduced from edges
   // We should find the legal moves when the node is created
   // Since we want to avoid evaluating the node if it is terminal
-  uintf edge_index = 0, legal_move_num = 0;
+  uintf edge_index = 0;
   float sum = 0.0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     // Don't make these 0
     if (cur->edges[edge_index]->move_id == i) {
       sum += probabilities[i];
-      ++legal_move_num;
       ++edge_index;
-    }
-    else {
+    } else {
       probabilities[i] = 0.0;
     }
   }
@@ -194,24 +188,28 @@ void TrainMC::receive_evaluation(float evaluation,
   float scalar = 1.0 / sum * (1 - epsilon);
 
   // Generate Dirichlet noise (approximation)
-  // We cannot generate this at node creation as we don't store floats in the node
+  // We cannot generate this at node creation as we don't store floats in the
+  // node
   sum = 0.0;
-  float dirichlet_noise[legal_move_num];
+  float dirichlet_noise[cur->num_legal_moves];
 
-  for (uintf i = 0; i < legal_move_num; ++i) {
-    dirichlet_noise[i] = gamma_samples[trainer->generate() % GAMMA_BUCKETS];
+  for (uintf i = 0; i < cur->num_legal_moves; ++i) {
+    dirichlet_noise[i] = gamma_samples[generator->() % GAMMA_BUCKETS];
     sum += dirichlet_noise[i];
   }
   float dirichlet_scalar = 1.0 / sum * epsilon;
 
   // Weighted average of probabilities and Dirichlet noise
-  float weighted_probabilities[num_legal_moves], max_probability = 0.0;
+  float weighted_probabilities[cur->num_legal_moves], max_probability = 0.0;
   edge_index = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (cur->edges[edge_index]->move_id == i) {
       // Make all legal moves have positive probability
-      weighted_probabilities[edge_index] = probabilities[i] * scalar + dirichlet_noise[edge_index] * dirichlet_scalar;
-      max_probability = std::max(weighted_probabilities[edge_index], max_probability);
+      weighted_probabilities[edge_index] =
+          probabilities[i] * scalar +
+          dirichlet_noise[edge_index] * dirichlet_scalar;
+      max_probability =
+          std::max(weighted_probabilities[edge_index], max_probability);
       ++edge_index;
     }
   }
@@ -219,30 +217,29 @@ void TrainMC::receive_evaluation(float evaluation,
   // Compute final scaled probabilities
   float denominator = Node.MAX_PROBABILITY / max_probability;
   uintf final_sum = 0;
-  for (uintf i = 0; i < num_legal_moves; ++i) {
+  for (uintf i = 0; i < cur->num_legal_moves; ++i) {
     // Make all probabilities positive
-    cur->edges[i]->probability = std::max(1, lround(weighted_probabilities * denominator));
+    cur->edges[i]->probability =
+        std::max(1, lround(weighted_probabilities * denominator));
     final_sum += cur->edges[i]->probability;
   }
 
+  // Record scalar for node
   cur->denominator = 1.0 / (float)final_sum;
 
   // Propagate evaluation
-  // Set evaluation for first node? Must work with terminal evals as well
-  float cur_evaluation = evaluation;
-  while (cur != root) {
-    cur_node->add_evaluation(cur_evaluation);
-    cur_evaluation *= -1.0;
-    cur = cur_node->get_parent();
-    cur_node = trainer->get_node(cur);
+  float cur_eval = evaluation;
+  while (cur->parent != nullptr) {
+    ++cur->visits;
+    cur->evaluation += cur_eval;
+    cur_eval *= -1.0;
+    cur = cur->parent;
   }
   // Propagate to root
-  cur_node->add_evaluation(cur_evaluation);
+  ++cur->visits;
+  cur->evaluation += cur_eval;
 }
 
-// Figure out what the Python code does for this for the first search of a move,
-// where evaluation is not needed We can overload, factor out the search, add
-// "receive_evaluation" function
 bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
   bool need_evaluation = false;
@@ -251,52 +248,100 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
 
     ++iterations_done;
 
-    while (!cur_node->is_terminal()) {
-      cur_node->increment_visits();
-      uintf move_choice = choose_next();
-      // Exploring a new node
-      if (!(cur_node->has_visited(move_choice))) {
-        cur_node->set_visit(move_choice);
-        // Create the new node
-        cur = trainer->place_next(cur_node->get_seed(), cur_node->get_game(),
-                                  cur_node->get_depth(), cur, move_choice);
-        cur_node = trainer->get_node(cur);
+    while (!cur->is_terminal()) {
+      // Choose next
+
+      // Random value lower than -1.0
+      float max_value = -2.0;
+      // Initialize this variable to be safe
+      uintf move_choice = 0;
+
+      uintf cur_child = cur->first_child, edge_index = 0;
+      // Keep track of previous node to insert into linked list
+      Node *prev_node = nullptr, *best_prev_node = nullptr;
+      // Loop through existing children
+      while (cur_child != nullptr) {
+        float u;
+        if (cur_child->child_num == edge_index) {
+          u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
+              c_puct * cur->get_probability(edge_index) *
+                  sqrt((float)cur->visits - 1.0) /
+                  ((float)cur_child->visits + 1.0);
+          prev_node = cur_child;
+          cur_child = cur_child->next_sibling;
+        } else {
+          u = c_puct * cur->get_probability(edge_index) *
+              sqrt((float)cur->visits - 1.0);
+        }
+        if (u > max_value) {
+          best_prev_node = prev_node;
+          max_value = u;
+          move_choice = edge_index;
+        }
+        ++edge_index;
+      }
+      while (edge_index < cur->num_legal_moves) {
+        float u = c_puct * cur->get_probability(edge_index) *
+                  sqrt((float)cur->visits - 1.0);
+        if (u > max_value) {
+          best_prev_node =
+              prev_node; // This should always be the last node in the list
+          max_value = u;
+          move_choice = edge_index;
+        }
+        ++edge_index;
+      }
+
+      // Best node should be inserted at the beginning of the list
+      if (best_prev_node == nullptr) {
+        cur->first_child = new Node(cur->game, cur->depth + 1, cur,
+                                    cur->first_child, move_choice);
+        cur = cur->first_child;
         break;
       }
-      // Otherwise, move down normally
+      // New node somewhere else in the list
+      else if (best_prev_node->child_num != move_choice) {
+        best_prev_node->next_sibling =
+            new Node(cur->game, cur->depth + 1, cur,
+                     best_prev_node->next_sibling, move_choice);
+        cur = best_prev_node->next_sibling;
+        break;
+      }
+      // Existing node, continue searching
       else {
-        cur = trainer->find_next(cur_node->get_seed(), move_choice);
-        cur_node = trainer->get_node(cur);
+        cur = best_prev_node;
       }
     }
 
     // Check for terminal state, otherwise evaluation is needed
     if (cur_node->is_terminal()) {
-      // Otherwise visits is not incremented
-      cur_node->increment_visits();
       // Don't propagate if value is 0
       if (cur_node->get_result() != DRAW) {
         // Propagate evaluation
-        // In a decisive terminal state, the person to play is always the loser
-        // It is important we don't add to visits here, because we skip this for
-        // draws
-        float cur_evaluation = -1.0;
-        while (cur != root) {
-          cur_node->add_evaluation(cur_evaluation);
-          cur_evaluation *= -1.0;
-          cur = cur_node->get_parent();
-          cur_node = trainer->get_node(cur);
+        // In a decisive terminal state, the person to play is always the
+        // loser
+        float cur_eval = -1.0;
+        while (cur->parent != nullptr) {
+          ++cur->visits;
+          cur->evaluation += cur_eval;
+          cur_eval *= -1.0;
+          cur = cur->parent;
         }
-        // We need to propagate to root (do we?)
-        cur_node->add_evaluation(cur_evaluation);
+        ++cur->visits;
+        cur->evaluation += cur_eval;
+
       } else {
-        cur = root;
-        cur_node = trainer->get_node(cur);
+        // We need to add to the visit count
+        while (cur->parent != nullptr) {
+          ++cur->visits;
+          cur = cur->parent;
+        }
+        ++cur->visits;
       }
     }
     // Otherwise, request an evaluation
     else {
-      cur_node->write_game_state(game_state);
+      cur->write_game_state(game_state);
       need_evaluation = true;
     }
   }

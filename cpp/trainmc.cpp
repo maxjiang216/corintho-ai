@@ -122,13 +122,11 @@ bool TrainMC::receive_opp_move(uintf move_choice,
   return true;
 }
 
-uintf TrainMC::get_root() const { return root; }
+const Game &TrainMC::get_game() const { return root->game; }
 
-const Game &TrainMC::get_game() const { return cur_node->get_game(); }
+uintf TrainMC::get_depth() const { return root->depth; }
 
-uintf TrainMC::get_depth() const { return cur_node->get_depth(); }
-
-bool TrainMC::is_uninitialized() const { return cur_node == nullptr; }
+bool TrainMC::is_uninitialized() const { return root == nullptr; }
 
 void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
                           float new_epsilon) {

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -MMD -O3 #-g #-pg
+CXXFLAGS = -std=c++20 -Wall -MMD -O3 -fopenmp -g #-pg
 
 SRC = ./cpp
 
@@ -11,7 +11,7 @@ DPDS = ${OBJS:.o=.d}
 
 all: pipe
 pipe: $(CXXFLGS) $(OBJS)
-	$(CXX) $(CXXFLGS) $(OBJS) -O3 -o pipe
+	$(CXX)  $(OBJS) $(CXXFLGS) -O3 -fopenmp -o pipe
 
 -include ${DPDS}
 

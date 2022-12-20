@@ -14,7 +14,7 @@ from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 
 GAME_STATE_SIZE = 70
-NUM_TOTAL_MOVES = 96
+NUM_MOVES = 96
 
 
 def main():
@@ -326,7 +326,7 @@ def main():
             )
         )
         eval_output = Dense(units=1, activation="tanh")(layer_18)
-        prob_output = Dense(units=NUM_TOTAL_MOVES, activation="softmax")(layer_18)
+        prob_output = Dense(units=NUM_MOVES, activation="softmax")(layer_18)
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(

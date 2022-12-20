@@ -28,13 +28,14 @@ SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{nullptr} {}
+      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
+                                                                 nullptr} {}
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
                        std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
-                                                          logging_file} {}
+      generator{generator}, result{RESULT_NONE}, seed{seed},
+      logging_file{logging_file} {}
 
 SelfPlayer::~SelfPlayer() { delete logging_file; }
 
@@ -97,6 +98,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
             make_pair(players[to_play].root->get_probability(edge_index),
                       cur_child->child_num));
         ++edge_index;
+        cur_child = cur_child->next_sibling;
       }
       sort(moves.begin(), moves.end(),
            [](const pair<pair<uintf, float>, pair<float, uintf>> &A,
@@ -128,7 +130,8 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
     // This function will automatically apply the move to the TrainMC
     // Also write samples
-    float *sample_state = new float[GAME_STATE_SIZE], *probability_sample = new float[NUM_MOVES];
+    float *sample_state = new float[GAME_STATE_SIZE],
+          *probability_sample = new float[NUM_MOVES];
     uintf move_choice =
         players[to_play].choose_move(sample_state, probability_sample);
     samples.emplace_back(sample_state, probability_sample);
@@ -160,7 +163,8 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       to_play = 1 - to_play;
       // First time iterating the second TrainMC
       if (players[to_play].is_uninitialized()) {
-        players[to_play].do_first_iteration(players[1 - to_play].root->game,players[1 - to_play].root->depth,
+        players[to_play].do_first_iteration(players[1 - to_play].root->game,
+                                            players[1 - to_play].root->depth,
                                             game_state);
         // Game is not over, evaluation is needed
         return false;

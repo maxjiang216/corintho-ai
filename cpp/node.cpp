@@ -9,7 +9,7 @@ using std::cerr;
 // Starting position is never a terminal node
 Node::Node()
     : game{Game()}, visits{0}, depth{0}, result{RESULT_NONE}, edges{nullptr},
-      parent{nullptr} {
+      parent{nullptr}, first_child{nullptr}, next_sibling{nullptr} {
   initialize_edges();
 }
 
@@ -18,14 +18,14 @@ Node::Node()
 // Or else the game would have ended
 Node::Node(const Game &game, uint8s depth)
     : game{game}, visits{0}, depth{depth}, result{RESULT_NONE}, edges{nullptr},
-      parent{nullptr} {
+      parent{nullptr}, first_child{nullptr}, next_sibling{nullptr} {
   initialize_edges();
 }
 
 Node::Node(const Game &other_game, uint8s depth, Node *parent,
            Node *next_sibling, uint8s move_choice)
     : game{other_game}, visits{0}, depth{depth}, parent{parent},
-      next_sibling{next_sibling}, child_num{move_choice} {
+      first_child{nullptr}, next_sibling{next_sibling}, child_num{move_choice} {
   game.do_move(move_choice);
   initialize_edges();
 }
@@ -53,7 +53,7 @@ void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
 void Node::initialize_edges() {
   bitset<NUM_MOVES> legal_moves;
   bool is_lines = game.get_legal_moves(legal_moves);
-  uintf num_legal_moves = legal_moves.count();
+  num_legal_moves = legal_moves.count();
   // Terminal node
   if (num_legal_moves == 0) {
     // Decisive game
@@ -70,10 +70,12 @@ void Node::initialize_edges() {
   }
   // Otherwise, allocate some edges
   else {
-    Edge *edges = (Edge *)(new char[num_legal_moves * sizeof(Edge)]);
+    edges = (Edge *)(new char[num_legal_moves * sizeof(Edge)]);
+    uintf edge_index = 0;
     for (uintf i = 0; i < NUM_MOVES; ++i) {
       if (legal_moves[i]) {
-        new (edges + i) Edge(i, 0);
+        new (edges + edge_index) Edge(i, 0);
+        ++edge_index;
       }
     }
   }

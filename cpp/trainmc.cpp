@@ -21,13 +21,14 @@ TrainMC::TrainMC(std::mt19937 *generator, bool)
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
   // Create the root node
-  root = new Node();
+  root = new Node;
   cur = root;
 
   cur->write_game_state(game_state);
 }
 
-void TrainMC::do_first_iteration(const Game &game, uintf depth, float game_state[GAME_STATE_SIZE]) {
+void TrainMC::do_first_iteration(const Game &game, uintf depth,
+                                 float game_state[GAME_STATE_SIZE]) {
 
   // Create the root node
   root = new Node(game, depth);
@@ -55,6 +56,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   while (cur_child != nullptr) {
     probability_sample[cur_child->child_num] =
         (float)cur_child->visits * denominator;
+    cur_child = cur_child->next_sibling;
   }
 
   uintf move_choice = 0;
@@ -342,6 +344,9 @@ void TrainMC::move_down(Node *prev_node) {
     new_root = prev_node->next_sibling;
     prev_node->next_sibling = new_root->next_sibling;
   }
+
+  new_root->next_sibling = nullptr;
+  new_root->parent = nullptr;
 
   delete root;
   root = new_root;

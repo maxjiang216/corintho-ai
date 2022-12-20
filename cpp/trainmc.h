@@ -28,9 +28,10 @@ class TrainMC {
 
   std::mt19937 *generator;
 
-  void receive_evaluation(float evaluation,
-                          const float probabilities[NUM_MOVES]);
+  void receive_evaluation(float evaluation, float probabilities[NUM_MOVES]);
   bool search(float game_state[GAME_STATE_SIZE]);
+
+  void move_down(Node *prev_node);
 
 public:
   // Training
@@ -44,6 +45,9 @@ public:
   // First iterations are guaranteed not to end a turn
   // First iteration on starting position
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
+
+  void do_first_iteration(const Game &game, uintf depth,
+                          float game_state[GAME_STATE_SIZE]);
 
   bool do_iteration(float evaluation_result, float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);

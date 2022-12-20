@@ -13,7 +13,10 @@
 struct Sample {
   // We do not store the evaluation as it is only computable once the game is
   // complete
-  float game_state[GAME_STATE_SIZE], probabilities[NUM_MOVES];
+  float *game_state, *probabilities;
+
+  Sample(float *game_state, float *probabilities)
+      : game_state{game_state}, probabilities{probabilities} {}
 };
 
 class SelfPlayer {
@@ -30,7 +33,7 @@ class SelfPlayer {
   std::vector<Sample> samples;
 
   // Game result for first player
-  Result result;
+  uint8s result;
 
   // seed is only used in testing
   uintf seed;

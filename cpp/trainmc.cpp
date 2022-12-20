@@ -4,6 +4,7 @@
 #include <array>
 #include <bitset>
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -14,13 +15,22 @@ using std::bitset;
 TrainMC::TrainMC(std::mt19937 *generator)
     : iterations_done{0}, testing{false}, generator{generator} {}
 
-TrainMC::TrainMC(Trainer *trainer, bool)
+TrainMC::TrainMC(std::mt19937 *generator, bool)
     : iterations_done{0}, testing{true}, generator{generator} {}
 
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
   // Create the root node
   root = new Node();
+  cur = root;
+
+  cur->write_game_state(game_state);
+}
+
+void TrainMC::do_first_iteration(const Game &game, uintf depth, float game_state[GAME_STATE_SIZE]) {
+
+  // Create the root node
+  root = new Node(game, depth);
   cur = root;
 
   cur->write_game_state(game_state);
@@ -43,7 +53,8 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   Node *cur_child = cur->first_child;
   float denominator = 1.0 / ((float)root->visits - 1.0);
   while (cur_child != nullptr) {
-    probability_sample[i] = (float)cur_child->visits * denominator;
+    probability_sample[cur_child->child_num] =
+        (float)cur_child->visits * denominator;
   }
 
   uintf move_choice = 0;
@@ -54,14 +65,14 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   // In training, choose weighted random
   // For the first few moves
   if (root->depth < NUM_OPENING_MOVES && !testing) {
-    uintf total = 0, target = generator->() % (cur->visits - 1);
+    uintf total = 0, target = (*generator)() % (cur->visits - 1);
     Node *cur_child = cur->first_child;
     // This loop will always break out
     // There is always at least one child
     while (true) {
       total += cur_child->visits;
       if (total >= target) {
-        move_choice = i;
+        move_choice = cur_child->child_num;
         break;
       }
       best_prev_node = cur_child;
@@ -75,11 +86,12 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
     // Breaking ties with evaluation
     uintf max_visits = 0;
     float max_eval = 0.0;
-    Node *cur_child = cur->first_child, prev_node = nullptr;
+    Node *cur_child = cur->first_child, *prev_node = nullptr;
     while (cur_child != nullptr) {
       if (cur_child->visits > max_visits ||
-          cur_child->visits == max_visits && cur_child->evaluation > max_eval) {
-        move_choice = cur_child->move_id;
+          (cur_child->visits == max_visits &&
+           cur_child->evaluation > max_eval)) {
+        move_choice = cur_child->child_num;
         best_prev_node = prev_node;
         max_visits = cur_child->visits;
         max_eval = cur_child->evaluation;
@@ -98,7 +110,7 @@ bool TrainMC::receive_opp_move(uintf move_choice,
                                float game_state[GAME_STATE_SIZE],
                                const Game &game, uintf depth) {
 
-  Node *prev_node = nullptr, cur_child = root->first_child;
+  Node *prev_node = nullptr, *cur_child = root->first_child;
   while (cur_child != nullptr) {
     if (cur_child->child_num == move_choice) {
       move_down(prev_node);
@@ -134,7 +146,7 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
 }
 
 void TrainMC::receive_evaluation(float evaluation,
-                                 const float probabilities[NUM_MOVES]) {
+                                 float probabilities[NUM_MOVES]) {
 
   // Apply the legal move filter
   // Legal moves can be deduced from edges
@@ -144,7 +156,7 @@ void TrainMC::receive_evaluation(float evaluation,
   float sum = 0.0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     // Don't make these 0
-    if (cur->edges[edge_index]->move_id == i) {
+    if (cur->edges[edge_index].move_id == i) {
       sum += probabilities[i];
       ++edge_index;
     } else {
@@ -162,7 +174,7 @@ void TrainMC::receive_evaluation(float evaluation,
   float dirichlet_noise[cur->num_legal_moves];
 
   for (uintf i = 0; i < cur->num_legal_moves; ++i) {
-    dirichlet_noise[i] = gamma_samples[generator->() % GAMMA_BUCKETS];
+    dirichlet_noise[i] = gamma_samples[(*generator)() % GAMMA_BUCKETS];
     sum += dirichlet_noise[i];
   }
   float dirichlet_scalar = 1.0 / sum * epsilon;
@@ -171,7 +183,7 @@ void TrainMC::receive_evaluation(float evaluation,
   float weighted_probabilities[cur->num_legal_moves], max_probability = 0.0;
   edge_index = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (cur->edges[edge_index]->move_id == i) {
+    if (cur->edges[edge_index].move_id == i) {
       // Make all legal moves have positive probability
       weighted_probabilities[edge_index] =
           probabilities[i] * scalar +
@@ -183,13 +195,13 @@ void TrainMC::receive_evaluation(float evaluation,
   }
 
   // Compute final scaled probabilities
-  float denominator = Node.MAX_PROBABILITY / max_probability;
+  float denominator = Node::MAX_PROBABILITY / max_probability;
   uintf final_sum = 0;
   for (uintf i = 0; i < cur->num_legal_moves; ++i) {
     // Make all probabilities positive
-    cur->edges[i]->probability =
-        std::max(1, lround(weighted_probabilities * denominator));
-    final_sum += cur->edges[i]->probability;
+    cur->edges[i].probability =
+        std::max((long int)1, lround(weighted_probabilities[i] * denominator));
+    final_sum += cur->edges[i].probability;
   }
 
   // Record scalar for node
@@ -224,7 +236,8 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
       // Initialize this variable to be safe
       uintf move_choice = 0;
 
-      uintf cur_child = cur->first_child, edge_index = 0;
+      Node *cur_child = cur->first_child;
+      uintf edge_index = 0;
       // Keep track of previous node to insert into linked list
       Node *prev_node = nullptr, *best_prev_node = nullptr;
       // Loop through existing children
@@ -282,9 +295,9 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
     }
 
     // Check for terminal state, otherwise evaluation is needed
-    if (cur_node->is_terminal()) {
+    if (cur->is_terminal()) {
       // Don't propagate if value is 0
-      if (cur_node->get_result() != DRAW) {
+      if (cur->result != RESULT_DRAW) {
         // Propagate evaluation
         // In a decisive terminal state, the person to play is always the
         // loser
@@ -317,7 +330,7 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
   return need_evaluation;
 }
 
-void Trainer::move_down(Node *prev_node) {
+void TrainMC::move_down(Node *prev_node) {
 
   // Extricate the node we want
   Node *new_root;

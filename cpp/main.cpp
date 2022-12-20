@@ -1,15 +1,17 @@
 #include "game.h"
 #include "move.h"
-/*
 #include "node.h"
 #include "selfplayer.h"
 #include "trainer.h"
 #include "trainmc.h"
-*/
 #include "util.h"
 #include <bits/stdc++.h>
 
 using namespace std;
+
+struct Edge {
+    uint16s move_id : 7, probability : 9;
+  };
 
 // Print the size of the classes we're using
 void print_class_sizes() {
@@ -17,16 +19,17 @@ void print_class_sizes() {
   cerr << "sizeof(uintf): " << sizeof(uintf) << '\n';
   cerr << "sizeof(Move): " << sizeof(Move) << '\n';
   cerr << "sizeof(Game): " << sizeof(Game) << '\n';
-  // cerr << "sizeof(Node): " << sizeof(Node) << '\n';
-  // cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
-  // cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
-  // cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
-  // cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
-  // cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
+  cerr << "sizeof(Node::Edge): " << sizeof(Edge) << '\n';
+  cerr << "sizeof(Node): " << sizeof(Node) << '\n';
+  cerr << "sizeof(TrainMC): " << sizeof(TrainMC) << '\n';
+  cerr << "sizeof(SelfPlayer): " << sizeof(SelfPlayer) << '\n';
+  cerr << "sizeof(ofstream): " << sizeof(ofstream) << '\n';
+  cerr << "sizeof(Trainer): " << sizeof(Trainer) << '\n';
+  cerr << "sizeof(mt19937): " << sizeof(mt19937) << '\n';
 }
 
 void print_moves() {
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
     cerr << i << ' ' << Move{i} << '\n';
   }
 }
@@ -35,7 +38,7 @@ void print_game() { cerr << Game() << '\n'; }
 
 void print_line_breakers(uintf line) {
 
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (line_breakers[line][i]) {
       cerr << 1;
     } else {
@@ -43,7 +46,7 @@ void print_line_breakers(uintf line) {
     }
   }
   cerr << '\n';
-  for (uintf i = 0; i < NUM_TOTAL_MOVES; ++i) {
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (line_breakers[line][i]) {
       cerr << Move{i} << ' ';
     }

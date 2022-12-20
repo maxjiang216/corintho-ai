@@ -1,7 +1,7 @@
 #include "selfplayer.h"
 #include "move.h"
+#include "node.h"
 #include "trainer.h"
-#incude "node.h"
 #include "util.h"
 #include <algorithm>
 #include <fstream>
@@ -16,24 +16,24 @@ using std::pair;
 
 SelfPlayer::SelfPlayer(std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{NONE}, logging_file{nullptr} {
+      generator{generator}, result{RESULT_NONE}, logging_file{nullptr} {
   samples.reserve(32);
 }
 
 SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{NONE}, logging_file{logging_file} {
+      generator{generator}, result{RESULT_NONE}, logging_file{logging_file} {
   samples.reserve(32);
 }
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{NONE}, seed{seed}, logging_file{nullptr} {}
+      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{nullptr} {}
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
                        std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{NONE}, seed{seed}, logging_file{
+      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
                                                           logging_file} {}
 
 SelfPlayer::~SelfPlayer() { delete logging_file; }
@@ -81,9 +81,6 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
   while (!need_evaluation) {
 
-    // This function will automatically apply the move to the TrainMC
-    // Also write samples
-    float sample_state[GAME_STATE_SIZE], probability_sample[NUM_MOVES];
     if (logging_file != nullptr) {
       *logging_file << "TURN " << players[to_play].root->depth << '\n'
                     << "PLAYER " << to_play + 1
@@ -97,12 +94,13 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       while (cur_child != nullptr) {
         moves.emplace_back(
             make_pair(cur_child->visits, cur_child->evaluation),
-            make_pair(root->get_probability(edge_index), cur_child->child_num));
+            make_pair(players[to_play].root->get_probability(edge_index),
+                      cur_child->child_num));
         ++edge_index;
       }
       sort(moves.begin(), moves.end(),
-           [](const pair<pair<pair<uintf, float>, float, uintf>> > &A,
-              const pair<pair<pair<uintf, float>, float, uintf>> > &B) -> bool {
+           [](const pair<pair<uintf, float>, pair<float, uintf>> &A,
+              const pair<pair<uintf, float>, pair<float, uintf>> &B) -> bool {
              if (A.first.first > B.first.first)
                return true;
              if (A.first.first < B.first.first)
@@ -128,22 +126,25 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       *logging_file << '\n';
     }
 
+    // This function will automatically apply the move to the TrainMC
+    // Also write samples
+    float *sample_state = new float[GAME_STATE_SIZE], *probability_sample = new float[NUM_MOVES];
     uintf move_choice =
         players[to_play].choose_move(sample_state, probability_sample);
     samples.emplace_back(sample_state, probability_sample);
 
     if (logging_file != nullptr) {
       *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
-                    << players[to_player].game << "\n\n";
+                    << players[to_play].root->game << "\n\n";
     }
 
     // Check if the game is over
     if (players[to_play].root->is_terminal()) {
       // Get result
-      result = players[to_play].root->get_result();
+      result = players[to_play].root->result;
       // Log game result
       if (logging_file != nullptr) {
-        if (result == DRAW) {
+        if (result == RESULT_DRAW) {
           *logging_file << "GAME IS DRAWN.\n";
         } else {
           *logging_file << "PLAYER " << to_play + 1 << " WON!\n";
@@ -159,7 +160,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       to_play = 1 - to_play;
       // First time iterating the second TrainMC
       if (players[to_play].is_uninitialized()) {
-        players[to_play].do_first_iteration(players[1 - to_play].get_game(),
+        players[to_play].do_first_iteration(players[1 - to_play].root->game,players[1 - to_play].root->depth,
                                             game_state);
         // Game is not over, evaluation is needed
         return false;
@@ -168,10 +169,10 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
         // in the case that received move has not been searched
         need_evaluation = players[to_play].receive_opp_move(
             move_choice, game_state, players[1 - to_play].get_game(),
-            players[1 - to_play].root.depth);
+            players[1 - to_play].root->depth);
         if (!need_evaluation) {
           // Otherwise, we search again
-          need_evaluation = players[to_play].do_iteration(game_state);
+          need_evaluation = players[to_play].search(game_state);
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
         }
@@ -190,7 +191,7 @@ uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
   uintf offset = 0;
   // The last player to play a move is the winner, except in a draw
   float evaluation = 1.0;
-  if (result == DRAW) {
+  if (result == RESULT_DRAW) {
     evaluation = 0.0;
   }
   // Start from back to front to figure out evaluations more easily
@@ -210,9 +211,9 @@ uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
 }
 
 float SelfPlayer::get_score() const {
-  if (result == WIN)
+  if (result == RESULT_WIN)
     return 1.0;
-  if (result == LOSS)
+  if (result == RESULT_LOSS)
     return 0.0;
   return 0.5;
 }

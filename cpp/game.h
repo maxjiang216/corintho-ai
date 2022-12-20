@@ -55,6 +55,8 @@ public:
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
+
+  friend class Node;
 };
 
 #endif

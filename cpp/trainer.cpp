@@ -44,7 +44,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
       // 2, which sometimes occurs when testing small runs
-      if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) <
+      if (i / std::max((uintf)1, (games.size() / (num_iterations / 2))) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
             evaluations[i], &probabilities[i * NUM_MOVES],
@@ -52,11 +52,12 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
         if (is_completed) {
           is_done[i] = true;
           ++games_done;
-          if (games_done == num_games) {
+          if (games_done == games.size()) {
             return true;
           }
         }
-      } else if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) ==
+      } else if (i / std::max((uintf)1,
+                              (games.size() / (num_iterations / 2))) ==
                  iterations_done) {
         games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
       }
@@ -67,15 +68,14 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   return false;
 }
 
-bool Trainer::do_iteration(const float evaluations_1[],
-                           const float probabilities_1[],
-                           const float evaluations_2[],
-                           const float probabilities_2[], float game_states[]) {
-  for (uintf i = 0; i < num_games; ++i) {
+bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
+                           float evaluations_2[], float probabilities_2[],
+                           float game_states[]) {
+  for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
       // 2
-      if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) <
+      if (i / std::max((uintf)1, (games.size() / (num_iterations / 2))) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
             evaluations_1[i], &probabilities_1[i * NUM_MOVES], evaluations_2[i],
@@ -83,11 +83,12 @@ bool Trainer::do_iteration(const float evaluations_1[],
         if (is_completed) {
           is_done[i] = true;
           ++games_done;
-          if (games_done == num_games) {
+          if (games_done == games.size()) {
             return true;
           }
         }
-      } else if (i / std::max((uintf)1, (num_games / (num_iterations / 2))) ==
+      } else if (i / std::max((uintf)1,
+                              (games.size() / (num_iterations / 2))) ==
                  iterations_done) {
         games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
       }
@@ -137,7 +138,7 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
 
 uintf Trainer::count_samples() const {
   uintf counter = 0;
-  for (uintf i = 0; i < num_games; ++i) {
+  for (uintf i = 0; i < games.size(); ++i) {
     counter += games[i]->count_samples();
   }
   return counter;
@@ -146,7 +147,7 @@ uintf Trainer::count_samples() const {
 void Trainer::write_samples(float *game_states, float *evaluation_samples,
                             float *probability_samples) const {
   uintf offset = 0;
-  for (uintf i = 0; i < num_games; ++i) {
+  for (uintf i = 0; i < games.size(); ++i) {
     uintf num_samples = games[i]->write_samples(
         game_states + offset * GAME_STATE_SIZE, evaluation_samples + offset,
         probability_samples + offset * NUM_MOVES);
@@ -156,13 +157,13 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
 
 float Trainer::get_score() const {
   float score = 0;
-  for (uintf i = 0; i < num_games; i += 2) {
+  for (uintf i = 0; i < games.size(); i += 2) {
     score += games[i]->get_score();
   }
-  for (uintf i = 1; i < num_games; i += 2) {
+  for (uintf i = 1; i < games.size(); i += 2) {
     score += 1.0 - games[i]->get_score();
   }
-  return score / (float)num_games;
+  return score / (float)games.size();
 }
 
-bool Trainer::is_all_done() const { return games_done == num_games; }
+bool Trainer::is_all_done() const { return games_done == games.size(); }

@@ -30,7 +30,10 @@ const uintf GAME_STATE_SIZE = 70;
 // Number of possible legal moves
 const uintf NUM_MOVES = 96;
 
-enum Result { NONE, LOSS, DRAW, WIN };
+const uint8s RESULT_NONE = 0;
+const uint8s RESULT_LOSS = 1;
+const uint8s RESULT_DRAW = 2;
+const uint8s RESULT_WIN = 3;
 
 // Indexing for lines
 const uintf RL = 0;

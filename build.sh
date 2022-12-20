@@ -1,6 +1,6 @@
 dos2unix *
 # Format C++
-clang-format -i --verbose cpp/*
+clang-format -i --verbose cpp/*.cpp cpp/*.h
 # Format Python
 black *.py
 # Build Cython module

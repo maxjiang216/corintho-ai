@@ -3,74 +3,50 @@
 
 #include "game.h"
 #include "util.h"
-#include <array>
 #include <bitset>
 
 // Node in Monte Carlo Tree
-class Node {
+class alignas(64) Node {
+
+  static constexpr float MAX_PROBABILITY = 511.0;
+
+  struct Edge {
+    uint16s move_id : 7, probability : 9;
+  };
+
+  uint8s depth, num_legal_moves, child_num, result;
+  uint16s visits;
+  float evaluation, denominator;
+  Edge *edges;
+  Node *parent, *next_sibling, *first_child;
 
   // Game state
   Game game;
-  // visits is number of times this node has been searched
-  unsigned short visits;
-  // depth starts at 0
-  unsigned char depth;
-  // Index of parent node
-  uintf parent;
-  // Seed
-  // Probably not necessary, but otherwise there are complex collisions
-  // This is at least a 32-bit integer
-  // We can just use unsigned int to take mod
-  uintf seed;
 
-  // Evaluations
-  float evaluation;
-  unsigned short probabilities[NUM_MOVES];
-
-  // Which children have been visited
-  std::bitset<NUM_MOVES> visited;
+  void initialize_edges();
 
 public:
   // Used to create root nodes
-  Node(uintf seed);
-  // Occasionally need to create root nodes from arbitrary game states
-  Node(uintf seed, const Game &game);
-  Node(uintf seed, const Game &game, uintf depth);
-  // Used when writing into a new node
+  Node();
+  // Create a new tree root from arbitrary state
+  Node(const Game &game, uint8s depth);
+  // Common create new node function
   // Will copy a game, then apply the move
-  Node(uintf seed, const Game &game, uintf depth, uintf parent,
-       uintf move_choice);
-  ~Node() = default;
+  Node(const Game &game, uint8s depth, Node *parent, Node *next_sibling,
+       uint8s move_choice);
+  ~Node();
 
-  // overwrite relevant parts of node
-  void overwrite(uintf seed);
-  void overwrite(uintf seed, const Game &new_game, uintf new_depth);
-  void overwrite(uintf seed, const Game &new_game, uintf new_depth,
-                 uintf new_parent, uintf move_choice);
+  // Returns whether there are lines
+  bool get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const;
 
   // Accessors
-  const Game &get_game() const;
-  uintf get_to_play() const;
-  bool is_legal(uintf id) const;
-  Result get_result() const;
   bool is_terminal() const;
-  uintf get_visits() const;
-  uintf get_depth() const;
-  uintf get_parent() const;
-  uintf get_seed() const;
-  float get_evaluation() const;
-  bool has_visited(uintf move_choice) const;
-  float get_probability(uintf move_choice) const;
-
-  // Modifiers
-  void increment_visits();
-  void null_parent();
-  void add_evaluation(float new_evalution);
-  void set_probability(uintf move_choice, unsigned short probability);
-  void set_visit(uintf move_choice);
+  float get_probability(uintf edge_index) const;
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
-  void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;
+
+  friend class TrainMC;
+  friend class SelfPlayer;
 };
 
 #endif

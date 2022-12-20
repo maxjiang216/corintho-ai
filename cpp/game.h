@@ -13,26 +13,27 @@ const uintf BOARD_SIZE = 16;
 
 class Game {
 
-  bitset<3 * BOARD_SIZE> board;
-  bitset<BOARD_SIZE> frozen;
-  // We want to add orientation later
+  // Includes the pieces and if the space is frozen
+  // bitsets come in multiples of 8 byte sizes
+  // So it saves 8 bytes to combine these
+  bitset<4 * BOARD_SIZE> board;
   uint_least8_t to_play, pieces[6];
-  bitset<NUM_MOVES> legal_moves;
-  // Game result
-  // Game needs to have it because it knows which lines exist
-  Result result;
 
-  void get_legal_moves();
   // Finds lines and moves that break all lines
   // Returns whether there were lines
-  bool get_line_breakers();
+  bool get_line_breakers(bitset<NUM_MOVES> &legal_moves) const;
 
   // Returns an int representing the top of a stack, -1 if empty
   intf get_top(uintf row, uintf col) const;
   // Returns an int representing the bottom piece of a stack, 3 if empty
   intf get_bottom(uintf row, uintf col) const;
 
-  void apply_line(uintf line);
+  bool get_board(uintf row, uintf col, uintf ptype) const;
+  bool get_frozen(uintf row, uintf col) const;
+  void set_board(uintf row, uintf col, uintf ptype, bool state = true);
+  void set_frozen(uintf row, uintf col, bool state = true);
+
+  void apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const;
 
   bool is_legal_move(uintf move_id) const;
   bool can_place(uintf ptype, uintf row, uintf col) const;
@@ -44,18 +45,18 @@ public:
   Game(const Game &game) = default;
   ~Game() = default;
 
-  // Accessors
-  bool is_legal(uintf move_choice) const;
-  uintf get_to_play() const;
-  Result get_result() const;
   bool is_terminal() const;
 
   void do_move(uintf move_id);
 
+  // Returns whether there are lines
+  bool get_legal_moves(bitset<NUM_MOVES> &legal_moves) const;
+
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
-  void write_game_state(std::array<float, GAME_STATE_SIZE> &game_state) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
+
+  friend class Node;
 };
 
 #endif

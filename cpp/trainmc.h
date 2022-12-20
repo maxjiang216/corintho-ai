@@ -5,10 +5,10 @@
 #include "util.h"
 #include <array>
 #include <bitset>
+#include <random>
 
 using std::bitset;
 
-class Trainer;
 class Game;
 
 class TrainMC {
@@ -17,60 +17,56 @@ class TrainMC {
   inline static uintf max_iterations = 1600;
   inline static float c_puct = 1.0, epsilon = 0.25;
   // Number of moves to use weighted random
-  const uintf NUM_OPENING_MOVES = 4;
+  const uintf NUM_OPENING_MOVES = 6;
 
-  // root and current nodes
-  uintf root, cur;
-  // Should we store root_node?
-  Node *cur_node;
+  Node *root, *cur;
 
   // Used to keep track of when to choose a move
   uintf iterations_done;
 
   bool testing, logging;
 
-  Trainer *trainer;
+  std::mt19937 *generator;
 
-  void receive_evaluation(float evaluation,
-                          const float probabilities[NUM_TOTAL_MOVES]);
+  void receive_evaluation(float evaluation, float probabilities[NUM_MOVES]);
   bool search(float game_state[GAME_STATE_SIZE]);
-  uintf choose_next();
+
+  void move_down(Node *prev_node);
 
 public:
   // Training
-  TrainMC(Trainer *trainer);
-  TrainMC(Trainer *trainer, bool);
+  TrainMC(std::mt19937 *generator);
   // Testing
-  TrainMC(bool logging, Trainer *trainer, bool);
+  TrainMC(std::mt19937 *generator, bool);
+
   TrainMC(TrainMC &&) = default;
   ~TrainMC() = default;
 
   // First iterations are guaranteed not to end a turn
   // First iteration on starting position
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
-  // First iteration on arbitrary position
-  void do_first_iteration(const Game &game, float game_state[GAME_STATE_SIZE]);
-  // First iteration of move
-  bool do_iteration(float game_state[GAME_STATE_SIZE]);
-  bool do_iteration(float evaluation_result,
-                    const float probabilities[NUM_TOTAL_MOVES],
+
+  void do_first_iteration(const Game &game, uintf depth,
+                          float game_state[GAME_STATE_SIZE]);
+
+  bool do_iteration(float evaluation_result, float probabilities[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   // Choose the next child to visit
-  uintf choose_move(std::array<float, GAME_STATE_SIZE> &game_state,
-                    std::array<float, NUM_TOTAL_MOVES> &probability_sample);
+  uintf choose_move(float game_state[GAME_STATE_SIZE],
+                    float probability_sample[NUM_MOVES]);
 
   bool receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SIZE],
                         const Game &game, uintf depth);
 
   // Accessors
-  uintf get_root() const;
   const Game &get_game() const;
-  uintf get_depth() const;
   bool is_uninitialized() const;
 
   static void set_statics(uintf new_max_iterations, float new_c_puct,
                           float new_epsilon);
+
+  friend class SelfPlayer;
 };
 
 #endif

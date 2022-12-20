@@ -28,16 +28,6 @@ cdef extern from "cpp/trainer.cpp":
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
         float get_score()
 
-cdef extern from "cpp/manager.cpp":
-    cdef cppclass Manager:
-        Manager()
-        Manager(int num_games, int num_logged, int num_iterations,
-                float c_puct, float epsilon, string logging_folder, int random_seed, int processes)
-        bool do_iteration(float *evaluations, float *probabilities,
-                          float *game_states)
-        int count_samples()
-        void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
-
 def format_time(t):
     """Format string
     t is time in seconds"""
@@ -69,9 +59,9 @@ def train_generation(*,
     old_training_samples=[],  # list of folders containing training sample files from previous generations to use
 ):
 
-    cdef unsigned int NUM_TOTAL_MOVES = 96
     cdef unsigned int NUM_MOVES = 96
     cdef unsigned int GAME_STATE_SIZE = 70
+    EVALS_PER_SEARCH = 26.5
 
     rng = np.random.default_rng(int(time.time()))
 
@@ -80,7 +70,7 @@ def train_generation(*,
     # Load playing model
     model = load_model(best_gen_location)
 
-    cdef Manager* trainer = new Manager(
+    cdef Trainer* trainer = new Trainer(
         num_games,
         num_logged,
         iterations,
@@ -88,11 +78,10 @@ def train_generation(*,
         epsilon,
         train_log_folder.encode(),
         rng.integers(65536),  # Random seed
-        processes,
     )
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
 
     cdef int evaluations_done = 0
@@ -133,8 +122,8 @@ def train_generation(*,
             time_taken = time.perf_counter() - start_time
             open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
-                f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n\n"
             )
@@ -151,7 +140,7 @@ def train_generation(*,
     num_samples = trainer.count_samples()
     cdef np.ndarray[np.float32_t, ndim=2] sample_states = np.zeros((num_samples, GAME_STATE_SIZE), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=1] evaluation_labels = np.zeros(num_samples, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_MOVES), dtype=np.float32)
     trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
 
     del trainer
@@ -168,7 +157,7 @@ def train_generation(*,
         old_probability_labels = np.load(f"{cur_path}/probability_labels.npz")
         np.concatenate((sample_states, np.reshape(old_sample_states["arr_0"], (-1, GAME_STATE_SIZE))))
         np.concatenate((evaluation_labels, old_evaluation_labels["arr_0"]))
-        np.concatenate((probability_labels, np.reshape(old_probability_labels["arr_0"], (-1, NUM_TOTAL_MOVES))))
+        np.concatenate((probability_labels, np.reshape(old_probability_labels["arr_0"], (-1, NUM_MOVES))))
         old_sample_states.close()
         old_evaluation_labels.close()
         old_probability_labels.close()
@@ -207,8 +196,8 @@ def train_generation(*,
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_1 = np.zeros(num_test_games, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_2 = np.zeros(num_test_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_TOTAL_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
 
     evaluations_done = 0
@@ -253,8 +242,8 @@ def train_generation(*,
             time_taken = time.perf_counter() - start_time
             open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                f"Predicted time to complete: {format_time(26.67*iterations*time_taken/evaluations_done)}\n"
-                f"Estimated time left: {format_time((26.67*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n\n"
             )

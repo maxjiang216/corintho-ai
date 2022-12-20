@@ -6,96 +6,82 @@
 using std::bitset;
 using std::cerr;
 
-Node::Node(uintf seed)
-    : game{Game()}, visits{1}, depth{0}, parent{0}, seed{seed},
-      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {}
+// Starting position is never a terminal node
+Node::Node()
+    : depth{0},
+      num_legal_moves{0}, child_num{0}, result{RESULT_NONE}, visits{0},
+      evaluation{0.0}, denominator{0.0}, edges{nullptr}, parent{nullptr},
+      next_sibling{nullptr}, first_child{nullptr}, game{Game()} {
+  initialize_edges();
+}
 
-Node::Node(uintf seed, const Game &other_game, uintf depth)
-    : game{other_game}, visits{1}, depth{depth}, parent{0}, seed{seed},
-      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {}
+// We use this when opponent makes a move we did not anticipate
+// We only receive this move if it is not a terminal position
+// Or else the game would have ended
+Node::Node(const Game &game, uint8s depth)
+    : depth{depth}, num_legal_moves{0}, child_num{0}, result{RESULT_NONE},
+      visits{0}, evaluation{0.0}, denominator{0.0}, edges{nullptr},
+      parent{nullptr}, next_sibling{nullptr}, first_child{nullptr}, game{game} {
+  initialize_edges();
+}
 
-Node::Node(uintf seed, const Game &other_game, uintf depth, uintf parent,
-           uintf move_choice)
-    : game{other_game}, visits{1}, depth{depth + 1}, parent{parent}, seed{seed},
-      evaluation{0.0}, visited{bitset<NUM_MOVES>()} {
+Node::Node(const Game &other_game, uint8s depth, Node *parent,
+           Node *next_sibling, uint8s move_choice)
+    : depth{depth}, num_legal_moves{0}, child_num{move_choice},
+      result{RESULT_NONE}, visits{0}, evaluation{0.0},
+      denominator{0.0}, edges{nullptr}, parent{parent},
+      next_sibling{next_sibling}, first_child{nullptr}, game{other_game} {
   game.do_move(move_choice);
+  initialize_edges();
 }
 
-void Node::overwrite(uintf new_seed) {
-  game = Game();
-  visits = 1;
-  depth = 0;
-  seed = new_seed;
-  evaluation = 0.0;
-  visited.reset();
+Node::~Node() {
+  delete[] edges;
+  delete next_sibling;
+  delete first_child;
 }
 
-void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth) {
-  game = new_game;
-  visits = 1;
-  depth = new_depth;
-  seed = new_seed;
-  evaluation = 0.0;
-  visited.reset();
+bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
+  return game.get_legal_moves(legal_moves);
 }
 
-void Node::overwrite(uintf new_seed, const Game &new_game, uintf new_depth,
-                     uintf new_parent, uintf move_choice) {
-  game = new_game;
-  visits = 1;
-  depth = new_depth + 1;
-  parent = new_parent;
-  seed = new_seed;
-  evaluation = 0.0;
-  game.do_move(move_choice);
-  visited.reset();
+bool Node::is_terminal() const { return result != RESULT_NONE; }
+
+float Node::get_probability(uintf edge_index) const {
+  return (float)edges[edge_index].probability * denominator;
 }
-
-const Game &Node::get_game() const { return game; }
-
-uintf Node::get_to_play() const { return game.get_to_play(); }
-
-bool Node::is_legal(uintf id) const { return game.is_legal(id); }
-
-Result Node::get_result() const { return game.get_result(); }
-
-bool Node::is_terminal() const { return game.is_terminal(); }
-
-uintf Node::get_visits() const { return visits; }
-
-uintf Node::get_depth() const { return depth; }
-
-uintf Node::get_parent() const { return parent; }
-
-uintf Node::get_seed() const { return seed; }
-
-float Node::get_evaluation() const { return evaluation; }
-
-bool Node::has_visited(uintf move_choice) const { return visited[move_choice]; }
-
-float Node::get_probability(uintf move_choice) const {
-  return (float)probabilities[move_choice] * (1.0 / 511.0);
-}
-
-void Node::increment_visits() { ++visits; }
-
-void Node::null_parent() { parent = 0; }
-
-void Node::add_evaluation(float new_evaluation) {
-  evaluation += new_evaluation;
-}
-
-void Node::set_probability(uintf move_choice, unsigned short probability) {
-  probabilities[move_choice] = probability;
-}
-
-void Node::set_visit(uintf move_choice) { visited.set(move_choice); }
 
 void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
   game.write_game_state(game_state);
 }
 
-void Node::write_game_state(
-    std::array<float, GAME_STATE_SIZE> &game_state) const {
-  game.write_game_state(game_state);
+void Node::initialize_edges() {
+  bitset<NUM_MOVES> legal_moves;
+  bool is_lines = game.get_legal_moves(legal_moves);
+  num_legal_moves = legal_moves.count();
+  // Terminal node
+  if (num_legal_moves == 0) {
+    // Decisive game
+    if (is_lines) {
+      // Second player win
+      if (game.to_play == 0) {
+        result = RESULT_LOSS;
+      } else {
+        result = RESULT_WIN;
+      }
+    } else {
+      result = RESULT_DRAW;
+    }
+  }
+  // Otherwise, allocate some edges
+  else {
+    edges = new Edge[num_legal_moves];
+    uintf edge_index = 0;
+    for (uintf i = 0; i < NUM_MOVES; ++i) {
+      if (legal_moves[i]) {
+        edges[edge_index] = Edge(i, 0);
+        ++edge_index;
+      }
+    }
+  }
 }

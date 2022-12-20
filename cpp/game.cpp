@@ -3,104 +3,62 @@
 #include "util.h"
 #include <ostream>
 
-// Indexing for lines
-const uintf RL = 0;
-const uintf RR = 1;
-const uintf RB = 2;
-const uintf CU = 3;
-const uintf CD = 4;
-const uintf CB = 5;
-
-const uintf D0U = 0;
-const uintf D0D = 1;
-const uintf D0B = 2;
-const uintf D1U = 3;
-const uintf D1D = 4;
-const uintf D1B = 5;
-const uintf S0 = 6;
-const uintf S1 = 7;
-const uintf S2 = 8;
-const uintf S3 = 9;
-
-Game::Game()
-    : board{}, frozen{}, to_play{0}, pieces{4, 4, 4, 4, 4, 4}, result{NONE} {
-  get_legal_moves();
-}
-
-bool Game::is_legal(uintf move_choice) const {
-  return legal_moves[move_choice];
-}
-
-uintf Game::get_to_play() const { return to_play; }
-
-Result Game::get_result() const { return result; }
-
-bool Game::is_terminal() const { return result != NONE; }
+Game::Game() : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
 void Game::do_move(uintf move_id) {
 
   Move move{move_id};
 
   // Reset which space is frozen
-  frozen.reset();
+  for (uintf row = 0; row < 4; ++row) {
+    for (uintf col = 0; col < 4; ++col) {
+      set_frozen(row, col, false);
+    }
+  }
 
   // Place
   if (move.mtype) {
     --pieces[to_play * 3 + move.ptype];
-    board.set(move.row1 * 12 + move.col1 * 3 + move.ptype);
-    frozen.set(move.row1 * 4 + move.col1);
+    set_board(move.row1, move.col1, move.ptype);
+    set_frozen(move.row1, move.col1);
   }
   // Move
   else {
     for (uintf i = 0; i < 3; ++i) {
-      board.set(move.row2 * 12 + move.col2 * 3 + i,
+      set_board(move.row2, move.col2, i,
                 board[move.row1 * 12 + move.col1 * 3 + i] ||
                     board[move.row2 * 12 + move.col2 * 3 + i]);
-      board.reset(move.row1 * 12 + move.col1 * 3 + i);
+      set_board(move.row1, move.col1, i, false);
     }
-    frozen.set(move.row2 * 4 + move.col2);
+    set_frozen(move.row2, move.col2, true);
   }
   to_play = 1 - to_play;
+}
 
-  get_legal_moves();
+bool Game::get_legal_moves(bitset<NUM_MOVES> &legal_moves) const {
+
+  legal_moves.set();
+
+  // Filter out moves that don't break lines
+  bool is_lines = get_line_breakers(legal_moves);
+
+  // Apply other rules
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
+    if (legal_moves[i] && !is_legal_move(i)) {
+      legal_moves[i] = false;
+    }
+  }
+
+  // Node will decide if it is a terminal state and if so the game result
+  return is_lines;
 }
 
 void Game::write_game_state(float game_state[GAME_STATE_SIZE]) const {
-  for (uintf i = 0; i < 3 * BOARD_SIZE; ++i) {
+  for (uintf i = 0; i < 4 * BOARD_SIZE; ++i) {
     if (board[i]) {
       game_state[i] = 1.0;
     } else {
       game_state[i] = 0.0;
-    }
-  }
-  for (uintf i = 0; i < BOARD_SIZE; ++i) {
-    if (frozen[i]) {
-      game_state[3 * BOARD_SIZE + i] = 1.0;
-    } else {
-      game_state[3 * BOARD_SIZE + i] = 0.0;
-    }
-  }
-  // Canonize the pieces
-  for (uintf i = 0; i < 6; ++i) {
-    game_state[4 * BOARD_SIZE + i] =
-        (float)pieces[(to_play * 3 + i) % 6] * 0.25;
-  }
-}
-
-void Game::write_game_state(
-    std::array<float, GAME_STATE_SIZE> &game_state) const {
-  for (uintf i = 0; i < 3 * BOARD_SIZE; ++i) {
-    if (board[i]) {
-      game_state[i] = 1.0;
-    } else {
-      game_state[i] = 0.0;
-    }
-  }
-  for (uintf i = 0; i < BOARD_SIZE; ++i) {
-    if (frozen[i]) {
-      game_state[3 * BOARD_SIZE + i] = 1.0;
-    } else {
-      game_state[3 * BOARD_SIZE + i] = 0.0;
     }
   }
   // Canonize the pieces
@@ -115,19 +73,19 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   // Print board
   for (uintf i = 0; i < 4; ++i) {
     for (uint j = 0; j < 4; ++j) {
-      if (game.board[i * 12 + j * 3 + 0])
+      if (game.get_board(i, j, 0))
         os << 'B';
       else
         os << ' ';
-      if (game.board[i * 12 + j * 3 + 1])
+      if (game.get_board(i, j, 1))
         os << 'C';
       else
         os << ' ';
-      if (game.board[i * 12 + j * 3 + 2])
+      if (game.get_board(i, j, 2))
         os << 'A';
       else
         os << ' ';
-      if (game.frozen[i * 4 + j])
+      if (game.get_frozen(i, j))
         os << '#';
       else
         os << ' ';
@@ -150,39 +108,7 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   return os;
 }
 
-void Game::get_legal_moves() {
-
-  // Set all bits to 1
-  // Since apply_line does &=, we need to do this
-  legal_moves.set();
-
-  // Filter out moves that don't break lines
-  bool is_lines = get_line_breakers();
-
-  // Apply other rules
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (legal_moves[i] && !is_legal_move(i)) {
-      legal_moves.reset(i);
-    }
-  }
-
-  // Terminal state
-  if (legal_moves.none()) {
-    // There is a line
-    if (is_lines) {
-      // Person to play is lost
-      if (to_play == 0) {
-        result = LOSS;
-      } else {
-        result = WIN;
-      }
-    } else {
-      result = DRAW;
-    }
-  }
-}
-
-bool Game::get_line_breakers() {
+bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
 
   bool is_lines = false;
   intf space_0, space_1, space_2, space_3;
@@ -197,48 +123,48 @@ bool Game::get_line_breakers() {
         if (space_0 == space_2) {
           if (space_0 == space_3) {
             is_lines = true;
-            apply_line(RB * 12 + i * 3 + space_0);
+            apply_line(RB * 12 + i * 3 + space_0, legal_moves);
           } else {
             is_lines = true;
-            apply_line(RL * 12 + i * 3 + space_0);
+            apply_line(RL * 12 + i * 3 + space_0, legal_moves);
             if (space_0 == 2) {
               // Capital must be used to extend line when moving
               // We don't need to know which row it is
               // If it is wrong, the move is illegal anyways
-              if (!board[0 * 12 + 3 * 3 + 2]) {
-                legal_moves.reset(encode_move(0, 3, 1, 3));
+              if (!get_board(0, 3, 2)) {
+                legal_moves[encode_move(0, 3, 1, 3)] = false;
               }
-              if (!board[1 * 12 + 3 * 3 + 2]) {
-                legal_moves.reset(encode_move(1, 3, 0, 3));
-                legal_moves.reset(encode_move(1, 3, 2, 3));
+              if (!get_board(1, 3, 2)) {
+                legal_moves[encode_move(1, 3, 0, 3)] = false;
+                legal_moves[encode_move(1, 3, 2, 3)] = false;
               }
-              if (!board[2 * 12 + 3 * 3 + 2]) {
-                legal_moves.reset(encode_move(2, 3, 1, 3));
-                legal_moves.reset(encode_move(2, 3, 3, 3));
+              if (!get_board(2, 3, 2)) {
+                legal_moves[encode_move(2, 3, 1, 3)] = false;
+                legal_moves[encode_move(2, 3, 3, 3)] = false;
               }
-              if (!board[3 * 12 + 3 * 3 + 2]) {
-                legal_moves.reset(encode_move(3, 3, 2, 3));
+              if (!get_board(3, 3, 2)) {
+                legal_moves[encode_move(3, 3, 2, 3)] = false;
               }
             }
           }
         } else if (space_2 == space_3) {
           is_lines = true;
-          apply_line(RR * 12 + i * 3 + space_3);
+          apply_line(RR * 12 + i * 3 + space_3, legal_moves);
           if (space_3 == 2) {
             // Capital must be used to extend line when moving
-            if (!board[0 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(0, 0, 1, 0));
+            if (!get_board(0, 0, 2)) {
+              legal_moves[encode_move(0, 0, 1, 0)] = false;
             }
-            if (!board[1 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(1, 0, 0, 0));
-              legal_moves.reset(encode_move(1, 0, 2, 0));
+            if (!get_board(1, 0, 2)) {
+              legal_moves[encode_move(1, 0, 0, 0)] = false;
+              legal_moves[encode_move(1, 0, 2, 0)] = false;
             }
-            if (!board[2 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(2, 0, 1, 0));
-              legal_moves.reset(encode_move(2, 0, 3, 0));
+            if (!get_board(2, 0, 2)) {
+              legal_moves[encode_move(2, 0, 1, 0)] = false;
+              legal_moves[encode_move(2, 0, 3, 0)] = false;
             }
-            if (!board[3 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(3, 0, 2, 0));
+            if (!get_board(3, 0, 2)) {
+              legal_moves[encode_move(3, 0, 2, 0)] = false;
             }
           }
         }
@@ -256,50 +182,50 @@ bool Game::get_line_breakers() {
         if (space_0 == space_2) {
           if (space_0 == space_3) {
             is_lines = true;
-            apply_line(CB * 12 + j * 3 + space_0);
+            apply_line(CB * 12 + j * 3 + space_0, legal_moves);
           } else {
             is_lines = true;
-            apply_line(CU * 12 + j * 3 + space_0);
+            apply_line(CU * 12 + j * 3 + space_0, legal_moves);
             if (space_0 == 2) {
               // Capital must be used to extend line when moving
               // We don't need to know which column it is
               // If it is wrong, the move is illegal anyways
-              if (!board[3 * 12 + 0 * 3 + 2]) {
-                legal_moves.reset(encode_move(3, 0, 3, 1));
+              if (!get_board(3, 0, 2)) {
+                legal_moves[encode_move(3, 0, 3, 1)] = false;
               }
-              if (!board[3 * 12 + 1 * 3 + 2]) {
-                legal_moves.reset(encode_move(3, 1, 3, 0));
-                legal_moves.reset(encode_move(3, 1, 3, 2));
+              if (!get_board(3, 1, 2)) {
+                legal_moves[encode_move(3, 1, 3, 0)] = false;
+                legal_moves[encode_move(3, 1, 3, 2)] = false;
               }
-              if (!board[3 * 12 + 2 * 3 + 2]) {
-                legal_moves.reset(encode_move(3, 2, 3, 1));
-                legal_moves.reset(encode_move(3, 2, 3, 3));
+              if (!get_board(3, 2, 2)) {
+                legal_moves[encode_move(3, 2, 3, 1)] = false;
+                legal_moves[encode_move(3, 2, 3, 3)] = false;
               }
-              if (!board[3 * 12 + 3 * 3 + 2]) {
-                legal_moves.reset(encode_move(3, 3, 3, 2));
+              if (!get_board(3, 3, 2)) {
+                legal_moves[encode_move(3, 3, 3, 2)];
               }
             }
           }
         } else if (space_2 == space_3) {
           is_lines = true;
-          apply_line(CD * 12 + j * 3 + space_3);
+          apply_line(CD * 12 + j * 3 + space_3, legal_moves);
           if (space_3 == 2) {
             // Capital must be used to extend line when moving
             // We don't need to know which column it is
             // If it is wrong, the move is illegal anyways
-            if (!board[0 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(0, 0, 0, 1));
+            if (!get_board(0, 0, 2)) {
+              legal_moves[encode_move(0, 0, 0, 1)] = false;
             }
-            if (!board[0 * 12 + 1 * 3 + 2]) {
-              legal_moves.reset(encode_move(0, 1, 0, 0));
-              legal_moves.reset(encode_move(0, 1, 0, 2));
+            if (!get_board(0, 1, 2)) {
+              legal_moves[encode_move(0, 1, 0, 0)] = false;
+              legal_moves[encode_move(0, 1, 0, 2)] = false;
             }
-            if (!board[0 * 12 + 2 * 3 + 2]) {
-              legal_moves.reset(encode_move(0, 2, 0, 1));
-              legal_moves.reset(encode_move(0, 2, 0, 3));
+            if (!get_board(0, 2, 2)) {
+              legal_moves[encode_move(0, 2, 0, 1)] = false;
+              legal_moves[encode_move(0, 2, 0, 3)] = false;
             }
-            if (!board[0 * 12 + 3 * 3 + 2]) {
-              legal_moves.reset(encode_move(0, 3, 0, 2));
+            if (!get_board(0, 3, 2)) {
+              legal_moves[encode_move(0, 3, 0, 2)] = false;
             }
           }
         }
@@ -316,30 +242,30 @@ bool Game::get_line_breakers() {
       if (space_0 == space_2) {
         if (space_0 == space_3) {
           is_lines = true;
-          apply_line(72 + D0B * 3 + space_0);
+          apply_line(72 + D0B * 3 + space_0, legal_moves);
         } else {
           is_lines = true;
-          apply_line(72 + D0U * 3 + space_0);
+          apply_line(72 + D0U * 3 + space_0, legal_moves);
           if (space_0 == 2) {
             // Capital must be used to extend line when moving
-            if (!board[2 * 12 + 3 * 3 + 2]) {
-              legal_moves.reset(encode_move(2, 3, 3, 3));
+            if (!get_board(2, 3, 2)) {
+              legal_moves[encode_move(2, 3, 3, 3)] = false;
             }
-            if (!board[3 * 12 + 2 * 3 + 2]) {
-              legal_moves.reset(encode_move(3, 2, 3, 3));
+            if (!get_board(3, 2, 2)) {
+              legal_moves[encode_move(3, 2, 3, 3)] = false;
             }
           }
         }
       } else if (space_2 == space_3) {
         is_lines = true;
-        apply_line(72 + D0D * 3 + space_3);
+        apply_line(72 + D0D * 3 + space_3, legal_moves);
         if (space_3 == 2) {
           // Capital must be used to extend line when moving
-          if (!board[0 * 12 + 1 * 3 + 2]) {
-            legal_moves.reset(encode_move(0, 1, 0, 0));
+          if (!get_board(0, 1, 2)) {
+            legal_moves[encode_move(0, 1, 0, 0)] = false;
           }
-          if (!board[1 * 12 + 0 * 3 + 2]) {
-            legal_moves.reset(encode_move(1, 0, 0, 0));
+          if (!get_board(1, 0, 2)) {
+            legal_moves[encode_move(1, 0, 0, 0)] = false;
           }
         }
       }
@@ -355,30 +281,30 @@ bool Game::get_line_breakers() {
       if (space_0 == space_2) {
         if (space_0 == space_3) {
           is_lines = true;
-          apply_line(72 + D1B * 3 + space_0);
+          apply_line(72 + D1B * 3 + space_0, legal_moves);
         } else {
           is_lines = true;
-          apply_line(72 + D1U * 3 + space_0);
+          apply_line(72 + D1U * 3 + space_0, legal_moves);
           if (space_0 == 2) {
             // Capital must be used to extend line when moving
-            if (!board[2 * 12 + 0 * 3 + 2]) {
-              legal_moves.reset(encode_move(2, 0, 3, 0));
+            if (!get_board(2, 0, 2)) {
+              legal_moves[encode_move(2, 0, 3, 0)] = false;
             }
-            if (!board[3 * 12 + 1 * 3 + 2]) {
-              legal_moves.reset(encode_move(3, 1, 3, 0));
+            if (!get_board(3, 1, 2)) {
+              legal_moves[encode_move(3, 1, 3, 0)] = false;
             }
           }
         }
       } else if (space_2 == space_3) {
         is_lines = true;
-        apply_line(72 + D1D * 3 + space_3);
+        apply_line(72 + D1D * 3 + space_3, legal_moves);
         if (space_3 == 2) {
           // Capital must be used to extend line when moving
-          if (!board[0 * 12 + 2 * 3 + 2]) {
-            legal_moves.reset(encode_move(0, 2, 0, 3));
+          if (!get_board(0, 2, 2)) {
+            legal_moves[encode_move(0, 2, 0, 3)] = false;
           }
-          if (!board[1 * 12 + 3 * 3 + 2]) {
-            legal_moves.reset(encode_move(1, 3, 0, 3));
+          if (!get_board(1, 3, 2)) {
+            legal_moves[encode_move(1, 3, 0, 3)] = false;
           }
         }
       }
@@ -389,56 +315,70 @@ bool Game::get_line_breakers() {
   space_1 = get_top(1, 1);
   if (space_1 != -1 && space_1 == get_top(0, 2) && space_1 == get_top(2, 0)) {
     is_lines = true;
-    apply_line(72 + S0 * 3 + space_1);
+    apply_line(72 + S0 * 3 + space_1, legal_moves);
   }
 
   // Top right short diagonal
   space_1 = get_top(1, 2);
   if (space_1 != -1 && space_1 == get_top(0, 1) && space_1 == get_top(2, 3)) {
     is_lines = true;
-    apply_line(72 + S1 * 3 + space_1);
+    apply_line(72 + S1 * 3 + space_1, legal_moves);
   }
 
   // Bottom right short diagonal
   space_1 = get_top(2, 2);
   if (space_1 != -1 && space_1 == get_top(1, 3) && space_1 == get_top(3, 1)) {
     is_lines = true;
-    apply_line(72 + S2 * 3 + space_1);
+    apply_line(72 + S2 * 3 + space_1, legal_moves);
   }
 
   // Bottom left short diagonal
   space_1 = get_top(2, 1);
   if (space_1 != -1 && space_1 == get_top(1, 0) && space_1 == get_top(3, 2)) {
     is_lines = true;
-    apply_line(72 + S3 * 3 + space_1);
+    apply_line(72 + S3 * 3 + space_1, legal_moves);
   }
 
   return is_lines;
 }
 
 intf Game::get_top(uintf row, uintf col) const {
-  if (board[row * 12 + col * 3 + 2])
-    return 2;
-  if (board[row * 12 + col * 3 + 1])
-    return 1;
-  if (board[row * 12 + col * 3 + 0])
-    return 0;
+  for (uintf i = 0; i < 3; ++i) {
+    if (get_board(row, col, 2 - i))
+      return 2 - i;
+  }
   // Empty
   return -1;
 }
 
 intf Game::get_bottom(uintf row, uintf col) const {
-  if (board[row * 12 + col * 3 + 0])
-    return 0;
-  if (board[row * 12 + col * 3 + 1])
-    return 1;
-  if (board[row * 12 + col * 3 + 2])
-    return 2;
+  for (uintf i = 0; i < 3; ++i) {
+    if (get_board(row, col, i))
+      return i;
+  }
   // Empty
   return 3;
 }
 
-void Game::apply_line(uintf line) { legal_moves &= line_breakers[line]; }
+bool Game::get_board(uintf row, uintf col, uintf ptype) const {
+  return board[row * 16 + col * 4 + ptype];
+}
+
+bool Game::get_frozen(uintf row, uintf col) const {
+  return board[row * 16 + col * 4 + 3];
+}
+
+void Game::set_board(uintf row, uintf col, uintf ptype, bool state) {
+  board[row * 16 + col * 4 + ptype] = state;
+}
+
+void Game::set_frozen(uintf row, uintf col, bool state) {
+  board[row * 16 + col * 4 + 3] = state;
+}
+
+void Game::apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const {
+  legal_moves &= line_breakers[line];
+}
 
 bool Game::is_legal_move(uintf move_id) const {
   Move move{move_id};
@@ -460,7 +400,7 @@ bool Game::can_place(uintf ptype, uintf row, uintf col) const {
   if (is_empty(row, col))
     return true;
   // Check if space is frozen
-  if (frozen[row * 4 + col])
+  if (get_frozen(row, col))
     return false;
   // Bases can only be placed on empty spaces
   if (ptype == 0)
@@ -468,12 +408,12 @@ bool Game::can_place(uintf ptype, uintf row, uintf col) const {
   // Column
   // Check for absence of column and capital
   if (ptype == 1) {
-    return !(board[row * 12 + col * 3 + 1] || board[row * 12 + col * 3 + 2]);
+    return !(get_board(row, col, 1) || get_board(row, col, 2));
   }
   // Capital
   // Check for absence of base without column and capital
-  return !(board[row * 12 + col * 3 + 2] ||
-           (board[row * 12 + col * 3 + 0] && !board[row * 12 + col * 3 + 1]));
+  return !(get_board(row, col, 2) ||
+           (get_board(row, col, 0) && !get_board(row, col, 1)));
 }
 
 bool Game::can_move(uintf row1, uintf col1, uintf row2, uintf col2) const {
@@ -481,13 +421,13 @@ bool Game::can_move(uintf row1, uintf col1, uintf row2, uintf col2) const {
   if (is_empty(row1, col1) || is_empty(row2, col2))
     return false;
   // Frozen spaces
-  if (frozen[row1 * 4 + col1] || frozen[row2 * 4 + col2])
+  if (get_frozen(row1, col1) || get_frozen(row2, col2))
     return false;
   // The bottom of the first stack must go on the top of the second
   return get_bottom(row1, col1) - get_top(row2, col2) == 1;
 }
 
 bool Game::is_empty(uintf row, uintf col) const {
-  return !(board[row * 12 + col * 3 + 0] || board[row * 12 + col * 3 + 1] ||
-           board[row * 12 + col * 3 + 2]);
+  return !(get_board(row, col, 0) || get_board(row, col, 1) ||
+           get_board(row, col, 2));
 }

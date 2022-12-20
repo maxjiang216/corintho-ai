@@ -40,7 +40,7 @@ Trainer::~Trainer() {
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[]) {
 
-  //#pragma omp parallel for
+  #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
@@ -72,7 +72,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
                            float evaluations_2[], float probabilities_2[],
                            float game_states[]) {
-  //#pragma omp parallel for
+  #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /

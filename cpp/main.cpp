@@ -57,9 +57,9 @@ void print_line_breakers(uintf line) {
 // Basic run.
 void test_basic_run() {
 
-  uintf num_games = 30;
+  uintf num_games = 300;
 
-  auto trainer = Trainer{num_games, 1, 1601, 1.0, 0.25, "logging", 2003};
+  auto trainer = Trainer{num_games, 1, 1600, 1.0, 0.25, "logging", 2003};
 
   float evaluations[num_games], probabilities[num_games * NUM_MOVES],
       game_states[num_games * GAME_STATE_SIZE];

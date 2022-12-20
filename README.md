@@ -13,7 +13,18 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
 - [x] Optimize code using C++ and Cython
 - [x] Make config parser for hyperparameters and learning rate schedule
 - [x] Add training on samples from previous generations
-- [ ] Add board symmetries
+- [ ] Add Leela-Zero-style nodes
+- [ ] Add validation tests
+- [ ] Check for memory leaks
+- [ ] Add board symmetries in training samples
+- [ ] Make testing such that only only neural network is queried each time
+- [ ] Remove offset for searches during testing
+- [ ] Validate correctness of Dirichlet distribution approximation
+- [ ] Add the option for multiple searches per evaluation
+- [ ] Add Boost thread pool for multithreading
+- [ ] Profile code
+- [ ] Add Boost memory pool for allocating nodes and edges
+- [ ] Try tcmalloc for fasting dynamic allocation
 - [ ] Train neural network
 - [ ] Make front end
 - [ ] Assess rating for best player

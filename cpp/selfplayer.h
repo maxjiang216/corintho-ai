@@ -13,9 +13,11 @@
 struct Sample {
   // We do not store the evaluation as it is only computable once the game is
   // complete
-  float *game_state, *probabilities;
+  std::array<float, GAME_STATE_SIZE> game_state;
+  std::array<float, NUM_MOVES> probabilities;
 
-  Sample(float *game_state, float *probabilities)
+  Sample(std::array<float, GAME_STATE_SIZE> game_state,
+         std::array<float, NUM_MOVES> probabilities)
       : game_state{game_state}, probabilities{probabilities} {}
 };
 

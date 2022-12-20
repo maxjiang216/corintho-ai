@@ -37,7 +37,10 @@ SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
       generator{generator}, result{RESULT_NONE}, seed{seed},
       logging_file{logging_file} {}
 
-SelfPlayer::~SelfPlayer() { delete logging_file; }
+SelfPlayer::~SelfPlayer() {
+  delete logging_file;
+  delete generator;
+}
 
 void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   players[0].do_first_iteration(game_state);
@@ -93,12 +96,15 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       Node *cur_child = players[to_play].root->first_child;
       uintf edge_index = 0;
       while (cur_child != nullptr) {
-        moves.emplace_back(
-            make_pair(cur_child->visits, cur_child->evaluation),
-            make_pair(players[to_play].root->get_probability(edge_index),
-                      cur_child->child_num));
+        if (cur_child->child_num ==
+            players[to_play].root->edges[edge_index].move_id) {
+          moves.emplace_back(
+              make_pair(cur_child->visits, cur_child->evaluation),
+              make_pair(players[to_play].root->get_probability(edge_index),
+                        cur_child->child_num));
+          cur_child = cur_child->next_sibling;
+        }
         ++edge_index;
-        cur_child = cur_child->next_sibling;
       }
       sort(moves.begin(), moves.end(),
            [](const pair<pair<uintf, float>, pair<float, uintf>> &A,
@@ -130,10 +136,10 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
     // This function will automatically apply the move to the TrainMC
     // Also write samples
-    float *sample_state = new float[GAME_STATE_SIZE],
-          *probability_sample = new float[NUM_MOVES];
-    uintf move_choice =
-        players[to_play].choose_move(sample_state, probability_sample);
+    std::array<float, GAME_STATE_SIZE> sample_state;
+    std::array<float, NUM_MOVES> probability_sample;
+    uintf move_choice = players[to_play].choose_move(sample_state.data(),
+                                                     probability_sample.data());
     samples.emplace_back(sample_state, probability_sample);
 
     if (logging_file != nullptr) {

@@ -13,15 +13,17 @@ using std::cerr;
 using std::bitset;
 
 TrainMC::TrainMC(std::mt19937 *generator)
-    : iterations_done{0}, testing{false}, generator{generator} {}
+    : root{nullptr}, cur{nullptr},
+      iterations_done{0}, testing{false}, generator{generator} {}
 
 TrainMC::TrainMC(std::mt19937 *generator, bool)
-    : iterations_done{0}, testing{true}, generator{generator} {}
+    : root{nullptr}, cur{nullptr},
+      iterations_done{0}, testing{true}, generator{generator} {}
 
 void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
 
   // Create the root node
-  root = new Node;
+  root = new Node();
   cur = root;
 
   cur->write_game_state(game_state);
@@ -73,7 +75,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
     // There is always at least one child
     while (true) {
       total += cur_child->visits;
-      if (total >= target) {
+      if (total > target) {
         move_choice = cur_child->child_num;
         break;
       }
@@ -157,8 +159,8 @@ void TrainMC::receive_evaluation(float evaluation,
   uintf edge_index = 0;
   float sum = 0.0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    // Don't make these 0
-    if (cur->edges[edge_index].move_id == i) {
+    if (edge_index < cur->num_legal_moves &&
+        cur->edges[edge_index].move_id == i) {
       sum += probabilities[i];
       ++edge_index;
     } else {
@@ -185,7 +187,8 @@ void TrainMC::receive_evaluation(float evaluation,
   float weighted_probabilities[cur->num_legal_moves], max_probability = 0.0;
   edge_index = 0;
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    if (cur->edges[edge_index].move_id == i) {
+    if (edge_index < cur->num_legal_moves &&
+        cur->edges[edge_index].move_id == i) {
       // Make all legal moves have positive probability
       weighted_probabilities[edge_index] =
           probabilities[i] * scalar +
@@ -244,8 +247,9 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
       Node *prev_node = nullptr, *best_prev_node = nullptr;
       // Loop through existing children
       while (cur_child != nullptr) {
-        float u;
-        if (cur_child->child_num == edge_index) {
+        // Random value lower than -1.0
+        float u = -2.0;
+        if (cur_child->child_num == cur->edges[edge_index].move_id) {
           u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
               c_puct * cur->get_probability(edge_index) *
                   sqrt((float)cur->visits - 1.0) /
@@ -257,9 +261,10 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
               sqrt((float)cur->visits - 1.0);
         }
         if (u > max_value) {
+          // This is the previous node unless it is a match
           best_prev_node = prev_node;
           max_value = u;
-          move_choice = edge_index;
+          move_choice = cur->edges[edge_index].move_id;
         }
         ++edge_index;
       }
@@ -270,7 +275,7 @@ bool TrainMC::search(float game_state[GAME_STATE_SIZE]) {
           best_prev_node =
               prev_node; // This should always be the last node in the list
           max_value = u;
-          move_choice = edge_index;
+          move_choice = cur->edges[edge_index].move_id;
         }
         ++edge_index;
       }

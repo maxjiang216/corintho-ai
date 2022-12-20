@@ -40,6 +40,7 @@ Trainer::~Trainer() {
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[]) {
 
+  //#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
@@ -52,9 +53,6 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
         if (is_completed) {
           is_done[i] = true;
           ++games_done;
-          if (games_done == games.size()) {
-            return true;
-          }
         }
       } else if (i / std::max((uintf)1,
                               (games.size() / (num_iterations / 2))) ==
@@ -62,6 +60,9 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
         games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
       }
     }
+  }
+  if (games_done == games.size()) {
+    return true;
   }
   ++iterations_done;
 
@@ -71,6 +72,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
                            float evaluations_2[], float probabilities_2[],
                            float game_states[]) {
+  //#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
@@ -83,9 +85,6 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
         if (is_completed) {
           is_done[i] = true;
           ++games_done;
-          if (games_done == games.size()) {
-            return true;
-          }
         }
       } else if (i / std::max((uintf)1,
                               (games.size() / (num_iterations / 2))) ==
@@ -93,6 +92,9 @@ bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
         games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
       }
     }
+  }
+  if (games_done == games.size()) {
+    return true;
   }
   ++iterations_done;
 

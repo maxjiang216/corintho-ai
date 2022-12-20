@@ -81,7 +81,7 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
         os << 'C';
       else
         os << ' ';
-      if (game.get_board(i, j, 3))
+      if (game.get_board(i, j, 2))
         os << 'A';
       else
         os << ' ';

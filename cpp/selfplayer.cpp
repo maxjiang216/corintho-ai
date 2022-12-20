@@ -86,9 +86,10 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
   while (!need_evaluation) {
 
     if (logging_file != nullptr) {
-      *logging_file << "TURN " << players[to_play].root->depth << '\n'
-                    << "PLAYER " << to_play + 1
-                    << " TO PLAY\nPOSITION EVALUATION " << std::fixed
+      *logging_file << "TURN " << (uintf)players[to_play].root->depth << '\n'
+                    << "PLAYER " << (uintf)(to_play + 1) << " TO PLAY\nVISITS: "
+                    << (uintf)players[to_play].root->visits
+                    << "\nPOSITION EVALUATION: " << std::fixed
                     << std::setprecision(6) << players[to_play].root->evaluation
                     << "\nLEGAL MOVES:\n";
       // Get and sort moves by visit count and evaluation
@@ -129,7 +130,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
         *logging_file << Move{moves[i].second.second}
                       << " V: " << moves[i].first.first
                       << " E: " << moves[i].first.second
-                      << " P: " << moves[i].second.first << "  ";
+                      << " P: " << moves[i].second.first << '\t';
       }
       *logging_file << '\n';
     }

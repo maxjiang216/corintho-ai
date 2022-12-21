@@ -161,7 +161,9 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
         }
       }
       delete players[0].root;
+      players[0].root = nullptr;
       delete players[1].root;
+      players[1].root = nullptr;
       // Return that the game is complete
       return true;
     }
@@ -227,4 +229,8 @@ float SelfPlayer::get_score() const {
   if (result == RESULT_LOSS)
     return 0.0;
   return 0.5;
+}
+
+uintf SelfPlayer::count_nodes() const {
+  return players[0].count_nodes() + players[1].count_nodes();
 }

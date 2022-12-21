@@ -45,7 +45,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
     if (!is_done[i]) {
       // Avoid division by 0 in the rare case than num_games < num_iterations /
       // 2, which sometimes occurs when testing small runs
-      if (i / std::max((uintf)1, (games.size() / (num_iterations / 2))) <
+      if (i / std::max((uintf)1, (games.size() / num_iterations)) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
             evaluations[i], &probabilities[i * NUM_MOVES],
@@ -54,8 +54,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
           is_done[i] = true;
           ++games_done;
         }
-      } else if (i / std::max((uintf)1,
-                              (games.size() / (num_iterations / 2))) ==
+      } else if (i / std::max((uintf)1, (games.size() / num_iterations)) ==
                  iterations_done) {
         games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
       }
@@ -138,10 +137,28 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
   TrainMC::set_statics(num_iterations, c_puct, epsilon);
 }
 
-uintf Trainer::count_samples() const {
+uintf Trainer::count_nodes() const {
+  uintf counts[games.size()];
+  //#pragma omp parallel for
+  for (uintf i = 0; i < games.size(); ++i) {
+    counts[i] = games[i]->count_nodes();
+  }
   uintf counter = 0;
   for (uintf i = 0; i < games.size(); ++i) {
-    counter += games[i]->count_samples();
+    counter += counts[i];
+  }
+  return counter;
+}
+
+uintf Trainer::count_samples() const {
+  uintf counts[games.size()];
+#pragma omp parallel for
+  for (uintf i = 0; i < games.size(); ++i) {
+    counts[i] = games[i]->count_samples();
+  }
+  uintf counter = 0;
+  for (uintf i = 0; i < games.size(); ++i) {
+    counter += counts[i];
   }
   return counter;
 }
@@ -158,12 +175,18 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
 }
 
 float Trainer::get_score() const {
-  float score = 0;
+  float scores[games.size()];
+#pragma omp parallel for
   for (uintf i = 0; i < games.size(); i += 2) {
-    score += games[i]->get_score();
+    scores[i] = games[i]->get_score();
   }
+#pragma omp parallel for
   for (uintf i = 1; i < games.size(); i += 2) {
-    score += 1.0 - games[i]->get_score();
+    scores[i] = 1.0 - games[i]->get_score();
+  }
+  float score = 0;
+  for (uintf i = 0; i < games.size(); ++i) {
+    score += scores[i];
   }
   return score / (float)games.size();
 }

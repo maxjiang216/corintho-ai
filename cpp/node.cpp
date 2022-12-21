@@ -85,3 +85,13 @@ void Node::initialize_edges() {
     }
   }
 }
+
+uintf Node::count_nodes() const {
+  uintf counter = 1;
+  Node *cur_child = first_child;
+  while (cur_child != nullptr) {
+    counter += cur_child->count_nodes();
+    cur_child = cur_child->next_sibling;
+  }
+  return counter;
+}

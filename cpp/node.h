@@ -45,6 +45,8 @@ public:
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
 
+  uintf count_nodes() const;
+
   friend class TrainMC;
   friend class SelfPlayer;
 };

@@ -69,6 +69,7 @@ public:
                       float *probability_samples) const;
 
   float get_score() const;
+  uintf count_nodes() const;
 };
 
 #endif

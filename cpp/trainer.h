@@ -61,6 +61,8 @@ public:
   float get_score() const;
 
   bool is_all_done() const;
+
+  uintf count_nodes() const;
 };
 
 #endif

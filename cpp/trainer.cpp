@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <omp.h>
 #include <queue>
 #include <string>
 #include <vector>
@@ -40,6 +41,7 @@ Trainer::~Trainer() {
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[]) {
 
+  omp_set_num_threads(16);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {

@@ -14,7 +14,8 @@ class alignas(64) Node {
     uint16s move_id : 7, probability : 9;
   };
 
-  uint8s depth, num_legal_moves, child_num, result;
+  bool visited;
+  uint8s result, depth, num_legal_moves, child_num;
   uint16s visits;
   float evaluation, denominator;
   Edge *edges;

@@ -60,7 +60,7 @@ void test_basic_run() {
   uintf num_games = 1024, num_iterations = 400;
 
   auto trainer =
-      Trainer{num_games, 1, num_iterations, 1.0, 0.25, "logging", 2003, true};
+      Trainer{num_games, 2, num_iterations, 1.0, 0.25, "logging", 2003, true};
 
   float evaluations[num_games], probabilities[num_games * NUM_MOVES],
       game_states[num_games * GAME_STATE_SIZE];
@@ -75,7 +75,11 @@ void test_basic_run() {
   uintf counter = 0;
   while (true) {
     for (uintf i = 0; i < num_games; ++i) {
-      evaluations[i] = random_evals(generator);
+      if ((counter / num_iterations) % 2 == 0) {
+        evaluations[i] = random_evals(generator);
+      } else {
+        evaluations[i] = 0.0;
+      }
       float sum = 0.0;
       for (uintf j = 0; j < NUM_MOVES; ++j) {
         probabilities[i * NUM_MOVES + j] = random_probabilities(generator);

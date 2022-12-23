@@ -57,13 +57,15 @@ void print_line_breakers(uintf line) {
 // Basic run.
 void test_basic_run() {
 
-  uintf num_games = 1024, num_iterations = 400;
+  uintf num_games = 1, num_iterations = 100, searches_per_eval = 8;
 
   auto trainer =
-      Trainer{num_games, 2, num_iterations, 1.0, 0.25, "logging", 2003, true};
+      Trainer{num_games,         2,         num_iterations, 1.0, 0.25,
+              searches_per_eval, "logging", 2003,           true};
 
-  float evaluations[num_games], probabilities[num_games * NUM_MOVES],
-      game_states[num_games * GAME_STATE_SIZE];
+  float evaluations[num_games * searches_per_eval],
+      probabilities[num_games * NUM_MOVES * searches_per_eval],
+      game_states[num_games * GAME_STATE_SIZE * searches_per_eval];
 
   mt19937 generator(0);
   uniform_real_distribution<float> random_evals(-1.0, 1.0),
@@ -74,7 +76,7 @@ void test_basic_run() {
   auto start = chrono::high_resolution_clock::now();
   uintf counter = 0;
   while (true) {
-    for (uintf i = 0; i < num_games; ++i) {
+    for (uintf i = 0; i < num_games * searches_per_eval; ++i) {
       if ((counter / num_iterations) % 2 == 0) {
         evaluations[i] = random_evals(generator);
       } else {

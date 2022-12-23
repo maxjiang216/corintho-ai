@@ -15,19 +15,23 @@ using std::string;
 using std::vector;
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, const string &logging_folder,
-                 uintf random_seed)
-    : num_iterations{std::max(num_iterations, (uintf)2)}, iterations_done{0},
+                 float c_puct, float epsilon, uintf searches_per_eval,
+                 const string &logging_folder, uintf random_seed)
+    : num_iterations{std::max(num_iterations, (uintf)2)},
+      searches_per_eval{searches_per_eval}, iterations_done{0},
       is_done{vector<bool>(num_games, false)}, generator{random_seed} {
-  initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
+  initialize(false, num_games, num_logged, c_puct, epsilon, searches_per_eval,
+             logging_folder);
 }
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, const string &logging_folder,
-                 uintf random_seed, bool)
-    : num_iterations{std::max(num_iterations, (uintf)2)}, iterations_done{0},
+                 float c_puct, float epsilon, uintf searches_per_eval,
+                 const string &logging_folder, uintf random_seed, bool)
+    : num_iterations{std::max(num_iterations, (uintf)2)},
+      searches_per_eval{searches_per_eval}, iterations_done{0},
       is_done{vector<bool>(num_games, false)}, generator{random_seed} {
-  initialize(true, num_games, num_logged, c_puct, epsilon, logging_folder);
+  initialize(true, num_games, num_logged, c_puct, epsilon, searches_per_eval,
+             logging_folder);
 }
 
 Trainer::~Trainer() {
@@ -48,14 +52,16 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
       if (i / std::max((uintf)1, (games.size() / num_iterations)) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
-            evaluations[i], &probabilities[i * NUM_MOVES],
-            &game_states[i * GAME_STATE_SIZE]);
+            &evaluations[i * searches_per_eval],
+            &probabilities[i * NUM_MOVES * searches_per_eval],
+            &game_states[i * GAME_STATE_SIZE * searches_per_eval]);
         if (is_completed) {
           is_done[i] = true;
         }
       } else if (i / std::max((uintf)1, (games.size() / num_iterations)) ==
                  iterations_done) {
-        games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
+        games[i]->do_first_iteration(
+            &game_states[i * GAME_STATE_SIZE * searches_per_eval]);
       }
     }
   }
@@ -71,21 +77,23 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[], uintf to_play) {
   if (iterations_done == 0) {
-    omp_set_num_threads(16);
-#pragma omp parallel for
+    // omp_set_num_threads(16);
+    //#pragma omp parallel for
     for (uintf i = 0; i < games.size(); ++i) {
-      games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
+      games[i]->do_first_iteration(
+          &game_states[i * GAME_STATE_SIZE * searches_per_eval]);
     }
     iterations_done = 1;
     return false;
   }
-  omp_set_num_threads(16);
-#pragma omp parallel for
+  // omp_set_num_threads(16);
+  //#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
-      bool is_completed =
-          games[i]->do_iteration(evaluations[i], &probabilities[i * NUM_MOVES],
-                                 &game_states[i * GAME_STATE_SIZE]);
+      bool is_completed = games[i]->do_iteration(
+          &evaluations[i * searches_per_eval],
+          &probabilities[i * NUM_MOVES * searches_per_eval],
+          &game_states[i * GAME_STATE_SIZE * searches_per_eval]);
       if (is_completed) {
         is_done[i] = true;
       }
@@ -100,8 +108,11 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 }
 
 void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
-                         float c_puct, float epsilon,
+                         float c_puct, float epsilon, uintf searches_per_eval,
                          const string &logging_folder) {
+
+  // Set TrainMC static variables
+  TrainMC::set_statics(num_iterations, c_puct, epsilon, searches_per_eval);
 
   games.reserve(num_games);
 
@@ -131,9 +142,6 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
       games.emplace_back(new SelfPlayer{new std::mt19937(generator())});
     }
   }
-
-  // Set TrainMC static variables
-  TrainMC::set_statics(num_iterations, c_puct, epsilon);
 }
 
 uintf Trainer::count_nodes() const {

@@ -55,8 +55,8 @@ public:
   ~SelfPlayer();
 
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
-  bool do_iteration(float evaluation, float probabilities[NUM_MOVES],
-                    float game_state[GAME_STATE_SIZE]);
+  bool do_iteration(float evaluation[], float probabilities[],
+                    float game_state[]);
 
   uintf count_samples() const;
 

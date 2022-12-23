@@ -16,7 +16,7 @@ class Trainer {
   std::vector<SelfPlayer *> games;
 
   // Number of iterations per move (used to compute offsets)
-  uintf num_iterations;
+  uintf num_iterations, searches_per_eval;
   // Counter used to keep track of number of iterations done for offsets
   uintf iterations_done;
 
@@ -28,17 +28,19 @@ class Trainer {
 
   // Initialize SelfPlayers (factored out of different version of constructor)
   void initialize(bool testing, uintf num_games, uintf num_logged, float c_puct,
-                  float epsilon, const std::string &logging_folder);
+                  float epsilon, uintf searches_per_eval,
+                  const std::string &logging_folder);
 
 public:
   // Training
   Trainer() = default;
   Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,
-          float epsilon, const std::string &logging_folder, uintf random_seed);
+          float epsilon, uintf searches_per_eval,
+          const std::string &logging_folder, uintf random_seed);
   // Testing
   Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,
-          float epsilon, const std::string &logging_folder, uintf random_seed,
-          bool);
+          float epsilon, uintf searches_per_eval,
+          const std::string &logging_folder, uintf random_seed, bool);
   ~Trainer();
 
   // Main function that will be called by Cython

@@ -8,10 +8,10 @@ using std::cerr;
 
 // Starting position is never a terminal node
 Node::Node()
-    : depth{0},
-      num_legal_moves{0}, child_num{0}, result{RESULT_NONE}, visits{0},
-      evaluation{0.0}, denominator{0.0}, edges{nullptr}, parent{nullptr},
-      next_sibling{nullptr}, first_child{nullptr}, game{Game()} {
+    : all_visited{true}, result{RESULT_NONE}, depth{0},
+      num_legal_moves{0}, child_num{0}, visits{1}, evaluation{0.0},
+      denominator{0.0}, edges{nullptr}, parent{nullptr}, next_sibling{nullptr},
+      first_child{nullptr}, game{Game()} {
   initialize_edges();
 }
 
@@ -19,16 +19,17 @@ Node::Node()
 // We only receive this move if it is not a terminal position
 // Or else the game would have ended
 Node::Node(const Game &game, uint8s depth)
-    : depth{depth}, num_legal_moves{0}, child_num{0}, result{RESULT_NONE},
-      visits{0}, evaluation{0.0}, denominator{0.0}, edges{nullptr},
-      parent{nullptr}, next_sibling{nullptr}, first_child{nullptr}, game{game} {
+    : all_visited{true}, result{RESULT_NONE}, depth{depth},
+      num_legal_moves{0}, child_num{0}, visits{1}, evaluation{0.0},
+      denominator{0.0}, edges{nullptr}, parent{nullptr}, next_sibling{nullptr},
+      first_child{nullptr}, game{game} {
   initialize_edges();
 }
 
 Node::Node(const Game &other_game, uint8s depth, Node *parent,
            Node *next_sibling, uint8s move_choice)
-    : depth{depth}, num_legal_moves{0}, child_num{move_choice},
-      result{RESULT_NONE}, visits{0}, evaluation{0.0},
+    : all_visited{true}, result{RESULT_NONE}, depth{depth},
+      num_legal_moves{0}, child_num{move_choice}, visits{1}, evaluation{0.0},
       denominator{0.0}, edges{nullptr}, parent{parent},
       next_sibling{next_sibling}, first_child{nullptr}, game{other_game} {
   game.do_move(move_choice);

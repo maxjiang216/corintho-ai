@@ -55,12 +55,7 @@ public:
   ~SelfPlayer();
 
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);
-  // Training
   bool do_iteration(float evaluation, float probabilities[NUM_MOVES],
-                    float game_state[GAME_STATE_SIZE]);
-  // Testing
-  bool do_iteration(float evaluation_1, float probabilities_1[NUM_MOVES],
-                    float evaluation_2, float probabilities_2[NUM_MOVES],
                     float game_state[GAME_STATE_SIZE]);
 
   uintf count_samples() const;
@@ -70,6 +65,8 @@ public:
 
   float get_score() const;
   uintf count_nodes() const;
+
+  friend class Trainer;
 };
 
 #endif

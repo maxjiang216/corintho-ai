@@ -58,27 +58,6 @@ bool SelfPlayer::do_iteration(float evaluation, float probabilities[NUM_MOVES],
   return false;
 }
 
-bool SelfPlayer::do_iteration(float evaluation_1,
-                              float probabilities_1[NUM_MOVES],
-                              float evaluation_2,
-                              float probabilities_2[NUM_MOVES],
-                              float game_state[GAME_STATE_SIZE]) {
-  bool need_evaluation;
-  if (to_play == seed) {
-    need_evaluation = players[to_play].do_iteration(
-        evaluation_1, probabilities_1, game_state);
-  } else {
-    need_evaluation = players[to_play].do_iteration(
-        evaluation_2, probabilities_2, game_state);
-  }
-  // If we don't need an evaluation
-  // Then we have completed a turn
-  // Call do_iteration without passing in evaluations
-  if (!need_evaluation)
-    return do_iteration(game_state);
-  return false;
-}
-
 bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
 
   bool need_evaluation = false;

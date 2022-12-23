@@ -18,8 +18,7 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  float c_puct, float epsilon, const string &logging_folder,
                  uintf random_seed)
     : num_iterations{std::max(num_iterations, (uintf)2)}, iterations_done{0},
-      games_done{0}, is_done{vector<bool>(num_games, false)}, generator{
-                                                                  random_seed} {
+      is_done{vector<bool>(num_games, false)}, generator{random_seed} {
   initialize(false, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -27,8 +26,7 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
                  float c_puct, float epsilon, const string &logging_folder,
                  uintf random_seed, bool)
     : num_iterations{std::max(num_iterations, (uintf)2)}, iterations_done{0},
-      games_done{0}, is_done{vector<bool>(num_games, false)}, generator{
-                                                                  random_seed} {
+      is_done{vector<bool>(num_games, false)}, generator{random_seed} {
   initialize(true, num_games, num_logged, c_puct, epsilon, logging_folder);
 }
 
@@ -54,7 +52,6 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
             &game_states[i * GAME_STATE_SIZE]);
         if (is_completed) {
           is_done[i] = true;
-          ++games_done;
         }
       } else if (i / std::max((uintf)1, (games.size() / num_iterations)) ==
                  iterations_done) {
@@ -62,44 +59,44 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
       }
     }
   }
-  if (games_done == games.size()) {
-    return true;
-  }
   ++iterations_done;
-
-  return false;
-}
-
-bool Trainer::do_iteration(float evaluations_1[], float probabilities_1[],
-                           float evaluations_2[], float probabilities_2[],
-                           float game_states[]) {
-#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
-      // Avoid division by 0 in the rare case than num_games < num_iterations /
-      // 2
-      if (i / std::max((uintf)1, (games.size() / (num_iterations / 2))) <
-          iterations_done) {
-        bool is_completed = games[i]->do_iteration(
-            evaluations_1[i], &probabilities_1[i * NUM_MOVES], evaluations_2[i],
-            &probabilities_2[i * NUM_MOVES], &game_states[i * GAME_STATE_SIZE]);
-        if (is_completed) {
-          is_done[i] = true;
-          ++games_done;
-        }
-      } else if (i / std::max((uintf)1,
-                              (games.size() / (num_iterations / 2))) ==
-                 iterations_done) {
-        games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Trainer::do_iteration(float evaluations[], float probabilities[],
+                           float game_states[], uintf to_play) {
+  if (iterations_done == 0) {
+    omp_set_num_threads(16);
+#pragma omp parallel for
+    for (uintf i = 0; i < games.size(); ++i) {
+      games[i]->do_first_iteration(&game_states[i * GAME_STATE_SIZE]);
+    }
+    iterations_done = 1;
+    return false;
+  }
+  omp_set_num_threads(16);
+#pragma omp parallel for
+  for (uintf i = 0; i < games.size(); ++i) {
+    if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
+      bool is_completed =
+          games[i]->do_iteration(evaluations[i], &probabilities[i * NUM_MOVES],
+                                 &game_states[i * GAME_STATE_SIZE]);
+      if (is_completed) {
+        is_done[i] = true;
       }
     }
   }
-  if (games_done == games.size()) {
-    return true;
+  for (uintf i = 0; i < games.size(); ++i) {
+    if (!is_done[i]) {
+      return false;
+    }
   }
-  ++iterations_done;
-
-  return false;
+  return true;
 }
 
 void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
@@ -192,5 +189,3 @@ float Trainer::get_score() const {
   }
   return score / (float)games.size();
 }
-
-bool Trainer::is_all_done() const { return games_done == games.size(); }

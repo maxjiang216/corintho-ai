@@ -21,9 +21,8 @@ cdef extern from "cpp/trainer.cpp":
                 float c_puct, float epsilon, string logging_folder, int random_seed, bool)
         bool do_iteration(float *evaluations, float *probabilities,
                           float *game_states)
-        bool do_iteration(float *evaluations_1, float *probabilities_1,
-                          float *evaluations_2, float *probabilities_2,
-                          float *game_states)
+        bool do_iteration(float *evaluations, float *probabilities,
+                          float *game_states, int to_play)
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
         float get_score()
@@ -194,10 +193,8 @@ def train_generation(*,
         True,  # Testing
     )
 
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations_1 = np.zeros(num_test_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations_2 = np.zeros(num_test_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_1 = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_2 = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
 
     evaluations_done = 0
@@ -206,47 +203,46 @@ def train_generation(*,
 
     start_time = time.perf_counter()
 
-    # First iteration
-    tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0], &test_game_states[0,0])
-
     predict_time = 0
     play_time = 0
+    to_play = 0
 
     while True:
 
-        pred_start = time.perf_counter()
-        res = training_model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
-        )
-        evaluations_1 = res[0].flatten()
-        probabilities_1 = res[1]
-        res = model.predict(
-            x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
-        )
-        evaluations_2 = res[0].flatten()
-        probabilities_2 = res[1]
-        predict_time += time.perf_counter()-pred_start
-
-        play_start = time.perf_counter()
-        res = tester.do_iteration(&evaluations_1[0], &probabilities_1[0,0],
-            &evaluations_2[0], &probabilities_2[0,0],
-            &test_game_states[0,0],
-        )
-        play_time += time.perf_counter()-play_start
-
-        if res:
-            break
-
-        evaluations_done += 1
-        if evaluations_done % max(1, 15 * iterations // 100) == 0:
-            time_taken = time.perf_counter() - start_time
-            open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
-                f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
-                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
-                f"Prediction time so far: {format_time(predict_time)}\n"
-                f"Play time so far: {format_time(play_time)}\n\n"
+        for i in range(iterations):
+            play_start = time.perf_counter()
+            res = tester.do_iteration(&evaluations_test[0], &probabilities_test[0,0],
+                &test_game_states[0,0], to_play,
             )
+            play_time += time.perf_counter()-play_start
+            if res:
+                break
+
+            pred_start = time.perf_counter()
+            if to_play == 0:
+                res = training_model.predict(
+                    x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+                )
+            else:
+                res = model.predict(
+                    x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+                )
+            evaluations_test = res[0].flatten()
+            probabilities_test = res[1]
+            predict_time += time.perf_counter()-pred_start
+
+            evaluations_done += 1
+            if evaluations_done % max(1, 15 * iterations // 100) == 0:
+                time_taken = time.perf_counter() - start_time
+                open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+                    f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                    f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
+                    f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                    f"Prediction time so far: {format_time(predict_time)}\n"
+                    f"Play time so far: {format_time(play_time)}\n\n"
+                )
+
+        to_play = 1 - to_play
 
     time_taken = time.perf_counter() - start_time
 

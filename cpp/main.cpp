@@ -60,7 +60,7 @@ void test_basic_run() {
   uintf num_games = 1024, num_iterations = 400;
 
   auto trainer =
-      Trainer{num_games, 1, num_iterations, 1.0, 0.25, "logging", 2003};
+      Trainer{num_games, 1, num_iterations, 1.0, 0.25, "logging", 2003, true};
 
   float evaluations[num_games], probabilities[num_games * NUM_MOVES],
       game_states[num_games * GAME_STATE_SIZE];
@@ -85,8 +85,8 @@ void test_basic_run() {
         probabilities[i * NUM_MOVES + j] /= sum;
       }
     }
-    bool is_done =
-        trainer.do_iteration(evaluations, probabilities, game_states);
+    bool is_done = trainer.do_iteration(evaluations, probabilities, game_states,
+                                        (counter / num_iterations) % 2);
     if (is_done)
       break;
     ++counter;

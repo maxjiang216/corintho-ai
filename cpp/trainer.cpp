@@ -82,8 +82,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   omp_set_num_threads(16);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    // Only give evaluations to games that are on that turn
-    if (games[i]->to_play == (to_play + games[i]->seed) % 2) {
+    if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
       bool is_completed =
           games[i]->do_iteration(evaluations[i], &probabilities[i * NUM_MOVES],
                                  &game_states[i * GAME_STATE_SIZE]);
@@ -92,7 +91,6 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
       }
     }
   }
-  ++iterations_done;
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
       return false;

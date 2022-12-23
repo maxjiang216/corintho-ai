@@ -18,5 +18,6 @@ utils
 build
 logs
 main.cpp
-boost_1_61_0
+boost_*_*_*
 *.zip
+prof.txt

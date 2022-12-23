@@ -66,6 +66,8 @@ public:
   static void set_statics(uintf new_max_iterations, float new_c_puct,
                           float new_epsilon);
 
+  uintf count_nodes() const;
+
   friend class SelfPlayer;
 };
 

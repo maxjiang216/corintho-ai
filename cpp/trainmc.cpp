@@ -358,3 +358,9 @@ void TrainMC::move_down(Node *prev_node) {
   cur = root;
   iterations_done = 0;
 }
+
+uintf TrainMC::count_nodes() const {
+  if (root == nullptr)
+    return 0;
+  return root->count_nodes();
+}

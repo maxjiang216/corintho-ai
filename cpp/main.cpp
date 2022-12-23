@@ -57,9 +57,10 @@ void print_line_breakers(uintf line) {
 // Basic run.
 void test_basic_run() {
 
-  uintf num_games = 300;
+  uintf num_games = 1024, num_iterations = 400;
 
-  auto trainer = Trainer{num_games, 1, 1600, 1.0, 0.25, "logging", 2003};
+  auto trainer =
+      Trainer{num_games, 1, num_iterations, 1.0, 0.25, "logging", 2003};
 
   float evaluations[num_games], probabilities[num_games * NUM_MOVES],
       game_states[num_games * GAME_STATE_SIZE];
@@ -89,8 +90,12 @@ void test_basic_run() {
     if (is_done)
       break;
     ++counter;
-    if (counter % 1000 == 0) {
+    if (counter % 10 == 0) {
       cerr << "Complete iteration " << counter << '\n';
+      /*uintf num_nodes = trainer.count_nodes();
+      cerr << "Nodes per game per iteration: "
+           << (float)num_nodes / (float)num_games / (float)num_iterations
+           << '\n';*/
     }
   }
   auto stop = chrono::high_resolution_clock::now();

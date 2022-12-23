@@ -11,7 +11,7 @@ DPDS = ${OBJS:.o=.d}
 
 all: pipe
 pipe: $(CXXFLGS) $(OBJS)
-	$(CXX)  $(OBJS) $(CXXFLGS) -O3 -fopenmp -o pipe
+	$(CXX)  $(OBJS) $(CXXFLGS) -O3 -fopenmp -g -o pipe
 
 -include ${DPDS}
 

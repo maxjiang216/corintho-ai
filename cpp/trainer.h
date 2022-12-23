@@ -19,8 +19,6 @@ class Trainer {
   uintf num_iterations;
   // Counter used to keep track of number of iterations done for offsets
   uintf iterations_done;
-  // Keep track of how many games are done
-  uintf games_done;
 
   // Track which games are done
   std::vector<bool> is_done;
@@ -48,9 +46,8 @@ public:
   bool do_iteration(float evaluations[], float probabilities[],
                     float game_states[]);
   // Testing version
-  bool do_iteration(float evaluations_1[], float probabilities_1[],
-                    float evaluations_2[], float probabilities_2[],
-                    float game_states[]);
+  bool do_iteration(float evaluations[], float probabilities[],
+                    float game_states[], uintf to_play);
 
   // Counts the number of samples in all the games
   uintf count_samples() const;
@@ -59,8 +56,6 @@ public:
                      float *probability_samples) const;
 
   float get_score() const;
-
-  bool is_all_done() const;
 
   uintf count_nodes() const;
 };

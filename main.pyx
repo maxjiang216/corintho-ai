@@ -84,9 +84,9 @@ def train_generation(*,
         rng.integers(65536),  # Random seed
     )
 
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games * searches_per_eval, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games * searches_per_eval, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games * searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
 
     cdef int evaluations_done = 0
 
@@ -200,9 +200,9 @@ def train_generation(*,
         True,  # Testing
     )
 
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games * searches_per_eval, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games * searches_per_eval, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games * searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
 
     evaluations_done = 0
 
@@ -213,8 +213,9 @@ def train_generation(*,
     predict_time = 0
     play_time = 0
     to_play = 0
+    done = False
 
-    while True:
+    while not done:
 
         for i in range(iterations):
             play_start = time.perf_counter()
@@ -223,6 +224,7 @@ def train_generation(*,
             )
             play_time += time.perf_counter()-play_start
             if res:
+                done = True
                 break
 
             pred_start = time.perf_counter()

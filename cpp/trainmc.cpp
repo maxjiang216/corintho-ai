@@ -288,11 +288,11 @@ bool TrainMC::search(float game_state[]) {
             max_value = u;
             move_choice = cur->edges[edge_index].move_id;
           }
+          ++edge_index;
         } else {
           prev_node = cur_child;
           cur_child = cur_child->next_sibling;
         }
-        ++edge_index;
       }
       while (edge_index < cur->num_legal_moves) {
         float u = c_puct * cur->get_probability(edge_index) * v_sqrt;
@@ -304,8 +304,7 @@ bool TrainMC::search(float game_state[]) {
         }
         ++edge_index;
       }
-      // Mark the visit
-      // If we do it up front we only do it in one place
+      // Count the visit
       ++cur->visits;
 
       // No nodes are available
@@ -348,6 +347,10 @@ bool TrainMC::search(float game_state[]) {
 
     // Check for terminal state, otherwise evaluation is needed
     if (cur->is_terminal()) {
+      // Count the visit
+      ++cur->visits;
+      // We can revisit terminal nodes
+      cur->all_visited = false;
       // Don't propagate if value is 0
       if (cur->result != RESULT_DRAW) {
         // Propagate evaluation

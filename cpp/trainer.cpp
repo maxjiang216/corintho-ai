@@ -15,9 +15,10 @@ using std::string;
 using std::vector;
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, uintf searches_per_eval,
-                 const string &logging_folder, uintf random_seed)
-    : num_iterations{std::max(num_iterations, (uintf)2)},
+                 float c_puct, float epsilon, uintf threads,
+                 uintf searches_per_eval, const string &logging_folder,
+                 uintf random_seed)
+    : num_iterations{std::max(num_iterations, (uintf)2)}, threads{threads},
       searches_per_eval{searches_per_eval}, iterations_done{0},
       is_done{vector<bool>(num_games, false)}, generator{random_seed} {
   initialize(false, num_games, num_logged, c_puct, epsilon, searches_per_eval,
@@ -25,9 +26,10 @@ Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
 }
 
 Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, uintf searches_per_eval,
-                 const string &logging_folder, uintf random_seed, bool)
-    : num_iterations{std::max(num_iterations, (uintf)2)},
+                 float c_puct, float epsilon, uintf threads,
+                 uintf searches_per_eval, const string &logging_folder,
+                 uintf random_seed, bool)
+    : num_iterations{std::max(num_iterations, (uintf)2)}, threads{threads},
       searches_per_eval{searches_per_eval}, iterations_done{0},
       is_done{vector<bool>(num_games, false)}, generator{random_seed} {
   initialize(true, num_games, num_logged, c_puct, epsilon, searches_per_eval,
@@ -43,7 +45,7 @@ Trainer::~Trainer() {
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[]) {
 
-  omp_set_num_threads(16);
+  omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
@@ -77,8 +79,8 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
 bool Trainer::do_iteration(float evaluations[], float probabilities[],
                            float game_states[], uintf to_play) {
   if (iterations_done == 0) {
-    // omp_set_num_threads(16);
-    //#pragma omp parallel for
+    omp_set_num_threads(threads);
+#pragma omp parallel for
     for (uintf i = 0; i < games.size(); ++i) {
       games[i]->do_first_iteration(
           &game_states[i * GAME_STATE_SIZE * searches_per_eval]);
@@ -86,8 +88,8 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
     iterations_done = 1;
     return false;
   }
-  // omp_set_num_threads(16);
-  //#pragma omp parallel for
+  omp_set_num_threads(threads);
+#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
       bool is_completed = games[i]->do_iteration(
@@ -146,7 +148,7 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
 
 uintf Trainer::count_nodes() const {
   uintf counts[games.size()];
-  //#pragma omp parallel for
+#pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     counts[i] = games[i]->count_nodes();
   }
@@ -159,6 +161,7 @@ uintf Trainer::count_nodes() const {
 
 uintf Trainer::count_samples() const {
   uintf counts[games.size()];
+  omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     counts[i] = games[i]->count_samples();
@@ -172,6 +175,7 @@ uintf Trainer::count_samples() const {
 
 void Trainer::write_samples(float *game_states, float *evaluation_samples,
                             float *probability_samples) const {
+  // We could parallelize this in the future
   uintf offset = 0;
   for (uintf i = 0; i < games.size(); ++i) {
     uintf num_samples = games[i]->write_samples(
@@ -183,6 +187,7 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
 
 float Trainer::get_score() const {
   float scores[games.size()];
+  omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); i += 2) {
     scores[i] = games[i]->get_score();

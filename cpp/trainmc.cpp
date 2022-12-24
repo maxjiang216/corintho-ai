@@ -250,6 +250,8 @@ bool TrainMC::search(float game_state[]) {
 
   while (!need_evaluation && iterations_done < max_iterations) {
 
+    cur = root;
+
     ++iterations_done;
 
     while (!cur->is_terminal()) {

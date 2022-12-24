@@ -16,9 +16,11 @@ cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
         Trainer()
         Trainer(int num_games, int num_logged, int num_iterations,
-                float c_puct, float epsilon, string logging_folder, int random_seed)
+                float c_puct, float epsilon, int threads, int searches_per_eval, string logging_folder,
+                int random_seed)
         Trainer(int num_games, int num_logged, int num_iterations,
-                float c_puct, float epsilon, string logging_folder, int random_seed, bool)
+                float c_puct, float epsilon, int threads, int searches_per_eval, string logging_folder,
+                int random_seed, bool)
         bool do_iteration(float *evaluations, float *probabilities,
                           float *game_states)
         bool do_iteration(float *evaluations, float *probabilities,
@@ -51,7 +53,8 @@ def train_generation(*,
     testing_threshold=0.55,  # Non-inclusive lower bound for new generation to pass
     c_puct=1.0,
     epsilon=0.25,
-    processes=1,
+    threads=1,
+    searches_per_eval=1,
     learning_rate=0.01,
     batch_size=2048,
     epochs=1,
@@ -75,6 +78,8 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
+        threads,
+        searches_per_eval,
         train_log_folder.encode(),
         rng.integers(65536),  # Random seed
     )
@@ -188,6 +193,8 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
+        threads,
+        searches_per_eval,
         test_log_folder.encode(),
         rng.integers(65536),  # Random seed
         True,  # Testing

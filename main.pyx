@@ -126,8 +126,8 @@ def train_generation(*,
             time_taken = time.perf_counter() - start_time
             open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
-                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations/searches_per_eval*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations/searches_per_eval-evaluations_done)*time_taken/evaluations_done)}\n"
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n\n"
             )
@@ -217,7 +217,7 @@ def train_generation(*,
 
     while not done:
 
-        for i in range(iterations):
+        for i in range(iterations//searches_per_eval):
             play_start = time.perf_counter()
             res = tester.do_iteration(&evaluations_test[0], &probabilities_test[0,0],
                 &test_game_states[0,0], to_play,
@@ -245,8 +245,8 @@ def train_generation(*,
                 time_taken = time.perf_counter() - start_time
                 open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                     f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                    f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations*time_taken/evaluations_done)}\n"
-                    f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations-evaluations_done)*time_taken/evaluations_done)}\n"
+                    f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations/searches_per_eval*time_taken/evaluations_done)}\n"
+                    f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations/searches_per_eval-evaluations_done)*time_taken/evaluations_done)}\n"
                     f"Prediction time so far: {format_time(predict_time)}\n"
                     f"Play time so far: {format_time(play_time)}\n\n"
                 )

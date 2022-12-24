@@ -16,9 +16,11 @@ cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
         Trainer()
         Trainer(int num_games, int num_logged, int num_iterations,
-                float c_puct, float epsilon, string logging_folder, int random_seed)
+                float c_puct, float epsilon, int threads, int searches_per_eval, string logging_folder,
+                int random_seed)
         Trainer(int num_games, int num_logged, int num_iterations,
-                float c_puct, float epsilon, string logging_folder, int random_seed, bool)
+                float c_puct, float epsilon, int threads, int searches_per_eval, string logging_folder,
+                int random_seed, bool)
         bool do_iteration(float *evaluations, float *probabilities,
                           float *game_states)
         bool do_iteration(float *evaluations, float *probabilities,
@@ -51,7 +53,8 @@ def train_generation(*,
     testing_threshold=0.55,  # Non-inclusive lower bound for new generation to pass
     c_puct=1.0,
     epsilon=0.25,
-    processes=1,
+    threads=1,
+    searches_per_eval=1,
     learning_rate=0.01,
     batch_size=2048,
     epochs=1,
@@ -75,13 +78,15 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
+        threads,
+        searches_per_eval,
         train_log_folder.encode(),
         rng.integers(65536),  # Random seed
     )
 
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(num_games * searches_per_eval, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((num_games * searches_per_eval, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((num_games * searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
 
     cdef int evaluations_done = 0
 
@@ -188,14 +193,16 @@ def train_generation(*,
         iterations,
         c_puct,
         epsilon,
+        threads,
+        searches_per_eval,
         test_log_folder.encode(),
         rng.integers(65536),  # Random seed
         True,  # Testing
     )
 
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games * searches_per_eval, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games * searches_per_eval, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] test_game_states = np.zeros((num_test_games * searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
 
     evaluations_done = 0
 
@@ -206,8 +213,9 @@ def train_generation(*,
     predict_time = 0
     play_time = 0
     to_play = 0
+    done = False
 
-    while True:
+    while not done:
 
         for i in range(iterations):
             play_start = time.perf_counter()
@@ -216,6 +224,7 @@ def train_generation(*,
             )
             play_time += time.perf_counter()-play_start
             if res:
+                done = True
                 break
 
             pred_start = time.perf_counter()

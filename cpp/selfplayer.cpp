@@ -46,15 +46,16 @@ void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   players[0].do_first_iteration(game_state);
 }
 
-bool SelfPlayer::do_iteration(float evaluation, float probabilities[NUM_MOVES],
-                              float game_state[GAME_STATE_SIZE]) {
-  bool need_evaluation =
+bool SelfPlayer::do_iteration(float evaluation[], float probabilities[],
+                              float game_state[]) {
+  bool done_turn =
       players[to_play].do_iteration(evaluation, probabilities, game_state);
-  // If we don't need an evaluation
-  // Then we have completed a turn
-  // Call do_iteration without passing in evaluations
-  if (!need_evaluation)
+  // If we have completed a turn
+  // and we don't need to evaluate any positions
+  // We can choose a move
+  if (done_turn && players[to_play].eval_index == 0)
     return do_iteration(game_state);
+  // Game is not complete
   return false;
 }
 
@@ -155,6 +156,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
                                             players[1 - to_play].root->depth,
                                             game_state);
         // Game is not over, evaluation is needed
+        // It cannot be a terminal state
         return false;
       } else {
         // It's possible that we need an evaluation for this
@@ -164,9 +166,11 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
             players[1 - to_play].root->depth);
         if (!need_evaluation) {
           // Otherwise, we search again
-          need_evaluation = players[to_play].search(game_state);
+          need_evaluation = !(players[to_play].search(game_state) &&
+                              players[to_play].eval_index == 0);
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
+          // This is unlikely, however
         }
       }
     }

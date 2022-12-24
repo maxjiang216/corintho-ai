@@ -14,7 +14,8 @@ class alignas(64) Node {
     uint16s move_id : 7, probability : 9;
   };
 
-  bool visited;
+  // Visited this evaluation cycle
+  bool all_visited;
   uint8s result, depth, num_legal_moves, child_num;
   uint16s visits;
   float evaluation, denominator;

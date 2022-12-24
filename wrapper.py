@@ -58,10 +58,16 @@ def main():
         help="Minimum score (exclusive) to become new best agent. Default is 0.5",
     )
     parser.add_argument(
-        "--processes",
+        "--threads",
+        type=int,
+        default=0,
+        help="Number of threads used for self play. Default 0 in which case 2x the number of CPUs will be used.",
+    )
+    parser.add_argument(
+        "--searches_per_eval",
         type=int,
         default=1,
-        help="Number of processes used for self play. Default 1.",
+        help="Maximum number of searches needing evaluations to do before running a neural network evaluation. Default is 1, which is the standard MCST algorithm.",
     )
     parser.add_argument(
         "--learning_rate",
@@ -111,17 +117,18 @@ def main():
     # Dictionary of flag values
     args = vars(parser.parse_args())
 
-    PROCESSES = min(cpu_count(), max(1, args["processes"]))
     # Divisible by the number of processes
-    NUM_GAMES = PROCESSES * (max(1, args["num_games"] // PROCESSES))
+    NUM_GAMES = max(1, args["num_games"])
     ITERATIONS = max(2, args["iterations"])
     C_PUCT = max(0.0, args["c_puct"])
     EPSILON = min(1.0, max(0.0, args["epsilon"]))
     # Enforce even number (first player bias)
-    NUM_TEST_GAMES = 2 * PROCESSES * max(1, args["num_test_games"] // (2 * PROCESSES))
+    NUM_TEST_GAMES = 2 * max(1, args["num_test_games"] // 2)
     TEST_THRESHOLD = min(
         (NUM_TEST_GAMES - 0.5) / NUM_TEST_GAMES, max(0.5, args["test_threshold"])
     )
+    THREADS = args["threads"] if args["threads"] > 0 else 2 * cpu_count()
+    SEARCHES_PER_EVAL = min(ITERATIONS - 1, max(1, args["searches_per_eval"]))
     LEARNING_RATE = max(0.0, args["learning_rate"])
     BATCH_SIZE = max(1, args["batch_size"])
     EPOCHS = max(1, args["epochs"])
@@ -377,7 +384,8 @@ def main():
         f"c_puct: {C_PUCT}\n"
         f"epsilon: {EPSILON}\n"
         f"Number of test games: {NUM_TEST_GAMES}\n"
-        f"Number of processes used in self play: {PROCESSES}\n"
+        f"Number of threads used in self play: {THREADS}\n"
+        f"Searches per neural net evaluation: {SEARCHES_PER_EVAL}\n"
         f"Learning rate: {LEARNING_RATE}\n"
         f"Batch size used in training: {BATCH_SIZE}\n"
         f"Epochs used in training: {EPOCHS}\n"
@@ -399,7 +407,8 @@ def main():
         testing_threshold=TEST_THRESHOLD,
         c_puct=C_PUCT,
         epsilon=EPSILON,
-        processes=PROCESSES,
+        threads=THREADS,
+        searches_per_eval=SEARCHES_PER_EVAL,
         learning_rate=LEARNING_RATE,
         batch_size=BATCH_SIZE,
         epochs=EPOCHS,

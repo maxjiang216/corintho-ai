@@ -107,7 +107,7 @@ def train_generation(*,
         # but it does not hurt
         # and in one case it was removed and NN evals became much slower
         res = model.predict(
-            x=game_states, batch_size=num_games, verbose=0, use_multiprocessing=True
+            x=game_states, batch_size=num_games * searches_per_eval, verbose=0, use_multiprocessing=True
         )
         evaluations = res[0].flatten()
         probabilities = res[1]
@@ -230,11 +230,11 @@ def train_generation(*,
             pred_start = time.perf_counter()
             if to_play == 0:
                 res = training_model.predict(
-                    x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+                    x=test_game_states, batch_size=num_test_games * searches_per_eval, verbose=0, use_multiprocessing=True
                 )
             else:
                 res = model.predict(
-                    x=test_game_states, batch_size=num_test_games, verbose=0, use_multiprocessing=True
+                    x=test_game_states, batch_size=num_test_games * searches_per_eval, verbose=0, use_multiprocessing=True
                 )
             evaluations_test = res[0].flatten()
             probabilities_test = res[1]

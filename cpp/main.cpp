@@ -37,7 +37,8 @@ void print_moves() {
 void print_game() { cerr << Game() << '\n'; }
 
 void print_line_breakers(uintf line) {
-
+  print_line(line);
+  cerr << '\n';
   for (uintf i = 0; i < NUM_MOVES; ++i) {
     if (line_breakers[line][i]) {
       cerr << 1;
@@ -123,12 +124,10 @@ int main() {
 
   print_game();
 
-  /*
   for (int i = 0; i < 102; ++i) {
     cerr << i << '\n';
     print_line_breakers(i);
   }
-  */
 
-  test_basic_run();
+  // test_basic_run();
 }

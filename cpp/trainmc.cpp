@@ -32,6 +32,7 @@ void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
   // Create the root node
   root = new Node();
   cur = root;
+  iterations_done = 1;
 
   cur->write_game_state(game_state);
   searched.push_back(cur);
@@ -43,6 +44,7 @@ void TrainMC::do_first_iteration(const Game &game, uintf depth,
   // Create the root node
   root = new Node(game, depth);
   cur = root;
+  iterations_done = 1;
 
   cur->write_game_state(game_state);
   searched.push_back(cur);

@@ -31,6 +31,9 @@ class SelfPlayer {
   // Random generator for all operations
   std::mt19937 *generator;
 
+  // Positions to evaluate
+  std::vector<std::array<float, GAME_STATE_SIZE>> game_states;
+
   // Training samples
   std::vector<Sample> samples;
 

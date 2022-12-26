@@ -17,25 +17,35 @@ using std::pair;
 SelfPlayer::SelfPlayer(std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, logging_file{nullptr} {
+  players[0].game_states = &game_states;
+  players[1].game_states = &game_states;
   samples.reserve(32);
 }
 
 SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, logging_file{logging_file} {
+  players[0].game_states = &game_states;
+  players[1].game_states = &game_states;
   samples.reserve(32);
 }
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
-                                                                 nullptr} {}
+                                                                 nullptr} {
+  players[0].game_states = &game_states;
+  players[1].game_states = &game_states;
+}
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
                        std::ofstream *logging_file)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed},
-      logging_file{logging_file} {}
+      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
+                                                                 logging_file} {
+  players[0].game_states = &game_states;
+  players[1].game_states = &game_states;
+}
 
 SelfPlayer::~SelfPlayer() {
   delete logging_file;

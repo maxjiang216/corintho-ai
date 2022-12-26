@@ -15,14 +15,14 @@ using std::bitset;
 
 TrainMC::TrainMC(std::mt19937 *generator)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
+      eval_index{0}, searched{std::vector<Node *>()}, game_states{nullptr},
       iterations_done{0}, testing{false}, generator{generator} {
   searched.reserve(searches_per_eval);
 }
 
 TrainMC::TrainMC(std::mt19937 *generator, bool)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
+      eval_index{0}, searched{std::vector<Node *>()}, game_states{nullptr},
       iterations_done{0}, testing{true}, generator{generator} {
   searched.reserve(searches_per_eval);
 }

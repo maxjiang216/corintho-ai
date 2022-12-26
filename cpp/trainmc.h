@@ -26,6 +26,8 @@ class TrainMC {
   uintf eval_index;
   // Nodes we have searches this cycle
   std::vector<Node *> searched;
+  // We want to evaluate these vectors
+  std::vector<std::array<float, GAME_STATE_SIZE>> *game_states;
 
   // Used to keep track of when to choose a move
   uintf iterations_done;

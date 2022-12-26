@@ -41,17 +41,19 @@ class SelfPlayer {
   uintf seed;
 
   // This way we don't allocate memory if there is no logging file
-  std::ofstream *logging_file;
+  std::ofstream *logging_file, *verbose_file;
 
   bool do_iteration(float game_state[GAME_STATE_SIZE]);
 
 public:
   // Training mode
   SelfPlayer(std::mt19937 *generator);
-  SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file);
+  SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file,
+             std::ofstream *verbose_file);
   // Testing mode
   SelfPlayer(uintf seed, std::mt19937 *generator);
-  SelfPlayer(uintf seed, std::mt19937 *generator, std::ofstream *logging_file);
+  SelfPlayer(uintf seed, std::mt19937 *generator, std::ofstream *logging_file,
+             std::ofstream *verbose_file);
   ~SelfPlayer();
 
   void do_first_iteration(float game_state[GAME_STATE_SIZE]);

@@ -5,6 +5,7 @@
 #include "util.h"
 #include <array>
 #include <bitset>
+#include <fstream>
 #include <random>
 #include <vector>
 
@@ -34,6 +35,8 @@ class TrainMC {
 
   std::mt19937 *generator;
 
+  std::ofstream *verbose_file;
+
   void receive_evaluation(float evaluation[], float probabilities[]);
   bool search(float game_state[]);
 
@@ -42,8 +45,10 @@ class TrainMC {
 public:
   // Training
   TrainMC(std::mt19937 *generator);
+  TrainMC(std::mt19937 *generator, std::ofstream *verbose_file);
   // Testing
   TrainMC(std::mt19937 *generator, bool);
+  TrainMC(std::mt19937 *generator, std::ofstream *verbose_file, bool);
 
   TrainMC(TrainMC &&) = default;
   ~TrainMC() = default;

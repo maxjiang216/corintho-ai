@@ -127,6 +127,9 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
           new SelfPlayer{i % 2, new std::mt19937(generator()),
                          new std::ofstream{logging_folder + "/game_" +
                                                std::to_string(i) + ".txt",
+                                           std::ofstream::out},
+                         new std::ofstream{logging_folder + "/verbose_" +
+                                               std::to_string(i) + ".txt",
                                            std::ofstream::out}});
     }
     for (uintf i = num_logged; i < num_games; ++i) {
@@ -137,6 +140,9 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
       games.emplace_back(
           new SelfPlayer{new std::mt19937(generator()),
                          new std::ofstream{logging_folder + "/game_" +
+                                               std::to_string(i) + ".txt",
+                                           std::ofstream::out},
+                         new std::ofstream{logging_folder + "/verbose_" +
                                                std::to_string(i) + ".txt",
                                            std::ofstream::out}});
     }

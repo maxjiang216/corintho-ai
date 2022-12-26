@@ -15,15 +15,29 @@ using std::bitset;
 
 TrainMC::TrainMC(std::mt19937 *generator)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
-      iterations_done{0}, testing{false}, generator{generator} {
+      eval_index{0}, searched{std::vector<Node *>()}, iterations_done{0},
+      testing{false}, generator{generator}, verbose_file{nullptr} {
+  searched.reserve(searches_per_eval);
+}
+
+TrainMC::TrainMC(std::mt19937 *generator, std::ofstream *verbose_file)
+    : root{nullptr}, cur{nullptr},
+      eval_index{0}, searched{std::vector<Node *>()}, iterations_done{0},
+      testing{false}, generator{generator}, verbose_file{verbose_file} {
   searched.reserve(searches_per_eval);
 }
 
 TrainMC::TrainMC(std::mt19937 *generator, bool)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
-      iterations_done{0}, testing{true}, generator{generator} {
+      eval_index{0}, searched{std::vector<Node *>()}, iterations_done{0},
+      testing{true}, generator{generator}, verbose_file{nullptr} {
+  searched.reserve(searches_per_eval);
+}
+
+TrainMC::TrainMC(std::mt19937 *generator, std::ofstream *verbose_file, bool)
+    : root{nullptr}, cur{nullptr},
+      eval_index{0}, searched{std::vector<Node *>()}, iterations_done{0},
+      testing{true}, generator{generator}, verbose_file{verbose_file} {
   searched.reserve(searches_per_eval);
 }
 
@@ -254,6 +268,12 @@ bool TrainMC::search(float game_state[]) {
 
     cur = root;
 
+    if (verbose_file != nullptr) {
+      *verbose_file << "Iteration " << (uintf)iterations_done << " Turn "
+                    << (uintf)root->depth << " root visits "
+                    << (uintf)root->visits << '\n';
+    }
+
     ++iterations_done;
 
     while (!cur->is_terminal()) {
@@ -279,11 +299,27 @@ bool TrainMC::search(float game_state[]) {
             u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
                 cur->get_probability(edge_index) * v_sqrt /
                     ((float)cur_child->visits + 1.0);
+            if (verbose_file != nullptr) {
+              *verbose_file
+                  << "Move " << Move{cur->edges[edge_index].move_id} << " u "
+                  << u << " max_val " << max_value << " eval "
+                  << -1.0 * cur_child->evaluation / (float)cur_child->visits
+                  << " prob " << cur->get_probability(edge_index) << " visits "
+                  << (uintf)cur_child->visits << " v_sqrt " << v_sqrt
+                  << " move choice " << Move{move_choice} << '\n';
+            }
           }
           prev_node = cur_child;
           cur_child = cur_child->next_sibling;
         } else {
           u = cur->get_probability(edge_index) * v_sqrt;
+          if (verbose_file != nullptr) {
+            *verbose_file << "Move " << Move{cur->edges[edge_index].move_id}
+                          << " u " << u << " max_val " << max_value << " prob "
+                          << cur->get_probability(edge_index) << " v_sqrt "
+                          << v_sqrt << " move choice " << Move{move_choice}
+                          << '\n';
+          }
         }
         if (u > max_value) {
           // This is the previous node unless it is a match
@@ -295,6 +331,13 @@ bool TrainMC::search(float game_state[]) {
       }
       while (edge_index < cur->num_legal_moves) {
         float u = cur->get_probability(edge_index) * v_sqrt;
+        if (verbose_file != nullptr) {
+          *verbose_file << "Move " << Move{cur->edges[edge_index].move_id}
+                        << " u " << u << " max_val " << max_value << " prob "
+                        << cur->get_probability(edge_index) << " v_sqrt "
+                        << v_sqrt << " move choice " << Move{move_choice}
+                        << '\n';
+        }
         if (u > max_value) {
           best_prev_node =
               prev_node; // This should always be the last node in the list
@@ -322,6 +365,9 @@ bool TrainMC::search(float game_state[]) {
         // Remove search from root
         --cur->visits;
         return done;
+      }
+      if (verbose_file != nullptr) {
+        *verbose_file << "Move choice " << Move{move_choice} << '\n';
       }
       // Best node should be inserted at the beginning of the list
       if (best_prev_node == nullptr) {

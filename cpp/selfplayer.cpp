@@ -16,29 +16,35 @@ using std::pair;
 
 SelfPlayer::SelfPlayer(std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, logging_file{nullptr} {
+      generator{generator}, result{RESULT_NONE}, logging_file{nullptr},
+      verbose_file{nullptr} {
   samples.reserve(32);
 }
 
-SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
-    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, logging_file{logging_file} {
+SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file,
+                       std::ofstream *verbose_file)
+    : players{TrainMC{generator, verbose_file},
+              TrainMC{generator, verbose_file}},
+      to_play{0}, generator{generator}, result{RESULT_NONE},
+      logging_file{logging_file}, verbose_file{verbose_file} {
   samples.reserve(32);
 }
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
-                                                                 nullptr} {}
+      generator{generator}, result{RESULT_NONE}, seed{seed},
+      logging_file{nullptr}, verbose_file{nullptr} {}
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
-                       std::ofstream *logging_file)
-    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed},
-      logging_file{logging_file} {}
+                       std::ofstream *logging_file, std::ofstream *verbose_file)
+    : players{TrainMC{generator, verbose_file, true},
+              TrainMC{generator, verbose_file, true}},
+      to_play{0}, generator{generator}, result{RESULT_NONE}, seed{seed},
+      logging_file{logging_file}, verbose_file{verbose_file} {}
 
 SelfPlayer::~SelfPlayer() {
   delete logging_file;
+  delete verbose_file;
   delete generator;
 }
 

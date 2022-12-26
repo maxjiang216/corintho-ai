@@ -269,7 +269,7 @@ bool TrainMC::search(float game_state[]) {
       // Keep track of previous node to insert into linked list
       Node *prev_node = nullptr, *best_prev_node = nullptr;
       // Factor this value out, as it is expense to compute
-      float v_sqrt = sqrt((float)cur->visits);
+      float v_sqrt = c_puct * sqrt((float)cur->visits);
       // Loop through existing children
       while (cur_child != nullptr) {
         // Random value lower than -1.0
@@ -277,13 +277,13 @@ bool TrainMC::search(float game_state[]) {
         if (cur_child->child_num == cur->edges[edge_index].move_id) {
           if (!cur_child->all_visited) {
             u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
-                c_puct * cur->get_probability(edge_index) * v_sqrt /
+                cur->get_probability(edge_index) * v_sqrt /
                     ((float)cur_child->visits + 1.0);
           }
           prev_node = cur_child;
           cur_child = cur_child->next_sibling;
         } else {
-          u = c_puct * cur->get_probability(edge_index) * v_sqrt;
+          u = cur->get_probability(edge_index) * v_sqrt;
         }
         if (u > max_value) {
           // This is the previous node unless it is a match
@@ -294,7 +294,7 @@ bool TrainMC::search(float game_state[]) {
         ++edge_index;
       }
       while (edge_index < cur->num_legal_moves) {
-        float u = c_puct * cur->get_probability(edge_index) * v_sqrt;
+        float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
           best_prev_node =
               prev_node; // This should always be the last node in the list

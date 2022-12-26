@@ -26,8 +26,8 @@ void Game::do_move(uintf move_id) {
   else {
     for (uintf i = 0; i < 3; ++i) {
       set_board(move.row2, move.col2, i,
-                board[move.row1 * 12 + move.col1 * 3 + i] ||
-                    board[move.row2 * 12 + move.col2 * 3 + i]);
+                get_board(move.row1, move.col1, i) ||
+                    get_board(move.row2, move.col2, i));
       set_board(move.row1, move.col1, i, false);
     }
     set_frozen(move.row2, move.col2, true);

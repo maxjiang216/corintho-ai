@@ -27,13 +27,13 @@ SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
 }
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
-    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+    : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
                                                                  nullptr} {}
 
 SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
                        std::ofstream *logging_file)
-    : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
+    : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed},
       logging_file{logging_file} {}
 

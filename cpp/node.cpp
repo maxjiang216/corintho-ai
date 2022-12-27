@@ -62,6 +62,8 @@ void Node::initialize_edges() {
   num_legal_moves = legal_moves.count();
   // Terminal node
   if (num_legal_moves == 0) {
+    // Otherwise we overcount by 1
+    visits = 0;
     // Decisive game
     if (is_lines) {
       // Second player win

@@ -185,8 +185,9 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
   uintf offset = 0;
   for (uintf i = 0; i < games.size(); ++i) {
     uintf num_samples = games[i]->write_samples(
-        game_states + offset * GAME_STATE_SIZE, evaluation_samples + offset,
-        probability_samples + offset * NUM_MOVES);
+        game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM,
+        evaluation_samples + offset * SYMMETRY_NUM,
+        probability_samples + offset * NUM_MOVES * SYMMETRY_NUM);
     offset += num_samples;
   }
 }

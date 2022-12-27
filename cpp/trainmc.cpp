@@ -322,6 +322,7 @@ bool TrainMC::search(float game_state[]) {
         }
         // Remove search from root
         --cur->visits;
+        --iterations_done;
         return done;
       }
       // Best node should be inserted at the beginning of the list

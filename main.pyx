@@ -63,6 +63,7 @@ def train_generation(*,
 
     cdef unsigned int NUM_MOVES = 96
     cdef unsigned int GAME_STATE_SIZE = 70
+    cdef unsigned int SYMMETRY_NUM = 8
     EVALS_PER_SEARCH = 26.5
 
     rng = np.random.default_rng(int(time.time()))
@@ -142,9 +143,9 @@ def train_generation(*,
 
     # Get training samples
     num_samples = trainer.count_samples()
-    cdef np.ndarray[np.float32_t, ndim=2] sample_states = np.zeros((num_samples, GAME_STATE_SIZE), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=1] evaluation_labels = np.zeros(num_samples, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples, NUM_MOVES), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] sample_states = np.zeros((num_samples * SYMMETRY_NUM, GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] evaluation_labels = np.zeros(num_samples * SYMMETRY_NUM, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples * SYMMETRY_NUM, NUM_MOVES), dtype=np.float32)
     trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
 
     del trainer

@@ -82,6 +82,11 @@ bool TrainMC::do_iteration(float evaluation[], float probabilities[],
 uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
                            float probability_sample[NUM_MOVES]) {
 
+  // Print tree
+  if (verbose_file != nullptr) {
+    *verbose_file << "PRINT TREE; TURN " << (uintf)root->depth << '\n';
+    root->print_tree(verbose_file, 0);
+  }
   // Before moving down, read the samples from the root node
   root->write_game_state(game_state);
   // Clear probabilities first
@@ -278,6 +283,15 @@ bool TrainMC::search(float game_state[]) {
     ++iterations_done;
 
     while (!cur->is_terminal()) {
+
+      if (verbose_file != nullptr) {
+        *verbose_file << cur->game << '\n' << "LEGAL MOVES:\n";
+        for (uintf i = 0; i < cur->num_legal_moves; ++i) {
+          *verbose_file << Move{cur->edges[i].move_id} << ' ';
+        }
+        *verbose_file << '\n';
+      }
+
       // Choose next
 
       // Random value lower than -1.0
@@ -302,12 +316,13 @@ bool TrainMC::search(float game_state[]) {
                     ((float)cur_child->visits + 1.0);
             if (verbose_file != nullptr) {
               *verbose_file
-                  << "Move " << Move{cur->edges[edge_index].move_id} << " u "
-                  << u << " max_val " << max_value << " eval "
+                  << "Move " << Move{cur->edges[edge_index].move_id}
+                  << " visits " << (uintf)cur_child->visits << " prob "
+                  << cur->get_probability(edge_index) << " u " << u
+                  << " max_val " << max_value << " eval "
                   << -1.0 * cur_child->evaluation / (float)cur_child->visits
-                  << " prob " << cur->get_probability(edge_index) << " visits "
-                  << (uintf)cur_child->visits << " v_sqrt " << v_sqrt
-                  << " move choice " << Move{move_choice} << '\n';
+                  << " v_sqrt " << v_sqrt << " move choice "
+                  << Move{move_choice} << '\n';
             }
           }
           prev_node = cur_child;
@@ -316,10 +331,10 @@ bool TrainMC::search(float game_state[]) {
           u = cur->get_probability(edge_index) * v_sqrt;
           if (verbose_file != nullptr) {
             *verbose_file << "Move " << Move{cur->edges[edge_index].move_id}
-                          << " u " << u << " max_val " << max_value << " prob "
-                          << cur->get_probability(edge_index) << " v_sqrt "
-                          << v_sqrt << " move choice " << Move{move_choice}
-                          << '\n';
+                          << " prob " << cur->get_probability(edge_index)
+                          << " u " << u << " max_val " << max_value
+                          << " v_sqrt " << v_sqrt << " move choice "
+                          << Move{move_choice} << '\n';
           }
         }
         if (u > max_value) {
@@ -334,10 +349,9 @@ bool TrainMC::search(float game_state[]) {
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (verbose_file != nullptr) {
           *verbose_file << "Move " << Move{cur->edges[edge_index].move_id}
-                        << " u " << u << " max_val " << max_value << " prob "
-                        << cur->get_probability(edge_index) << " v_sqrt "
-                        << v_sqrt << " move choice " << Move{move_choice}
-                        << '\n';
+                        << " prob " << cur->get_probability(edge_index) << " u "
+                        << u << " max_val " << max_value << " v_sqrt " << v_sqrt
+                        << " move choice " << Move{move_choice} << '\n';
         }
         if (u > max_value) {
           best_prev_node =

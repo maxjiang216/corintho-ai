@@ -4,6 +4,7 @@
 #include "game.h"
 #include "util.h"
 #include <bitset>
+#include <fstream>
 
 // Node in Monte Carlo Tree
 class alignas(64) Node {
@@ -48,6 +49,8 @@ public:
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;
 
   uintf count_nodes() const;
+
+  void print_tree(std::ofstream *stream, uintf indent) const;
 
   friend class TrainMC;
   friend class SelfPlayer;

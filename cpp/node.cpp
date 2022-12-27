@@ -1,7 +1,9 @@
 #include "node.h"
 #include "game.h"
+#include "move.h"
 #include "util.h"
 #include <bitset>
+#include <cmath>
 #include <iostream>
 using std::bitset;
 using std::cerr;
@@ -97,4 +99,34 @@ uintf Node::count_nodes() const {
     cur_child = cur_child->next_sibling;
   }
   return counter;
+}
+
+void Node::print_tree(std::ofstream *stream, uintf indent) const {
+  for (uintf i = 0; i < indent; ++i) {
+    *stream << ' ';
+  }
+  *stream << Move{child_num} << " visits: " << (uintf)visits
+          << " eval: " << evaluation << " depth: " << (uintf)depth << '\n';
+  Node *cur_child = first_child;
+  uintf edge_index = 0;
+  while (cur_child != nullptr) {
+    if (edges[edge_index].move_id == cur_child->child_num) {
+      for (uintf i = 0; i < indent + 1; ++i) {
+        *stream << ' ';
+      }
+      *stream << Move{cur_child->child_num} << " u "
+              << -1.0 * cur_child->evaluation / (float)cur_child->visits +
+                     get_probability(edge_index) * sqrt((float)visits) /
+                         ((float)cur_child->visits + 1.0)
+              << " eval: "
+              << -1.0 * cur_child->evaluation / (float)cur_child->visits
+              << " uncert: "
+              << get_probability(edge_index) * sqrt((float)visits) /
+                     ((float)cur_child->visits + 1.0)
+              << " prob: " << get_probability(edge_index) << '\n';
+      cur_child->print_tree(stream, indent + 1);
+      cur_child = cur_child->next_sibling;
+    }
+    ++edge_index;
+  }
 }

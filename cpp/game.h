@@ -9,8 +9,6 @@
 
 using std::bitset;
 
-const uintf BOARD_SIZE = 16;
-
 class Game {
 
   // Includes the pieces and if the space is frozen

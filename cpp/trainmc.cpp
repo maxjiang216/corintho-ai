@@ -152,6 +152,7 @@ bool TrainMC::receive_opp_move(uintf move_choice,
   cur = root;
   // We need an evaluation
   cur->write_game_state(game_state);
+  searched.push_back(cur);
   // this is the first iteration of the turn
   iterations_done = 1;
   // we need an evaluation

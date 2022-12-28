@@ -26,6 +26,8 @@ class TrainMC {
   uintf eval_index;
   // Nodes we have searches this cycle
   std::vector<Node *> searched;
+  // We want to evaluate these vectors
+  float *to_eval;
 
   // Used to keep track of when to choose a move
   uintf iterations_done;
@@ -35,7 +37,7 @@ class TrainMC {
   std::mt19937 *generator;
 
   void receive_evaluation(float evaluation[], float probabilities[]);
-  bool search(float game_state[]);
+  bool search();
 
   void move_down(Node *prev_node);
 
@@ -50,20 +52,17 @@ public:
 
   // First iterations are guaranteed not to end a turn
   // First iteration on starting position
-  void do_first_iteration(float game_state[GAME_STATE_SIZE]);
+  void do_first_iteration();
 
-  void do_first_iteration(const Game &game, uintf depth,
-                          float game_state[GAME_STATE_SIZE]);
+  void do_first_iteration(const Game &game, uintf depth);
 
-  bool do_iteration(float evaluation[], float probabilities[],
-                    float game_state[]);
+  bool do_iteration(float evaluation[], float probabilities[]);
 
   // Choose the next child to visit
   uintf choose_move(float game_state[GAME_STATE_SIZE],
                     float probability_sample[NUM_MOVES]);
 
-  bool receive_opp_move(uintf move_choice, float game_state[GAME_STATE_SIZE],
-                        const Game &game, uintf depth);
+  bool receive_opp_move(uintf move_choice, const Game &game, uintf depth);
 
   // Accessors
   const Game &get_game() const;

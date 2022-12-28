@@ -74,35 +74,44 @@ void test_basic_run() {
 
   cerr << "Ready to play!\n";
 
+  uintf to_play = 0;
+
   auto start = chrono::high_resolution_clock::now();
-  uintf counter = 0;
+
+  trainer.do_iteration(evaluations, probabilities, to_play);
+  uintf counter = 1;
   while (true) {
-    for (uintf i = 0; i < num_games * searches_per_eval; ++i) {
-      if ((counter / num_iterations) % 2 == 0) {
-        evaluations[i] = random_evals(generator);
-      } else {
-        evaluations[i] = 0.0;
+    uintf num_requests = trainer.write_requests(game_states, to_play);
+    cerr << num_requests << '\n';
+    if (num_requests > 0) {
+      for (uintf i = 0; i < num_requests; ++i) {
+        if (to_play == 0) {
+          evaluations[i] = random_evals(generator);
+        } else {
+          evaluations[i] = 0.0;
+        }
+        float sum = 0.0;
+        for (uintf j = 0; j < NUM_MOVES; ++j) {
+          probabilities[i * NUM_MOVES + j] = random_probabilities(generator);
+          sum += probabilities[i * NUM_MOVES + j];
+        }
+        for (uintf j = 0; j < NUM_MOVES; ++j) {
+          probabilities[i * NUM_MOVES + j] /= sum;
+        }
       }
-      float sum = 0.0;
-      for (uintf j = 0; j < NUM_MOVES; ++j) {
-        probabilities[i * NUM_MOVES + j] = random_probabilities(generator);
-        sum += probabilities[i * NUM_MOVES + j];
+      bool is_done = trainer.do_iteration(evaluations, probabilities, to_play);
+      if (is_done)
+        break;
+      ++counter;
+      if (counter % 10 == 0) {
+        cerr << "Complete evaluation " << counter << '\n';
+        /*uintf num_nodes = trainer.count_nodes();
+        cerr << "Nodes per game per iteration: "
+             << (float)num_nodes / (float)num_games / (float)num_iterations
+             << '\n';*/
       }
-      for (uintf j = 0; j < NUM_MOVES; ++j) {
-        probabilities[i * NUM_MOVES + j] /= sum;
-      }
-    }
-    bool is_done = trainer.do_iteration(evaluations, probabilities, game_states,
-                                        (counter / num_iterations) % 2);
-    if (is_done)
-      break;
-    ++counter;
-    if (counter % 10 == 0) {
-      cerr << "Complete iteration " << counter << '\n';
-      /*uintf num_nodes = trainer.count_nodes();
-      cerr << "Nodes per game per iteration: "
-           << (float)num_nodes / (float)num_games / (float)num_iterations
-           << '\n';*/
+    } else {
+      to_play = 1 - to_play;
     }
   }
   auto stop = chrono::high_resolution_clock::now();
@@ -129,5 +138,5 @@ int main() {
     print_line_breakers(i);
   }
 
-  // test_basic_run();
+  test_basic_run();
 }

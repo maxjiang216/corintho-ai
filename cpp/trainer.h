@@ -45,11 +45,13 @@ public:
 
   // Main function that will be called by Cython
   // Training version
-  bool do_iteration(float evaluations[], float probabilities[],
-                    float game_states[]);
+  bool do_iteration(float evaluations[], float probabilities[]);
   // Testing version
-  bool do_iteration(float evaluations[], float probabilities[],
-                    float game_states[], uintf to_play);
+  bool do_iteration(float evaluations[], float probabilities[], uintf to_play);
+
+  // Returns how many positions we want evaluated
+  uintf write_requests(float *game_states) const;
+  uintf write_requests(float *game_states, uintf to_play) const;
 
   // Counts the number of samples in all the games
   uintf count_samples() const;

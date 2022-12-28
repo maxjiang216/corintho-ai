@@ -21,10 +21,10 @@ cdef extern from "cpp/trainer.cpp":
         Trainer(int num_games, int num_logged, int num_iterations,
                 float c_puct, float epsilon, int threads, int searches_per_eval, string logging_folder,
                 int random_seed, bool)
-        bool do_iteration(float *evaluations, float *probabilities,
-                          float *game_states)
-        bool do_iteration(float *evaluations, float *probabilities,
-                          float *game_states, int to_play)
+        bool do_iteration(float *evaluations, float *probabilities)
+        bool do_iteration(float *evaluations, float *probabilities, int to_play)
+        int write_requests(float *game_states)
+        int write_requests(float *game_states, int to_play)
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
         float get_score()
@@ -96,26 +96,28 @@ def train_generation(*,
     start_time = time.perf_counter()
 
     # First iteration
-    trainer.do_iteration(&evaluations[0], &probabilities[0,0], &game_states[0,0])
+    trainer.do_iteration(&evaluations[0], &probabilities[0,0])
 
     predict_time = 0
     play_time = 0
 
     while True:
 
+        num_requests = trainer.write_requests(&game_states[0,0])
+
         pred_start = time.perf_counter()
         # use_multiprocessing probably does nothing
         # but it does not hurt
         # and in one case it was removed and NN evals became much slower
         res = model.predict(
-            x=game_states, batch_size=num_games * searches_per_eval, verbose=0, use_multiprocessing=True
+            x=game_states, batch_size=num_requests, verbose=0, steps=1,
         )
         evaluations = res[0].flatten()
         probabilities = res[1]
         predict_time += time.perf_counter()-pred_start
 
         play_start = time.perf_counter()
-        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0], &game_states[0,0])
+        res = trainer.do_iteration(&evaluations[0], &probabilities[0,0])
         play_time += time.perf_counter()-play_start
 
         if res:
@@ -216,30 +218,35 @@ def train_generation(*,
     to_play = 0
     done = False
 
+     # First iteration
+    tester.do_iteration(&evaluations_test[0], &probabilities_test[0,0], to_play)
+
     while not done:
 
-        for i in range(iterations//searches_per_eval):
-            play_start = time.perf_counter()
-            res = tester.do_iteration(&evaluations_test[0], &probabilities_test[0,0],
-                &test_game_states[0,0], to_play,
-            )
-            play_time += time.perf_counter()-play_start
-            if res:
-                done = True
-                break
+        num_requests = tester.write_requests(&test_game_states[0,0], to_play)
 
+        if num_requests > 0:
             pred_start = time.perf_counter()
             if to_play == 0:
                 res = training_model.predict(
-                    x=test_game_states, batch_size=num_test_games * searches_per_eval, verbose=0, use_multiprocessing=True
+                    x=test_game_states, batch_size=num_requests, verbose=0, steps=1,
                 )
             else:
                 res = model.predict(
-                    x=test_game_states, batch_size=num_test_games * searches_per_eval, verbose=0, use_multiprocessing=True
+                    x=test_game_states, batch_size=num_requests, verbose=0, steps=1,
                 )
             evaluations_test = res[0].flatten()
             probabilities_test = res[1]
             predict_time += time.perf_counter()-pred_start
+
+            play_start = time.perf_counter()
+            res = tester.do_iteration(&evaluations_test[0], &probabilities_test[0,0],
+                to_play,
+            )
+            play_time += time.perf_counter() - play_start
+            if res:
+                done = True
+                break
 
             evaluations_done += 1
             if evaluations_done % max(1, 15 * iterations // 100) == 0:
@@ -251,8 +258,8 @@ def train_generation(*,
                     f"Prediction time so far: {format_time(predict_time)}\n"
                     f"Play time so far: {format_time(play_time)}\n\n"
                 )
-
-        to_play = 1 - to_play
+        else:
+            to_play = 1 - to_play
 
     time_taken = time.perf_counter() - start_time
 

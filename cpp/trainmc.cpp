@@ -15,49 +15,49 @@ using std::bitset;
 
 TrainMC::TrainMC(std::mt19937 *generator)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
+      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
       iterations_done{0}, testing{false}, generator{generator} {
   searched.reserve(searches_per_eval);
 }
 
 TrainMC::TrainMC(std::mt19937 *generator, bool)
     : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
+      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
       iterations_done{0}, testing{true}, generator{generator} {
   searched.reserve(searches_per_eval);
 }
 
-void TrainMC::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
+void TrainMC::do_first_iteration() {
 
   // Create the root node
   root = new Node();
   cur = root;
   iterations_done = 1;
 
-  cur->write_game_state(game_state);
+  cur->write_game_state(to_eval);
   searched.push_back(cur);
+  eval_index = 1;
 }
 
-void TrainMC::do_first_iteration(const Game &game, uintf depth,
-                                 float game_state[GAME_STATE_SIZE]) {
+void TrainMC::do_first_iteration(const Game &game, uintf depth) {
 
   // Create the root node
   root = new Node(game, depth);
   cur = root;
   iterations_done = 1;
 
-  cur->write_game_state(game_state);
+  cur->write_game_state(to_eval);
   searched.push_back(cur);
+  eval_index = 1;
 }
 
-bool TrainMC::do_iteration(float evaluation[], float probabilities[],
-                           float game_state[]) {
+bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
   receive_evaluation(evaluation, probabilities);
   while (eval_index < searches_per_eval) {
     // We are done the search prematurely if
     // The root has no more children to search
     // Or if we have done max_iterations searches
-    bool done_search = search(game_state);
+    bool done_search = search();
     if (done_search)
       break;
   }
@@ -130,9 +130,8 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   return move_choice;
 }
 
-bool TrainMC::receive_opp_move(uintf move_choice,
-                               float game_state[GAME_STATE_SIZE],
-                               const Game &game, uintf depth) {
+bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
+                               uintf depth) {
 
   Node *prev_node = nullptr, *cur_child = root->first_child;
   while (cur_child != nullptr) {
@@ -151,10 +150,11 @@ bool TrainMC::receive_opp_move(uintf move_choice,
   root = new Node(game, depth);
   cur = root;
   // We need an evaluation
-  cur->write_game_state(game_state);
+  cur->write_game_state(to_eval);
   searched.push_back(cur);
   // this is the first iteration of the turn
   iterations_done = 1;
+  eval_index = 1;
   // we need an evaluation
   return true;
 }
@@ -247,7 +247,7 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
   searched.clear();
 }
 
-bool TrainMC::search(float game_state[]) {
+bool TrainMC::search() {
 
   bool need_evaluation = false;
 
@@ -370,7 +370,7 @@ bool TrainMC::search(float game_state[]) {
     else {
       need_evaluation = true;
       // Write game in offset position
-      cur->write_game_state(game_state + eval_index * GAME_STATE_SIZE);
+      cur->write_game_state(to_eval + eval_index * GAME_STATE_SIZE);
       // Record the node
       searched.push_back(cur);
       ++eval_index;

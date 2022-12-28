@@ -31,6 +31,9 @@ class SelfPlayer {
   // Random generator for all operations
   std::mt19937 *generator;
 
+  // Positions to evaluate
+  float *to_eval;
+
   // Training samples
   std::vector<Sample> samples;
 
@@ -43,25 +46,29 @@ class SelfPlayer {
   // This way we don't allocate memory if there is no logging file
   std::ofstream *logging_file;
 
-  bool do_iteration(float game_state[GAME_STATE_SIZE]);
+  bool do_iteration();
 
 public:
   // Training mode
-  SelfPlayer(std::mt19937 *generator);
-  SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file);
+  SelfPlayer(uintf searches_per_eval, std::mt19937 *generator);
+  SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
+             std::ofstream *logging_file);
   // Testing mode
-  SelfPlayer(uintf seed, std::mt19937 *generator);
-  SelfPlayer(uintf seed, std::mt19937 *generator, std::ofstream *logging_file);
+  SelfPlayer(uintf searches_per_eval, uintf seed, std::mt19937 *generator);
+  SelfPlayer(uintf searches_per_eval, uintf seed, std::mt19937 *generator,
+             std::ofstream *logging_file);
   ~SelfPlayer();
 
-  void do_first_iteration(float game_state[GAME_STATE_SIZE]);
-  bool do_iteration(float evaluation[], float probabilities[],
-                    float game_state[]);
+  void do_first_iteration();
+  bool do_iteration(float evaluation[], float probabilities[]);
+
+  uintf count_requests() const;
+  void write_requests(float *game_states) const;
 
   uintf count_samples() const;
 
-  uintf write_samples(float *game_states, float *evaluation_samples,
-                      float *probability_samples) const;
+  void write_samples(float *game_states, float *evaluation_samples,
+                     float *probability_samples) const;
 
   float get_score() const;
   uintf count_nodes() const;

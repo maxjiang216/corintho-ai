@@ -14,62 +14,71 @@ using std::cerr;
 using std::make_pair;
 using std::pair;
 
-SelfPlayer::SelfPlayer(std::mt19937 *generator)
+SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, logging_file{nullptr} {
-  players[0].game_states = &game_states;
-  players[1].game_states = &game_states;
+  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  players[0].to_eval = to_eval;
+  players[1].to_eval = to_eval;
   samples.reserve(32);
 }
 
-SelfPlayer::SelfPlayer(std::mt19937 *generator, std::ofstream *logging_file)
+SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
+                       std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, logging_file{logging_file} {
-  players[0].game_states = &game_states;
-  players[1].game_states = &game_states;
+  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  players[0].to_eval = to_eval;
+  players[1].to_eval = to_eval;
   samples.reserve(32);
 }
 
-SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator)
+SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
+                       std::mt19937 *generator)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
                                                                  nullptr} {
-  players[0].game_states = &game_states;
-  players[1].game_states = &game_states;
+  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  players[0].to_eval = to_eval;
+  players[1].to_eval = to_eval;
 }
 
-SelfPlayer::SelfPlayer(uintf seed, std::mt19937 *generator,
-                       std::ofstream *logging_file)
+SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
+                       std::mt19937 *generator, std::ofstream *logging_file)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
                                                                  logging_file} {
-  players[0].game_states = &game_states;
-  players[1].game_states = &game_states;
+  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  players[0].to_eval = to_eval;
+  players[1].to_eval = to_eval;
 }
 
 SelfPlayer::~SelfPlayer() {
-  delete logging_file;
-  delete generator;
+  if (logging_file != nullptr) {
+    delete logging_file;
+  }
+  if (to_eval != nullptr) {
+    delete[] to_eval;
+  }
+  if (generator != nullptr) {
+    delete generator;
+  }
 }
 
-void SelfPlayer::do_first_iteration(float game_state[GAME_STATE_SIZE]) {
-  players[0].do_first_iteration(game_state);
-}
+void SelfPlayer::do_first_iteration() { players[0].do_first_iteration(); }
 
-bool SelfPlayer::do_iteration(float evaluation[], float probabilities[],
-                              float game_state[]) {
-  bool done_turn =
-      players[to_play].do_iteration(evaluation, probabilities, game_state);
+bool SelfPlayer::do_iteration(float evaluation[], float probabilities[]) {
+  bool done_turn = players[to_play].do_iteration(evaluation, probabilities);
   // If we have completed a turn
   // and we don't need to evaluate any positions
   // We can choose a move
   if (done_turn && players[to_play].eval_index == 0)
-    return do_iteration(game_state);
+    return do_iteration();
   // Game is not complete
   return false;
 }
 
-bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
+bool SelfPlayer::do_iteration() {
 
   bool need_evaluation = false;
 
@@ -154,6 +163,12 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       players[0].root = nullptr;
       delete players[1].root;
       players[1].root = nullptr;
+      delete[] to_eval;
+      to_eval = nullptr;
+      delete logging_file;
+      logging_file = nullptr;
+      delete generator;
+      generator = nullptr;
       // Return that the game is complete
       return true;
     }
@@ -163,8 +178,7 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
       // First time iterating the second TrainMC
       if (players[to_play].is_uninitialized()) {
         players[to_play].do_first_iteration(players[1 - to_play].root->game,
-                                            players[1 - to_play].root->depth,
-                                            game_state);
+                                            players[1 - to_play].root->depth);
         // Game is not over, evaluation is needed
         // It cannot be a terminal state
         return false;
@@ -172,12 +186,12 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
         // It's possible that we need an evaluation for this
         // in the case that received move has not been searched
         need_evaluation = players[to_play].receive_opp_move(
-            move_choice, game_state, players[1 - to_play].get_game(),
+            move_choice, players[1 - to_play].get_game(),
             players[1 - to_play].root->depth);
         if (!need_evaluation) {
           // Otherwise, we search again
-          need_evaluation = !(players[to_play].search(game_state) &&
-                              players[to_play].eval_index == 0);
+          need_evaluation =
+              !(players[to_play].search() && players[to_play].eval_index == 0);
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
           // This is unlikely, however
@@ -190,10 +204,22 @@ bool SelfPlayer::do_iteration(float game_state[GAME_STATE_SIZE]) {
   return false;
 }
 
+uintf SelfPlayer::count_requests() const {
+  return players[to_play].searched.size();
+}
+
+void SelfPlayer::write_requests(float *game_states) const {
+  // Can change to memcpy later
+  for (uintf i = 0; i < GAME_STATE_SIZE * players[to_play].searched.size();
+       ++i) {
+    *(game_states + i) = to_eval[i];
+  }
+}
+
 uintf SelfPlayer::count_samples() const { return samples.size(); }
 
-uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
-                                float *probability_samples) const {
+void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
+                               float *probability_samples) const {
   uintf offset = 0;
   // The last player to play a move is the winner, except in a draw
   float evaluation = 1.0;
@@ -231,7 +257,6 @@ uintf SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
     ++offset;
     evaluation *= -1.0;
   }
-  return samples.size();
 }
 
 float SelfPlayer::get_score() const {

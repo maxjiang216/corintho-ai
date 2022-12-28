@@ -22,3 +22,5 @@ boost_*_*_*
 *.zip
 prof.txt
 logging
+loss.txt
+build_out.txt

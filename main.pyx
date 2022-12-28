@@ -180,6 +180,7 @@ def train_generation(*,
         batch_size=batch_size,
         epochs=epochs,
         shuffle=True,
+        validation_split=0.05,
     )
 
     # Save model

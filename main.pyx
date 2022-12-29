@@ -11,6 +11,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
 from keras.api._v2.keras.models import load_model
 from keras import backend as K
+from keras.callbacks import CSVLogger
 
 cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
@@ -177,6 +178,7 @@ def train_generation(*,
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
+    csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator=';')
     training_model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
@@ -184,6 +186,7 @@ def train_generation(*,
         epochs=epochs,
         shuffle=True,
         validation_split=0.05,
+        callbacks=[csv_logger],
     )
 
     # Save model

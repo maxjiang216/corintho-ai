@@ -1,5 +1,6 @@
 #include "node.h"
 #include "game.h"
+#include "move.h"
 #include "util.h"
 #include <bitset>
 #include <iostream>
@@ -97,4 +98,30 @@ uintf Node::count_nodes() const {
     cur_child = cur_child->next_sibling;
   }
   return counter;
+}
+
+void Node::print_main_line(std::ostream *logging_file) const {
+  Node *cur_child = first_child, *best_child = nullptr;
+  uintf max_visits = 0, edge_index = 0;
+  float max_eval = 0.0, prob = 0.0;
+  while (cur_child != nullptr) {
+    if (edges[edge_index].move_id == cur_child->child_num) {
+      if (cur_child->visits > max_visits ||
+          (cur_child->visits == max_visits &&
+           cur_child->evaluation > max_eval)) {
+        best_child = cur_child;
+        max_visits = cur_child->visits;
+        max_eval = cur_child->evaluation;
+        prob = get_probability(edge_index);
+      }
+      cur_child = cur_child->next_sibling;
+    }
+    ++edge_index;
+  }
+  if (best_child != nullptr) {
+    *logging_file << (uintf)best_child->depth << ". "
+                  << Move{best_child->child_num} << " v: " << max_visits
+                  << " e: " << max_eval << " p: " << prob << '\t';
+    best_child->print_main_line(logging_file);
+  }
 }

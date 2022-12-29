@@ -106,8 +106,6 @@ def train_generation(*,
 
         num_requests = trainer.write_requests(&game_states[0,0])
 
-        print(num_requests)
-
         pred_start = time.perf_counter()
         # use_multiprocessing probably does nothing
         # but it does not hurt

@@ -91,6 +91,9 @@ bool SelfPlayer::do_iteration() {
                     << "\nPOSITION EVALUATION: " << std::fixed
                     << std::setprecision(6) << players[to_play].root->evaluation
                     << "\nLEGAL MOVES:\n";
+      // Print main line
+      players[to_play].root->print_main_line(logging_file);
+      *logging_file << '\n';
       // Get and sort moves by visit count and evaluation
       std::vector<pair<pair<uintf, float>, pair<float, uintf>>> moves;
       Node *cur_child = players[to_play].root->first_child;
@@ -121,10 +124,6 @@ bool SelfPlayer::do_iteration() {
            });
       // Print chosen move (should always be one with highest visit then eval
       // then lowest id)
-      *logging_file << Move{moves[0].second.second}
-                    << " V: " << moves[0].first.first << std::setprecision(2)
-                    << " E: " << moves[0].first.second
-                    << " P: " << moves[0].second.first << '\n';
       for (uintf i = 1; i < moves.size(); ++i) {
         *logging_file << Move{moves[i].second.second}
                       << " V: " << moves[i].first.first

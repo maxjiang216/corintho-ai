@@ -94,6 +94,7 @@ def train_generation(*,
     print("Begin training!")
 
     start_time = time.perf_counter()
+    last_time = start_time
 
     # First iteration
     trainer.do_iteration(&evaluations[0], &probabilities[0,0])
@@ -125,7 +126,8 @@ def train_generation(*,
 
         evaluations_done += 1
 
-        if evaluations_done % max(1, 15 * iterations // 100) == 0:
+        # Log every minute
+        if time.perf_counter() - last_time > 60:
             time_taken = time.perf_counter() - start_time
             open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                 f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
@@ -134,6 +136,7 @@ def train_generation(*,
                 f"Prediction time so far: {format_time(predict_time)}\n"
                 f"Play time so far: {format_time(play_time)}\n\n"
             )
+            last_time = time.perf_counter()
 
     time_taken = time.perf_counter() - start_time
     open(f"{train_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
@@ -213,6 +216,7 @@ def train_generation(*,
     print("Begin testing!")
 
     start_time = time.perf_counter()
+    last_time = start_time
 
     predict_time = 0
     play_time = 0
@@ -250,7 +254,7 @@ def train_generation(*,
                 break
 
             evaluations_done += 1
-            if evaluations_done % max(1, 15 * iterations // 100) == 0:
+            if time.perf_counter() - last_time > 60:
                 time_taken = time.perf_counter() - start_time
                 open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
                     f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
@@ -259,6 +263,7 @@ def train_generation(*,
                     f"Prediction time so far: {format_time(predict_time)}\n"
                     f"Play time so far: {format_time(play_time)}\n\n"
                 )
+                last_time = time.perf_counter()
         else:
             to_play = 1 - to_play
 

@@ -72,7 +72,7 @@ def train_generation(*,
     # Training
 
     # Load playing model
-    model = load_model(best_gen_location)
+    model = load_model(cur_gen_location)
 
     cdef Trainer* trainer = new Trainer(
         num_games,
@@ -108,9 +108,7 @@ def train_generation(*,
         num_requests = trainer.write_requests(&game_states[0,0])
 
         pred_start = time.perf_counter()
-        # use_multiprocessing probably does nothing
-        # but it does not hurt
-        # and in one case it was removed and NN evals became much slower
+
         res = model.predict(
             x=game_states, batch_size=num_requests, verbose=0, steps=1,
         )
@@ -173,13 +171,11 @@ def train_generation(*,
         old_evaluation_labels.close()
         old_probability_labels.close()
 
-    # Load training model
-    training_model = load_model(cur_gen_location)
     # Set learning rate
-    K.set_value(training_model.optimizer.learning_rate, learning_rate)
+    K.set_value(model.optimizer.learning_rate, learning_rate)
     # Train neural net
     csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator=';')
-    training_model.fit(
+    model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
         batch_size=batch_size,
@@ -190,7 +186,7 @@ def train_generation(*,
     )
 
     # Save model
-    training_model.save(new_model_location)
+    model.save(new_model_location)
 
     # Do we want to save this time?
     print(f"Training took {format_time(time.perf_counter() - start_time)}!")
@@ -209,6 +205,8 @@ def train_generation(*,
         rng.integers(65536),  # Random seed
         True,  # Testing
     )
+
+    best_model = load_model(best_gen_location)
 
     cdef np.ndarray[np.float32_t, ndim=1] evaluations_test = np.zeros(num_test_games * searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities_test = np.zeros((num_test_games * searches_per_eval, NUM_MOVES), dtype=np.float32)
@@ -236,11 +234,11 @@ def train_generation(*,
         if num_requests > 0:
             pred_start = time.perf_counter()
             if to_play == 0:
-                res = training_model.predict(
+                res = model.predict(
                     x=test_game_states, batch_size=num_requests, verbose=0, steps=1,
                 )
             else:
-                res = model.predict(
+                res = best_model.predict(
                     x=test_game_states, batch_size=num_requests, verbose=0, steps=1,
                 )
             evaluations_test = res[0].flatten()

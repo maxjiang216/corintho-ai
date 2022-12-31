@@ -12,6 +12,7 @@ import keras.api._v2.keras as keras
 from keras.api._v2.keras.models import load_model
 from keras import backend as K
 from keras.callbacks import CSVLogger
+from keras.callbacks import ModelCheckpoint
 
 cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
@@ -178,6 +179,10 @@ def train_generation(*,
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
+    checkpoint = ModelCheckpoint(new_model_location, monitor='val_loss', verbose=1,
+                                 save_best_only=True, save_weights_only=False,
+                                 mode='auto', save_frequency=1,
+    )
     csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator=';')
     training_model.fit(
         x=sample_states,
@@ -185,12 +190,9 @@ def train_generation(*,
         batch_size=batch_size,
         epochs=epochs,
         shuffle=True,
-        validation_split=0.05,
-        callbacks=[csv_logger],
+        validation_split=0.1,
+        callbacks=[checkpoint, csv_logger],
     )
-
-    # Save model
-    training_model.save(new_model_location)
 
     # Do we want to save this time?
     print(f"Training took {format_time(time.perf_counter() - start_time)}!")

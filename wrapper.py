@@ -145,7 +145,7 @@ def main():
     BATCH_SIZE = max(1, args["batch_size"])
     EPOCHS = max(1, args["epochs"])
     ANNEAL_FACTOR = max(0.0, min(1.0, args["anneal_factor"]))
-    PATIENCE = min(1, max(EPOCHS, args["patience"]))
+    PATIENCE = max(1, min(EPOCHS, args["patience"]))
     EPOCHS = max(1, args["epochs"])
     NUM_OLD_GENS = max(0, args["num_old_gens"])
     NAME = args["name"]
@@ -447,6 +447,8 @@ def main():
         f"Learning rate: {LEARNING_RATE}\n"
         f"Batch size used in training: {BATCH_SIZE}\n"
         f"Epochs used in training: {EPOCHS}\n"
+        f"Learning rate annealing factor: {ANNEAL_FACTOR}\n"
+        f"Patience: {PATIENCE}\n"
         f"Old samples used: {old_training_samples}\n"
         f"""Start time: {datetime.datetime.now(tz=pytz.timezone("America/Toronto"))}\n"""
     )

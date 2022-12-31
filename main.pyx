@@ -197,7 +197,7 @@ def train_generation(*,
     )
 
     # Save the learning rate
-    open(f"{train_log_folder}/learning_rate.txt", "w+").write(K.eval(training_model.optimizer.lr))
+    open(f"{train_log_folder}/learning_rate.txt", "w+").write(str(K.eval(training_model.optimizer.lr)))
 
     print(f"Training took {format_time(time.perf_counter() - start_time)}!")
 

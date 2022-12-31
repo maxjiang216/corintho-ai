@@ -68,17 +68,12 @@ bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
 uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
                            float probability_sample[NUM_MOVES]) {
 
-  // Before moving down, read the samples from the root node
-  root->write_game_state(game_state);
-  // Clear probabilities first
-  // Most moves are not legal
-  std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
-  Node *cur_child = cur->first_child;
-  float denominator = 1.0 / ((float)root->visits - 1.0);
-  while (cur_child != nullptr) {
-    probability_sample[cur_child->child_num] =
-        (float)cur_child->visits * denominator;
-    cur_child = cur_child->next_sibling;
+  if (!testing) {
+    // Before moving down, read the samples from the root node
+    root->write_game_state(game_state);
+    // Clear probabilities first
+    // Most moves are not legal
+    std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
   }
 
   uintf move_choice = 0;
@@ -90,16 +85,25 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   // For the first few moves
   if (root->depth < NUM_OPENING_MOVES && !testing) {
     uintf total = 0, target = (*generator)() % (root->visits - 1);
+    float denominator = 1.0 / ((float)root->visits - 1.0);
     Node *cur_child = root->first_child;
     // This loop will always break out
     // There is always at least one child
     while (true) {
       total += cur_child->visits;
+      probability_sample[cur_child->child_num] =
+          (float)cur_child->visits * denominator;
       if (total > target) {
         move_choice = cur_child->child_num;
         break;
       }
       best_prev_node = cur_child;
+      cur_child = cur_child->next_sibling;
+    }
+    cur_child = cur_child->next_sibling;
+    while (cur_child != nullptr) {
+      probability_sample[cur_child->child_num] =
+          (float)cur_child->visits * denominator;
       cur_child = cur_child->next_sibling;
     }
   }
@@ -123,6 +127,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
+    probability_sample[move_choice] = 1.0;
   }
 
   move_down(best_prev_node);

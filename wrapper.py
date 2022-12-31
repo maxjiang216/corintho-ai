@@ -486,6 +486,18 @@ def main():
         .strip()
     )
 
+    # Delete previous zip logs if it exists
+    if os.path.isdir(f"{cwd}/zips"):
+        shutil.rmtree(f"{cwd}/zips")
+    # Recreate folder
+    os.mkdir(f"{cwd}/zips")
+    # Zip logs
+    shutil.make_archive(
+        f"{cwd}/zips/{NAME}_{current_generation+1}",
+        "zip",
+        f"{cwd}/{NAME}",
+    )
+
     # Generation passed, update best gen
     if res:
         open(
@@ -498,14 +510,6 @@ def main():
         "w+",
         encoding="utf-8",
     ).write(f"{current_generation+1}")
-
-    # Delete previous zip logs
-    # Zip logs
-    shutil.make_archive(
-        f"{NAME}_{current_generation+1}",
-        "zip",
-        f"{cwd}/{NAME}",
-    )
 
 
 if __name__ == "__main__":

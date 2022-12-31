@@ -16,12 +16,11 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
 - [x] Add Leela-Zero-style nodes
 - [x] Add validation tests
 - [x] Check for memory leaks
-- [ ] Add board symmetries in training samples
-- [ ] Make testing such that only only neural network is queried each time
-- [ ] Remove offset for searches during testing
+- [x] Add board symmetries in training samples
+- [x] Make testing such that only only neural network is queried each time
+- [x] Remove offset for searches during testing
 - [ ] Validate correctness of Dirichlet distribution approximation
-- [ ] Add the option for multiple searches per evaluation
-- [ ] Add Boost thread pool for multithreading
+- [x] Add the option for multiple searches per evaluation
 - [ ] Profile code
 - [ ] Add Boost memory pool for allocating nodes and edges
 - [ ] Try tcmalloc for fasting dynamic allocation

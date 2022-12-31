@@ -11,8 +11,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
 from keras.api._v2.keras.models import load_model
 from keras import backend as K
-from keras.callbacks import CSVLogger
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau
 
 cdef extern from "cpp/trainer.cpp":
     cdef cppclass Trainer:
@@ -60,6 +59,8 @@ def train_generation(*,
     learning_rate=0.01,
     batch_size=2048,
     epochs=1,
+    anneal_factor=0.5,
+    patience=3,
     old_training_samples=[],  # list of folders containing training sample files from previous generations to use
 ):
 
@@ -183,6 +184,7 @@ def train_generation(*,
                                  save_best_only=True, save_weights_only=False,
                                  mode='auto', save_frequency=1,
     )
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=anneal_factor, patience=patience)
     csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator=';')
     training_model.fit(
         x=sample_states,
@@ -191,10 +193,12 @@ def train_generation(*,
         epochs=epochs,
         shuffle=True,
         validation_split=0.1,
-        callbacks=[checkpoint, csv_logger],
+        callbacks=[checkpoint, reduce_lr, csv_logger],
     )
 
-    # Do we want to save this time?
+    # Save the learning rate
+    open(f"{train_log_folder}/learning_rate.txt", "w+").write(str(K.eval(training_model.optimizer.lr)))
+
     print(f"Training took {format_time(time.perf_counter() - start_time)}!")
 
     # Testing

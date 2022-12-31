@@ -179,7 +179,7 @@ def train_generation(*,
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
-    checkpoint = ModelCheckpoint(new_model_location, monitor='val_loss', verbose=1,
+    checkpoint = ModelCheckpoint(new_model_location, monitor='val_loss',
                                  save_best_only=True, save_weights_only=False,
                                  mode='auto', save_frequency=1,
     )

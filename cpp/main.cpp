@@ -82,7 +82,6 @@ void test_basic_run() {
   uintf counter = 1;
   while (true) {
     uintf num_requests = trainer.write_requests(game_states, to_play);
-    cerr << num_requests << '\n';
     if (num_requests > 0) {
       for (uintf i = 0; i < num_requests; ++i) {
         if (to_play == 0) {

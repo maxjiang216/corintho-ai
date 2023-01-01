@@ -212,14 +212,7 @@ def main():
 
         # Create model
         input_layer = Input(shape=(GAME_STATE_SIZE,))
-        prev_layer = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=128,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(input_layer)
-            )
-        )
+        prev_layer = input_layer
         for _ in range(18):
             new_layer = Activation("relu")(
                 BatchNormalization()(

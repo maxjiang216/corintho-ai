@@ -212,176 +212,158 @@ def main():
 
         # Create model
         input_layer = Input(shape=(GAME_STATE_SIZE,))
-        layer_1 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(input_layer)
-                )
+        layer_1 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(input_layer)
             )
         )
-        layer_2 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_1)
-                )
+
+        layer_2 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_1)
             )
         )
-        layer_3 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_2)
-                )
+
+        layer_3 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_2)
             )
         )
-        layer_4 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_3)
-                )
+
+        layer_4 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_3)
             )
         )
-        layer_5 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_4)
-                )
+
+        layer_5 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_4)
             )
         )
-        layer_6 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_5)
-                )
+
+        layer_6 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_5)
             )
         )
-        layer_7 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_6)
-                )
+
+        layer_7 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_6)
             )
         )
-        layer_8 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_7)
-                )
+
+        layer_8 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_7)
             )
         )
-        layer_9 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_8)
-                )
+
+        layer_9 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_8)
             )
         )
-        layer_10 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_9)
-                )
+
+        layer_10 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_9)
             )
         )
-        layer_11 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_10)
-                )
+
+        layer_11 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_10)
             )
         )
-        layer_12 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_11)
-                )
+
+        layer_12 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_11)
             )
         )
-        layer_13 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_12)
-                )
+
+        layer_13 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_12)
             )
         )
-        layer_14 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_13)
-                )
+
+        layer_14 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_13)
             )
         )
-        layer_15 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_14)
-                )
+
+        layer_15 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_14)
             )
         )
-        layer_16 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_15)
-                )
+        layer_16 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_15)
             )
         )
-        layer_17 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_16)
-                )
+
+        layer_17 = Activation("relu")(
+            BatchNormalization()(
+                Dense(
+                    units=128,
+                    kernel_regularizer=regularizers.L2(1e-4),
+                )(layer_16)
             )
         )
+
         layer_18 = Activation("relu")(
             BatchNormalization()(
                 Dense(

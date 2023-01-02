@@ -283,9 +283,9 @@ float Trainer::get_score(const std::string &out_file) const {
   auto outfile = new std::ofstream{out_file, std::ofstream::out};
   for (uintf i = 0; i < games.size(); i += 2) {
     score += scores[i];
-    if (score == 1.0) {
+    if (scores[i] == 1.0) {
       ++wins;
-    } else if (score == 0.0) {
+    } else if (scores[i] == 0.5) {
       ++draws;
     }
   }
@@ -301,9 +301,9 @@ float Trainer::get_score(const std::string &out_file) const {
   draws = 0;
   for (uintf i = 1; i < games.size(); i += 2) {
     score += scores[i];
-    if (score == 1.0) {
+    if (scores[i] == 1.0) {
       ++wins;
-    } else if (score == 0.0) {
+    } else if (scores[i] == 0.5) {
       ++draws;
     }
   }

@@ -212,186 +212,19 @@ def main():
 
         # Create model
         input_layer = Input(shape=(GAME_STATE_SIZE,))
-        layer_1 = Dropout(0.5)(
-            Activation("relu")(
+        prev_layer = input_layer
+        for _ in range(18):
+            new_layer = Activation("relu")(
                 BatchNormalization()(
                     Dense(
                         units=128,
                         kernel_regularizer=regularizers.L2(1e-4),
-                    )(input_layer)
+                    )(prev_layer)
                 )
             )
-        )
-        layer_2 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_1)
-                )
-            )
-        )
-        layer_3 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_2)
-                )
-            )
-        )
-        layer_4 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_3)
-                )
-            )
-        )
-        layer_5 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_4)
-                )
-            )
-        )
-        layer_6 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_5)
-                )
-            )
-        )
-        layer_7 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_6)
-                )
-            )
-        )
-        layer_8 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_7)
-                )
-            )
-        )
-        layer_9 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_8)
-                )
-            )
-        )
-        layer_10 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_9)
-                )
-            )
-        )
-        layer_11 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_10)
-                )
-            )
-        )
-        layer_12 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_11)
-                )
-            )
-        )
-        layer_13 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_12)
-                )
-            )
-        )
-        layer_14 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_13)
-                )
-            )
-        )
-        layer_15 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_14)
-                )
-            )
-        )
-        layer_16 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_15)
-                )
-            )
-        )
-        layer_17 = Dropout(0.5)(
-            Activation("relu")(
-                BatchNormalization()(
-                    Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
-                    )(layer_16)
-                )
-            )
-        )
-        layer_18 = Activation("relu")(
-            BatchNormalization()(
-                Dense(
-                    units=128,
-                    kernel_regularizer=regularizers.L2(1e-4),
-                )(layer_17)
-            )
-        )
-        eval_output = Dense(units=1, activation="tanh")(layer_18)
-        prob_output = Dense(units=NUM_MOVES, activation="softmax")(layer_18)
+            prev_layer = new_layer
+        eval_output = Dense(units=1, activation="tanh")(prev_layer)
+        prob_output = Dense(units=NUM_MOVES, activation="softmax")(prev_layer)
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(
@@ -402,6 +235,7 @@ def main():
             ],
             jit_compile=True,
         )
+        print(model.summary())
 
         # Gen 0 only holdes the random weight neural network
         os.mkdir(f"{cwd}/{NAME}/generations")

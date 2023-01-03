@@ -14,7 +14,7 @@ from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 
 GAME_STATE_SIZE = 70
-
+NUM_MOVES = 96
 
 def write_learning_rate(
     best_generation,

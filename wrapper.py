@@ -10,11 +10,68 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
 from keras.api._v2.keras import Input, regularizers
 from keras.api._v2.keras.models import Model
-from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization, Dropout
+from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 
 GAME_STATE_SIZE = 70
 NUM_MOVES = 96
+
+def write_learning_rate(
+    best_generation,
+    current_generation,
+    loss_file,
+    learning_rate_file,
+    fail_num_file,
+    learning_rate,
+    patience,
+    factor,
+):
+    """
+    Updates learning rate and writes into file
+    """
+
+    # If the generation passed
+    if best_generation == current_generation:
+        open(fail_num_file, "w+", encoding="utf-8").write("0")
+        return
+
+    # Otherwise, check for loss decrease
+    min_loss = 999
+    loss_fails = 0
+    for line in open(loss_file, encoding="utf-8"):
+        cur_loss = float(line.strip())
+        if cur_loss < min_loss:
+            min_loss = cur_loss
+            loss_fails = 0
+        else:
+            loss_fails += 1
+
+    # Loss improved
+    if loss_fails == 0:
+        open(fail_num_file, "w+", encoding="utf-8").write("0")
+        return
+
+    # This generation failed
+    fail_num = (
+        int(
+            open(
+                fail_num_file,
+                encoding="utf-8",
+            )
+            .read()
+            .strip()
+        )
+        + 1
+    )
+
+    # If too many failures, update learning rate
+    if fail_num >= patience:
+        open(learning_rate_file, "w+", encoding="utf-8").write(
+            f"{learning_rate * factor}"
+        )
+        open(fail_num_file, "w+", encoding="utf-8").write("0")
+    else:
+        open(fail_num_file, "w+", encoding="utf-8").write(f"{fail_num}")
 
 
 def main():
@@ -183,7 +240,7 @@ def main():
         # Get learning rate
         LEARNING_RATE = float(
             open(
-                f"{cwd}/{NAME}/generations/gen_{current_generation}/training_logs/learning_rate.txt",
+                f"{cwd}/{NAME}/metadata/learning_rate.txt",
                 encoding="utf-8",
             )
             .read()
@@ -201,13 +258,14 @@ def main():
     else:
 
         # Generate name from timestamp if no name given
+        # implausible that name is repeated
         if len(NAME) == 0:
             now = datetime.datetime.now()
             NAME = (
                 f"_run_{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}"
             )
 
-        # Create folder, implausible that name is repeated
+        # Create folder
         os.mkdir(f"{cwd}/{NAME}")
 
         # Create model
@@ -233,15 +291,18 @@ def main():
                 keras.losses.MeanSquaredError(),
                 keras.losses.CategoricalCrossentropy(),
             ],
-            jit_compile=True,
+            loss_weights=[
+                1.0,
+                0.25,  # This is approximately |1 / (log(1 / 56))|
+            ],
         )
-        print(model.summary())
 
         # Gen 0 only holdes the random weight neural network
         os.mkdir(f"{cwd}/{NAME}/generations")
         os.mkdir(f"{cwd}/{NAME}/generations/gen_0")
         model.save(f"{cwd}/{NAME}/generations/gen_0/model")
 
+        # Initialize metadata
         os.mkdir(f"{cwd}/{NAME}/metadata")
         open(
             f"{cwd}/{NAME}/metadata/current_generation.txt",
@@ -250,6 +311,16 @@ def main():
         ).write("0")
         open(
             f"{cwd}/{NAME}/metadata/best_generation.txt",
+            "w+",
+            encoding="utf-8",
+        ).write("0")
+        open(
+            f"{cwd}/{NAME}/metadata/learning_rate.txt",
+            "w+",
+            encoding="utf-8",
+        ).write(f"{LEARNING_RATE}")
+        open(
+            f"{cwd}/{NAME}/metadata/fails.txt",
             "w+",
             encoding="utf-8",
         ).write("0")
@@ -294,6 +365,7 @@ def main():
         train_log_folder=train_log_folder,
         test_log_folder=test_log_folder,
         train_sample_folder=train_sample_folder,
+        loss_file=f"{cwd}/{NAME}/metadata/losses.txt",
         num_games=NUM_GAMES,
         iterations=ITERATIONS,
         num_test_games=NUM_TEST_GAMES,
@@ -334,16 +406,31 @@ def main():
 
     # Generation passed, update best gen
     if res:
+        best_generation = current_generation + 1
         open(
             f"{cwd}/{NAME}/metadata/best_generation.txt",
             "w+",
             encoding="utf-8",
-        ).write(f"{current_generation+1}")
+        ).write(f"{best_generation}")
+
+    current_generation += 1
     open(
         f"{cwd}/{NAME}/metadata/current_generation.txt",
         "w+",
         encoding="utf-8",
-    ).write(f"{current_generation+1}")
+    ).write(f"{current_generation}")
+
+    # We may want to update the learning rate
+    write_learning_rate(
+        best_generation,
+        current_generation,
+        f"{cwd}/{NAME}/metadata/losses.txt",
+        f"{cwd}/{NAME}/metadata/learning_rate.txt",
+        f"{cwd}/{NAME}/metadata/fails.txt",
+        LEARNING_RATE,
+        PATIENCE,
+        ANNEAL_FACTOR,
+    )
 
 
 if __name__ == "__main__":

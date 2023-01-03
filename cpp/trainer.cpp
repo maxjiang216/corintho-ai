@@ -267,7 +267,7 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
   }
 }
 
-float Trainer::get_score() const {
+float Trainer::get_score(const std::string &out_file) const {
   float scores[games.size()];
   omp_set_num_threads(threads);
 #pragma omp parallel for
@@ -279,8 +279,42 @@ float Trainer::get_score() const {
     scores[i] = 1.0 - games[i]->get_score();
   }
   float score = 0;
-  for (uintf i = 0; i < games.size(); ++i) {
+  uintf wins = 0, draws = 0;
+  auto outfile = new std::ofstream{out_file, std::ofstream::out};
+  for (uintf i = 0; i < games.size(); i += 2) {
     score += scores[i];
+    if (scores[i] == 1.0) {
+      ++wins;
+    } else if (scores[i] == 0.5) {
+      ++draws;
+    }
   }
+  *outfile << "First player wins: " << wins << " / " << games.size() / 2
+           << " = " << (float)wins / (games.size() / 2)
+           << "\nFirst player draws: " << draws << " / " << games.size() / 2
+           << " = " << (float)draws / (games.size() / 2)
+           << "\nFirst player losses: " << games.size() / 2 - wins - draws
+           << " / " << games.size() / 2 << " = "
+           << (float)(games.size() / 2 - wins - draws) / (games.size() / 2)
+           << '\n';
+  wins = 0;
+  draws = 0;
+  for (uintf i = 1; i < games.size(); i += 2) {
+    score += scores[i];
+    if (scores[i] == 1.0) {
+      ++wins;
+    } else if (scores[i] == 0.5) {
+      ++draws;
+    }
+  }
+  *outfile << "Second player wins: " << wins << " / " << games.size() / 2
+           << " = " << (float)wins / (games.size() / 2)
+           << "\nSecond player draws: " << draws << " / " << games.size() / 2
+           << " = " << (float)draws / (games.size() / 2)
+           << "\nSecond player losses: " << games.size() / 2 - wins - draws
+           << " / " << games.size() / 2 << " = "
+           << (float)(games.size() / 2 - wins - draws) / (games.size() / 2)
+           << '\n';
+  delete outfile;
   return score / (float)games.size();
 }

@@ -28,7 +28,7 @@ cdef extern from "cpp/trainer.cpp":
         int write_requests(float *game_states, int to_play)
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
-        float get_score()
+        float get_score(string out_file)
 
 def format_time(t):
     """Format string
@@ -40,6 +40,20 @@ def format_time(t):
         return f"{int(t//60)}m{round(t)%60:02d}s"
     return f"{int(t//3600)}h{int((t % 3600)//60):02d}m{round(t)%60:02d}s"
 
+def write_loss(loss_csv, loss_file):
+    """Append best loss to loss file"""
+
+    best_loss = 999
+    first = True
+    for line in open(loss_csv, encoding="utf-8"):
+        if first:
+            first = False
+            continue
+        lst = line.split('\t')
+        best_loss = min(best_loss, float(lst[-1]))
+    
+    open(loss_file, "a+", encoding="utf-8").write(f"{best_loss}\n")
+
 def train_generation(*,
     cur_gen_location,  # neural network to train on
     best_gen_location,  # opponent to test against
@@ -47,7 +61,8 @@ def train_generation(*,
     train_log_folder,
     test_log_folder,
     train_sample_folder,  # String path to write training samples into
-    unsigned int num_games=25000,
+    loss_file,  # String path to write loss into
+    num_games=25000,
     iterations=1600,
     num_test_games=400,
     num_logged=10,
@@ -180,12 +195,15 @@ def train_generation(*,
     # Set learning rate
     K.set_value(training_model.optimizer.learning_rate, learning_rate)
     # Train neural net
-    checkpoint = ModelCheckpoint(new_model_location, monitor='val_loss',
-                                 save_best_only=True, save_weights_only=False,
-                                 mode='auto', save_frequency=1,
+    checkpoint = ModelCheckpoint(
+        new_model_location,
+        monitor='val_loss',
+        save_best_only=True,
+        save_weights_only=False,
+        mode='auto',
+        save_frequency=1,
     )
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=anneal_factor, patience=patience)
-    csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator=';')
+    csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator='\t')
     training_model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
@@ -193,15 +211,17 @@ def train_generation(*,
         epochs=epochs,
         shuffle=True,
         validation_split=0.1,
-        callbacks=[checkpoint, reduce_lr, csv_logger],
+        callbacks=[checkpoint, csv_logger],
+        verbose=0,
     )
 
-    # Save the learning rate
-    open(f"{train_log_folder}/learning_rate.txt", "w+").write(str(K.eval(training_model.optimizer.lr)))
+    write_loss(f"{train_log_folder}/train_loss.csv", loss_file)
 
     print(f"Training took {format_time(time.perf_counter() - start_time)}!")
 
     # Testing
+
+    new_model = load_model(new_model_location)
 
     cdef Trainer* tester = new Trainer(
         num_test_games,
@@ -242,7 +262,7 @@ def train_generation(*,
         if num_requests > 0:
             pred_start = time.perf_counter()
             if to_play == 0:
-                res = training_model.predict(
+                res = new_model.predict(
                     x=test_game_states, batch_size=num_requests, verbose=0, steps=1,
                 )
             else:
@@ -282,7 +302,7 @@ def train_generation(*,
     # Do we need to do this?
     keras.backend.clear_session()
 
-    score = tester.get_score()
+    score = tester.get_score(f"{test_log_folder}/score_verbose.txt".encode())
 
     del tester
 

@@ -59,7 +59,7 @@ public:
   void write_samples(float *game_states, float *evaluation_samples,
                      float *probability_samples) const;
 
-  float get_score() const;
+  float get_score(const std::string &out_file) const;
 
   uintf count_nodes() const;
 };

@@ -16,6 +16,7 @@ from keras.api._v2.keras.optimizers import Adam
 GAME_STATE_SIZE = 70
 NUM_MOVES = 96
 
+
 def write_learning_rate(
     best_generation,
     current_generation,
@@ -271,11 +272,11 @@ def main():
         # Create model
         input_layer = Input(shape=(GAME_STATE_SIZE,))
         prev_layer = input_layer
-        for _ in range(18):
+        for i in range(20):
             new_layer = Activation("relu")(
                 BatchNormalization()(
                     Dense(
-                        units=128,
+                        units=75 + i * 5,
                         kernel_regularizer=regularizers.L2(1e-4),
                     )(prev_layer)
                 )

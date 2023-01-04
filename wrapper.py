@@ -16,6 +16,7 @@ from keras.api._v2.keras.optimizers import Adam
 GAME_STATE_SIZE = 70
 NUM_MOVES = 96
 
+
 def write_learning_rate(
     best_generation,
     current_generation,
@@ -271,12 +272,12 @@ def main():
         # Create model
         input_layer = Input(shape=(GAME_STATE_SIZE,))
         prev_layer = input_layer
-        for _ in range(18):
-            new_layer = Activation("relu")(
-                BatchNormalization()(
+        for _ in range(12):
+            new_layer = BatchNormalization()(
+                Activation("relu")(
                     Dense(
-                        units=128,
-                        kernel_regularizer=regularizers.L2(1e-4),
+                        units=100,
+                        kernel_regularizer=regularizers.L1L2(),
                     )(prev_layer)
                 )
             )
@@ -286,7 +287,7 @@ def main():
 
         model = Model(inputs=input_layer, outputs=[eval_output, prob_output])
         model.compile(
-            optimizer=Adam(learning_rate=0.01),
+            optimizer=Adam(learning_rate=LEARNING_RATE),
             loss=[
                 keras.losses.MeanSquaredError(),
                 keras.losses.CategoricalCrossentropy(),

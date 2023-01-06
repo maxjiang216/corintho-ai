@@ -24,6 +24,6 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
 - [ ] Profile code
 - [ ] Add Boost memory pool for allocating nodes and edges
 - [ ] Try tcmalloc for fasting dynamic allocation
-- [ ] Train neural network
+- [x] Train neural network
 - [ ] Make front end
 - [ ] Assess rating for best player

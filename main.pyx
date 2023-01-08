@@ -203,6 +203,7 @@ def train_generation(*,
         mode='auto',
         save_frequency=1,
     )
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=anneal_factor, patience=patience)
     csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator='\t')
     training_model.fit(
         x=sample_states,
@@ -210,8 +211,8 @@ def train_generation(*,
         batch_size=batch_size,
         epochs=epochs,
         shuffle=True,
-        validation_split=0.1,
-        callbacks=[checkpoint, csv_logger],
+        validation_split=0.3,
+        callbacks=[checkpoint, reduce_lr, csv_logger],
         verbose=0,
     )
 
@@ -299,7 +300,6 @@ def train_generation(*,
     time_taken = time.perf_counter() - start_time
 
     # Clear old models
-    # Do we need to do this?
     keras.backend.clear_session()
 
     score = tester.get_score(f"{test_log_folder}/score_verbose.txt".encode())

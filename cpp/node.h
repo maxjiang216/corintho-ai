@@ -54,6 +54,7 @@ public:
 
   friend class TrainMC;
   friend class SelfPlayer;
+  friend class PlayMC;
 };
 
 #endif

@@ -30,7 +30,7 @@ void print_class_sizes() {
 
 void print_moves() {
   for (uintf i = 0; i < NUM_MOVES; ++i) {
-    cerr << i << ' ' << Move{i} << '\n';
+    cerr << '"' << Move{i} << "\": " << i << ",\n";
   }
 }
 

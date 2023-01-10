@@ -76,59 +76,140 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
     std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
   }
 
+  // Deduce all the certain results we can
+  propagate_results();
+
   uintf move_choice = 0;
   // Keep track of the previous sibling of the chosen node
   // For when we delete deprecated nodes
   Node *best_prev_node = nullptr;
 
-  // In training, choose weighted random
-  // For the first few moves
-  if (root->depth < NUM_OPENING_MOVES && !testing) {
-    uintf total = 0, target = (*generator)() % (root->visits - 1);
-    float denominator = 1.0 / ((float)root->visits - 1.0);
-    Node *cur_child = root->first_child;
-    // This loop will always break out
-    // There is always at least one child
-    while (true) {
-      total += cur_child->visits;
-      probability_sample[cur_child->child_num] =
-          (float)cur_child->visits * denominator;
-      if (total > target) {
-        move_choice = cur_child->child_num;
-        break;
-      }
-      best_prev_node = cur_child;
-      cur_child = cur_child->next_sibling;
-    }
-    cur_child = cur_child->next_sibling;
-    while (cur_child != nullptr) {
-      probability_sample[cur_child->child_num] =
-          (float)cur_child->visits * denominator;
-      cur_child = cur_child->next_sibling;
-    }
-  }
-
-  else {
-
-    // Otherwise, choose the move with the most searches
-    // Breaking ties with evaluation
+  // Mating sequence available, find the winning move with the most searches
+  // Or the first mate in 1
+  // Ignore opening stuff here
+  if (root->result == DEDUCED_WIN) {
     uintf max_visits = 0;
-    float max_eval = 0.0;
     Node *cur_child = root->first_child, *prev_node = nullptr;
     while (cur_child != nullptr) {
-      if (cur_child->visits > max_visits ||
-          (cur_child->visits == max_visits &&
-           cur_child->evaluation > max_eval)) {
+      // Always play mates in 1s
+      if (cur_child->result == RESULT_LOSS) {
+        move_choice = cur_child->child_num;
+        best_prev_node = prev_node;
+        break;
+      }
+      if (cur_child->visits > max_visits && cur_child->result == DEDUCED_LOSS) {
         move_choice = cur_child->child_num;
         best_prev_node = prev_node;
         max_visits = cur_child->visits;
-        max_eval = cur_child->evaluation;
       }
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
     probability_sample[move_choice] = 1.0;
   }
+    // Losing position, find the move with the most searches
+    // Ignore opening stuff
+    else if (root->result == DEDUCED_LOSS) {
+      uintf max_visits = 0;
+      Node *cur_child = root->first_child, *prev_node = nullptr;
+      while (cur_child != nullptr) {
+        if (cur_child->visits > max_visits) {
+          move_choice = cur_child->child_num;
+          best_prev_node = prev_node;
+          max_visits = cur_child->visits;
+        }
+        prev_node = cur_child;
+        cur_child = cur_child->next_sibling;
+      }
+      probability_sample[move_choice] = 1.0;
+    }
+    // Drawn position, find the drawing move with the most searches
+    // Ignore opening stuff
+    else if (root->result == DEDUCED_DRAW) {
+      uintf max_visits = 0;
+      Node *cur_child = root->first_child, *prev_node = nullptr;
+      while (cur_child != nullptr) {
+        if (cur_child->visits > max_visits &&
+            cur_child->result != DEDUCED_WIN) {
+          move_choice = cur_child->child_num;
+          best_prev_node = prev_node;
+          max_visits = cur_child->visits;
+        }
+        prev_node = cur_child;
+        cur_child = cur_child->next_sibling;
+      }
+      probability_sample[move_choice] = 1.0;
+    }
+    // In training, choose weighted random
+    // For the first few moves
+    // Avoid losing moves (also remove the probability from the training sample)
+    else if (root->depth < NUM_OPENING_MOVES && !testing) {
+      uintf visits = 0;
+      Node *cur_child = root->first_child;
+      while (cur_child != nullptr) {
+        if (cur_child->result != DEDUCED_WIN) {
+          visits += cur_child->visits;
+        }
+      }
+      // All moves are losing
+      // This is possible if we have just found that all moves are losing
+      // And another search has not been done on this node to trigger the flag
+      bool losing = false;
+      if (visits == 0) {
+        losing = true;
+        visits = root->visits - 1;
+      }
+      uintf total = 0, target = (*generator)() % visits;
+      float denominator = 1.0 / ((float)visits);
+      cur_child = root->first_child;
+      // This loop will always break out
+      // There is always at least one child
+      while (true) {
+        // We do not exclude losing moves if all moves are losing
+        if (losing || cur_child->result != DEDUCED_WIN) {
+          total += cur_child->visits;
+          probability_sample[cur_child->child_num] =
+              (float)cur_child->visits * denominator;
+          if (total > target) {
+            move_choice = cur_child->child_num;
+            break;
+          }
+        }
+        best_prev_node = cur_child;
+        cur_child = cur_child->next_sibling;
+      }
+      cur_child = cur_child->next_sibling;
+      while (cur_child != nullptr) {
+        if (losing || cur_child->result != DEDUCED_WIN) {
+          probability_sample[cur_child->child_num] =
+              (float)cur_child->visits * denominator;
+        }
+        cur_child = cur_child->next_sibling;
+      }
+    }
+
+    else {
+      // Otherwise, choose the move with the most searches
+      // Breaking ties with evaluation
+      // Avoid losing moves
+      uintf max_visits = 0;
+      float max_eval = 0.0;
+      Node *cur_child = root->first_child, *prev_node = nullptr;
+      while (cur_child != nullptr) {
+        if (cur_child->result != DEDUCED_WIN &&
+            (cur_child->visits > max_visits ||
+             (cur_child->visits == max_visits &&
+              cur_child->evaluation > max_eval))) {
+          move_choice = cur_child->child_num;
+          best_prev_node = prev_node;
+          max_visits = cur_child->visits;
+          max_eval = cur_child->evaluation;
+        }
+        prev_node = cur_child;
+        cur_child = cur_child->next_sibling;
+      }
+      probability_sample[move_choice] = 1.0;
+    }
 
   move_down(best_prev_node);
 

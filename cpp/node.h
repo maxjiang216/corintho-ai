@@ -44,7 +44,7 @@ public:
 
   // Accessors
   bool is_terminal() const;
-  // is_known is like is_terminal except it includes deduced resuls
+  // is_known is like is_terminal except it includes deduced results
   bool is_known() const;
   float get_probability(uintf edge_index) const;
 

@@ -47,7 +47,11 @@ bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
   return game.get_legal_moves(legal_moves);
 }
 
-bool Node::is_terminal() const { return result != RESULT_NONE; }
+bool Node::is_terminal() const {
+  return result == RESULT_LOSS || result == RESULT_DRAW;
+}
+
+bool Node::is_known() const { return result != RESULT_NONE; }
 
 float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;

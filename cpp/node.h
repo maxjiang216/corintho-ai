@@ -44,6 +44,8 @@ public:
 
   // Accessors
   bool is_terminal() const;
+  // is_known is like is_terminal except it includes deduced resuls
+  bool is_known() const;
   float get_probability(uintf edge_index) const;
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;

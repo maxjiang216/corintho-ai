@@ -262,7 +262,7 @@ bool TrainMC::search() {
 
     ++iterations_done;
 
-    while (!cur->is_terminal()) {
+    while (!cur->is_known()) {
       // Choose next
 
       // Random value lower than -1.0
@@ -279,7 +279,7 @@ bool TrainMC::search() {
       // If all children are winning positions, mark the node as lost
       // If all nodes are confirmed loss or drawn, we can deduce the positions
       // is a draw
-      bool all_win = true, better_than_draw = false;
+      bool all_win = true, better_than_draw = false, found_winning = false;
       // Loop through existing children
       while (cur_child != nullptr) {
         // Random value lower than -1.0
@@ -292,6 +292,7 @@ bool TrainMC::search() {
             all_win = false;
             if (cur_child->result == RESULT_DRAW ||
                 cur_child->result == DEDUCED_DRAW) {
+              // Force evaluation to 0
               u = cur->get_probability(edge_index) * v_sqrt /
                   ((float)cur_child->visits + 1.0);
             } else {
@@ -302,16 +303,9 @@ bool TrainMC::search() {
                   cur_child->result == DEDUCED_LOSS) {
                 // This is a winning position
                 cur->result = DEDUCED_WIN;
-                better_than_draw = true;
-                best_prev_node = cur_child;
-                max_value = u;
-                move_choice = cur->edges[edge_index].move_id;
-                cur_child = nullptr;
-                edge_index = cur->num_legal_moves;
+                found_winning = true;
                 break;
-              }
-
-              else if (!cur_child->all_visited) {
+              } else if (!cur_child->all_visited) {
                 u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
                     cur->get_probability(edge_index) * v_sqrt /
                         ((float)cur_child->visits + 1.0);
@@ -331,6 +325,8 @@ bool TrainMC::search() {
         }
         ++edge_index;
       }
+      if (found_winning)
+        break;
       while (edge_index < cur->num_legal_moves) {
         all_win = false;
         better_than_draw = true;
@@ -343,18 +339,19 @@ bool TrainMC::search() {
         }
         ++edge_index;
       }
-      // All moves lead to winning positions
+      // All moves lead to winning positions, lost position
       if (all_win) {
         cur->result = DEDUCED_LOSS;
+        break;
       }
       // Otherwise, if there are no moves better than a draw, the position is
       // drawn
-      else if (!better_than_draw) {
+      if (!better_than_draw) {
         cur->result = DEDUCED_DRAW;
+        break;
       }
       // Count the visit
       ++cur->visits;
-
       // No nodes are available
       if (max_value == -2.0) {
         cur->all_visited = true;
@@ -394,18 +391,18 @@ bool TrainMC::search() {
       }
     }
 
-    // Check for terminal state, otherwise evaluation is needed
-    if (cur->is_terminal()) {
+    // Check for known result, otherwise evaluation is needed
+    if (cur->is_known()) {
       // Count the visit
       ++cur->visits;
       // We can revisit terminal nodes
       cur->all_visited = false;
       // Don't propagate if value is 0
-      if (cur->result != RESULT_DRAW) {
+      if (cur->result != RESULT_DRAW && cur->result != DEDUCED_DRAW) {
         // Propagate evaluation
-        // In a decisive terminal state, the person to play is always the
-        // loser
         float cur_eval = -1.0;
+        if (cur->result == DEDUCED_WIN)
+          cur_eval = 1.0;
         while (cur->parent != nullptr) {
           cur->evaluation += cur_eval;
           cur_eval *= -1.0;

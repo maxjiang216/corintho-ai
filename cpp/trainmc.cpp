@@ -276,15 +276,47 @@ bool TrainMC::search() {
       Node *prev_node = nullptr, *best_prev_node = nullptr;
       // Factor this value out, as it is expense to compute
       float v_sqrt = c_puct * sqrt((float)cur->visits);
+      // If all children are winning positions, mark the node as lost
+      // If all nodes are confirmed loss or drawn, we can deduce the positions
+      // is a draw
+      bool all_win = true, better_than_draw = false;
       // Loop through existing children
       while (cur_child != nullptr) {
         // Random value lower than -1.0
         float u = -2.0;
         if (cur_child->child_num == cur->edges[edge_index].move_id) {
-          if (!cur_child->all_visited) {
-            u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
-                cur->get_probability(edge_index) * v_sqrt /
-                    ((float)cur_child->visits + 1.0);
+          // Avoid searching winning positions (meaning current player will
+          // lose) Positions can never be natural wins (terminal positions are
+          // all lost or drawn)
+          if (cur_child->result != DEDUCED_WIN) {
+            all_win = false;
+            if (cur_child->result == RESULT_DRAW ||
+                cur_child->result == DEDUCED_DRAW) {
+              u = cur->get_probability(edge_index) * v_sqrt /
+                  ((float)cur_child->visits + 1.0);
+            } else {
+              // There is a move better than a draw
+              better_than_draw = true;
+              // Break if a winning move is found
+              if (cur_child->result == RESULT_LOSS ||
+                  cur_child->result == DEDUCED_LOSS) {
+                // This is a winning position
+                cur->result = DEDUCED_WIN;
+                better_than_draw = true;
+                best_prev_node = cur_child;
+                max_value = u;
+                move_choice = cur->edges[edge_index].move_id;
+                cur_child = nullptr;
+                edge_index = cur->num_legal_moves;
+                break;
+              }
+
+              else if (!cur_child->all_visited) {
+                u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
+                    cur->get_probability(edge_index) * v_sqrt /
+                        ((float)cur_child->visits + 1.0);
+              }
+            }
           }
           prev_node = cur_child;
           cur_child = cur_child->next_sibling;
@@ -300,6 +332,8 @@ bool TrainMC::search() {
         ++edge_index;
       }
       while (edge_index < cur->num_legal_moves) {
+        all_win = false;
+        better_than_draw = true;
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
           best_prev_node =
@@ -308,6 +342,15 @@ bool TrainMC::search() {
           move_choice = cur->edges[edge_index].move_id;
         }
         ++edge_index;
+      }
+      // All moves lead to winning positions
+      if (all_win) {
+        cur->result = DEDUCED_LOSS;
+      }
+      // Otherwise, if there are no moves better than a draw, the position is
+      // drawn
+      else if (!better_than_draw) {
+        cur->result = DEDUCED_DRAW;
       }
       // Count the visit
       ++cur->visits;

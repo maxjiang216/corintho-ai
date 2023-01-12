@@ -370,7 +370,7 @@ void PlayMC::move_down(Node *prev_node) {
 
 bool PlayMC::is_done() const { return root->result != RESULT_NONE; }
 
-bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
+bool PlayMC::has_won() const { return root->result == RESULT_LOSS; }
 
 bool PlayMC::has_drawn() const { return root->result == RESULT_DRAW; }
 

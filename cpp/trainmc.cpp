@@ -148,7 +148,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
 
     uintf total = 0, target = (*generator)() % visits;
     float denominator = 1.0 / (float)visits;
-    Node *cur_child = root->first_child;
+    cur_child = root->first_child;
     // This loop will always break out
     // There is always at least one child
     while (true) {
@@ -378,7 +378,7 @@ bool TrainMC::search() {
                 // This is a winning position
                 cur->result = DEDUCED_WIN;
                 // Propagate the result as much as possible
-                propagate_results(cur);
+                propagate_result();
                 found_winning = true;
                 break;
               } else if (!cur_child->all_visited) {
@@ -418,14 +418,14 @@ bool TrainMC::search() {
       // All moves lead to winning positions, lost position
       if (all_win) {
         cur->result = DEDUCED_LOSS;
-        propagate_result(cur);
+        propagate_result();
         break;
       }
       // Otherwise, if there are no moves better than a draw, the position is
       // drawn
       if (!better_than_draw) {
         cur->result = DEDUCED_DRAW;
-        propagate_result(cur);
+        propagate_result();
         break;
       }
       // Count the visit
@@ -454,7 +454,7 @@ bool TrainMC::search() {
                                     cur->first_child, move_choice);
         cur = cur->first_child;
         if (cur->result != RESULT_NONE)
-          propagate_result(cur);
+          propagate_result();
         break;
       }
       // New node somewhere else in the list
@@ -464,7 +464,7 @@ bool TrainMC::search() {
                      best_prev_node->next_sibling, move_choice);
         cur = best_prev_node->next_sibling;
         if (cur->result != RESULT_NONE)
-          propagate_result(cur);
+          propagate_result();
         break;
       }
       // Existing node, continue searching

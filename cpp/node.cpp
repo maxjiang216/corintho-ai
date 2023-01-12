@@ -71,12 +71,8 @@ void Node::initialize_edges() {
     visits = 0;
     // Decisive game
     if (is_lines) {
-      // Second player win
-      if (game.to_play == 0) {
-        result = RESULT_LOSS;
-      } else {
-        result = RESULT_WIN;
-      }
+      // Current player loss
+      result = RESULT_LOSS;
     } else {
       result = RESULT_DRAW;
     }

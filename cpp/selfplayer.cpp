@@ -149,7 +149,13 @@ bool SelfPlayer::do_iteration() {
     // Check if the game is over
     if (players[to_play].root->is_terminal()) {
       // Get result
-      result = players[to_play].root->result;
+      if (players[to_play].root->result == RESULT_DRAW) {
+        result = RESULT_DRAW;
+      } else if (to_play == 0) {
+        result = RESULT_LOSS;
+      } else {
+        result = RESULT_WIN;
+      }
       // Log game result
       if (logging_file != nullptr) {
         if (result == RESULT_DRAW) {

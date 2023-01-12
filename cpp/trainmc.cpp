@@ -350,10 +350,7 @@ bool TrainMC::search() {
       Node *prev_node = nullptr, *best_prev_node = nullptr;
       // Factor this value out, as it is expense to compute
       float v_sqrt = c_puct * sqrt((float)cur->visits);
-      // If all children are winning positions, mark the node as lost
-      // If all nodes are confirmed loss or drawn, we can deduce the positions
-      // is a draw
-      bool all_win = true, better_than_draw = false, found_winning = false;
+      bool found_winning = false;
       // Loop through existing children
       while (cur_child != nullptr) {
         // Random value lower than -1.0
@@ -363,15 +360,12 @@ bool TrainMC::search() {
           // lose) Positions can never be natural wins (terminal positions are
           // all lost or drawn)
           if (cur_child->result != DEDUCED_WIN) {
-            all_win = false;
             if (cur_child->result == RESULT_DRAW ||
                 cur_child->result == DEDUCED_DRAW) {
               // Force evaluation to 0
               u = cur->get_probability(edge_index) * v_sqrt /
                   ((float)cur_child->visits + 1.0);
             } else {
-              // There is a move better than a draw
-              better_than_draw = true;
               // Break if a winning move is found
               if (cur_child->result == RESULT_LOSS ||
                   cur_child->result == DEDUCED_LOSS) {
@@ -404,8 +398,6 @@ bool TrainMC::search() {
       if (found_winning)
         break;
       while (edge_index < cur->num_legal_moves) {
-        all_win = false;
-        better_than_draw = true;
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
           best_prev_node =
@@ -414,19 +406,6 @@ bool TrainMC::search() {
           move_choice = cur->edges[edge_index].move_id;
         }
         ++edge_index;
-      }
-      // All moves lead to winning positions, lost position
-      if (all_win) {
-        cur->result = DEDUCED_LOSS;
-        propagate_result();
-        break;
-      }
-      // Otherwise, if there are no moves better than a draw, the position is
-      // drawn
-      if (!better_than_draw) {
-        cur->result = DEDUCED_DRAW;
-        propagate_result();
-        break;
       }
       // Count the visit
       ++cur->visits;

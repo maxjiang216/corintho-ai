@@ -214,6 +214,7 @@ uintf SelfPlayer::count_requests() const {
 }
 
 void SelfPlayer::write_requests(float *game_states) const {
+  //cerr << "write_requests " << players[to_play].searched.size() << '\n';
   // Can change to memcpy later
   for (uintf i = 0; i < GAME_STATE_SIZE * players[to_play].searched.size();
        ++i) {

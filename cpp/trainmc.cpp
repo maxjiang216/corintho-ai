@@ -144,6 +144,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
       if (cur_child->result != DEDUCED_WIN) {
         visits += cur_child->visits;
       }
+      cur_child = cur_child->next_sibling;
     }
 
     uintf total = 0, target = (*generator)() % visits;
@@ -454,14 +455,6 @@ bool TrainMC::search() {
 
     // Check for known result, otherwise evaluation is needed
     if (cur->is_known()) {
-      // If we have deduced the root, stop searching
-      // We also don't need any more evaluations
-      if (cur == root) {
-        searched.clear();
-        eval_index = 0;
-        iterations_done = max_iterations;
-        return true;
-      }
       // Count the visit
       ++cur->visits;
       // We can revisit terminal nodes
@@ -528,11 +521,14 @@ void TrainMC::propagate_result() {
   Node *node = cur, *cur_node;
   bool has_draw;
   while (node->parent != nullptr) {
-    node = node->parent;
+    std::cerr << node << '\n';
     // We only need one loss to deduce
     if (node->result == RESULT_LOSS || node->result == DEDUCED_LOSS) {
+      std::cerr << "DEDUCED_WIN\n";
+      node = node->parent;
       node->result = DEDUCED_WIN;
     } else {
+      node = node->parent;
       cur_node = node->first_child;
       has_draw = false;
       while (cur_node != nullptr) {
@@ -544,16 +540,19 @@ void TrainMC::propagate_result() {
             cur_node->result == DEDUCED_DRAW) {
           has_draw = true;
         }
+        cur_node = cur_node->next_sibling;
       }
       // If we reach this part, we are guaranteed
       // No winning moves and
       // no unknown moves
       // If there are any drawing moves, the position is a draw
       if (has_draw) {
+        cerr << "DEDUCED_DRAW\n";
         node->result = DEDUCED_DRAW;
       }
       // Otherwise, there are only losing moves, so the position is a loss
       else {
+        cerr << "DEDUCED_LOSS\n";
         node->result = DEDUCED_LOSS;
       }
     }

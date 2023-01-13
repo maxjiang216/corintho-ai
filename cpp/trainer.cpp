@@ -225,6 +225,7 @@ uintf Trainer::write_requests(float *game_states, uintf to_play) const {
     }
   }
   uintf num_requests = offsets[games.size() - 1];
+  cerr << num_requests << '\n';
   if (games[games.size() - 1]->to_play ==
           (to_play + games[games.size() - 1]->seed) % 2 &&
       !is_done[games.size() - 1]) {

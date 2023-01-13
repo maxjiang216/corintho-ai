@@ -142,7 +142,8 @@ bool SelfPlayer::do_iteration() {
     samples.emplace_back(sample_state, probability_sample);
 
     if (logging_file != nullptr) {
-      *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
+      *logging_file << "CHOSE MOVE " << move_choice << ' ' << Move{move_choice}
+                    << "\nNEW POSITION:\n"
                     << players[to_play].root->game << "\n\n";
     }
     std::cerr << "is_terminal " << players[to_play].root->is_terminal() << '\n';
@@ -194,9 +195,11 @@ bool SelfPlayer::do_iteration() {
             move_choice, players[1 - to_play].get_game(),
             players[1 - to_play].root->depth);
         if (!need_evaluation) {
-          // Otherwise, we search again
-          need_evaluation =
-              !(players[to_play].search() && players[to_play].eval_index == 0);
+          // Otherwise, we search again, unless the turn is already done
+          if (!players[to_play].root->is_known()) {
+            need_evaluation = !(players[to_play].search() &&
+                                players[to_play].eval_index == 0);
+          }
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
           // This is unlikely, however

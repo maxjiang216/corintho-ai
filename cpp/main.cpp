@@ -61,7 +61,7 @@ void test_basic_run() {
   uintf num_games = 600, num_iterations = 600, searches_per_eval = 8;
 
   auto trainer =
-      Trainer{num_games,         2,         num_iterations, 1.0, 0.25, 1,
+      Trainer{num_games,         114,       num_iterations, 1.0, 0.25, 1,
               searches_per_eval, "logging", 2003,           true};
 
   float evaluations[num_games * searches_per_eval],
@@ -112,7 +112,8 @@ void test_basic_run() {
     } else {
       cerr << to_play << ' ' << trainer.is_all_done() << '\n';
       to_play = 1 - to_play;
-      if (trainer.is_all_done()) break;
+      if (trainer.is_all_done())
+        break;
     }
   }
   auto stop = chrono::high_resolution_clock::now();

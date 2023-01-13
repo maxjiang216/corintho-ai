@@ -322,7 +322,8 @@ float Trainer::get_score(const std::string &out_file) const {
 bool Trainer::is_all_done() const {
   for (uintf i = 0; i < games.size(); ++i) {
     if (!is_done[i]) {
-      std::cerr << i << ' ' << games[i]->players[games[i]->to_play].root->game << '\n';
+      std::cerr << i << ' ' << games[i]->players[games[i]->to_play].root->game
+                << '\n';
       return false;
     }
   }

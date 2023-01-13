@@ -100,7 +100,7 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
 
   // Losing position, find the move with the most searches
   // The most searched line is likely the one with the longest and/or hardest to
-  // find mate Which is pratically better Ignore opening stuff
+  // find mate which is pratically better. Ignore opening stuff
   else if (root->result == DEDUCED_LOSS) {
     uintf max_visits = 0;
     Node *cur_child = root->first_child, *prev_node = nullptr;
@@ -220,8 +220,8 @@ bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
       if (root->is_known()) {
         searched.clear();
         eval_index = 0;
-    iterations_done = max_iterations;
-  }
+        iterations_done = max_iterations;
+      }
       // we don't need an evaluation
       return false;
     }
@@ -354,16 +354,15 @@ bool TrainMC::search() {
       uintf edge_index = 0;
       // Keep track of previous node to insert into linked list
       Node *prev_node = nullptr, *best_prev_node = nullptr;
-      // Factor this value out, as it is expense to compute
+      // Factor this value out, as it is expensive to compute
       float v_sqrt = c_puct * sqrt((float)cur->visits);
-      bool found_winning = false;
       // Loop through existing children
       while (cur_child != nullptr) {
         // Random value lower than -1.0
         float u = -2.0;
         if (cur_child->child_num == cur->edges[edge_index].move_id) {
           // Avoid searching winning positions (meaning current player will
-          // lose) Positions can never be natural wins (terminal positions are
+          // lose). Positions can never be natural wins (terminal positions are
           // all lost or drawn)
           if (cur_child->result != DEDUCED_WIN) {
             if (cur_child->result == RESULT_DRAW ||
@@ -371,21 +370,10 @@ bool TrainMC::search() {
               // Force evaluation to 0
               u = cur->get_probability(edge_index) * v_sqrt /
                   ((float)cur_child->visits + 1.0);
-            } else {
-              // Break if a winning move is found
-              if (cur_child->result == RESULT_LOSS ||
-                  cur_child->result == DEDUCED_LOSS) {
-                // This is a winning position
-                cur->result = DEDUCED_WIN;
-                // Propagate the result as much as possible
-                propagate_result();
-                found_winning = true;
-                break;
-              } else if (!cur_child->all_visited) {
-                u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
-                    cur->get_probability(edge_index) * v_sqrt /
-                        ((float)cur_child->visits + 1.0);
-              }
+            } else if (!cur_child->all_visited) {
+              u = -1.0 * cur_child->evaluation / (float)cur_child->visits +
+                  cur->get_probability(edge_index) * v_sqrt /
+                      ((float)cur_child->visits + 1.0);
             }
           }
           prev_node = cur_child;
@@ -401,8 +389,6 @@ bool TrainMC::search() {
         }
         ++edge_index;
       }
-      if (found_winning)
-        break;
       while (edge_index < cur->num_legal_moves) {
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
@@ -460,6 +446,8 @@ bool TrainMC::search() {
 
     // Check for known result, otherwise evaluation is needed
     if (cur->is_known()) {
+      // We can revisit terminal nodes
+      cur->all_visited = false;
       // If we have deduced the root, stop searching
       // We also don't need any more evaluations
       if (cur == root) {
@@ -470,20 +458,18 @@ bool TrainMC::search() {
       }
       // Count the visit
       ++cur->visits;
-      // We can revisit terminal nodes
-      cur->all_visited = false;
       // Don't propagate if value is 0
       if (cur->result != RESULT_DRAW && cur->result != DEDUCED_DRAW) {
         // Propagate evaluation
-        float cur_eval = -1.0;
+        float cur_eval = 1.0;
         if (cur->result == DEDUCED_WIN)
-          cur_eval = 1.0;
+          cur_eval = -1.0;
+        // We don't need to add to a known node
         while (cur->parent != nullptr) {
+          cur = cur->parent;
           cur->evaluation += cur_eval;
           cur_eval *= -1.0;
-          cur = cur->parent;
         }
-        cur->evaluation += cur_eval;
       }
     }
     // Otherwise, request an evaluation
@@ -534,10 +520,8 @@ void TrainMC::propagate_result() {
   Node *node = cur, *cur_node;
   bool has_draw;
   while (node->parent != nullptr) {
-    std::cerr << node << '\n';
     // We only need one loss to deduce
     if (node->result == RESULT_LOSS || node->result == DEDUCED_LOSS) {
-      std::cerr << "DEDUCED_WIN\n";
       node = node->parent;
       node->result = DEDUCED_WIN;
     } else {
@@ -560,12 +544,10 @@ void TrainMC::propagate_result() {
       // no unknown moves
       // If there are any drawing moves, the position is a draw
       if (has_draw) {
-        cerr << "DEDUCED_DRAW\n";
         node->result = DEDUCED_DRAW;
       }
       // Otherwise, there are only losing moves, so the position is a loss
       else {
-        cerr << "DEDUCED_LOSS\n";
         node->result = DEDUCED_LOSS;
       }
     }

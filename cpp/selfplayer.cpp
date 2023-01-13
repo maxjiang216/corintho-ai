@@ -145,7 +145,7 @@ bool SelfPlayer::do_iteration() {
       *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
                     << players[to_play].root->game << "\n\n";
     }
-
+    std::cerr << "is_terminal " << players[to_play].root->is_terminal() << '\n';
     // Check if the game is over
     if (players[to_play].root->is_terminal()) {
       // Get result
@@ -214,7 +214,6 @@ uintf SelfPlayer::count_requests() const {
 }
 
 void SelfPlayer::write_requests(float *game_states) const {
-  //cerr << "write_requests " << players[to_play].searched.size() << '\n';
   // Can change to memcpy later
   for (uintf i = 0; i < GAME_STATE_SIZE * players[to_play].searched.size();
        ++i) {

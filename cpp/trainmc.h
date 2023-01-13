@@ -76,6 +76,7 @@ public:
   uintf count_nodes() const;
 
   friend class SelfPlayer;
+  friend class Trainer;
 };
 
 #endif

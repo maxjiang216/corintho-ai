@@ -217,6 +217,11 @@ bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
   while (cur_child != nullptr) {
     if (cur_child->child_num == move_choice) {
       move_down(prev_node);
+      if (root->is_known()) {
+        searched.clear();
+        eval_index = 0;
+    iterations_done = max_iterations;
+  }
       // we don't need an evaluation
       return false;
     }
@@ -455,6 +460,14 @@ bool TrainMC::search() {
 
     // Check for known result, otherwise evaluation is needed
     if (cur->is_known()) {
+      // If we have deduced the root, stop searching
+      // We also don't need any more evaluations
+      if (cur == root) {
+        searched.clear();
+        eval_index = 0;
+        iterations_done = max_iterations;
+        return true;
+      }
       // Count the visit
       ++cur->visits;
       // We can revisit terminal nodes

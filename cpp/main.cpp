@@ -110,7 +110,9 @@ void test_basic_run() {
              << '\n';*/
       }
     } else {
+      cerr << to_play << ' ' << trainer.is_all_done() << '\n';
       to_play = 1 - to_play;
+      if (trainer.is_all_done()) break;
     }
   }
   auto stop = chrono::high_resolution_clock::now();

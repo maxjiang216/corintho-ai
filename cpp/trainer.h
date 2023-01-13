@@ -62,6 +62,8 @@ public:
   float get_score(const std::string &out_file) const;
 
   uintf count_nodes() const;
+
+  bool is_all_done() const;
 };
 
 #endif

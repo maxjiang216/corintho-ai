@@ -48,7 +48,7 @@ bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
 }
 
 bool Node::is_terminal() const {
-  return result == RESULT_LOSS || result == RESULT_DRAW;
+  return result == RESULT_LOSS || result == RESULT_WIN || result == RESULT_DRAW;
 }
 
 bool Node::is_known() const { return result != RESULT_NONE; }

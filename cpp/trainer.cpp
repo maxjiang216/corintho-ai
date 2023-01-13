@@ -225,7 +225,6 @@ uintf Trainer::write_requests(float *game_states, uintf to_play) const {
     }
   }
   uintf num_requests = offsets[games.size() - 1];
-  cerr << num_requests << '\n';
   if (games[games.size() - 1]->to_play ==
           (to_play + games[games.size() - 1]->seed) % 2 &&
       !is_done[games.size() - 1]) {
@@ -318,4 +317,14 @@ float Trainer::get_score(const std::string &out_file) const {
            << '\n';
   delete outfile;
   return score / (float)games.size();
+}
+
+bool Trainer::is_all_done() const {
+  for (uintf i = 0; i < games.size(); ++i) {
+    if (!is_done[i]) {
+      std::cerr << i << ' ' << games[i]->players[games[i]->to_play].root->game << '\n';
+      return false;
+    }
+  }
+  return true;
 }

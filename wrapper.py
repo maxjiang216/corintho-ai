@@ -235,7 +235,7 @@ def main():
         for gen in range(
             max(1, current_generation - NUM_OLD_GENS + 1), current_generation + 1
         ):
-            location = f"{cwd}/{NAME}/generations/gen_{gen}/training_samples"
+            location = f"{cwd}/{NAME}/samples/gen_{gen}"
             if os.path.isdir(location):
                 old_training_samples.append(location)
         # Get learning rate
@@ -254,6 +254,11 @@ def main():
         if os.path.isdir(new_gen_folder):
             shutil.rmtree(new_gen_folder)
         os.mkdir(new_gen_folder)
+        new_gen_samples = f"{cwd}/{NAME}/samples/gen_{current_generation+1}"
+        # Reset folder if it already exists
+        if os.path.isdir(new_gen_samples):
+            shutil.rmtree(new_gen_samples)
+        os.mkdir(new_gen_samples)
 
     # Start a new run
     else:
@@ -303,6 +308,8 @@ def main():
         os.mkdir(f"{cwd}/{NAME}/generations/gen_0")
         model.save(f"{cwd}/{NAME}/generations/gen_0/model")
 
+        os.mkdir(f"{cwd}/{NAME}/samples")
+
         # Initialize metadata
         os.mkdir(f"{cwd}/{NAME}/metadata")
         open(
@@ -330,6 +337,9 @@ def main():
         new_gen_folder = f"{cwd}/{NAME}/generations/gen_1"
         os.mkdir(new_gen_folder)
 
+        new_gen_samples = f"{cwd}/{NAME}/samples/gen_1"
+        os.mkdir(new_gen_samples)
+
         cur_gen_location = f"{cwd}/{NAME}/generations/gen_0/model"
         best_gen_location = f"{cwd}/{NAME}/generations/gen_0/model"
         old_training_samples = []
@@ -337,10 +347,9 @@ def main():
     new_model_location = f"{new_gen_folder}/model"
     train_log_folder = f"{new_gen_folder}/training_logs"
     test_log_folder = f"{new_gen_folder}/testing_logs"
-    train_sample_folder = f"{new_gen_folder}/training_samples"
+    train_sample_folder = new_gen_samples
     os.mkdir(train_log_folder)
     os.mkdir(test_log_folder)
-    os.mkdir(train_sample_folder)
 
     open(f"{new_gen_folder}/metadata.txt", "w+", encoding="utf-8").write(
         f"Number of games: {NUM_GAMES}\n"

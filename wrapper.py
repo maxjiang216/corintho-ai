@@ -263,6 +263,9 @@ def main():
     # Start a new run
     else:
 
+        current_generation = 0
+        best_generation = 0
+
         # Generate name from timestamp if no name given
         # implausible that name is repeated
         if len(NAME) == 0:

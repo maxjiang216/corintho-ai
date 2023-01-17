@@ -77,6 +77,8 @@ def train_generation(*,
     anneal_factor=0.5,
     patience=3,
     old_training_samples=[],  # list of folders containing training sample files from previous generations to use
+    best_gen_rating=0,
+    new_rating_file="",
 ):
 
     cdef unsigned int NUM_MOVES = 96
@@ -316,6 +318,15 @@ def train_generation(*,
 
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
 
+    # Update rating
+    if score > 0:
+        new_rating = best_gen_rating - min(400, 400 * np.log10(1 / score - 1))
+    else:
+        new_rating = best_gen_rating - 400
+    open(new_rating_file, 'w', encoding='utf-8').write(f"{new_rating}\n")
+
+
+    # Track success and update ratin
     if score > testing_threshold:
         return True
 

@@ -243,7 +243,7 @@ def train_generation(*,
         f"{batch_size} batch size\n"
         f"{epochs} epochs\n"
         f"{format_time(time_taken/epochs)} per epoch\n"
-        f"{format_time(time_taken/(epochs*num_samples/batch_size)} per batch\n"
+        f"{format_time(time_taken/(epochs*num_samples/batch_size))} per batch\n"
     )
 
     write_loss(f"{train_log_folder}/train_loss.csv", loss_file)

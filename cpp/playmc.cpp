@@ -5,9 +5,9 @@
 #include <bitset>
 #include <cmath>
 #include <cstring>
+#include <iostream>
 #include <random>
 #include <vector>
-#include <iostream>
 
 using std::bitset;
 
@@ -375,13 +375,10 @@ bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
 bool PlayMC::has_drawn() const { return root->result == RESULT_DRAW; }
 
 uintf PlayMC::write_requests(float game_states[]) const {
-    for (uintf i = 0; i < GAME_STATE_SIZE * searched.size();
-       ++i) {
+  for (uintf i = 0; i < GAME_STATE_SIZE * searched.size(); ++i) {
     *(game_states + i) = to_eval[i];
   }
   return searched.size();
 }
 
-void PlayMC::print_game() const {
-    std::cout << root->game << '\n';
-}
+void PlayMC::print_game() const { std::cout << root->game << '\n'; }

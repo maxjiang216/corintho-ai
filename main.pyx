@@ -179,7 +179,7 @@ def train_generation(*,
         f"{iterations} searches per turn\n"
         f"Training complete in {format_time(time_taken)}\n"
         f"{format_time(predict_time)} on neural network predictions\n"
-        f"{evaluations_done} evaluations"
+        f"{evaluations_done} evaluations\n"
         f"{format_time(time_taken/evaluations_done)} per evaluation\n"
         f"{format_time(play_time)} on self play\n"
         f"{num_samples} total turns\n"
@@ -238,7 +238,7 @@ def train_generation(*,
 
     time_taken = time.perf_counter() - fit_start_time
     open(f"{train_log_folder}/fit_time.txt", "w+", encoding='utf-8').write(
-        f"Neural network fitting completed in {format_time(time_taken)}"
+        f"Neural network fitting completed in {format_time(time_taken)}\n"
         f"{num_samples} samples\n"
         f"{batch_size} batch size\n"
         f"{epochs} epochs\n"
@@ -332,10 +332,10 @@ def train_generation(*,
     open(f"{test_log_folder}/test_time.txt", "w+", encoding='utf-8').write(
         f"Testing complete in {format_time(time_taken)}\n"
         f"{num_test_games} games\n"
-        f"{format_time(time_taken)}
+        f"{format_time(time_taken)}\n"
         f"{epochs} epochs\n"
         f"{format_time(time_taken/epochs)} per epoch\n"
-        f"{format_time(time_taken/(epochs*num_samples/batch_size)} per batch\n"
+        f"{format_time(time_taken/(epochs*num_samples/batch_size))} per batch\n"
     )
 
     # Clear old models

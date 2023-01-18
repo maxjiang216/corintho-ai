@@ -345,17 +345,6 @@ def train_generation(*,
 
     del tester
 
-    open(f"{train_log_folder}/self_play_time.txt", "w+", encoding='utf-8').write(
-        f"{num_test_games} test games played\n"
-        f"{iterations} searches per turn\n"
-        f"Testing complete in {format_time(time_taken)}\n"
-        f"{format_time(predict_time)} on neural network predictions\n"
-        f"{evaluations_done} evaluations"
-        f"{format_time(time_taken/evaluations_done)} per evaluation\n"
-        f"{format_time(play_time)} on self play\n"
-        f"{format_time(play_time/num_test_games)} self play time per game\n"
-    )
-
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
 
     # Update rating

@@ -345,6 +345,14 @@ def train_generation(*,
 
     del tester
 
+    open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+        "Testing Complete!\n"
+        f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+        f"Total prediction time: {format_time(predict_time)}\n"
+        f"Total play time: {format_time(play_time)}\n"
+        f"New agent score {score:1f}!\n"
+    )
+
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
 
     # Update rating

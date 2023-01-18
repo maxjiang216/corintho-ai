@@ -33,7 +33,8 @@ cdef extern from "cpp/trainer.cpp":
 def format_time(t):
     """Format string
     t is time in seconds"""
-
+    if t < 1:
+        return f"{t}s"
     if t < 60:
         return f"{t:.2f}s"
     if t < 3600:
@@ -77,6 +78,8 @@ def train_generation(*,
     anneal_factor=0.5,
     patience=3,
     old_training_samples=[],  # list of folders containing training sample files from previous generations to use
+    best_gen_rating=0,
+    new_rating_file="",
 ):
 
     cdef unsigned int NUM_MOVES = 96
@@ -171,6 +174,20 @@ def train_generation(*,
     cdef np.ndarray[np.float32_t, ndim=2] probability_labels = np.zeros((num_samples * SYMMETRY_NUM, NUM_MOVES), dtype=np.float32)
     trainer.write_samples(&sample_states[0,0], &evaluation_labels[0], &probability_labels[0,0])
 
+    open(f"{train_log_folder}/self_play_time.txt", "w+", encoding='utf-8').write(
+        f"{num_games} games played\n"
+        f"{iterations} searches per turn\n"
+        f"Training complete in {format_time(time_taken)}\n"
+        f"{format_time(predict_time)} on neural network predictions\n"
+        f"{evaluations_done} evaluations\n"
+        f"{format_time(time_taken/evaluations_done)} per evaluation\n"
+        f"{format_time(play_time)} on self play\n"
+        f"{num_samples} total turns\n"
+        f"{num_samples/num_games} average turns per game\n"
+        f"{format_time(play_time/num_samples)} per turn\n"
+        f"{format_time(play_time/(num_samples*iterations))} per search\n"
+    )
+
     del trainer
 
     # Save training samples
@@ -205,6 +222,9 @@ def train_generation(*,
     )
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=anneal_factor, patience=patience)
     csv_logger = CSVLogger(f"{train_log_folder}/train_loss.csv", separator='\t')
+
+    fit_start_time = time.perf_counter()
+
     training_model.fit(
         x=sample_states,
         y=[evaluation_labels, probability_labels],
@@ -214,6 +234,16 @@ def train_generation(*,
         validation_split=0.3,
         callbacks=[checkpoint, reduce_lr, csv_logger],
         verbose=0,
+    )
+
+    time_taken = time.perf_counter() - fit_start_time
+    open(f"{train_log_folder}/fit_time.txt", "w+", encoding='utf-8').write(
+        f"Neural network fitting completed in {format_time(time_taken)}\n"
+        f"{num_samples} samples\n"
+        f"{batch_size} batch size\n"
+        f"{epochs} epochs\n"
+        f"{format_time(time_taken/epochs)} per epoch\n"
+        f"{format_time(time_taken/(epochs*num_samples/batch_size))} per batch\n"
     )
 
     write_loss(f"{train_log_folder}/train_loss.csv", loss_file)
@@ -299,6 +329,15 @@ def train_generation(*,
 
     time_taken = time.perf_counter() - start_time
 
+    open(f"{test_log_folder}/test_time.txt", "w+", encoding='utf-8').write(
+        f"Testing complete in {format_time(time_taken)}\n"
+        f"{num_test_games} games\n"
+        f"{format_time(time_taken)}\n"
+        f"{epochs} epochs\n"
+        f"{format_time(time_taken/epochs)} per epoch\n"
+        f"{format_time(time_taken/(epochs*num_samples/batch_size))} per batch\n"
+    )
+
     # Clear old models
     keras.backend.clear_session()
 
@@ -316,6 +355,15 @@ def train_generation(*,
 
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
 
+    # Update rating
+    if score > 0:
+        new_rating = best_gen_rating - min(400, 400 * np.log10(1 / score - 1))
+    else:
+        new_rating = best_gen_rating - 400
+    open(new_rating_file, 'w+', encoding='utf-8').write(f"{new_rating}\n")
+
+
+    # Track success and update ratin
     if score > testing_threshold:
         return True
 

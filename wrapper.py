@@ -247,6 +247,14 @@ def main():
             .read()
             .strip()
         )
+        best_gen_rating = float(
+            open(
+                f"{cwd}/{NAME}/generations/gen_{best_generation}/rating.txt",
+                encoding="utf-8",
+            )
+            .read()
+            .strip()
+        )
 
         # Create folder for new generation
         new_gen_folder = f"{cwd}/{NAME}/generations/gen_{current_generation+1}"
@@ -259,6 +267,10 @@ def main():
         if os.path.isdir(new_gen_samples):
             shutil.rmtree(new_gen_samples)
         os.mkdir(new_gen_samples)
+
+        new_rating_file = (
+            f"{cwd}/{NAME}/generations/gen_{current_generation+1}/rating.txt"
+        )
 
     # Start a new run
     else:
@@ -312,6 +324,16 @@ def main():
         model.save(f"{cwd}/{NAME}/generations/gen_0/model")
 
         os.mkdir(f"{cwd}/{NAME}/samples")
+
+        # Initialize rating to 100
+        best_gen_rating = 100
+        open(
+            f"{cwd}/{NAME}/generations/gen_0/rating.txt",
+            "w+",
+            encoding="utf-8",
+        ).write("100")
+
+        new_rating_file = f"{cwd}/{NAME}/generations/gen_1/rating.txt"
 
         # Initialize metadata
         os.mkdir(f"{cwd}/{NAME}/metadata")
@@ -394,6 +416,8 @@ def main():
         anneal_factor=ANNEAL_FACTOR,
         patience=PATIENCE,
         old_training_samples=old_training_samples,
+        best_gen_rating=best_gen_rating,
+        new_rating_file=new_rating_file,
     )
 
     current_generation = int(

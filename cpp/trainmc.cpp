@@ -436,11 +436,10 @@ bool TrainMC::search() {
     }
 
     // Check for terminal state, otherwise evaluation is needed
-    if (cur->is_known()) {
+    if (cur->is_terminal()) {
       // propagate the result
       // new deductions can only be made after a new terminal node is found
-      if (cur->is_terminal())
-        propagate_result();
+      propagate_result();
       // Count the visit
       ++cur->visits;
       // Don't propagate if value is 0

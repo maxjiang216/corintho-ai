@@ -44,7 +44,6 @@ public:
 
   // Accessors
   bool is_terminal() const;
-  bool is_known() const;
   float get_probability(uintf edge_index) const;
 
   void write_game_state(float game_state[GAME_STATE_SIZE]) const;

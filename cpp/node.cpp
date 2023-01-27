@@ -47,7 +47,9 @@ bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
   return game.get_legal_moves(legal_moves);
 }
 
-bool Node::is_terminal() const { return result != RESULT_NONE; }
+bool Node::is_terminal() const {
+  return result == RESULT_LOSS || result == RESULT_DRAW;
+}
 
 float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;
@@ -67,12 +69,8 @@ void Node::initialize_edges() {
     visits = 0;
     // Decisive game
     if (is_lines) {
-      // Second player win
-      if (game.to_play == 0) {
-        result = RESULT_LOSS;
-      } else {
-        result = RESULT_WIN;
-      }
+      // Current player has lost
+      result = RESULT_LOSS;
     } else {
       result = RESULT_DRAW;
     }
@@ -106,6 +104,13 @@ void Node::print_main_line(std::ostream *logging_file) const {
   float max_eval = 0.0, prob = 0.0;
   while (cur_child != nullptr) {
     if (edges[edge_index].move_id == cur_child->child_num) {
+      if (cur_child->result == DEDUCED_LOSS ||
+          cur_child->result == RESULT_LOSS) {
+        best_child = cur_child;
+        max_visits = cur_child->visits;
+        prob = get_probability(edge_index);
+        break;
+      }
       if (cur_child->visits > max_visits ||
           (cur_child->visits == max_visits &&
            cur_child->evaluation > max_eval)) {
@@ -121,7 +126,26 @@ void Node::print_main_line(std::ostream *logging_file) const {
   if (best_child != nullptr) {
     *logging_file << (uintf)best_child->depth << ". "
                   << Move{best_child->child_num} << " v: " << max_visits
-                  << " e: " << max_eval << " p: " << prob << '\t';
+                  << " e: ";
+    if (best_child->result != RESULT_NONE) {
+      *logging_file << str_result(best_child->result);
+    } else {
+      *logging_file << max_eval / (float)max_visits;
+    }
+    *logging_file << " p: " << prob << '\t';
     best_child->print_main_line(logging_file);
+  }
+}
+
+void Node::print_known(std::ostream *logging_file) const {
+  if (result != RESULT_NONE) {
+    *logging_file << (uintf)depth << ". " << Move{child_num} << ' '
+                  << str_result(result) << " ( ";
+    Node *cur_child = first_child;
+    while (cur_child != nullptr) {
+      cur_child->print_known(logging_file);
+      cur_child = cur_child->next_sibling;
+    }
+    *logging_file << " ) ";
   }
 }

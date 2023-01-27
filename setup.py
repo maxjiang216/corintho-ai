@@ -16,6 +16,7 @@ setup(
                 "cpp/node.cpp",
                 "cpp/game.cpp",
                 "cpp/move.cpp",
+                "cpp/util.cpp",
             ],
             extra_compile_args=[
                 "-O3",

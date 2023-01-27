@@ -49,3 +49,25 @@ void print_line(uintf line) {
     cerr << 'A';
   }
 }
+
+string str_result(uint8s result) {
+  if (result == RESULT_LOSS) {
+    return "L";
+  }
+  if (result == RESULT_DRAW) {
+    return "D";
+  }
+  if (result == RESULT_WIN) {
+    return "W";
+  }
+  if (result == DEDUCED_LOSS) {
+    return "DL";
+  }
+  if (result == DEDUCED_DRAW) {
+    return "DD";
+  }
+  if (result == DEDUCED_WIN) {
+    return "DW";
+  }
+  return "N";
+}

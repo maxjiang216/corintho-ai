@@ -41,6 +41,8 @@ class TrainMC {
 
   void move_down(Node *prev_node);
 
+  void propagate_result();
+
 public:
   // Training
   TrainMC(std::mt19937 *generator);

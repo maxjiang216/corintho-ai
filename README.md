@@ -1,4 +1,4 @@
-![Corintho board game](/images/corintho.png=542x518)
+![Corintho board game](/images/corintho.png =542x518)
 
 # corintho-ai
 

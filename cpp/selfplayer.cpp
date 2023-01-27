@@ -110,7 +110,8 @@ bool SelfPlayer::do_iteration() {
             players[to_play].root->edges[edge_index].move_id) {
           moves.emplace_back(
               make_pair(
-                  make_pair(cur_child->visits, cur_child->evaluation),
+                  make_pair(cur_child->visits,
+                            cur_child->evaluation / (float)cur_child->visits),
                   make_pair(players[to_play].root->get_probability(edge_index),
                             cur_child->child_num)),
               cur_child->result);
@@ -166,7 +167,7 @@ bool SelfPlayer::do_iteration() {
       // Get result
       if (players[to_play].root->result == RESULT_DRAW) {
         result = RESULT_DRAW;
-      // Second player win
+        // Second player win
       } else if (to_play == 0) {
         result = RESULT_LOSS;
       } else {

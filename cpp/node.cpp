@@ -130,7 +130,7 @@ void Node::print_main_line(std::ostream *logging_file) const {
     if (best_child->result != RESULT_NONE) {
       *logging_file << str_result(best_child->result);
     } else {
-      *logging_file << max_eval;
+      *logging_file << max_eval / (float)max_visits;
     }
     *logging_file << " p: " << prob << '\t';
     best_child->print_main_line(logging_file);

@@ -8,4 +8,5 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
  - Python 3 (training pipeline)
  - Cython (facilitate C++ & Python interaction)
  - OpenMP (multithreading for C++ code)
+
 Trained on Google Cloud Platform.

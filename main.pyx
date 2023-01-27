@@ -87,7 +87,7 @@ def train_generation(*,
     cdef unsigned int SYMMETRY_NUM = 8
     EVALS_PER_SEARCH = 26.5
 
-    rng = np.random.default_rng(int(time.time()))
+    rng = np.random.default_rng(0)#int(time.time()))
 
     # Training
 

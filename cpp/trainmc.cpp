@@ -331,7 +331,8 @@ bool TrainMC::search() {
 
   bool need_evaluation = false;
 
-  while (!need_evaluation && iterations_done < max_iterations) {
+  while (!need_evaluation && iterations_done < max_iterations &&
+         root->result == RESULT_NONE) {
 
     cur = root;
 
@@ -357,7 +358,6 @@ bool TrainMC::search() {
         float u = -2.0;
         if (cur_child->child_num == cur->edges[edge_index].move_id) {
           // Don't visit all_visited nodes
-          // All known decisive nodes should be marked with this
           if (!cur_child->all_visited && (cur_child->result == RESULT_NONE ||
                                           cur_child->result == RESULT_DRAW ||
                                           cur_child->result == DEDUCED_DRAW)) {
@@ -436,10 +436,11 @@ bool TrainMC::search() {
     }
 
     // Check for terminal state, otherwise evaluation is needed
-    if (cur->is_terminal()) {
+    if (cur->is_known()) {
       // propagate the result
       // new deductions can only be made after a new terminal node is found
-      propagate_result();
+      if (cur->is_terminal())
+        propagate_result();
       // Count the visit
       ++cur->visits;
       // Don't propagate if value is 0

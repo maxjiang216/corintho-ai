@@ -51,6 +51,8 @@ bool Node::is_terminal() const {
   return result == RESULT_LOSS || result == RESULT_DRAW;
 }
 
+bool Node::is_known() const { return result != RESULT_NONE; }
+
 float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;
 }

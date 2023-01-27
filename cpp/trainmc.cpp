@@ -67,7 +67,6 @@ bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
 
 uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
                            float probability_sample[NUM_MOVES]) {
-
   if (!testing) {
     // Before moving down, read the samples from the root node
     root->write_game_state(game_state);
@@ -149,8 +148,8 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
       }
       cur_child = cur_child->next_sibling;
     }
-    uintf total = 0, target = (*generator)() % (root->visits - 1);
-    float denominator = 1.0 / ((float)root->visits - 1.0);
+    uintf total = 0, target = (*generator)() % visits;
+    float denominator = 1.0 / (float)visits;
     cur_child = root->first_child;
     // This loop will always break out
     // There is always at least one child
@@ -178,7 +177,6 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
   }
 
   else {
-
     // Otherwise, choose the move with the most searches
     // Breaking ties with evaluation
     // We never choose losing moves

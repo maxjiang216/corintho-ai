@@ -479,9 +479,6 @@ void TrainMC::move_down(Node *prev_node) {
   // Chosen node is first child
   if (prev_node == nullptr) {
     new_root = root->first_child;
-    if (new_root == nullptr) {
-      cerr << (uintf)root->result << '\n';
-    }
     root->first_child = new_root->next_sibling;
   } else {
     new_root = prev_node->next_sibling;

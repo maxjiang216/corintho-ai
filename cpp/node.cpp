@@ -104,6 +104,13 @@ void Node::print_main_line(std::ostream *logging_file) const {
   float max_eval = 0.0, prob = 0.0;
   while (cur_child != nullptr) {
     if (edges[edge_index].move_id == cur_child->child_num) {
+      if (cur_child->result == DEDUCED_LOSS ||
+          cur_child->result == RESULT_LOSS) {
+        best_child = cur_child;
+        max_visits = cur_child->visits;
+        prob = get_probability(edge_index);
+        break;
+      }
       if (cur_child->visits > max_visits ||
           (cur_child->visits == max_visits &&
            cur_child->evaluation > max_eval)) {
@@ -119,7 +126,13 @@ void Node::print_main_line(std::ostream *logging_file) const {
   if (best_child != nullptr) {
     *logging_file << (uintf)best_child->depth << ". "
                   << Move{best_child->child_num} << " v: " << max_visits
-                  << " e: " << max_eval << " p: " << prob << '\t';
+                  << " e: ";
+    if (best_child->result != RESULT_NONE) {
+      *logging_file << str_result(best_child->result);
+    } else {
+      *logging_file << max_eval;
+    }
+    *logging_file << " p: " << prob << '\t';
     best_child->print_main_line(logging_file);
   }
 }

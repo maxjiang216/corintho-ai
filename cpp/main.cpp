@@ -58,10 +58,10 @@ void print_line_breakers(uintf line) {
 // Basic run.
 void test_basic_run() {
 
-  uintf num_games = 600, num_iterations = 600, searches_per_eval = 8;
+  uintf num_games = 600, num_iterations = 1600, searches_per_eval = 8;
 
   auto trainer =
-      Trainer{num_games,         2,         num_iterations, 1.0, 0.25, 1,
+      Trainer{num_games,         10,        num_iterations, 1.0, 0.25, 1,
               searches_per_eval, "logging", 2003,           true};
 
   float evaluations[num_games * searches_per_eval],

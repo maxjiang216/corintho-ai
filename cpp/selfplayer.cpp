@@ -88,47 +88,74 @@ bool SelfPlayer::do_iteration() {
       *logging_file << "TURN " << (uintf)players[to_play].root->depth << '\n'
                     << "PLAYER " << (uintf)(to_play + 1) << " TO PLAY\nVISITS: "
                     << (uintf)players[to_play].root->visits
-                    << "\nPOSITION EVALUATION: " << std::fixed
-                    << std::setprecision(6) << players[to_play].root->evaluation
-                    << "\nLEGAL MOVES:\n";
+                    << "\nPOSITION EVALUATION: ";
+      if (players[to_play].root->result == DEDUCED_WIN) {
+        *logging_file << "WIN";
+      } else if (players[to_play].root->result == DEDUCED_LOSS) {
+        *logging_file << "LOSS";
+      } else if (players[to_play].root->result == DEDUCED_DRAW) {
+        *logging_file << "DRAW";
+      } else {
+        *logging_file << std::fixed << std::setprecision(6)
+                      << players[to_play].root->evaluation /
+                             (float)players[to_play].root->visits;
+      }
+      *logging_file << "\nLEGAL MOVES:\n";
       // Print main line
       players[to_play].root->print_main_line(logging_file);
       *logging_file << '\n';
       // Get and sort moves by visit count and evaluation
-      std::vector<pair<pair<uintf, float>, pair<float, uintf>>> moves;
+      std::vector<pair<pair<pair<uintf, float>, pair<float, uintf>>, uint8s>>
+          moves;
       Node *cur_child = players[to_play].root->first_child;
       uintf edge_index = 0;
       while (cur_child != nullptr) {
         if (cur_child->child_num ==
             players[to_play].root->edges[edge_index].move_id) {
           moves.emplace_back(
-              make_pair(cur_child->visits, cur_child->evaluation),
-              make_pair(players[to_play].root->get_probability(edge_index),
-                        cur_child->child_num));
+              make_pair(
+                  make_pair(cur_child->visits, cur_child->evaluation),
+                  make_pair(players[to_play].root->get_probability(edge_index),
+                            cur_child->child_num)),
+              cur_child->result);
           cur_child = cur_child->next_sibling;
         }
         ++edge_index;
       }
       sort(moves.begin(), moves.end(),
-           [](const pair<pair<uintf, float>, pair<float, uintf>> &A,
-              const pair<pair<uintf, float>, pair<float, uintf>> &B) -> bool {
-             if (A.first.first > B.first.first)
+           [](const pair<pair<pair<uintf, float>, pair<float, uintf>>, uint8s>
+                  &A,
+              const pair<pair<pair<uintf, float>, pair<float, uintf>>, uint8s>
+                  &B) -> bool {
+             if (A.first.first.first > B.first.first.first)
                return true;
-             if (A.first.first < B.first.first)
+             if (A.first.first.first < B.first.first.first)
                return false;
-             if (A.first.second > B.first.second)
+             if (A.first.first.second > B.first.first.second)
                return true;
-             if (A.first.second < B.first.second)
+             if (A.first.first.second < B.first.first.second)
                return false;
-             return A.second.second < B.second.second;
+             return A.first.second.second < B.first.second.second;
            });
       // Print chosen move (should always be one with highest visit then eval
       // then lowest id)
       for (uintf i = 1; i < moves.size(); ++i) {
-        *logging_file << Move{moves[i].second.second}
-                      << " V: " << moves[i].first.first
-                      << " E: " << moves[i].first.second
-                      << " P: " << moves[i].second.first << '\t';
+        *logging_file << Move{moves[i].first.second.second}
+                      << " V: " << moves[i].first.first.first << " E: ";
+        if (moves[i].second == DEDUCED_WIN) {
+          *logging_file << "WIN";
+        } else if (moves[i].second == RESULT_LOSS) {
+          *logging_file << "LOSS";
+        } else if (moves[i].second == DEDUCED_LOSS) {
+          *logging_file << "DEDUCED LOSS";
+        } else if (moves[i].second == RESULT_DRAW) {
+          *logging_file << "DRAW";
+        } else if (moves[i].second == DEDUCED_DRAW) {
+          *logging_file << "DEDUCED DRAW";
+        } else {
+          *logging_file << moves[i].first.first.second;
+        }
+        *logging_file << " P: " << moves[i].first.second.first << '\t';
       }
       *logging_file << '\n';
     }
@@ -149,7 +176,13 @@ bool SelfPlayer::do_iteration() {
     // Check if the game is over
     if (players[to_play].root->is_terminal()) {
       // Get result
-      result = players[to_play].root->result;
+      if (players[to_play].root->result == RESULT_DRAW) {
+        result = RESULT_DRAW;
+      } else if (to_play == 0) {
+        result = RESULT_LOSS;
+      } else {
+        result = RESULT_WIN;
+      }
       // Log game result
       if (logging_file != nullptr) {
         if (result == RESULT_DRAW) {

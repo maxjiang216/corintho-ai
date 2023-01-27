@@ -47,7 +47,9 @@ bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
   return game.get_legal_moves(legal_moves);
 }
 
-bool Node::is_terminal() const { return result != RESULT_NONE; }
+bool Node::is_terminal() const {
+  return result == RESULT_LOSS || result == RESULT_DRAW;
+}
 
 float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;
@@ -67,12 +69,8 @@ void Node::initialize_edges() {
     visits = 0;
     // Decisive game
     if (is_lines) {
-      // Second player win
-      if (game.to_play == 0) {
-        result = RESULT_LOSS;
-      } else {
-        result = RESULT_WIN;
-      }
+      // Current player has lost
+      result = RESULT_LOSS;
     } else {
       result = RESULT_DRAW;
     }

@@ -123,3 +123,16 @@ void Node::print_main_line(std::ostream *logging_file) const {
     best_child->print_main_line(logging_file);
   }
 }
+
+void Node::print_known(std::ostream *logging_file) const {
+  if (result != RESULT_NONE) {
+    *logging_file << (uintf)depth << ". " << Move{child_num} << ' '
+                  << str_result(result) << " ( ";
+    Node *cur_child = first_child;
+    while (cur_child != nullptr) {
+      cur_child->print_known(logging_file);
+      cur_child = cur_child->next_sibling;
+    }
+    *logging_file << " ) ";
+  }
+}

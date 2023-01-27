@@ -89,12 +89,8 @@ bool SelfPlayer::do_iteration() {
                     << "PLAYER " << (uintf)(to_play + 1) << " TO PLAY\nVISITS: "
                     << (uintf)players[to_play].root->visits
                     << "\nPOSITION EVALUATION: ";
-      if (players[to_play].root->result == DEDUCED_WIN) {
-        *logging_file << "WIN";
-      } else if (players[to_play].root->result == DEDUCED_LOSS) {
-        *logging_file << "LOSS";
-      } else if (players[to_play].root->result == DEDUCED_DRAW) {
-        *logging_file << "DRAW";
+      if (players[to_play].root->result != RESULT_NONE) {
+        *logging_file << str_result(players[to_play].root->result);
       } else {
         *logging_file << std::fixed << std::setprecision(6)
                       << players[to_play].root->evaluation /
@@ -142,16 +138,8 @@ bool SelfPlayer::do_iteration() {
       for (uintf i = 1; i < moves.size(); ++i) {
         *logging_file << Move{moves[i].first.second.second}
                       << " V: " << moves[i].first.first.first << " E: ";
-        if (moves[i].second == DEDUCED_WIN) {
-          *logging_file << "WIN";
-        } else if (moves[i].second == RESULT_LOSS) {
-          *logging_file << "LOSS";
-        } else if (moves[i].second == DEDUCED_LOSS) {
-          *logging_file << "DEDUCED LOSS";
-        } else if (moves[i].second == RESULT_DRAW) {
-          *logging_file << "DRAW";
-        } else if (moves[i].second == DEDUCED_DRAW) {
-          *logging_file << "DEDUCED DRAW";
+        if (moves[i].second != RESULT_NONE) {
+          *logging_file << str_result(moves[i].second);
         } else {
           *logging_file << moves[i].first.first.second;
         }

@@ -51,6 +51,7 @@ public:
   uintf count_nodes() const;
 
   void print_main_line(std::ostream *logging_file) const;
+  void print_known(std::ostream *logging_file) const;
 
   friend class TrainMC;
   friend class SelfPlayer;

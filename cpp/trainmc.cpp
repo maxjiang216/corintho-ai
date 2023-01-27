@@ -533,6 +533,9 @@ void TrainMC::propagate_result() {
         cur_node = cur_node->next_sibling;
         ++edge_index;
       }
+      // Unvisited moves at the end
+      if (edge_index < node->num_legal_moves)
+        return;
       // If we reach this part, we are guaranteed
       // No winning moves and
       // no unknown moves

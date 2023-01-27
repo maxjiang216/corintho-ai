@@ -38,6 +38,8 @@ const uint8s DEDUCED_LOSS = 4;
 const uint8s DEDUCED_DRAW = 5;
 const uint8s DEDUCED_WIN = 6;
 
+string str_result(uint8s result);
+
 // Indexing for lines
 const uintf RL = 0;
 const uintf RR = 1;

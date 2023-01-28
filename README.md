@@ -11,4 +11,4 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
  - Cython (facilitate C++ & Python interaction)
  - OpenMP (multithreading for C++ code)
 
-Trained on Google Cloud Platform for about 26 hours.
+Trained on Google Cloud Platform for about 23 hours.

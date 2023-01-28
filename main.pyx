@@ -29,6 +29,7 @@ cdef extern from "cpp/trainer.cpp":
         int count_samples()
         void write_samples(float *game_states, float *evaluation_samples, float *probability_samples)
         float get_score(string out_file)
+        float get_avg_mate_len()
 
 def format_time(t):
     """Format string
@@ -186,7 +187,10 @@ def train_generation(*,
         f"{num_samples/num_games} average turns per game\n"
         f"{format_time(play_time/num_samples)} per turn\n"
         f"{format_time(play_time/(num_samples*iterations))} per search\n"
+        f"{trainer.get_avg_mate_len()} average mate length\n"
     )
+
+    trainer.get_score(f"{train_log_folder}/score_verbose.txt".encode())
 
     del trainer
 

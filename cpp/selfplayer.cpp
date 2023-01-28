@@ -16,7 +16,8 @@ using std::pair;
 
 SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, logging_file{nullptr} {
+      generator{generator}, result{RESULT_NONE},
+      logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
@@ -26,7 +27,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
 SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
                        std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, logging_file{logging_file} {
+      generator{generator}, result{RESULT_NONE},
+      logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
@@ -36,8 +38,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
                        std::mt19937 *generator)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
-                                                                 nullptr} {
+      generator{generator}, result{RESULT_NONE}, seed{seed},
+      logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
@@ -46,8 +48,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
                        std::mt19937 *generator, std::ofstream *logging_file)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed}, logging_file{
-                                                                 logging_file} {
+      generator{generator}, result{RESULT_NONE}, seed{seed},
+      logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
@@ -90,6 +92,9 @@ bool SelfPlayer::do_iteration() {
                     << (uintf)players[to_play].root->visits
                     << "\nPOSITION EVALUATION: ";
       if (players[to_play].root->result != RESULT_NONE) {
+        if (mate_turn == 0) {
+          mate_turn = players[to_play].root->depth;
+        }
         *logging_file << str_result(players[to_play].root->result);
       } else {
         *logging_file << std::fixed << std::setprecision(6)
@@ -292,3 +297,5 @@ float SelfPlayer::get_score() const {
 uintf SelfPlayer::count_nodes() const {
   return players[0].count_nodes() + players[1].count_nodes();
 }
+
+uintf SelfPlayer::get_mate_length() const { return samples.size() - mate_turn; }

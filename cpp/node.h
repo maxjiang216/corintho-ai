@@ -13,6 +13,9 @@ class alignas(64) Node {
 
   struct Edge {
     uint16s move_id : 7, probability : 9;
+    Edge() = default;
+    Edge(uintf move_id, uintf probability)
+        : move_id{(uint16s)move_id}, probability{(uint16s)probability} {}
   };
 
   // Visited this evaluation cycle

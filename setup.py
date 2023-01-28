@@ -21,7 +21,7 @@ setup(
             extra_compile_args=[
                 "-O3",
                 # "-Ofast",
-                "-std=c++20",
+                "-std=c++17",
                 "-fopenmp",
                 # "-g0",
                 # "-fstrict-overflow",

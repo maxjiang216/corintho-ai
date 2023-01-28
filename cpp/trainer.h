@@ -61,6 +61,8 @@ public:
 
   float get_score(const std::string &out_file) const;
 
+  float get_avg_mate_len() const;
+
   uintf count_nodes() const;
 };
 

@@ -46,6 +46,9 @@ class SelfPlayer {
   // This way we don't allocate memory if there is no logging file
   std::ofstream *logging_file;
 
+  // Turn at which game is solved
+  uintf mate_turn;
+
   bool do_iteration();
 
 public:
@@ -72,6 +75,8 @@ public:
 
   float get_score() const;
   uintf count_nodes() const;
+
+  uintf get_mate_length() const;
 
   friend class Trainer;
 };

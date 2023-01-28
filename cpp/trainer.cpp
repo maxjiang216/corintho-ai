@@ -318,3 +318,17 @@ float Trainer::get_score(const std::string &out_file) const {
   delete outfile;
   return score / (float)games.size();
 }
+
+float Trainer::get_avg_mate_len() const {
+  uintf lens[games.size()];
+  omp_set_num_threads(threads);
+#pragma omp parallel for
+  for (uintf i = 0; i < games.size(); ++i) {
+    lens[i] = games[i]->get_mate_length();
+  }
+  uintf total_len = 0;
+  for (uintf i = 0; i < games.size(); ++i) {
+    total_len += lens[i];
+  }
+  return (float)total_len / (float)games.size();
+}

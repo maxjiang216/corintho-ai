@@ -298,4 +298,8 @@ uintf SelfPlayer::count_nodes() const {
   return players[0].count_nodes() + players[1].count_nodes();
 }
 
-uintf SelfPlayer::get_mate_length() const { return samples.size() - mate_turn; }
+uintf SelfPlayer::get_mate_length() const {
+  if (mate_turn == 0)
+    return 0;
+  return samples.size() - mate_turn;
+}

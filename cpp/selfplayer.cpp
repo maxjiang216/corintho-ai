@@ -172,7 +172,7 @@ bool SelfPlayer::do_iteration() {
       // Get result
       if (players[to_play].root->result == RESULT_DRAW) {
         result = RESULT_DRAW;
-        // Second player win
+        // Second player win (to_play not updated yet)
       } else if (to_play == 1) {
         result = RESULT_LOSS;
       } else {

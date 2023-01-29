@@ -361,7 +361,7 @@ def train_generation(*,
 
     # Update rating
     if score > 0:
-        new_rating = best_gen_rating - min(400, 400 * np.log10(1 / score - 1))
+        new_rating = best_gen_rating - 400 * np.log10(1 / score - 1)
     else:
         new_rating = best_gen_rating - 400
     open(new_rating_file, 'w+', encoding='utf-8').write(f"{new_rating}\n")

@@ -336,10 +336,9 @@ def train_generation(*,
     open(f"{test_log_folder}/test_time.txt", "w+", encoding='utf-8').write(
         f"Testing complete in {format_time(time_taken)}\n"
         f"{num_test_games} games\n"
-        f"{format_time(time_taken)}\n"
-        f"{epochs} epochs\n"
-        f"{format_time(time_taken/epochs)} per epoch\n"
-        f"{format_time(time_taken/(epochs*num_samples/batch_size))} per batch\n"
+        f"Total prediction time: {format_time(predict_time)}\n"
+        f"Total play time: {format_time(play_time)}\n"
+        f"New agent score {score:1f}!\n"
     )
 
     # Clear old models

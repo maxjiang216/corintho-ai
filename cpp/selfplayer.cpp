@@ -173,7 +173,7 @@ bool SelfPlayer::do_iteration() {
       if (players[to_play].root->result == RESULT_DRAW) {
         result = RESULT_DRAW;
         // Second player win
-      } else if (to_play == 0) {
+      } else if (to_play == 1) {
         result = RESULT_LOSS;
       } else {
         result = RESULT_WIN;

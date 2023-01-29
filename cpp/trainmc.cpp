@@ -313,14 +313,15 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
     // Propagate evaluation
     float cur_eval = evaluation[j];
     while (cur->parent != nullptr) {
-      cur->evaluation += cur_eval;
+      // Correct default +1 evaluation
+      cur->evaluation += cur_eval - 1.0;
       // Reset this marker
       cur->all_visited = false;
       cur_eval *= -1.0;
       cur = cur->parent;
     }
     // Propagate to root
-    cur->evaluation += cur_eval;
+    cur->evaluation += cur_eval - 1.0;
   }
   root->all_visited = false;
   eval_index = 0;
@@ -395,6 +396,9 @@ bool TrainMC::search() {
       }
       // Count the visit
       ++cur->visits;
+      // Default eval is +1 for all positions
+      // This prevents repeatedly choosing the same line
+      cur->evaluation += 1.0;
 
       // No nodes are available
       if (max_value == -2.0) {
@@ -407,10 +411,12 @@ bool TrainMC::search() {
         // as we need to update visits within the same cycle
         while (cur->parent != nullptr) {
           --cur->visits;
+          cur->evaluation -= 1.0;
           cur = cur->parent;
         }
         // Remove search from root
         --cur->visits;
+        cur->evaluation -= 1.0;
         --iterations_done;
         return done;
       }
@@ -449,15 +455,18 @@ bool TrainMC::search() {
         // loser
         float cur_eval = -1.0;
         while (cur->parent != nullptr) {
-          cur->evaluation += cur_eval;
+          // Correct default +1 evaluation
+          cur->evaluation += cur_eval - 1.0;
           cur_eval *= -1.0;
           cur = cur->parent;
         }
-        cur->evaluation += cur_eval;
+        cur->evaluation += cur_eval - 1.0;
       }
     }
     // Otherwise, request an evaluation
     else {
+      // Default +1 evaluation
+      cur->evaluation = 1.0;
       need_evaluation = true;
       // Write game in offset position
       cur->write_game_state(to_eval + eval_index * GAME_STATE_SIZE);

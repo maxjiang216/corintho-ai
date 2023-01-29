@@ -338,7 +338,6 @@ def train_generation(*,
         f"{num_test_games} games\n"
         f"Total prediction time: {format_time(predict_time)}\n"
         f"Total play time: {format_time(play_time)}\n"
-        f"New agent score {score:1f}!\n"
     )
 
     # Clear old models

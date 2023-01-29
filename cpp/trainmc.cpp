@@ -448,19 +448,18 @@ bool TrainMC::search() {
       propagate_result();
       // Count the visit
       ++cur->visits;
-      // Don't propagate if value is 0
-      if (cur->result != RESULT_DRAW) {
-        // Propagate evaluation
-        // In a decisive terminal state, the person to play is always the
-        // loser
-        float cur_eval = -1.0;
-        while (cur->parent != nullptr) {
-          // Correct default +1 evaluation
-          cur->evaluation += cur_eval - 1.0;
-          cur_eval *= -1.0;
-          cur = cur->parent;
-        }
+      // In a decisive terminal state, the person to play is always the
+      // loser
+      float cur_eval = -1.0;
+      if (cur->result == RESULT_DRAW) {
+        cur_eval = 0.0;
+      }
+      cur->evaluation = cur_eval;
+      while (cur->parent != nullptr) {
+        cur = cur->parent;
+        // Correct default +1 evaluation
         cur->evaluation += cur_eval - 1.0;
+        cur_eval *= -1.0;
       }
     }
     // Otherwise, request an evaluation

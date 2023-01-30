@@ -318,18 +318,19 @@ def train_generation(*,
                 break
 
             evaluations_done += 1
-            if time.perf_counter() - last_time > 60:
-                time_taken = time.perf_counter() - start_time
-                open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
-                    f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
-                    f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations/searches_per_eval*time_taken/evaluations_done)}\n"
-                    f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations/searches_per_eval-evaluations_done)*time_taken/evaluations_done)}\n"
-                    f"Prediction time so far: {format_time(predict_time)}\n"
-                    f"Play time so far: {format_time(play_time)}\n\n"
-                )
-                last_time = time.perf_counter()
         else:
             to_play = 1 - to_play
+
+        if time.perf_counter() - last_time > 60:
+            time_taken = time.perf_counter() - start_time
+            open(f"{test_log_folder}/progress.txt", 'a+', encoding='utf-8').write(
+                f"{evaluations_done} evaluations completed in {format_time(time_taken)}\n"
+                f"Predicted time to complete: {format_time(EVALS_PER_SEARCH*iterations/searches_per_eval*time_taken/evaluations_done)}\n"
+                f"Estimated time left: {format_time((EVALS_PER_SEARCH*iterations/searches_per_eval-evaluations_done)*time_taken/evaluations_done)}\n"
+                f"Prediction time so far: {format_time(predict_time)}\n"
+                f"Play time so far: {format_time(play_time)}\n\n"
+            )
+            last_time = time.perf_counter()
 
     time_taken = time.perf_counter() - start_time
 

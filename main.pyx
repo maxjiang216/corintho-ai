@@ -129,9 +129,6 @@ def train_generation(*,
         num_requests = trainer.write_requests(&game_states[0,0])
 
         pred_start = time.perf_counter()
-        # use_multiprocessing probably does nothing
-        # but it does not hurt
-        # and in one case it was removed and NN evals became much slower
         res = model.predict(
             x=game_states, batch_size=num_requests, verbose=0, steps=1,
         )

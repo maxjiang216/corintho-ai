@@ -12,18 +12,20 @@
             "cpp/playmc.cpp"
         ],
         "extra_compile_args": [
-            "-std=c++20"
+            "-std=c++17"
         ],
         "include_dirs": [
+            "python",
             "/home/maxjiang216/.local/lib/python3.9/site-packages/numpy/core/include"
         ],
         "language": "c++",
         "name": "play",
         "sources": [
-            "play.pyx",
+            "python/play.pyx",
             "cpp/node.cpp",
             "cpp/game.cpp",
-            "cpp/move.cpp"
+            "cpp/move.cpp",
+            "cpp/util.cpp"
         ]
     },
     "module_name": "play"
@@ -800,7 +802,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 
     /* NumPy API declarations from "numpy/__init__.pxd" */
     
-#include "cpp/playmc.cpp"
+#include "../cpp/playmc.cpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -1032,7 +1034,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "play.pyx",
+  "python/play.pyx",
   "__init__.pxd",
   "type.pxd",
 };
@@ -2099,7 +2101,6 @@ static const char __pyx_k_predict[] = "predict";
 static const char __pyx_k_verbose[] = "verbose";
 static const char __pyx_k_integers[] = "integers";
 static const char __pyx_k_move_str[] = "move_str";
-static const char __pyx_k_play_pyx[] = "play.pyx";
 static const char __pyx_k_NUM_MOVES[] = "NUM_MOVES";
 static const char __pyx_k_move_dict[] = "move_dict";
 static const char __pyx_k_cpu_player[] = "cpu_player";
@@ -2115,6 +2116,7 @@ static const char __pyx_k_num_requests[] = "num_requests";
 static const char __pyx_k_probabilities[] = "probabilities";
 static const char __pyx_k_model_location[] = "model_location";
 static const char __pyx_k_GAME_STATE_SIZE[] = "GAME_STATE_SIZE";
+static const char __pyx_k_python_play_pyx[] = "python/play.pyx";
 static const char __pyx_k_CPU_chooses_move[] = "CPU chooses move ";
 static const char __pyx_k_searches_per_eval[] = "searches_per_eval";
 static const char __pyx_k_The_CPU_player_won[] = "The CPU player won!";
@@ -2281,11 +2283,11 @@ static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
 static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_play;
-static PyObject *__pyx_kp_s_play_pyx;
 static PyObject *__pyx_n_s_player_turn;
 static PyObject *__pyx_n_s_predict;
 static PyObject *__pyx_n_s_print;
 static PyObject *__pyx_n_s_probabilities;
+static PyObject *__pyx_kp_s_python_play_pyx;
 static PyObject *__pyx_n_s_random;
 static PyObject *__pyx_n_s_res;
 static PyObject *__pyx_n_s_rng;
@@ -2297,8 +2299,8 @@ static PyObject *__pyx_n_s_x;
 static PyObject *__pyx_n_s_zeros;
 static PyObject *__pyx_pf_4play_encode_move(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_move_str); /* proto */
 static PyObject *__pyx_pf_4play_2play(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_model_location, PyObject *__pyx_v_player_turn, PyObject *__pyx_v_iterations, PyObject *__pyx_v_searches_per_eval, PyObject *__pyx_v_c_puct, PyObject *__pyx_v_epsilon, PyObject *__pyx_v_logging); /* proto */
-static PyObject *__pyx_float_3_0;
-static PyObject *__pyx_float_0_25;
+static PyObject *__pyx_float_0_1;
+static PyObject *__pyx_float_1_0;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
@@ -2395,8 +2397,8 @@ static PyObject *__pyx_int_92;
 static PyObject *__pyx_int_93;
 static PyObject *__pyx_int_94;
 static PyObject *__pyx_int_95;
-static PyObject *__pyx_int_128;
-static PyObject *__pyx_int_12800;
+static PyObject *__pyx_int_512;
+static PyObject *__pyx_int_51200;
 static PyObject *__pyx_int_65536;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
@@ -2612,14 +2614,14 @@ static PyObject *__pyx_pw_4play_3play(PyObject *__pyx_self, PyObject *__pyx_args
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_model_location,&__pyx_n_s_player_turn,&__pyx_n_s_iterations,&__pyx_n_s_searches_per_eval,&__pyx_n_s_c_puct,&__pyx_n_s_epsilon,&__pyx_n_s_logging,0};
     PyObject* values[7] = {0,0,0,0,0,0,0};
     values[1] = ((PyObject *)__pyx_int_0);
-    values[2] = ((PyObject *)__pyx_int_12800);
-    values[3] = ((PyObject *)__pyx_int_128);
-    values[4] = ((PyObject *)__pyx_float_3_0);
-    values[5] = ((PyObject *)__pyx_float_0_25);
+    values[2] = ((PyObject *)__pyx_int_51200);
+    values[3] = ((PyObject *)__pyx_int_512);
+    values[4] = ((PyObject *)__pyx_float_1_0);
+    values[5] = ((PyObject *)__pyx_float_0_1);
 
     /* "play.pyx":139
- *     c_puct=3.0,
- *     epsilon=0.25,
+ *     c_puct=1.0,
+ *     epsilon=0.1,
  *     logging=False,             # <<<<<<<<<<<<<<
  * ):
  * 
@@ -5178,11 +5180,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
   {&__pyx_n_s_play, __pyx_k_play, sizeof(__pyx_k_play), 0, 0, 1, 1},
-  {&__pyx_kp_s_play_pyx, __pyx_k_play_pyx, sizeof(__pyx_k_play_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_player_turn, __pyx_k_player_turn, sizeof(__pyx_k_player_turn), 0, 0, 1, 1},
   {&__pyx_n_s_predict, __pyx_k_predict, sizeof(__pyx_k_predict), 0, 0, 1, 1},
   {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
   {&__pyx_n_s_probabilities, __pyx_k_probabilities, sizeof(__pyx_k_probabilities), 0, 0, 1, 1},
+  {&__pyx_kp_s_python_play_pyx, __pyx_k_python_play_pyx, sizeof(__pyx_k_python_play_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_random, __pyx_k_random, sizeof(__pyx_k_random), 0, 0, 1, 1},
   {&__pyx_n_s_res, __pyx_k_res, sizeof(__pyx_k_res), 0, 0, 1, 1},
   {&__pyx_n_s_rng, __pyx_k_rng, sizeof(__pyx_k_rng), 0, 0, 1, 1},
@@ -5260,7 +5262,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__7 = PyTuple_Pack(2, __pyx_n_s_move_str, __pyx_n_s_move_dict); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
-  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_play_pyx, __pyx_n_s_encode_move, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__7, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_play_pyx, __pyx_n_s_encode_move, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 28, __pyx_L1_error)
 
   /* "play.pyx":132
  *     return move_dict[move_str]
@@ -5272,7 +5274,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__9 = PyTuple_Pack(19, __pyx_n_s_model_location, __pyx_n_s_player_turn, __pyx_n_s_iterations, __pyx_n_s_searches_per_eval, __pyx_n_s_c_puct, __pyx_n_s_epsilon, __pyx_n_s_logging, __pyx_n_s_NUM_MOVES, __pyx_n_s_GAME_STATE_SIZE, __pyx_n_s_rng, __pyx_n_s_model, __pyx_n_s_cpu_player, __pyx_n_s_evaluations, __pyx_n_s_probabilities, __pyx_n_s_game_states, __pyx_n_s_eval_2, __pyx_n_s_move, __pyx_n_s_res, __pyx_n_s_num_requests); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
-  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(7, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_play_pyx, __pyx_n_s_play, 132, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(7, 0, 19, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_python_play_pyx, __pyx_n_s_play, 132, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5282,8 +5284,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
 static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
-  __pyx_float_3_0 = PyFloat_FromDouble(3.0); if (unlikely(!__pyx_float_3_0)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_float_0_25 = PyFloat_FromDouble(0.25); if (unlikely(!__pyx_float_0_25)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_float_0_1 = PyFloat_FromDouble(0.1); if (unlikely(!__pyx_float_0_1)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_float_1_0 = PyFloat_FromDouble(1.0); if (unlikely(!__pyx_float_1_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -5380,8 +5382,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_93 = PyInt_FromLong(93); if (unlikely(!__pyx_int_93)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_94 = PyInt_FromLong(94); if (unlikely(!__pyx_int_94)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_95 = PyInt_FromLong(95); if (unlikely(!__pyx_int_95)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_128 = PyInt_FromLong(128); if (unlikely(!__pyx_int_128)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_12800 = PyInt_FromLong(12800L); if (unlikely(!__pyx_int_12800)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_512 = PyInt_FromLong(512); if (unlikely(!__pyx_int_512)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_51200 = PyInt_FromLong(51200L); if (unlikely(!__pyx_int_51200)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_65536 = PyInt_FromLong(65536L); if (unlikely(!__pyx_int_65536)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -5779,7 +5781,7 @@ if (!__Pyx_RefNanny) {
  * import keras.api._v2.keras as keras
  * from keras.api._v2.keras.models import load_model             # <<<<<<<<<<<<<<
  * 
- * cdef extern from "cpp/playmc.cpp":
+ * cdef extern from "../cpp/playmc.cpp":
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);

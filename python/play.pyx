@@ -11,7 +11,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
 from keras.api._v2.keras.models import load_model
 
-cdef extern from "cpp/playmc.cpp":
+cdef extern from "../cpp/playmc.cpp":
     cdef cppclass PlayMC:
         PlayMC()
         PlayMC(int num_iterations, int searches_per_eval,
@@ -132,10 +132,10 @@ def encode_move(move_str):
 def play(
     model_location,
     player_turn=0,
-    iterations=12800,
-    searches_per_eval=128,
-    c_puct=3.0,
-    epsilon=0.25,
+    iterations=51200,
+    searches_per_eval=512,
+    c_puct=1.0,
+    epsilon=0.1,
     logging=False,
 ):
 

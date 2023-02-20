@@ -13,7 +13,7 @@ from keras.api._v2.keras.models import load_model
 from keras import backend as K
 from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau
 
-cdef extern from "cpp/trainer.cpp":
+cdef extern from "../cpp/trainer.cpp":
     cdef cppclass Trainer:
         Trainer()
         Trainer(int num_games, int num_logged, int num_iterations,

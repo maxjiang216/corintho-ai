@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -MMD -O3 -fopenmp -g #-pg
 
-SRC = ./cpp
+SRC = .
 
 SRCS = $(shell find $(SRC) -name '*.cpp')
 

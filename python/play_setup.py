@@ -11,12 +11,13 @@ setup(
             "play",
             [
                 "play.pyx",
-                "cpp/node.cpp",
-                "cpp/game.cpp",
-                "cpp/move.cpp",
+                "../cpp/node.cpp",
+                "../cpp/game.cpp",
+                "../cpp/move.cpp",
+                "../cpp/util.cpp",
             ],
             extra_compile_args=[
-                "-std=c++20",
+                "-std=c++17",
             ],
             language="c++",
             include_dirs=[numpy.get_include()],

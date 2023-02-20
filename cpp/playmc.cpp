@@ -50,9 +50,7 @@ uintf PlayMC::choose_move() {
   // For when we delete deprecated nodes
   Node *best_prev_node = nullptr;
 
-  // In training, choose weighted random
-  // For the first few moves
-  if (root->depth < 9) {
+  if (root->depth < 0) {
     uintf total = 0, target = (*generator)() % (root->visits - 1);
     Node *cur_child = root->first_child;
     // This loop will always break out

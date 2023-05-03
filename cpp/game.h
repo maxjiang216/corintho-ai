@@ -41,6 +41,9 @@ class Game {
 public:
   Game();
   Game(const Game &game) = default;
+  // Create a new game from arbitrary state
+  // For web app
+  Game(long *board, int to_play, long *pieces);
   ~Game() = default;
 
   bool is_terminal() const;

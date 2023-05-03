@@ -5,29 +5,21 @@ from libcpp cimport bool
 import numpy as np
 cimport numpy as np
 
-cdef extern from "../cpp/move.cpp":
-    cdef cppclass Move:
-        Move(int move)
-        bool mtype
-        int ptype
-        int row1
-        int col1
-        int row2
-        int col2
+from keras.api._v2.keras.models import load_model
 
 cdef extern from "../cpp/playmc.cpp":
     cdef cppclass PlayMC:
         PlayMC(
-            bool *board,
+            long *board,
             int to_play,
-            int *pieces,
+            long *pieces,
             int searches_per_eval,
             int seed
         )
         bool do_iteration(float *evaluations, float *probabilities)
         int write_requests(float *game_states)
         int choose_move()
-        void get_legal_moves(int *legal_moves)
+        void get_legal_moves(long *legal_moves)
         int get_node_number()
         bool is_done()
         bool has_drawn()
@@ -50,30 +42,31 @@ def choose_move(
     # Constants
     cdef int NUM_MOVES = 96
     cdef int GAME_STATE_SIZE = 70
-    MODEL_LOCATION = "."
+    MODEL_LOCATION = "../model"
     
     start_time = time.time()
 
     # Extract game state
-    bool *board = new bool[64]
+    cdef long[:] board = np.zeros(64, dtype=long)
     for i, row in enumerate(game_state["board"]):
         for j, space in enumerate(row):
-            board[(i * 8 + j) * 4] = space["pieces"]["base"]
-            board[(i * 8 + j) * 4 + 1] = space["pieces"]["column"]
-            board[(i * 8 + j) * 4 + 2] = space["pieces"]["capital"]
-            board[(i * 8 + j) * 4 + 3] = space["frozen"]
-    int to_play = game_state["turn"]
-    int *pieces = new int[6]
+            board[(i * 4 + j) * 4] = 1 if space["pieces"]["base"] else 0
+            board[(i * 4 + j) * 4 + 1] = 1 if space["pieces"]["column"] else 0
+            board[(i * 4 + j) * 4 + 2] = 1 if space["pieces"]["capital"] else 0
+            board[(i * 4 + j) * 4 + 3] = 1 if space["frozen"] else 0
+    cdef int to_play = game_state["turn"]
+    cdef long[:] pieces = np.zeros(6, dtype=long)
     for i, pieceType in enumerate(["base", "column", "capital"]):
-        pieces[i] = game_state["players"]["pieceCounts"][pieceType]
+        pieces[i] = game_state["players"][0]["pieceCounts"][pieceType]
+        pieces[3 + i] = game_state["players"][1]["pieceCounts"][pieceType]
 
     rng = np.random.default_rng(int(start_time))
 
     # Construct a MCST object
     cdef PlayMC *mcst = new PlayMC(
-        board,
+        &board[0],
         to_play,
-        *pieces,
+        &pieces[0],
         searches_per_eval,
         rng.integers(65536),
     )
@@ -88,21 +81,26 @@ def choose_move(
     # Load playing model
     model = load_model(MODEL_LOCATION)
 
+    print(86)
+
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((searches_per_eval, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
     
+    print(89)
+    print(mcst.get_node_number())
+    print(89.5)
+
+
     # While the game is not done
-    while not mcst.is_done():
+    while time.time() - start_time < time_limit and (max_nodes == 0 or mcst.get_node_number() <= max_nodes):
+        print(90)
         # Do some iterations of the MCST
         res = mcst.do_iteration(&evaluations[0], &probabilities[0,0])
+        print(res, 93)
         
         # This means that the MCST has deduced the game outcome
         if res:
-            break
-
-        # Stop conditions
-        if time.time() - start_time > time_limit or (max_nodes > 0 and mcst.get_node_number() > max_nodes):
             break
 
         num_requests = mcst.write_requests(&game_states[0,0])
@@ -113,40 +111,65 @@ def choose_move(
         res = model.predict(
             x=game_states, verbose=0,
         )
+        print(res, 107)
         evaluations = res[0].flatten()
         probabilities = res[1]
 
     # Choose the best move
-    Move move = Move(mcst.choose_move())
-    if move.mtype:
-        move = {
+    move = mcst.choose_move()
+    if move >= 48:
+        move_dict = {
             "mtype": "place",
-            "piecetype": move.ptype,
-            "row": move.row1,
-            "col": move.col1,
+            "piecetype": (move - 48) // 16,
+            "row": (move % 16) // 4,
+            "col": move % 4,
         }
-    else:
-        move = {
-            "mtype": "move",
-            "sourceRow": move.row1,
-            "sourceCol": move.col1,
-            "targetRow": move.row2,
-            "targetCol": move.col2,
+    elif move < 12:  # Right
+        return {
+            "sourceRow": move // 3,
+            "sourceCol": move % 3,
+            "targetRow": move // 3,
+            "targetCol": (move % 3) + 1,
+            "type": "move",
+        }
+    elif move < 24:  # Down
+        return {
+            "sourceRow": (move - 12) // 4,
+            "sourceCol": move % 4,
+            "targetRow": ((move - 12) // 4) + 1,
+            "targetCol": move % 4,
+            "type": "move",
+        }
+    elif move < 36:  # Left
+        return {
+            "sourceRow": (move - 24) // 3,
+            "sourceCol": (move % 3) + 1,
+            "targetRow": (move - 24) // 3,
+            "targetCol": (move % 3),
+            "type": "move",
+        }
+    else:  # Up
+        return {
+            "sourceRow": (move - 36) // 4 + 1,
+            "sourceCol": move % 4,
+            "targetRow": (move - 36) // 4,
+            "targetCol": move % 4,
+            "type": "move",
         }
     is_done = mcst.is_done()
     has_won = False
     if is_done:
         has_won = not mcst.has_drawn()
     legal_move_list = []
+    cdef long[:] legal_moves = np.zeros(NUM_MOVES, dtype=long)
     if not is_done:
-        bool *legal_moves = new bool[NUM_MOVES]
-        mcst.get_legal_moves(legal_moves)
+        mcst.get_legal_moves(&legal_moves[0])
         for i in range(NUM_MOVES):
-            if legal_moves[i]:
+            if legal_moves[i] == 1:
                 legal_move_list.append(i)
 
     return {
-        "move": move,
+        "move": move_dict,
         "is_done": is_done,
         "has_won": has_won,
         "legal_moves": legal_move_list,

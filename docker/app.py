@@ -1,13 +1,21 @@
 from flask import Flask, request, jsonify
-from random_move import get_random_move
+from play_corintho import choose_move
 
 app = Flask(__name__)
 
-@app.route('/choose_move', methods=['POST'])
+
+@app.route("/choose_move", methods=["POST"])
 def choose_move():
     data = request.get_json()
-    print(data)
-    return jsonify(get_random_move(data['gameState'], data['timeLimit']))
+    return jsonify(
+        choose_move(
+            data["gameState"],
+            data["timeLimit"],
+            data["searchesPerEval"],
+            data["maxNodes"],
+        )
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)

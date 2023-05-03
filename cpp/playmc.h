@@ -43,8 +43,7 @@ public:
   PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
          float epsilon, bool logging, uintf seed);
   // PlayMC for web app
-  PlayMC(bool *board, uintf to_play, uintf *pieces, uintf max_iterations,
-  uintf searches_per_eval, uintf seed);
+  PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed);
   ~PlayMC();
 
   void do_first_iteration(uintf move_choice);
@@ -55,13 +54,13 @@ public:
   uintf choose_move();
 
   // Get legal moves for the current state
-  void get_legal_moves(bool *legal_moves);
-  // Get winning moves for the current state
-  void get_winning_moves(bool *winning_moves);
+  void get_legal_moves(long *legal_moves) const;
 
   void receive_opp_move(uintf move_choice);
 
   uintf write_requests(float game_states[]) const;
+
+  uintf get_node_number() const;
 
   bool is_done() const;
   bool has_won() const;

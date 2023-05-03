@@ -1,6 +1,6 @@
 #include "playmc.h"
 #include "move.h"
-#include "node.h"
+#include "game.h"
 #include <array>
 #include <bitset>
 #include <cmath>
@@ -8,8 +8,11 @@
 #include <iostream>
 #include <random>
 #include <vector>
+#include <limits>
 
 using std::bitset;
+
+uintf max_unsigned_int = std::numeric_limits<unsigned int>::max();
 
 PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
                float epsilon, bool logging, uintf seed)
@@ -24,18 +27,34 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
   cur = root;
 }
 
+PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed):
+max_iterations{max_unsigned_int}, searches_per_eval{searches_per_eval}, c_puct{3.0}, epsilon{0.25},
+root{nullptr}, cur{nullptr}, eval_index{0}, searched{std::vector<Node *>()},
+to_eval{new float[searches_per_eval * GAME_STATE_SIZE]}, iterations_done{0}, logging{false},
+generator{new std::mt19937(seed)} {
+  searched.reserve(searches_per_eval);
+  Game game = Game{board, to_play, pieces};
+  root = new Node(game, 0);
+  --root->visits;
+  cur = root;
+}
+
 PlayMC::~PlayMC() {
   delete generator;
   delete root;
 }
 
 bool PlayMC::do_iteration(float evaluation[], float probabilities[]) {
+  std::cerr << "48\n";
   receive_evaluation(evaluation, probabilities);
+  std::cerr << "50\n";
   while (eval_index < searches_per_eval && iterations_done < max_iterations) {
     // We are done the search prematurely if
     // The root has no more children to search
     // Or if we have done max_iterations searches
+    std::cerr << "55\n";
     bool done_search = search();
+    std::cerr << "57\n";
     if (done_search)
       break;
   }
@@ -365,6 +384,17 @@ void PlayMC::move_down(Node *prev_node) {
   cur = root;
   iterations_done = 0;
 }
+
+void PlayMC::get_legal_moves(long *legal_moves) const {
+  for (uintf i = 0; i < NUM_MOVES; ++i) {
+    legal_moves[i] = 0;
+  }
+  for (uintf i = 0; i < root->num_legal_moves; ++i) {
+    legal_moves[root->edges[i].move_id] = 1;
+  }
+}
+
+uintf PlayMC::get_node_number() const { return root->count_nodes(); }
 
 bool PlayMC::is_done() const { return root->result != RESULT_NONE; }
 

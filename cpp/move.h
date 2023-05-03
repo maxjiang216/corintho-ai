@@ -9,6 +9,7 @@ struct Move {
   bool mtype;
   uintf ptype, row1, col1, row2, col2;
 
+  Move() = default;
   Move(uintf move_id);
 
   friend std::ostream &operator<<(std::ostream &os, const Move &move);

@@ -42,6 +42,9 @@ public:
   PlayMC() = default;
   PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
          float epsilon, bool logging, uintf seed);
+  // PlayMC for web app
+  PlayMC(bool *board, uintf to_play, uintf *pieces, uintf max_iterations,
+  uintf searches_per_eval, uintf seed);
   ~PlayMC();
 
   void do_first_iteration(uintf move_choice);
@@ -50,6 +53,11 @@ public:
 
   // Choose the next child to visit
   uintf choose_move();
+
+  // Get legal moves for the current state
+  void get_legal_moves(bool *legal_moves);
+  // Get winning moves for the current state
+  void get_winning_moves(bool *winning_moves);
 
   void receive_opp_move(uintf move_choice);
 

@@ -1,5 +1,7 @@
 import random
 
+from libcpp cimport bool
+
 def get_random_move(game_state, time_limit):
     return {
         "move": {

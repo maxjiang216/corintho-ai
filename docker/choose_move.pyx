@@ -24,6 +24,15 @@ cdef extern from "../cpp/playmc.cpp":
         bool is_done()
         bool has_drawn()
 
+# Constants
+cdef int NUM_MOVES = 96
+cdef int GAME_STATE_SIZE = 70
+pieceTypes = ["base", "column", "capital"]
+MODEL_LOCATION = "model"
+
+# Load playing model
+model = load_model(MODEL_LOCATION)
+
 def choose_move(
         game_state,
         time_limit,
@@ -39,10 +48,7 @@ def choose_move(
     max_nodes is maximum number of nodes to search (0 for no limit)
     """
 
-    # Constants
-    cdef int NUM_MOVES = 96
-    cdef int GAME_STATE_SIZE = 70
-    MODEL_LOCATION = "../model"
+    
     
     start_time = time.time()
 
@@ -56,7 +62,7 @@ def choose_move(
             board[(i * 4 + j) * 4 + 3] = 1 if space["frozen"] else 0
     cdef int to_play = game_state["turn"]
     cdef long[:] pieces = np.zeros(6, dtype=long)
-    for i, pieceType in enumerate(["base", "column", "capital"]):
+    for i, pieceType in enumerate(pieceTypes):
         pieces[i] = game_state["players"][0]["pieceCounts"][pieceType]
         pieces[3 + i] = game_state["players"][1]["pieceCounts"][pieceType]
 
@@ -78,26 +84,16 @@ def choose_move(
             # Human player has won
             return {"pre-result": "win"}
 
-    # Load playing model
-    model = load_model(MODEL_LOCATION)
-
-    print(86)
-
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((searches_per_eval, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
-    
-    print(89)
-    print(mcst.get_node_number())
-    print(89.5)
 
-
+    counter = 0
     # While the game is not done
-    while time.time() - start_time < time_limit and (max_nodes == 0 or mcst.get_node_number() <= max_nodes):
-        print(90)
+    while counter < 2 or (time.time() - start_time < time_limit and (max_nodes == 0 or mcst.get_node_number() <= max_nodes)):
+        counter += 1
         # Do some iterations of the MCST
         res = mcst.do_iteration(&evaluations[0], &probabilities[0,0])
-        print(res, 93)
         
         # This means that the MCST has deduced the game outcome
         if res:
@@ -111,51 +107,11 @@ def choose_move(
         res = model.predict(
             x=game_states, verbose=0,
         )
-        print(res, 107)
         evaluations = res[0].flatten()
         probabilities = res[1]
 
     # Choose the best move
     move = mcst.choose_move()
-    if move >= 48:
-        move_dict = {
-            "mtype": "place",
-            "piecetype": (move - 48) // 16,
-            "row": (move % 16) // 4,
-            "col": move % 4,
-        }
-    elif move < 12:  # Right
-        return {
-            "sourceRow": move // 3,
-            "sourceCol": move % 3,
-            "targetRow": move // 3,
-            "targetCol": (move % 3) + 1,
-            "type": "move",
-        }
-    elif move < 24:  # Down
-        return {
-            "sourceRow": (move - 12) // 4,
-            "sourceCol": move % 4,
-            "targetRow": ((move - 12) // 4) + 1,
-            "targetCol": move % 4,
-            "type": "move",
-        }
-    elif move < 36:  # Left
-        return {
-            "sourceRow": (move - 24) // 3,
-            "sourceCol": (move % 3) + 1,
-            "targetRow": (move - 24) // 3,
-            "targetCol": (move % 3),
-            "type": "move",
-        }
-    else:  # Up
-        return {
-            "sourceRow": (move - 36) // 4 + 1,
-            "sourceCol": move % 4,
-            "targetRow": (move - 36) // 4,
-            "targetCol": move % 4,
-            "type": "move",
-        }
     is_done = mcst.is_done()
     has_won = False
     if is_done:
@@ -169,7 +125,7 @@ def choose_move(
                 legal_move_list.append(i)
 
     return {
-        "move": move_dict,
+        "move": move,
         "is_done": is_done,
         "has_won": has_won,
         "legal_moves": legal_move_list,

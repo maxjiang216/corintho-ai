@@ -45,16 +45,12 @@ PlayMC::~PlayMC() {
 }
 
 bool PlayMC::do_iteration(float evaluation[], float probabilities[]) {
-  std::cerr << "48\n";
   receive_evaluation(evaluation, probabilities);
-  std::cerr << "50\n";
   while (eval_index < searches_per_eval && iterations_done < max_iterations) {
     // We are done the search prematurely if
     // The root has no more children to search
     // Or if we have done max_iterations searches
-    std::cerr << "55\n";
     bool done_search = search();
-    std::cerr << "57\n";
     if (done_search)
       break;
   }

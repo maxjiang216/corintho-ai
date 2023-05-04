@@ -21,6 +21,7 @@ cdef extern from "playmc.cpp":
         int choose_move()
         void get_legal_moves(long *legal_moves)
         int get_node_number()
+        float get_evaluation()
         bool is_done()
         bool has_drawn()
 
@@ -111,6 +112,8 @@ def choose_move(
         probabilities = res[1]
 
     # Choose the best move
+    nodes_searches = mcst.get_node_number()
+    evaluation = mcst.get_evaluation()
     move = mcst.choose_move()
     is_done = mcst.is_done()
     has_won = False
@@ -131,4 +134,6 @@ def choose_move(
         "is_done": is_done,
         "has_won": has_won,
         "legal_moves": legal_move_list,
+        "nodes_searched": nodes_searches,
+        "evaluation": evaluation,
     }

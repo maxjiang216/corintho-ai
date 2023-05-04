@@ -37,6 +37,7 @@ class PlayMC {
   bool search();
 
   void move_down(Node *prev_node);
+  void propagate_result();
 
 public:
   PlayMC() = default;
@@ -61,6 +62,7 @@ public:
   uintf write_requests(float game_states[]) const;
 
   uintf get_node_number() const;
+  float get_evaluation() const;
 
   bool is_done() const;
   bool has_won() const;

@@ -17,6 +17,9 @@ def choose_move_route():
         )
     )
 
+@app.route("/warm_up", methods=["POST"])
+def warm_up():
+    return jsonify({"status": 200})
 
 if __name__ == "__main__":
     app.run(debug=True)

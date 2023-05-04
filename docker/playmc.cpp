@@ -491,7 +491,7 @@ uintf PlayMC::get_node_number() const { return root->count_nodes(); }
 
 float PlayMC::get_evaluation() const { return root->evaluation; }
 
-bool PlayMC::is_done() const { return root->result != RESULT_NONE; }
+bool PlayMC::is_done() const { return root->result == RESULT_WIN || root->result == RESULT_DRAW || root->result == RESULT_LOSS; }
 
 bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
 

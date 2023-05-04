@@ -116,28 +116,32 @@ uintf PlayMC::choose_move() {
     }
   }
 
-  // Otherwise, choose the move with the most searches
-  // Breaking ties with evaluation
-  uintf max_visits = 0;
-  float max_eval = 0.0, eval;
-  Node *cur_child = root->first_child, *prev_node = nullptr;
-  while (cur_child != nullptr) {
-    if (cur_child->result != DEDUCED_WIN) {
-      eval = cur_child->evaluation;
-      if (cur_child->result == RESULT_DRAW ||
-          cur_child->result == DEDUCED_DRAW) {
-        eval = 0.0;
+  else {
+
+    // Otherwise, choose the move with the most searches
+    // Breaking ties with evaluation
+    uintf max_visits = 0;
+    float max_eval = 0.0, eval;
+    Node *cur_child = root->first_child, *prev_node = nullptr;
+    while (cur_child != nullptr) {
+      if (cur_child->result != DEDUCED_WIN) {
+        eval = cur_child->evaluation;
+        if (cur_child->result == RESULT_DRAW ||
+            cur_child->result == DEDUCED_DRAW) {
+          eval = 0.0;
+        }
+        if (cur_child->visits > max_visits ||
+            (cur_child->visits == max_visits && eval > max_eval)) {
+          move_choice = cur_child->child_num;
+          best_prev_node = prev_node;
+          max_visits = cur_child->visits;
+          max_eval = eval;
+        }
       }
-      if (cur_child->visits > max_visits ||
-          (cur_child->visits == max_visits && eval > max_eval)) {
-        move_choice = cur_child->child_num;
-        best_prev_node = prev_node;
-        max_visits = cur_child->visits;
-        max_eval = eval;
-      }
+      prev_node = cur_child;
+      cur_child = cur_child->next_sibling;
     }
-    prev_node = cur_child;
-    cur_child = cur_child->next_sibling;
+
   }
 
   move_down(best_prev_node);
@@ -487,7 +491,7 @@ uintf PlayMC::get_node_number() const { return root->count_nodes(); }
 
 float PlayMC::get_evaluation() const { return root->evaluation; }
 
-bool PlayMC::is_done() const { return root->result != RESULT_NONE; }
+bool PlayMC::is_done() const { return root->result == RESULT_WIN || root->result == RESULT_DRAW || root->result == RESULT_LOSS; }
 
 bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
 

@@ -7,7 +7,7 @@ cimport numpy as np
 
 from keras.api._v2.keras.models import load_model
 
-cdef extern from "../cpp/playmc.cpp":
+cdef extern from "playmc.cpp":
     cdef cppclass PlayMC:
         PlayMC(
             long *board,

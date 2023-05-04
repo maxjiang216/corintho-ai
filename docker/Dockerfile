@@ -1,20 +1,33 @@
-# Use an official Python runtime as a parent image
+# Use the official Python image as the base image
 FROM python:3.9-slim
 
-# Set the working directory to /app
+# Allow statements and log messages to immediately appear in the Knative logs
+ENV PYTHONUNBUFFERED True
+
+# Set the working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc build-essential python3-dev libblas-dev liblapack-dev gfortran && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+# Copy the requirements.txt file into the container
+COPY requirements.txt .
 
-# Make port 8080 available to the world outside this container
+# Install the required packages
+RUN pip install --no-cache-dir -r requirements.txt -v
+
+# Copy the remaining application files into the container
+COPY . .
+
+# Build the Cython module
+RUN python setup.py build_ext --inplace
+
+# Expose the Flask application port
 EXPOSE 8080
 
-# Define environment variable
-ENV FLASK_APP=app:app
-
-# Run flask.py when the container launches
+# Start the Flask application
 CMD ["flask", "run", "--host=0.0.0.0", "--port=8080"]
+

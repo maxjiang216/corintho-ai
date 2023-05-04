@@ -11,12 +11,10 @@ setup(
             "play_corintho",
             [
                 "choose_move.pyx",
-                "../cpp/selfplayer.cpp",
-                "../cpp/trainmc.cpp",
-                "../cpp/node.cpp",
-                "../cpp/game.cpp",
-                "../cpp/move.cpp",
-                "../cpp/util.cpp",
+                "node.cpp",
+                "game.cpp",
+                "move.cpp",
+                "util.cpp",
             ],
             extra_compile_args=[
                 "-O3",

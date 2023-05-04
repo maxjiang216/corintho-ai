@@ -47,8 +47,6 @@ def choose_move(
     num_threads is number of threads to use (0 for no limit)
     max_nodes is maximum number of nodes to search (0 for no limit)
     """
-
-    
     
     start_time = time.time()
 
@@ -79,8 +77,10 @@ def choose_move(
 
     if mcst.is_done():
         if mcst.has_drawn():
+            del mcst
             return {"pre-result": "draw"}
         else:
+            del mcst
             # Human player has won
             return {"pre-result": "win"}
 
@@ -123,6 +123,8 @@ def choose_move(
         for i in range(NUM_MOVES):
             if legal_moves[i] == 1:
                 legal_move_list.append(i)
+
+    del mcst
 
     return {
         "move": move,

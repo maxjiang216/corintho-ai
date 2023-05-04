@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route("/choose_move", methods=["POST"])
-def choose_move():
+def choose_move_route():
     data = request.get_json()
     return jsonify(
         choose_move(

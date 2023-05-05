@@ -29,16 +29,13 @@ cdef extern from "playmc.cpp":
 cdef int NUM_MOVES = 96
 cdef int GAME_STATE_SIZE = 70
 pieceTypes = ["base", "column", "capital"]
-MODEL_LOCATION = "model"
-
-# Load playing model
-model = load_model(MODEL_LOCATION)
 
 def choose_move(
         game_state,
         time_limit,
         searches_per_eval=1,
         max_nodes=0,
+        interpreter=None,
     ):
     """
     Use MCST and neural network to choose a move.
@@ -85,6 +82,10 @@ def choose_move(
             # Human player has won
             return {"pre-result": "win"}
 
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+    input_shape = input_details[0]['shape']
+
     cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((searches_per_eval, NUM_MOVES), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
@@ -104,12 +105,17 @@ def choose_move(
         if num_requests == 0:
             break
 
-        # Evaluate with neural network
-        res = model.predict(
-            x=game_states, verbose=0,
-        )
-        evaluations = res[0].flatten()
-        probabilities = res[1]
+        input_data = game_states[:num_requests].astype(np.float32)
+        
+        input_shape = list(input_details[0]['shape'])
+        input_shape[0] = num_requests
+        interpreter.resize_tensor_input(input_details[0]['index'], input_shape)
+        interpreter.allocate_tensors()
+
+        interpreter.set_tensor(input_details[0]['index'], input_data)
+        interpreter.invoke()
+        evaluations = interpreter.get_tensor(output_details[0]['index']).flatten()
+        probabilities = interpreter.get_tensor(output_details[1]['index'])
 
     # Choose the best move
     nodes_searches = mcst.get_node_number()

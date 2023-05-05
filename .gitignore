@@ -25,3 +25,4 @@ logging
 loss.txt
 build_out.txt
 generations
+docker/choose_move.cpp

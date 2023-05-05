@@ -105,8 +105,13 @@ def choose_move(
         if num_requests == 0:
             break
 
-        # Evaluate with neural network
         input_data = game_states[:num_requests].astype(np.float32)
+        
+        input_shape = list(input_details[0]['shape'])
+        input_shape[0] = num_requests
+        interpreter.resize_tensor_input(input_details[0]['index'], input_shape)
+        interpreter.allocate_tensors()
+
         interpreter.set_tensor(input_details[0]['index'], input_data)
         interpreter.invoke()
         evaluations = interpreter.get_tensor(output_details[0]['index']).flatten()

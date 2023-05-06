@@ -211,7 +211,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
                 legal_moves[encode_move(3, 2, 3, 3)] = false;
               }
               if (!get_board(3, 3, 2)) {
-                legal_moves[encode_move(3, 3, 3, 2)];
+                legal_moves[encode_move(3, 3, 3, 2)] = false;
               }
             }
           }

@@ -1,4 +1,4 @@
-<img src="/images/corintho.png" width="271" height="259">
+<img src="/assets/images/corintho.png" width="271" height="259">
 
 # corintho-ai
 

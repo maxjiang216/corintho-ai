@@ -11,4 +11,17 @@ An AI that plays [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses t
  - Cython (C++ & Python interaction)
  - OpenMP (multithreading in C++)
 
-Trained on Google Cloud Platform for about 23 hours.
+Trained on Google Cloud Platform for about 80 hours.
+
+# Acknowledgements
+
+This project makes use of the following third-party libraries:
+
+- [toml](https://github.com/uiri/toml) - Licensed under the MIT License
+- [pytz](https://github.com/stub42/pytz) - Licensed under the MIT License
+- [keras](https://github.com/keras-team/keras) - Licensed under the MIT License
+- [setuptools](https://github.com/pypa/setuptools) - Licensed under the MIT License
+- [numpy](https://github.com/numpy/numpy) - Licensed under the BSD License
+- [Cython](https://github.com/cython/cython) - Licensed under the Apache License 2.0
+
+Please refer to each library's linked repository for the full license text.

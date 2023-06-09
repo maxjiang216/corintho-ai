@@ -8,7 +8,10 @@ TEST(NodeTest, DefaultConstructor) {
   Node node;
   std::bitset<NUM_MOVES> legal_moves;
 
-  ASSERT_TRUE(node.get_legal_moves(legal_moves));
-  ASSERT_EQ(0, node.is_terminal());
-  ASSERT_FLOAT_EQ(0.0, node.get_probability(0));
+  // Starting position should not be terminal
+  ASSERT_FALSE(node.is_terminal());
+  // Starting position should not have lines
+  ASSERT_FALSE(node.get_legal_moves(legal_moves));
+  // Starting position should have no children
+  ASSERT_EQ(1, node.count_nodes());
 }

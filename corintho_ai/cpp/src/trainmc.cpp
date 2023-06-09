@@ -1,6 +1,5 @@
 #include "trainmc.h"
-#include "move.h"
-#include "node.h"
+
 #include <array>
 #include <bitset>
 #include <cmath>
@@ -9,6 +8,9 @@
 #include <iostream>
 #include <random>
 #include <vector>
+
+#include "move.h"
+#include "node.h"
 using std::cerr;
 
 using std::bitset;
@@ -28,7 +30,6 @@ TrainMC::TrainMC(std::mt19937 *generator, bool)
 }
 
 void TrainMC::do_first_iteration() {
-
   // Create the root node
   root = new Node();
   cur = root;
@@ -40,7 +41,6 @@ void TrainMC::do_first_iteration() {
 }
 
 void TrainMC::do_first_iteration(const Game &game, uintf depth) {
-
   // Create the root node
   root = new Node(game, depth);
   cur = root;
@@ -212,7 +212,6 @@ uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
 
 bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
                                uintf depth) {
-
   Node *prev_node = nullptr, *cur_child = root->first_child;
   while (cur_child != nullptr) {
     if (cur_child->child_num == move_choice) {
@@ -252,9 +251,7 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
 }
 
 void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
-
   for (uintf j = 0; j < searched.size(); ++j) {
-
     cur = searched[j];
 
     // Apply the legal move filter
@@ -329,12 +326,10 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
 }
 
 bool TrainMC::search() {
-
   bool need_evaluation = false;
 
   while (!need_evaluation && iterations_done < max_iterations &&
          root->result == RESULT_NONE) {
-
     cur = root;
 
     ++iterations_done;
@@ -481,7 +476,6 @@ bool TrainMC::search() {
 }
 
 void TrainMC::move_down(Node *prev_node) {
-
   // Extricate the node we want
   Node *new_root;
   // Chosen node is first child

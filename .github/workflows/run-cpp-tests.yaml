@@ -7,7 +7,7 @@ on:
       - 'corintho_ai/cpp/include/*.h'
       - 'tests/cpp/*.cpp'
       - '.github/workflows/run-cpp-tests.yaml'
-  pull_request
+  pull_request:
 
 jobs:
   build-and-test:

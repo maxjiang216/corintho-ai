@@ -7,6 +7,7 @@ on:
       - 'corintho_ai/cpp/include/*.h'
       - 'tests/cpp/*.cpp'
       - '.github/workflows/run-cpp-tests.yaml'
+      - 'CMakelists.txt'
   pull_request:
 
 jobs:

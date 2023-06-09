@@ -1,0 +1,28 @@
+name: Lint
+
+on: [push, pull_request]
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install clang-format
+      run: sudo apt-get install -y clang-format-11
+    - name: Check C++ formatting
+      run: |
+        find . -name '*.h' -or -name '*.cpp' | xargs clang-format-11 -i
+        git diff --exit-code
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install Black
+      run: pip install black
+    - name: Check Python formatting
+      run: black --check .

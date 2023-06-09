@@ -18,6 +18,7 @@ from corintho import train_generation
 GAME_STATE_SIZE = 70
 NUM_MOVES = 96
 
+
 def write_learning_rate(
     best_generation,
     current_generation,

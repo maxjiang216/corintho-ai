@@ -16,7 +16,6 @@ llvm.sh.1
 utils
 build
 logs
-main.cpp
 boost_*_*_*
 *.zip
 prof.txt
@@ -28,3 +27,4 @@ corintho_ai/python/tflite.py
 corintho_ai/python/speed_comparison.py
 corintho_ai/python/*.cpp
 corintho_ai/python/*.tflite
+googletest

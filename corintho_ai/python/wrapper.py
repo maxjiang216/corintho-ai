@@ -5,13 +5,13 @@ import shutil
 import datetime
 import pytz
 from multiprocessing import cpu_count
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
 from keras.api._v2.keras import Input, regularizers
 from keras.api._v2.keras.models import Model
 from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 GAME_STATE_SIZE = 70
 NUM_MOVES = 96
@@ -112,19 +112,23 @@ def main():
         "--test_threshold",
         type=float,
         default=0.5,
-        help="Minimum score (exclusive) to become new best agent. Default is 0.5",
+        help="Minimum score (exclusive) to become new best agent. "
+        "Default is 0.5",
     )
     parser.add_argument(
         "--threads",
         type=int,
         default=0,
-        help="Number of threads used for self play. Default 0 in which case 2x the number of CPUs will be used.",
+        help="Number of threads used for self play. "
+        "Default 0 in which case 2x the number of CPUs will be used.",
     )
     parser.add_argument(
         "--searches_per_eval",
         type=int,
         default=1,
-        help="Maximum number of searches needing evaluations to do before running a neural network evaluation. Default is 1, which is the standard MCST algorithm.",
+        help="Maximum number of searches needing evaluations to do "
+        "before running a neural network evaluation. "
+        "Default is 1, which is the standard MCST algorithm.",
     )
     parser.add_argument(
         "--learning_rate",
@@ -160,7 +164,8 @@ def main():
         "--num_old_gens",
         type=int,
         default=20,
-        help="Maximum number of training samples from older generations to use. Default is 20.",
+        help="Maximum number of training samples "
+        "from older generations to use. Default is 20.",
     )
     parser.add_argument(
         "--name",
@@ -194,7 +199,8 @@ def main():
     # Enforce even number (first player bias)
     NUM_TEST_GAMES = 2 * max(1, args["num_test_games"] // 2)
     TEST_THRESHOLD = min(
-        (NUM_TEST_GAMES - 0.5) / NUM_TEST_GAMES, max(0.5, args["test_threshold"])
+        (NUM_TEST_GAMES - 0.5) / NUM_TEST_GAMES,
+        max(0.5, args["test_threshold"]),
     )
     THREADS = args["threads"] if args["threads"] > 0 else 2 * cpu_count()
     SEARCHES_PER_EVAL = min(ITERATIONS - 1, max(1, args["searches_per_eval"]))
@@ -224,15 +230,22 @@ def main():
             .strip()
         )
         best_generation = int(
-            open(f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8")
+            open(
+                f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8"
+            )
             .read()
             .strip()
         )
-        cur_gen_location = f"{cwd}/{NAME}/generations/gen_{current_generation}/model"
-        best_gen_location = f"{cwd}/{NAME}/generations/gen_{best_generation}/model"
+        cur_gen_location = (
+            f"{cwd}/{NAME}/generations/gen_{current_generation}/model"
+        )
+        best_gen_location = (
+            f"{cwd}/{NAME}/generations/gen_{best_generation}/model"
+        )
         old_training_samples = []
         for gen in range(
-            max(1, current_generation - NUM_OLD_GENS + 1), current_generation + 1
+            max(1, current_generation - NUM_OLD_GENS + 1),
+            current_generation + 1,
         ):
             location = f"{cwd}/{NAME}/samples/gen_{gen}"
             if os.path.isdir(location):
@@ -280,9 +293,8 @@ def main():
         # implausible that name is repeated
         if len(NAME) == 0:
             now = datetime.datetime.now()
-            NAME = (
-                f"_run_{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}"
-            )
+            NAME = f"_run_{now.year}{now.month}{now.day}"
+            f"{now.hour}{now.minute}{now.second}"
 
         # Create folder
         os.mkdir(f"{cwd}/{NAME}")
@@ -388,7 +400,8 @@ def main():
         f"Learning rate annealing factor: {ANNEAL_FACTOR}\n"
         f"Patience: {PATIENCE}\n"
         f"Old samples used: {old_training_samples}\n"
-        f"""Start time: {datetime.datetime.now(tz=pytz.timezone("America/Toronto"))}\n"""
+        f"""Start time: """
+        f"""{datetime.datetime.now(tz=pytz.timezone("America/Toronto"))}\n"""
     )
 
     res = train_generation(

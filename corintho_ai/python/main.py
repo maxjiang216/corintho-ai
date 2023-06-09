@@ -8,7 +8,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser = argparse.ArgumentParser(
-        description="Generates a command line function based on a configuration file."
+        description="Generates a command line function "
+        "based on a configuration file."
     )
 
     parser.add_argument(

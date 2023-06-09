@@ -11,7 +11,6 @@ from keras.api._v2.keras.models import Model
 from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 
-# test, this is a very veyr veyr veyr ereriheiruhriuehriuwehrqiwuehrqiuwehriquwehriquwehruqweriqwue long line
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 GAME_STATE_SIZE = 70

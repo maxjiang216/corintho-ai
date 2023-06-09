@@ -1,6 +1,13 @@
 name: Run Tests
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'corintho_ai/cpp/src/*.cpp'
+      - 'corintho_ai/cpp/include/*.h'
+      - 'tests/cpp/*.cpp'
+      - '.github/workflows/run-cpp-tests.yaml'
+  pull_request
 
 jobs:
   build-and-test:

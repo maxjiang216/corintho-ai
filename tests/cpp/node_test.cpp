@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
-#include "node.h"
 #include "game.h"
+#include "node.h"
+#include "gtest/gtest.h"
 #include <bitset>
 
 // Test the default constructor

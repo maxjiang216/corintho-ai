@@ -76,7 +76,6 @@ def write_learning_rate(
 
 
 def main():
-
     # Parse flags
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -274,7 +273,6 @@ def main():
 
     # Start a new run
     else:
-
         current_generation = 0
         best_generation = 0
 

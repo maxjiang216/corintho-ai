@@ -4,7 +4,6 @@ import os
 
 # Argument structure: config.py [program to be run] -p [config file path]
 if __name__ == "__main__":
-
     # Parse flags
     parser = argparse.ArgumentParser()
 

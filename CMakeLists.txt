@@ -9,6 +9,8 @@ set(CPP_PATH "corintho_ai/cpp")
 
 set(TEST_PATH "tests/cpp")
 
+set(CMAKE_CXX_FLAGS "--coverage")
+
 include_directories(${GTEST_PATH}/include ${CPP_PATH}/include)
 link_directories(googletest/lib)
 

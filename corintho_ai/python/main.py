@@ -1,6 +1,7 @@
-import toml
 import argparse
 import os
+
+import toml
 
 # Argument structure: config.py [program to be run] -p [config file path]
 if __name__ == "__main__":

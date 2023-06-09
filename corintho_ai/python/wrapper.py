@@ -1,14 +1,15 @@
-from corintho import train_generation
 import argparse
+import datetime
 import os
 import shutil
-import datetime
-import pytz
 from multiprocessing import cpu_count
+
 import keras.api._v2.keras as keras
+import pytz
+from corintho import train_generation
 from keras.api._v2.keras import Input, regularizers
+from keras.api._v2.keras.layers import Activation, BatchNormalization, Dense
 from keras.api._v2.keras.models import Model
-from keras.api._v2.keras.layers import Activation, Dense, BatchNormalization
 from keras.api._v2.keras.optimizers import Adam
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"

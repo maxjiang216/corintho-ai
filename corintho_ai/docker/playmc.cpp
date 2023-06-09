@@ -1,14 +1,14 @@
 #include "playmc.h"
-#include "move.h"
 #include "game.h"
+#include "move.h"
 #include <array>
 #include <bitset>
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <random>
 #include <vector>
-#include <limits>
 
 using std::bitset;
 
@@ -27,11 +27,14 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
   cur = root;
 }
 
-PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed):
-max_iterations{max_unsigned_int}, searches_per_eval{(uintf)searches_per_eval}, c_puct{3.0}, epsilon{0.25},
-root{nullptr}, cur{nullptr}, eval_index{0}, searched{std::vector<Node *>()},
-to_eval{new float[searches_per_eval * GAME_STATE_SIZE]}, iterations_done{0}, logging{false},
-generator{new std::mt19937(seed)} {
+PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
+               int seed)
+    : max_iterations{max_unsigned_int}, searches_per_eval{(
+                                            uintf)searches_per_eval},
+      c_puct{3.0}, epsilon{0.25}, root{nullptr}, cur{nullptr},
+      eval_index{0}, searched{std::vector<Node *>()},
+      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
+      iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
   searched.reserve(searches_per_eval);
   Game game = Game{board, to_play, pieces};
   root = new Node(game, 0);
@@ -141,7 +144,6 @@ uintf PlayMC::choose_move() {
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
-
   }
 
   move_down(best_prev_node);
@@ -261,7 +263,7 @@ bool PlayMC::search() {
 
   bool need_evaluation = false;
 
-    while (!need_evaluation && iterations_done < max_iterations &&
+  while (!need_evaluation && iterations_done < max_iterations &&
          root->result == RESULT_NONE) {
 
     cur = root;
@@ -407,7 +409,6 @@ bool PlayMC::search() {
   cur = root;
 
   return iterations_done == max_iterations || root->result != RESULT_NONE;
-
 }
 
 void PlayMC::move_down(Node *prev_node) {
@@ -491,7 +492,10 @@ uintf PlayMC::get_node_number() const { return root->count_nodes(); }
 
 float PlayMC::get_evaluation() const { return root->evaluation; }
 
-bool PlayMC::is_done() const { return root->result == RESULT_WIN || root->result == RESULT_DRAW || root->result == RESULT_LOSS; }
+bool PlayMC::is_done() const {
+  return root->result == RESULT_WIN || root->result == RESULT_DRAW ||
+         root->result == RESULT_LOSS;
+}
 
 bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
 

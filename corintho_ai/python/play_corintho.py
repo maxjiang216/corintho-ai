@@ -1,5 +1,6 @@
-from play import play
 import argparse
+
+from play import play
 
 
 def main():

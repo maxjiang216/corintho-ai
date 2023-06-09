@@ -19,11 +19,15 @@ jobs:
     - name: Install Black
       run: |
         python -m pip install --upgrade pip
-        pip install black==23.3.0
+        pip install black==23.3
     - name: Check Python formatting with Black
       run: black --check . --line-length=79
+    - name: Install isort
+      run: pip install isort==5.12
+    - name: Check Python import order with isort
+      run: isort --check .
     - name: Install Flake8
-      run: pip install flake8==6.0.0
+      run: pip install flake8==6.0
     - name: Check Python style with Flake8
       run: flake8 corintho_ai/python corintho_ai/docker
 

@@ -1,0 +1,24 @@
+name: Lint Python Import Order
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - '**.pyx'
+      - '.github/workflows/run-isort-python.yaml'
+  pull_request:
+
+jobs:
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install isort
+      run: pip install isort==5.12
+    - name: Check Python import order with isort
+      run: isort --check .
+

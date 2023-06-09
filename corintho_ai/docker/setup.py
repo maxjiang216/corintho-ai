@@ -1,7 +1,8 @@
-from setuptools import setup
 from distutils.extension import Extension
-from Cython.Build import cythonize
+
 import numpy
+from Cython.Build import cythonize
+from setuptools import setup
 
 # cython: language_level=3str
 

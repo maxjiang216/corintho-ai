@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify
-from play_corintho import choose_move
-from flask_cors import CORS
 import tensorflow as tf
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from play_corintho import choose_move
 
 app = Flask(__name__)
 CORS(app)

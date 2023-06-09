@@ -21,7 +21,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install black==23.3.0
     - name: Check Python formatting with Black
-      run: black --check .
+      run: black --check . --line-length=79
     - name: Install Flake8
       run: pip install flake8==6.0.0
     - name: Check Python style with Flake8

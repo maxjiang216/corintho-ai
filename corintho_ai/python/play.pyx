@@ -3,9 +3,6 @@
 import os
 import time
 
-# Set TensorFlow logging level (prevent imports from logging a lot of stuff)
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
 import keras.api._v2.keras as keras
 import numpy as np
 from keras.api._v2.keras.models import load_model

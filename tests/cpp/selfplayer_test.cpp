@@ -1,7 +1,5 @@
 #include "selfplayer.h"
 #include "gtest/gtest.h"
-#include <iostream>
-using namespace std;
 
 // Test the training constructor
 TEST(SelfPlayerTest, TrainingConstructor) {
@@ -9,7 +7,6 @@ TEST(SelfPlayerTest, TrainingConstructor) {
   SelfPlayer selfplayer(1, generator);
 
   EXPECT_EQ(selfplayer.count_samples(), 0);
-  cerr << "12";
 }
 
 // Test do first iteration

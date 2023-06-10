@@ -17,6 +17,8 @@ link_directories(googletest/lib)
 add_executable(
     CorinthoAI ${TEST_PATH}/main.cpp
     ${TEST_PATH}/node_test.cpp ${TEST_PATH}/game_test.cpp ${TEST_PATH}/move_test.cpp
+    ${TEST_PATH}/trainmc_test.cpp ${TEST_PATH}/selfplayer_test.cpp
     ${CPP_PATH}/src/node.cpp ${CPP_PATH}/src/game.cpp ${CPP_PATH}/src/move.cpp ${CPP_PATH}/src/util.cpp
+    ${CPP_PATH}/src/trainmc.cpp ${CPP_PATH}/src/selfplayer.cpp
 )
 target_link_libraries(CorinthoAI gtest gtest_main pthread)

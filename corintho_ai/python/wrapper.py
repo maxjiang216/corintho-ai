@@ -1,6 +1,6 @@
-import os
 import argparse
 import datetime
+import os
 import shutil
 from multiprocessing import cpu_count
 

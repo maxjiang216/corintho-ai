@@ -44,7 +44,8 @@ public:
   PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
          float epsilon, bool logging, uintf seed);
   // PlayMC for web app
-  PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed);
+  PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
+         int seed);
   ~PlayMC();
 
   void do_first_iteration(uintf move_choice);

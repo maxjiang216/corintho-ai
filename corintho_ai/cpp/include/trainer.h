@@ -16,7 +16,7 @@ class Trainer {
   std::vector<SelfPlayer *> games;
 
   // Number of iterations per move (used to compute offsets)
-  uintf num_iterations, threads, searches_per_eval;
+  uintf num_iterations, threads = 0, searches_per_eval;
   // Counter used to keep track of number of iterations done for offsets
   uintf iterations_done;
 

@@ -10,10 +10,11 @@
 #include <string>
 #include <utility>
 #include <vector>
-using std::cerr;
 using std::make_pair;
 using std::pair;
 
+// We should have SelfPlayer allocate the generator itself
+// Since it deletes it
 SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE},

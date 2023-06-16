@@ -43,8 +43,10 @@ PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
 }
 
 PlayMC::~PlayMC() {
-  delete generator;
-  delete root;
+  if (root != nullptr)
+    delete root;
+  if (generator != nullptr)
+    delete generator;
 }
 
 bool PlayMC::do_iteration(float evaluation[], float probabilities[]) {

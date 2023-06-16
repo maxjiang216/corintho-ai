@@ -48,8 +48,6 @@ public:
          int seed);
   ~PlayMC();
 
-  void do_first_iteration(uintf move_choice);
-
   bool do_iteration(float evaluation[], float probabilities[]);
 
   // Choose the next child to visit

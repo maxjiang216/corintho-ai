@@ -1,52 +1,59 @@
-#include "playmc.h"
-#include "move.h"
-#include "game.h"
+#include "trainmc.h"
+
 #include <array>
 #include <bitset>
 #include <cmath>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <vector>
-#include <limits>
+
+#include "move.h"
+#include "node.h"
+using std::cerr;
 
 using std::bitset;
 
-uintf max_unsigned_int = std::numeric_limits<unsigned int>::max();
-
-PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
-               float epsilon, bool logging, uintf seed)
-    : max_iterations{max_iterations}, searches_per_eval{searches_per_eval},
-      c_puct{c_puct}, epsilon{epsilon}, root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()},
-      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
-      iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
+TrainMC::TrainMC(std::mt19937 *generator)
+    : root{nullptr}, cur{nullptr},
+      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
+      iterations_done{0}, testing{false}, generator{generator} {
   searched.reserve(searches_per_eval);
+}
+
+TrainMC::TrainMC(std::mt19937 *generator, bool)
+    : root{nullptr}, cur{nullptr},
+      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
+      iterations_done{0}, testing{true}, generator{generator} {
+  searched.reserve(searches_per_eval);
+}
+
+void TrainMC::do_first_iteration() {
+  // Create the root node
   root = new Node();
-  --root->visits;
   cur = root;
+  iterations_done = 1;
+
+  cur->write_game_state(to_eval);
+  searched.push_back(cur);
+  eval_index = 1;
 }
 
-PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed):
-max_iterations{max_unsigned_int}, searches_per_eval{(uintf)searches_per_eval}, c_puct{3.0}, epsilon{0.25},
-root{nullptr}, cur{nullptr}, eval_index{0}, searched{std::vector<Node *>()},
-to_eval{new float[searches_per_eval * GAME_STATE_SIZE]}, iterations_done{0}, logging{false},
-generator{new std::mt19937(seed)} {
-  searched.reserve(searches_per_eval);
-  Game game = Game{board, to_play, pieces};
-  root = new Node(game, 0);
-  --root->visits;
+void TrainMC::do_first_iteration(const Game &game, uintf depth) {
+  // Create the root node
+  root = new Node(game, depth);
   cur = root;
+  iterations_done = 1;
+
+  cur->write_game_state(to_eval);
+  searched.push_back(cur);
+  eval_index = 1;
 }
 
-PlayMC::~PlayMC() {
-  delete generator;
-  delete root;
-}
-
-bool PlayMC::do_iteration(float evaluation[], float probabilities[]) {
+bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
   receive_evaluation(evaluation, probabilities);
-  while (eval_index < searches_per_eval && iterations_done < max_iterations) {
+  while (eval_index < searches_per_eval && root->result == RESULT_NONE) {
     // We are done the search prematurely if
     // The root has no more children to search
     // Or if we have done max_iterations searches
@@ -58,7 +65,15 @@ bool PlayMC::do_iteration(float evaluation[], float probabilities[]) {
   return iterations_done == max_iterations || root->result != RESULT_NONE;
 }
 
-uintf PlayMC::choose_move() {
+uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
+                           float probability_sample[NUM_MOVES]) {
+  if (!testing) {
+    // Before moving down, read the samples from the root node
+    root->write_game_state(game_state);
+    // Clear probabilities first
+    // Most moves are not legal
+    std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
+  }
 
   uintf move_choice = 0;
   // Keep track of the previous sibling of the chosen node
@@ -68,6 +83,7 @@ uintf PlayMC::choose_move() {
   // Mating sequence available, find the first winning move
   // There should only ever be 1 winning move
   // Since after it is found, the node is not searched again for the most part
+  // Ignore opening stuff here
   if (root->result == DEDUCED_WIN) {
     Node *cur_child = root->first_child, *prev_node = nullptr;
     while (cur_child != nullptr) {
@@ -80,11 +96,12 @@ uintf PlayMC::choose_move() {
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
+    probability_sample[move_choice] = 1.0;
   }
 
   // Losing position, find the move with the most searches
   // The most searched line is likely the one with the longest and/or hardest to
-  // find mate which is pratically better.
+  // find mate which is pratically better. Ignore opening stuff
   else if (root->result == DEDUCED_LOSS) {
     uintf max_visits = 0;
     Node *cur_child = root->first_child, *prev_node = nullptr;
@@ -97,11 +114,13 @@ uintf PlayMC::choose_move() {
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
+    probability_sample[move_choice] = 1.0;
   }
 
   // Drawn position, find the drawing move with the most searches
   // Which again is practically more likely to get winning chances
   // Against a suboptimal opponent
+  // Ignore opening stuff
   else if (root->result == DEDUCED_DRAW) {
     uintf max_visits = 0;
     Node *cur_child = root->first_child, *prev_node = nullptr;
@@ -114,12 +133,54 @@ uintf PlayMC::choose_move() {
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
+    probability_sample[move_choice] = 1.0;
+  }
+
+  // In training, choose weighted random
+  // For the first few moves
+  else if (root->depth < NUM_OPENING_MOVES && !testing) {
+    // We exclude losing moves from our choices
+    uintf visits = 0;
+    Node *cur_child = root->first_child;
+    while (cur_child != nullptr) {
+      if (cur_child->result != DEDUCED_WIN) {
+        visits += cur_child->visits;
+      }
+      cur_child = cur_child->next_sibling;
+    }
+    uintf total = 0, target = (*generator)() % visits;
+    float denominator = 1.0 / (float)visits;
+    cur_child = root->first_child;
+    // This loop will always break out
+    // There is always at least one child
+    while (true) {
+      if (cur_child->result != DEDUCED_WIN) {
+        total += cur_child->visits;
+        probability_sample[cur_child->child_num] =
+            (float)cur_child->visits * denominator;
+        if (total > target) {
+          move_choice = cur_child->child_num;
+          break;
+        }
+      }
+      best_prev_node = cur_child;
+      cur_child = cur_child->next_sibling;
+    }
+    cur_child = cur_child->next_sibling;
+    while (cur_child != nullptr) {
+      if (cur_child->result != DEDUCED_WIN) {
+        probability_sample[cur_child->child_num] =
+            (float)cur_child->visits * denominator;
+      }
+      cur_child = cur_child->next_sibling;
+    }
   }
 
   else {
-
     // Otherwise, choose the move with the most searches
     // Breaking ties with evaluation
+    // We never choose losing moves
+    // And treat draws as having evaluation 0
     uintf max_visits = 0;
     float max_eval = 0.0, eval;
     Node *cur_child = root->first_child, *prev_node = nullptr;
@@ -141,7 +202,7 @@ uintf PlayMC::choose_move() {
       prev_node = cur_child;
       cur_child = cur_child->next_sibling;
     }
-
+    probability_sample[move_choice] = 1.0;
   }
 
   move_down(best_prev_node);
@@ -149,29 +210,48 @@ uintf PlayMC::choose_move() {
   return move_choice;
 }
 
-void PlayMC::receive_opp_move(uintf move_choice) {
+bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
+                               uintf depth) {
   Node *prev_node = nullptr, *cur_child = root->first_child;
   while (cur_child != nullptr) {
     if (cur_child->child_num == move_choice) {
       move_down(prev_node);
-      return;
+      // we don't need an evaluation
+      return false;
     }
     prev_node = cur_child;
     cur_child = cur_child->next_sibling;
   }
 
-  // The node doesn't exist, make new tree
-  root->game.do_move(move_choice);
-  Node *new_root = new Node(root->game, root->depth + 1);
-  --new_root->visits;
+  // The node doesn't exist, delete tree
   delete root;
-  root = new_root;
+  // Copy opponent game state into our root
+  root = new Node(game, depth);
   cur = root;
+  // We need an evaluation
+  cur->write_game_state(to_eval);
+  searched.push_back(cur);
+  // this is the first iteration of the turn
+  iterations_done = 1;
+  eval_index = 1;
+  // we need an evaluation
+  return true;
 }
 
-void PlayMC::receive_evaluation(float evaluation[], float probabilities[]) {
-  for (uintf j = 0; j < searched.size(); ++j) {
+const Game &TrainMC::get_game() const { return root->game; }
 
+bool TrainMC::is_uninitialized() const { return root == nullptr; }
+
+void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
+                          float new_epsilon, uintf new_searches_per_eval) {
+  max_iterations = new_max_iterations;
+  c_puct = new_c_puct;
+  epsilon = new_epsilon;
+  searches_per_eval = new_searches_per_eval;
+}
+
+void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
+  for (uintf j = 0; j < searched.size(); ++j) {
     cur = searched[j];
 
     // Apply the legal move filter
@@ -230,40 +310,26 @@ void PlayMC::receive_evaluation(float evaluation[], float probabilities[]) {
     // Propagate evaluation
     float cur_eval = evaluation[j];
     while (cur->parent != nullptr) {
-      cur->evaluation += cur_eval + 1.0;
+      // Correct default +1 evaluation
+      cur->evaluation += cur_eval - 1.0;
       // Reset this marker
       cur->all_visited = false;
       cur_eval *= -1.0;
       cur = cur->parent;
     }
     // Propagate to root
-    cur->evaluation += cur_eval + 1.0;
+    cur->evaluation += cur_eval - 1.0;
   }
   root->all_visited = false;
   eval_index = 0;
   searched.clear();
 }
 
-bool PlayMC::search() {
-
-  // We are at an unsearched root
-  if (root->visits == 0) {
-    root->visits = 1;
-    iterations_done = 1;
-    // This should always be the first node
-    searched.clear();
-    cur->write_game_state(to_eval);
-    searched.push_back(root);
-    eval_index = 1;
-    // We can only search the root
-    return true;
-  }
-
+bool TrainMC::search() {
   bool need_evaluation = false;
 
-    while (!need_evaluation && iterations_done < max_iterations &&
+  while (!need_evaluation && iterations_done < max_iterations &&
          root->result == RESULT_NONE) {
-
     cur = root;
 
     ++iterations_done;
@@ -407,11 +473,9 @@ bool PlayMC::search() {
   cur = root;
 
   return iterations_done == max_iterations || root->result != RESULT_NONE;
-
 }
 
-void PlayMC::move_down(Node *prev_node) {
-
+void TrainMC::move_down(Node *prev_node) {
   // Extricate the node we want
   Node *new_root;
   // Chosen node is first child
@@ -432,7 +496,13 @@ void PlayMC::move_down(Node *prev_node) {
   iterations_done = 0;
 }
 
-void PlayMC::propagate_result() {
+uintf TrainMC::count_nodes() const {
+  if (root == nullptr)
+    return 0;
+  return root->count_nodes();
+}
+
+void TrainMC::propagate_result() {
   Node *node = cur, *cur_node;
 
   while (node != root) {
@@ -477,31 +547,3 @@ void PlayMC::propagate_result() {
     }
   }
 }
-
-void PlayMC::get_legal_moves(long *legal_moves) const {
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
-    legal_moves[i] = 0;
-  }
-  for (uintf i = 0; i < root->num_legal_moves; ++i) {
-    legal_moves[root->edges[i].move_id] = 1;
-  }
-}
-
-uintf PlayMC::get_node_number() const { return root->count_nodes(); }
-
-float PlayMC::get_evaluation() const { return root->evaluation; }
-
-bool PlayMC::is_done() const { return root->result == RESULT_WIN || root->result == RESULT_DRAW || root->result == RESULT_LOSS; }
-
-bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
-
-bool PlayMC::has_drawn() const { return root->result == RESULT_DRAW; }
-
-uintf PlayMC::write_requests(float game_states[]) const {
-  for (uintf i = 0; i < GAME_STATE_SIZE * searched.size(); ++i) {
-    *(game_states + i) = to_eval[i];
-  }
-  return searched.size();
-}
-
-void PlayMC::print_game() const { std::cout << root->game << '\n'; }

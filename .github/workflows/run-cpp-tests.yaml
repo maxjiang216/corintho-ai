@@ -1,0 +1,39 @@
+name: Run C++ Tests
+
+on:
+  push:
+    paths:
+      - 'corintho_ai/cpp/src/*.cpp'
+      - 'corintho_ai/cpp/include/*.h'
+      - 'tests/cpp/*.cpp'
+      - '.github/workflows/run-cpp-tests.yaml'
+      - 'CMakelists.txt'
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt-get install -y libgtest-dev cmake
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Run tests
+      run: ./build/CorinthoAI
+
+    - name: Install lcov and generate coverage report
+      run: |
+        sudo apt-get install lcov
+        lcov --capture --directory build --output-file coverage.info
+        lcov --remove coverage.info '/usr/*' --output-file coverage.info
+        lcov --list coverage.info

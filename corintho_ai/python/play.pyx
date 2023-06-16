@@ -1,15 +1,16 @@
 # distutils: language = c++
 
-from libcpp.string cimport string
-from libcpp cimport bool
-import numpy as np
-cimport numpy as np
-import time
 import os
+import time
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import keras.api._v2.keras as keras
+import numpy as np
 from keras.api._v2.keras.models import load_model
+
+cimport numpy as np
+from libcpp cimport bool
+from libcpp.string cimport string
+
 
 cdef extern from "../cpp/playmc.cpp":
     cdef cppclass PlayMC:

@@ -1,15 +1,16 @@
-import toml
 import argparse
 import os
 
+import toml
+
 # Argument structure: config.py [program to be run] -p [config file path]
 if __name__ == "__main__":
-
     # Parse flags
     parser = argparse.ArgumentParser()
 
     parser = argparse.ArgumentParser(
-        description="Generates a command line function based on a configuration file."
+        description="Generates a command line function "
+        "based on a configuration file."
     )
 
     parser.add_argument(

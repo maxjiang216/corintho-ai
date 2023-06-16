@@ -5,8 +5,7 @@
 
 Game::Game() : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
-Game::Game(long *board, int to_play, long *pieces)
-    : to_play{(uint_least8_t)to_play} {
+Game::Game(long *board, int to_play, long *pieces) : to_play{(uint_least8_t)to_play} {
   for (uintf i = 0; i < 4 * BOARD_SIZE; ++i) {
     this->board[i] = board[i] != 0;
   }

@@ -1,6 +1,5 @@
-import argparse
-
 from play import play
+import argparse
 
 
 def main():

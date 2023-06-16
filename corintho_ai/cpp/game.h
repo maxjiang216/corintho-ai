@@ -46,6 +46,8 @@ public:
   Game(long *board, int to_play, long *pieces);
   ~Game() = default;
 
+  bool is_terminal() const;
+
   void do_move(uintf move_id);
 
   // Returns whether there are lines

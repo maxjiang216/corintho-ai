@@ -1,18 +1,17 @@
 # distutils: language = c++
 
-import os
-import time
-
-import keras.api._v2.keras as keras
-import numpy as np
-from keras import backend as K
-from keras.api._v2.keras.models import load_model
-from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau
-
-cimport numpy as np
-from libcpp cimport bool
 from libcpp.string cimport string
+from libcpp cimport bool
+import numpy as np
+cimport numpy as np
+import time
+import os
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import keras.api._v2.keras as keras
+from keras.api._v2.keras.models import load_model
+from keras import backend as K
+from keras.callbacks import CSVLogger, ModelCheckpoint, ReduceLROnPlateau
 
 cdef extern from "../cpp/trainer.cpp":
     cdef cppclass Trainer:

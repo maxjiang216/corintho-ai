@@ -1,13 +1,11 @@
 # distutils: language = c++
 
 import time
-
-import numpy as np
-from keras.api._v2.keras.models import load_model
-
-cimport numpy as np
 from libcpp cimport bool
+import numpy as np
+cimport numpy as np
 
+from keras.api._v2.keras.models import load_model
 
 cdef extern from "playmc.cpp":
     cdef cppclass PlayMC:

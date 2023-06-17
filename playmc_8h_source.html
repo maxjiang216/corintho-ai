@@ -69,11 +69,11 @@ $(function() {
 <div class="title">playmc.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="playmc_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef PLAYMC_H</span></div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef PLAYMC_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define PLAYMC_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="node_8h.html">node.h</a>&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util_8h.html">util.h</a>&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;node.h&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;array&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;bitset&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
@@ -85,20 +85,20 @@ $(function() {
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
 <div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="classPlayMC.html">   15</a></span>&#160;<span class="keyword">class </span><a class="code" href="classPlayMC.html">PlayMC</a> {</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> max_iterations, searches_per_eval;</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  uintf max_iterations, searches_per_eval;</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="keywordtype">float</span> c_puct, epsilon;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160; </div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <a class="code" href="classNode.html">Node</a> *root, *cur;</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160; </div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;  <span class="comment">// Which index to write to for the searched node</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> eval_index;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  uintf eval_index;</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  <span class="comment">// Nodes we have searches this cycle</span></div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  std::vector&lt;Node *&gt; searched;</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="comment">// We want to evaluate these vectors</span></div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="keywordtype">float</span> *to_eval;</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="comment">// Used to keep track of when to choose a move</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> iterations_done;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  uintf iterations_done;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <span class="keywordtype">bool</span> logging;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
@@ -111,57 +111,39 @@ $(function() {
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keywordtype">void</span> propagate_result();</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classPlayMC.html#a4c3511fc2a8df6599edc36c3cae1d42a">   43</a></span>&#160;  <a class="code" href="classPlayMC.html#a4c3511fc2a8df6599edc36c3cae1d42a">PlayMC</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="classPlayMC.html#a6c17d59ba88cb478598ed7fe55b684f6">   44</a></span>&#160;  <a class="code" href="classPlayMC.html#a6c17d59ba88cb478598ed7fe55b684f6">PlayMC</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> max_iterations, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, <span class="keywordtype">float</span> c_puct,</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;         <span class="keywordtype">float</span> epsilon, <span class="keywordtype">bool</span> logging, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> seed);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>(uintf max_iterations, uintf searches_per_eval, <span class="keywordtype">float</span> c_puct,</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;         <span class="keywordtype">float</span> epsilon, <span class="keywordtype">bool</span> logging, uintf seed);</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="comment">// PlayMC for web app</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="classPlayMC.html#a9dc682779e5fdd08c64ec2d338a71d71">   47</a></span>&#160;  <a class="code" href="classPlayMC.html#a9dc682779e5fdd08c64ec2d338a71d71">PlayMC</a>(<span class="keywordtype">long</span> *board, <span class="keywordtype">int</span> to_play, <span class="keywordtype">long</span> *pieces, <span class="keywordtype">int</span> searches_per_eval,</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>(<span class="keywordtype">long</span> *board, <span class="keywordtype">int</span> to_play, <span class="keywordtype">long</span> *pieces, <span class="keywordtype">int</span> searches_per_eval,</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;         <span class="keywordtype">int</span> seed);</div>
-<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classPlayMC.html#a13f971958afdfa04e5ed30232b107de9">   49</a></span>&#160;  <a class="code" href="classPlayMC.html#a13f971958afdfa04e5ed30232b107de9">~PlayMC</a>();</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  ~<a class="code" href="classPlayMC.html">PlayMC</a>();</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
-<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classPlayMC.html#a426b477327fbda6e77da07869728445c">   51</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classPlayMC.html#a426b477327fbda6e77da07869728445c">do_iteration</a>(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  <span class="comment">// Choose the next child to visit</span></div>
-<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="classPlayMC.html#abc639fd9b3ed7057678e36258b4df187">   54</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classPlayMC.html#abc639fd9b3ed7057678e36258b4df187">choose_move</a>();</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  uintf choose_move();</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <span class="comment">// Get legal moves for the current state</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classPlayMC.html#a3c803f460546ae0a6df6161348d6f485">   57</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classPlayMC.html#a3c803f460546ae0a6df6161348d6f485">get_legal_moves</a>(<span class="keywordtype">long</span> *legal_moves) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keywordtype">void</span> get_legal_moves(<span class="keywordtype">long</span> *legal_moves) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classPlayMC.html#ac87c6a2fb7dbe687e86c832135bfcbcc">   59</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classPlayMC.html#ac87c6a2fb7dbe687e86c832135bfcbcc">receive_opp_move</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> move_choice);</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">void</span> receive_opp_move(uintf move_choice);</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classPlayMC.html#a0e320d6914db116203573368dc4371e0">   61</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classPlayMC.html#a0e320d6914db116203573368dc4371e0">write_requests</a>(<span class="keywordtype">float</span> game_states[]) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  uintf write_requests(<span class="keywordtype">float</span> game_states[]) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classPlayMC.html#a6ef9186b929d67ccf41d86fa2db18a52">   63</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classPlayMC.html#a6ef9186b929d67ccf41d86fa2db18a52">get_node_number</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classPlayMC.html#aac519a595fb8b2dfa9b53556e5346ca5">   64</a></span>&#160;  <span class="keywordtype">float</span> <a class="code" href="classPlayMC.html#aac519a595fb8b2dfa9b53556e5346ca5">get_evaluation</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  uintf get_node_number() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  <span class="keywordtype">float</span> get_evaluation() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160; </div>
-<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="classPlayMC.html#a798391f85dd175526e31aeae5991f216">   66</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classPlayMC.html#a798391f85dd175526e31aeae5991f216">is_done</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00067"></a><span class="lineno"><a class="line" href="classPlayMC.html#a43ed688b39e7499c7d17aea6b02aa081">   67</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classPlayMC.html#a43ed688b39e7499c7d17aea6b02aa081">has_won</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00068"></a><span class="lineno"><a class="line" href="classPlayMC.html#a88b70f815dd387de3927df4339a9350d">   68</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classPlayMC.html#a88b70f815dd387de3927df4339a9350d">has_drawn</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="classPlayMC.html#a82c76ee3f188bfc2258c3359f7c21f46">   69</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classPlayMC.html#a82c76ee3f188bfc2258c3359f7c21f46">print_game</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keywordtype">bool</span> is_done() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <span class="keywordtype">bool</span> has_won() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  <span class="keywordtype">bool</span> has_drawn() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="keywordtype">void</span> print_game() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;};</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdef"><b>Definition:</b> game.h:12</div></div>
 <div class="ttc" id="aclassNode_html"><div class="ttname"><a href="classNode.html">Node</a></div><div class="ttdef"><b>Definition:</b> node.h:10</div></div>
 <div class="ttc" id="aclassPlayMC_html"><div class="ttname"><a href="classPlayMC.html">PlayMC</a></div><div class="ttdef"><b>Definition:</b> playmc.h:15</div></div>
-<div class="ttc" id="aclassPlayMC_html_a0e320d6914db116203573368dc4371e0"><div class="ttname"><a href="classPlayMC.html#a0e320d6914db116203573368dc4371e0">PlayMC::write_requests</a></div><div class="ttdeci">uintf write_requests(float game_states[]) const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a13f971958afdfa04e5ed30232b107de9"><div class="ttname"><a href="classPlayMC.html#a13f971958afdfa04e5ed30232b107de9">PlayMC::~PlayMC</a></div><div class="ttdeci">~PlayMC()</div></div>
-<div class="ttc" id="aclassPlayMC_html_a3c803f460546ae0a6df6161348d6f485"><div class="ttname"><a href="classPlayMC.html#a3c803f460546ae0a6df6161348d6f485">PlayMC::get_legal_moves</a></div><div class="ttdeci">void get_legal_moves(long *legal_moves) const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a426b477327fbda6e77da07869728445c"><div class="ttname"><a href="classPlayMC.html#a426b477327fbda6e77da07869728445c">PlayMC::do_iteration</a></div><div class="ttdeci">bool do_iteration(float evaluation[], float probabilities[])</div></div>
-<div class="ttc" id="aclassPlayMC_html_a43ed688b39e7499c7d17aea6b02aa081"><div class="ttname"><a href="classPlayMC.html#a43ed688b39e7499c7d17aea6b02aa081">PlayMC::has_won</a></div><div class="ttdeci">bool has_won() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a4c3511fc2a8df6599edc36c3cae1d42a"><div class="ttname"><a href="classPlayMC.html#a4c3511fc2a8df6599edc36c3cae1d42a">PlayMC::PlayMC</a></div><div class="ttdeci">PlayMC()=default</div></div>
-<div class="ttc" id="aclassPlayMC_html_a6c17d59ba88cb478598ed7fe55b684f6"><div class="ttname"><a href="classPlayMC.html#a6c17d59ba88cb478598ed7fe55b684f6">PlayMC::PlayMC</a></div><div class="ttdeci">PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct, float epsilon, bool logging, uintf seed)</div></div>
-<div class="ttc" id="aclassPlayMC_html_a6ef9186b929d67ccf41d86fa2db18a52"><div class="ttname"><a href="classPlayMC.html#a6ef9186b929d67ccf41d86fa2db18a52">PlayMC::get_node_number</a></div><div class="ttdeci">uintf get_node_number() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a798391f85dd175526e31aeae5991f216"><div class="ttname"><a href="classPlayMC.html#a798391f85dd175526e31aeae5991f216">PlayMC::is_done</a></div><div class="ttdeci">bool is_done() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a82c76ee3f188bfc2258c3359f7c21f46"><div class="ttname"><a href="classPlayMC.html#a82c76ee3f188bfc2258c3359f7c21f46">PlayMC::print_game</a></div><div class="ttdeci">void print_game() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a88b70f815dd387de3927df4339a9350d"><div class="ttname"><a href="classPlayMC.html#a88b70f815dd387de3927df4339a9350d">PlayMC::has_drawn</a></div><div class="ttdeci">bool has_drawn() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_a9dc682779e5fdd08c64ec2d338a71d71"><div class="ttname"><a href="classPlayMC.html#a9dc682779e5fdd08c64ec2d338a71d71">PlayMC::PlayMC</a></div><div class="ttdeci">PlayMC(long *board, int to_play, long *pieces, int searches_per_eval, int seed)</div></div>
-<div class="ttc" id="aclassPlayMC_html_aac519a595fb8b2dfa9b53556e5346ca5"><div class="ttname"><a href="classPlayMC.html#aac519a595fb8b2dfa9b53556e5346ca5">PlayMC::get_evaluation</a></div><div class="ttdeci">float get_evaluation() const</div></div>
-<div class="ttc" id="aclassPlayMC_html_abc639fd9b3ed7057678e36258b4df187"><div class="ttname"><a href="classPlayMC.html#abc639fd9b3ed7057678e36258b4df187">PlayMC::choose_move</a></div><div class="ttdeci">uintf choose_move()</div></div>
-<div class="ttc" id="aclassPlayMC_html_ac87c6a2fb7dbe687e86c832135bfcbcc"><div class="ttname"><a href="classPlayMC.html#ac87c6a2fb7dbe687e86c832135bfcbcc">PlayMC::receive_opp_move</a></div><div class="ttdeci">void receive_opp_move(uintf move_choice)</div></div>
-<div class="ttc" id="anode_8h_html"><div class="ttname"><a href="node_8h.html">node.h</a></div></div>
-<div class="ttc" id="autil_8h_html"><div class="ttname"><a href="util_8h.html">util.h</a></div></div>
-<div class="ttc" id="autil_8h_html_ad754fd19693421cf7395f91881c98cd5"><div class="ttname"><a href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a></div><div class="ttdeci">uint_fast32_t uintf</div><div class="ttdef"><b>Definition:</b> util.h:16</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

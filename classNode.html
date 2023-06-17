@@ -64,350 +64,122 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
+<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classNode-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Node Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p><code>#include &lt;<a class="el" href="node_8h_source.html">node.h</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for Node:</div>
+<div class="dyncontent">
+<div class="center"><img src="classNode__coll__graph.png" border="0" usemap="#aNode_coll__map" alt="Collaboration graph"/></div>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structNode_1_1Edge.html">Edge</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad7a34779cad45d997bfd6d3d8043c75f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">Node</a> ()</td></tr>
-<tr class="separator:ad7a34779cad45d997bfd6d3d8043c75f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8caa81a0f701e8a6e41c754f00b5ac38"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a8caa81a0f701e8a6e41c754f00b5ac38">Node</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, <a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> depth)</td></tr>
+<tr class="memitem:a8caa81a0f701e8a6e41c754f00b5ac38"><td class="memItemLeft" align="right" valign="top"><a id="a8caa81a0f701e8a6e41c754f00b5ac38"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, uint8s depth)</td></tr>
 <tr class="separator:a8caa81a0f701e8a6e41c754f00b5ac38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8cd3fed52dc828c65040b5d9b56f392"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#ac8cd3fed52dc828c65040b5d9b56f392">Node</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, <a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> depth, <a class="el" href="classNode.html">Node</a> *parent, <a class="el" href="classNode.html">Node</a> *next_sibling, <a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> move_choice)</td></tr>
+<tr class="memitem:ac8cd3fed52dc828c65040b5d9b56f392"><td class="memItemLeft" align="right" valign="top"><a id="ac8cd3fed52dc828c65040b5d9b56f392"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, uint8s depth, <a class="el" href="classNode.html">Node</a> *parent, <a class="el" href="classNode.html">Node</a> *next_sibling, uint8s move_choice)</td></tr>
 <tr class="separator:ac8cd3fed52dc828c65040b5d9b56f392"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0840c3cb5c7159be6d992adecd2097c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#aa0840c3cb5c7159be6d992adecd2097c">~Node</a> ()</td></tr>
-<tr class="separator:aa0840c3cb5c7159be6d992adecd2097c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59c47e2d643c1f1de8782704694f00ef"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a59c47e2d643c1f1de8782704694f00ef">get_legal_moves</a> (std::bitset&lt; <a class="el" href="util_8h.html#a493dc143c8500e0f74d9e60e25f125a0">NUM_MOVES</a> &gt; &amp;legal_moves) const</td></tr>
+<tr class="memitem:a59c47e2d643c1f1de8782704694f00ef"><td class="memItemLeft" align="right" valign="top"><a id="a59c47e2d643c1f1de8782704694f00ef"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>get_legal_moves</b> (std::bitset&lt; NUM_MOVES &gt; &amp;legal_moves) const</td></tr>
 <tr class="separator:a59c47e2d643c1f1de8782704694f00ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae35c744363078606676f38fbcbda8200"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#ae35c744363078606676f38fbcbda8200">is_terminal</a> () const</td></tr>
+<tr class="memitem:ae35c744363078606676f38fbcbda8200"><td class="memItemLeft" align="right" valign="top"><a id="ae35c744363078606676f38fbcbda8200"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_terminal</b> () const</td></tr>
 <tr class="separator:ae35c744363078606676f38fbcbda8200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94570df6b3443c3ba661b978da5f436e"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a94570df6b3443c3ba661b978da5f436e">get_probability</a> (<a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> edge_index) const</td></tr>
+<tr class="memitem:a94570df6b3443c3ba661b978da5f436e"><td class="memItemLeft" align="right" valign="top"><a id="a94570df6b3443c3ba661b978da5f436e"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>get_probability</b> (uintf edge_index) const</td></tr>
 <tr class="separator:a94570df6b3443c3ba661b978da5f436e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74e52acfa30b09c0bdd35ec3561a362f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a74e52acfa30b09c0bdd35ec3561a362f">write_game_state</a> (float game_state[<a class="el" href="util_8h.html#a5ac9c2a1ef59ff2c39b253d9cfef2486">GAME_STATE_SIZE</a>]) const</td></tr>
+<tr class="memitem:a74e52acfa30b09c0bdd35ec3561a362f"><td class="memItemLeft" align="right" valign="top"><a id="a74e52acfa30b09c0bdd35ec3561a362f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>write_game_state</b> (float game_state[GAME_STATE_SIZE]) const</td></tr>
 <tr class="separator:a74e52acfa30b09c0bdd35ec3561a362f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfb21f9f84a9e6b039d86db85baa1ad8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#abfb21f9f84a9e6b039d86db85baa1ad8">count_nodes</a> () const</td></tr>
+<tr class="memitem:abfb21f9f84a9e6b039d86db85baa1ad8"><td class="memItemLeft" align="right" valign="top"><a id="abfb21f9f84a9e6b039d86db85baa1ad8"></a>
+uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_nodes</b> () const</td></tr>
 <tr class="separator:abfb21f9f84a9e6b039d86db85baa1ad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39376885069aad134384206558ee6766"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a39376885069aad134384206558ee6766">print_main_line</a> (std::ostream *logging_file) const</td></tr>
+<tr class="memitem:a39376885069aad134384206558ee6766"><td class="memItemLeft" align="right" valign="top"><a id="a39376885069aad134384206558ee6766"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_main_line</b> (std::ostream *logging_file) const</td></tr>
 <tr class="separator:a39376885069aad134384206558ee6766"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e8de31d4980a046d564e4c61a4071bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a5e8de31d4980a046d564e4c61a4071bb">print_known</a> (std::ostream *logging_file) const</td></tr>
+<tr class="memitem:a5e8de31d4980a046d564e4c61a4071bb"><td class="memItemLeft" align="right" valign="top"><a id="a5e8de31d4980a046d564e4c61a4071bb"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>print_known</b> (std::ostream *logging_file) const</td></tr>
 <tr class="separator:a5e8de31d4980a046d564e4c61a4071bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:aa1e3626dd2557671ae78c7f9d19bfa66"><td class="memItemLeft" align="right" valign="top"><a id="aa1e3626dd2557671ae78c7f9d19bfa66"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize_edges</b> ()</td></tr>
+<tr class="separator:aa1e3626dd2557671ae78c7f9d19bfa66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:ad5a9e32b767c2c2f589ee49bf6ab1452"><td class="memItemLeft" align="right" valign="top"><a id="ad5a9e32b767c2c2f589ee49bf6ab1452"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>all_visited</b></td></tr>
+<tr class="separator:ad5a9e32b767c2c2f589ee49bf6ab1452"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fcad4e0372d9d9ab4ea3d0598cc37f8"><td class="memItemLeft" align="right" valign="top"><a id="a2fcad4e0372d9d9ab4ea3d0598cc37f8"></a>
+uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>result</b></td></tr>
+<tr class="separator:a2fcad4e0372d9d9ab4ea3d0598cc37f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bfb6b85a4385d66c368202274ef086f"><td class="memItemLeft" align="right" valign="top"><a id="a6bfb6b85a4385d66c368202274ef086f"></a>
+uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>depth</b></td></tr>
+<tr class="separator:a6bfb6b85a4385d66c368202274ef086f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02335dd5ae5f1efb7fc1f7f74aa0373e"><td class="memItemLeft" align="right" valign="top"><a id="a02335dd5ae5f1efb7fc1f7f74aa0373e"></a>
+uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>num_legal_moves</b></td></tr>
+<tr class="separator:a02335dd5ae5f1efb7fc1f7f74aa0373e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4c599907e28441eea81dca74676caef"><td class="memItemLeft" align="right" valign="top"><a id="af4c599907e28441eea81dca74676caef"></a>
+uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>child_num</b></td></tr>
+<tr class="separator:af4c599907e28441eea81dca74676caef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31400cb5dae6fc5cc329d1aa0770e622"><td class="memItemLeft" align="right" valign="top"><a id="a31400cb5dae6fc5cc329d1aa0770e622"></a>
+uint16s&#160;</td><td class="memItemRight" valign="bottom"><b>visits</b></td></tr>
+<tr class="separator:a31400cb5dae6fc5cc329d1aa0770e622"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80338ebcccfb76b72a06e6cf90452e43"><td class="memItemLeft" align="right" valign="top"><a id="a80338ebcccfb76b72a06e6cf90452e43"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>evaluation</b></td></tr>
+<tr class="separator:a80338ebcccfb76b72a06e6cf90452e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad768af1f63f4d6239995c774c297a0d1"><td class="memItemLeft" align="right" valign="top"><a id="ad768af1f63f4d6239995c774c297a0d1"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>denominator</b></td></tr>
+<tr class="separator:ad768af1f63f4d6239995c774c297a0d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5103a38d3cf843491a0301c574360aa4"><td class="memItemLeft" align="right" valign="top"><a id="a5103a38d3cf843491a0301c574360aa4"></a>
+<a class="el" href="structNode_1_1Edge.html">Edge</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>edges</b></td></tr>
+<tr class="separator:a5103a38d3cf843491a0301c574360aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8184598cdea70e4bbdfd76f2b0f9e85"><td class="memItemLeft" align="right" valign="top"><a id="ad8184598cdea70e4bbdfd76f2b0f9e85"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>parent</b></td></tr>
+<tr class="separator:ad8184598cdea70e4bbdfd76f2b0f9e85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f22d032fd720558df53c2c23cdbe09d"><td class="memItemLeft" align="right" valign="top"><a id="a3f22d032fd720558df53c2c23cdbe09d"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>next_sibling</b></td></tr>
+<tr class="separator:a3f22d032fd720558df53c2c23cdbe09d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f76a28336db3c392d01e41030a2616b"><td class="memItemLeft" align="right" valign="top"><a id="a6f76a28336db3c392d01e41030a2616b"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>first_child</b></td></tr>
+<tr class="separator:a6f76a28336db3c392d01e41030a2616b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accfd8b7ae2b13618e1a7407079b267df"><td class="memItemLeft" align="right" valign="top"><a id="accfd8b7ae2b13618e1a7407079b267df"></a>
+<a class="el" href="classGame.html">Game</a>&#160;</td><td class="memItemRight" valign="bottom"><b>game</b></td></tr>
+<tr class="separator:accfd8b7ae2b13618e1a7407079b267df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-static-attribs"></a>
+Static Private Attributes</h2></td></tr>
+<tr class="memitem:a46584bd258e545a615698e38cd39fa2b"><td class="memItemLeft" align="right" valign="top"><a id="a46584bd258e545a615698e38cd39fa2b"></a>
+static constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_PROBABILITY</b> = 511.0</td></tr>
+<tr class="separator:a46584bd258e545a615698e38cd39fa2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:aa3538c14c3e051fe76e4cd0e3d8da534"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#aa3538c14c3e051fe76e4cd0e3d8da534">TrainMC</a></td></tr>
+<tr class="memitem:aa3538c14c3e051fe76e4cd0e3d8da534"><td class="memItemLeft" align="right" valign="top"><a id="aa3538c14c3e051fe76e4cd0e3d8da534"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b></td></tr>
 <tr class="separator:aa3538c14c3e051fe76e4cd0e3d8da534"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac844afaf1fde7b43652b8946b521ef64"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#ac844afaf1fde7b43652b8946b521ef64">SelfPlayer</a></td></tr>
+<tr class="memitem:ac844afaf1fde7b43652b8946b521ef64"><td class="memItemLeft" align="right" valign="top"><a id="ac844afaf1fde7b43652b8946b521ef64"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b></td></tr>
 <tr class="separator:ac844afaf1fde7b43652b8946b521ef64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a749a73ed0d44b981c7a72a0fe2c8cb9b"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a749a73ed0d44b981c7a72a0fe2c8cb9b">PlayMC</a></td></tr>
+<tr class="memitem:a749a73ed0d44b981c7a72a0fe2c8cb9b"><td class="memItemLeft" align="right" valign="top"><a id="a749a73ed0d44b981c7a72a0fe2c8cb9b"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>PlayMC</b></td></tr>
 <tr class="separator:a749a73ed0d44b981c7a72a0fe2c8cb9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ad7a34779cad45d997bfd6d3d8043c75f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7a34779cad45d997bfd6d3d8043c75f">&#9670;&nbsp;</a></span>Node() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Node::Node </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8caa81a0f701e8a6e41c754f00b5ac38"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8caa81a0f701e8a6e41c754f00b5ac38">&#9670;&nbsp;</a></span>Node() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Node::Node </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
-          <td class="paramname"><em>game</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a>&#160;</td>
-          <td class="paramname"><em>depth</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac8cd3fed52dc828c65040b5d9b56f392"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac8cd3fed52dc828c65040b5d9b56f392">&#9670;&nbsp;</a></span>Node() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Node::Node </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
-          <td class="paramname"><em>game</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a>&#160;</td>
-          <td class="paramname"><em>depth</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classNode.html">Node</a> *&#160;</td>
-          <td class="paramname"><em>parent</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classNode.html">Node</a> *&#160;</td>
-          <td class="paramname"><em>next_sibling</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a>&#160;</td>
-          <td class="paramname"><em>move_choice</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa0840c3cb5c7159be6d992adecd2097c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa0840c3cb5c7159be6d992adecd2097c">&#9670;&nbsp;</a></span>~Node()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Node::~Node </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="abfb21f9f84a9e6b039d86db85baa1ad8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abfb21f9f84a9e6b039d86db85baa1ad8">&#9670;&nbsp;</a></span>count_nodes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> Node::count_nodes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a59c47e2d643c1f1de8782704694f00ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59c47e2d643c1f1de8782704694f00ef">&#9670;&nbsp;</a></span>get_legal_moves()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool Node::get_legal_moves </td>
-          <td>(</td>
-          <td class="paramtype">std::bitset&lt; <a class="el" href="util_8h.html#a493dc143c8500e0f74d9e60e25f125a0">NUM_MOVES</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>legal_moves</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a94570df6b3443c3ba661b978da5f436e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94570df6b3443c3ba661b978da5f436e">&#9670;&nbsp;</a></span>get_probability()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">float Node::get_probability </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
-          <td class="paramname"><em>edge_index</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae35c744363078606676f38fbcbda8200"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae35c744363078606676f38fbcbda8200">&#9670;&nbsp;</a></span>is_terminal()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool Node::is_terminal </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5e8de31d4980a046d564e4c61a4071bb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5e8de31d4980a046d564e4c61a4071bb">&#9670;&nbsp;</a></span>print_known()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Node::print_known </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream *&#160;</td>
-          <td class="paramname"><em>logging_file</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a39376885069aad134384206558ee6766"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39376885069aad134384206558ee6766">&#9670;&nbsp;</a></span>print_main_line()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Node::print_main_line </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream *&#160;</td>
-          <td class="paramname"><em>logging_file</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a74e52acfa30b09c0bdd35ec3561a362f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a74e52acfa30b09c0bdd35ec3561a362f">&#9670;&nbsp;</a></span>write_game_state()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Node::write_game_state </td>
-          <td>(</td>
-          <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>game_state</em>[GAME_STATE_SIZE]</td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h2 class="groupheader">Friends And Related Function Documentation</h2>
-<a id="a749a73ed0d44b981c7a72a0fe2c8cb9b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a749a73ed0d44b981c7a72a0fe2c8cb9b">&#9670;&nbsp;</a></span>PlayMC</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">friend class <a class="el" href="classPlayMC.html">PlayMC</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac844afaf1fde7b43652b8946b521ef64"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac844afaf1fde7b43652b8946b521ef64">&#9670;&nbsp;</a></span>SelfPlayer</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">friend class <a class="el" href="classSelfPlayer.html">SelfPlayer</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa3538c14c3e051fe76e4cd0e3d8da534"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3538c14c3e051fe76e4cd0e3d8da534">&#9670;&nbsp;</a></span>TrainMC</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">friend class <a class="el" href="classTrainMC.html">TrainMC</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="node_8h_source.html">node.h</a></li>
 </ul>

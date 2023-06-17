@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['edge_13',['Edge',['../structNode_1_1Edge.html',1,'Node']]]
+  ['game_12',['Game',['../classGame.html',1,'']]]
 ];

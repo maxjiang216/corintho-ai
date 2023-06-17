@@ -63,18 +63,11 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classPlayMC-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">PlayMC Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="dynheader">
-Collaboration diagram for PlayMC:</div>
-<div class="dyncontent">
-<div class="center"><img src="classPlayMC__coll__graph.png" border="0" usemap="#aPlayMC_coll__map" alt="Collaboration graph"/></div>
-<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -117,60 +110,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_drawn</b> () cons
 <tr class="memitem:a82c76ee3f188bfc2258c3359f7c21f46"><td class="memItemLeft" align="right" valign="top"><a id="a82c76ee3f188bfc2258c3359f7c21f46"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>print_game</b> () const</td></tr>
 <tr class="separator:a82c76ee3f188bfc2258c3359f7c21f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:a84cdeb4d35680a0e478d089b460ea217"><td class="memItemLeft" align="right" valign="top"><a id="a84cdeb4d35680a0e478d089b460ea217"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>receive_evaluation</b> (float evaluation[], float probabilities[])</td></tr>
-<tr class="separator:a84cdeb4d35680a0e478d089b460ea217"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b4005562b1e9a0bf91da945f1df1910"><td class="memItemLeft" align="right" valign="top"><a id="a1b4005562b1e9a0bf91da945f1df1910"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>search</b> ()</td></tr>
-<tr class="separator:a1b4005562b1e9a0bf91da945f1df1910"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acaa6b0e9dfc95157dde7b27f093cd6b1"><td class="memItemLeft" align="right" valign="top"><a id="acaa6b0e9dfc95157dde7b27f093cd6b1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>move_down</b> (<a class="el" href="classNode.html">Node</a> *prev_node)</td></tr>
-<tr class="separator:acaa6b0e9dfc95157dde7b27f093cd6b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa81a281eff404386aebcabf003f9688d"><td class="memItemLeft" align="right" valign="top"><a id="aa81a281eff404386aebcabf003f9688d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>propagate_result</b> ()</td></tr>
-<tr class="separator:aa81a281eff404386aebcabf003f9688d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
-<tr class="memitem:a2e9a7be41126692cc947d247ac63c257"><td class="memItemLeft" align="right" valign="top"><a id="a2e9a7be41126692cc947d247ac63c257"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>max_iterations</b></td></tr>
-<tr class="separator:a2e9a7be41126692cc947d247ac63c257"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68c157774d5a01154be9753d497cbe06"><td class="memItemLeft" align="right" valign="top"><a id="a68c157774d5a01154be9753d497cbe06"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>searches_per_eval</b></td></tr>
-<tr class="separator:a68c157774d5a01154be9753d497cbe06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae6160142416ad47e75cb9d9c6076a31c"><td class="memItemLeft" align="right" valign="top"><a id="ae6160142416ad47e75cb9d9c6076a31c"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>c_puct</b></td></tr>
-<tr class="separator:ae6160142416ad47e75cb9d9c6076a31c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57197b4c09305c2e6bf04093d48fb449"><td class="memItemLeft" align="right" valign="top"><a id="a57197b4c09305c2e6bf04093d48fb449"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>epsilon</b></td></tr>
-<tr class="separator:a57197b4c09305c2e6bf04093d48fb449"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a6f35b3311db2d67a2c69e9af96f0ab"><td class="memItemLeft" align="right" valign="top"><a id="a9a6f35b3311db2d67a2c69e9af96f0ab"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>root</b></td></tr>
-<tr class="separator:a9a6f35b3311db2d67a2c69e9af96f0ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c8fb7c7454469987dc2c557ef056ea7"><td class="memItemLeft" align="right" valign="top"><a id="a5c8fb7c7454469987dc2c557ef056ea7"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cur</b></td></tr>
-<tr class="separator:a5c8fb7c7454469987dc2c557ef056ea7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc0db39ded1d71917897656621ad47ac"><td class="memItemLeft" align="right" valign="top"><a id="abc0db39ded1d71917897656621ad47ac"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>eval_index</b></td></tr>
-<tr class="separator:abc0db39ded1d71917897656621ad47ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdaac5d3dd117f0c83e9daf2039d67b1"><td class="memItemLeft" align="right" valign="top"><a id="afdaac5d3dd117f0c83e9daf2039d67b1"></a>
-std::vector&lt; <a class="el" href="classNode.html">Node</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>searched</b></td></tr>
-<tr class="separator:afdaac5d3dd117f0c83e9daf2039d67b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afeb79d4c6dcf10b360feb2fd5796ca33"><td class="memItemLeft" align="right" valign="top"><a id="afeb79d4c6dcf10b360feb2fd5796ca33"></a>
-float *&#160;</td><td class="memItemRight" valign="bottom"><b>to_eval</b></td></tr>
-<tr class="separator:afeb79d4c6dcf10b360feb2fd5796ca33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56e61fdecb1f39f36760af5c12f73a02"><td class="memItemLeft" align="right" valign="top"><a id="a56e61fdecb1f39f36760af5c12f73a02"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>iterations_done</b></td></tr>
-<tr class="separator:a56e61fdecb1f39f36760af5c12f73a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a174e3fd5ab5e95c0118d1a8f99712cf6"><td class="memItemLeft" align="right" valign="top"><a id="a174e3fd5ab5e95c0118d1a8f99712cf6"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>logging</b></td></tr>
-<tr class="separator:a174e3fd5ab5e95c0118d1a8f99712cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae24c6b311c34f4c0d4edfcbd3c0c14c2"><td class="memItemLeft" align="right" valign="top"><a id="ae24c6b311c34f4c0d4edfcbd3c0c14c2"></a>
-std::mt19937 *&#160;</td><td class="memItemRight" valign="bottom"><b>generator</b></td></tr>
-<tr class="separator:ae24c6b311c34f4c0d4edfcbd3c0c14c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="playmc_8h_source.html">playmc.h</a></li>

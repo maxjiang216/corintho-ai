@@ -1,24 +1,21 @@
 var indexSectionsWithContent =
 {
-  0: "cegmnprst",
-  1: "egmnpst",
-  2: "m",
-  3: "cr"
+  0: "cgmnprst",
+  1: "gmnpst",
+  2: "cmr"
 };
 
 var indexSectionNames =
 {
   0: "all",
   1: "classes",
-  2: "functions",
-  3: "variables"
+  2: "functions"
 };
 
 var indexSectionLabels =
 {
   0: "All",
   1: "Classes",
-  2: "Functions",
-  3: "Variables"
+  2: "Functions"
 };
 

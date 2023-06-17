@@ -90,20 +90,20 @@ $(function() {
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  MoveType move_type() const noexcept { <span class="keywordflow">return</span> move_type_; }</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  int32_t piece_type() const noexcept { <span class="keywordflow">return</span> piece_type_; }</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  int32_t row1() const noexcept { <span class="keywordflow">return</span> <a class="code" href="classMove.html#a7128fe70b4c719a2a71c7266751c360a">row1_</a>; }</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  int32_t col1() const noexcept { <span class="keywordflow">return</span> <a class="code" href="classMove.html#a1fe9b921e9442e1101f2ea12063fb11a">col1_</a>; }</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  int32_t row2() const noexcept { <span class="keywordflow">return</span> <a class="code" href="classMove.html#a21f5c4a42dad71285098ce515184f81e">row2_</a>; }</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  int32_t col2() const noexcept { <span class="keywordflow">return</span> <a class="code" href="classMove.html#acf0a9c04dc0a0e10674f521bd20d1999">col2_</a>; }</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <span class="keyword">friend</span> std::ostream &amp;operator&lt;&lt;(std::ostream &amp;os, <span class="keyword">const</span> <a class="code" href="classMove.html">Move</a> &amp;move);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;  MoveType move_type_;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  int32_t piece_type_;</div>
-<div class="line"><a name="l00045"></a><span class="lineno"><a class="line" href="classMove.html#a7128fe70b4c719a2a71c7266751c360a">   45</a></span>&#160;  int32_t <a class="code" href="classMove.html#a7128fe70b4c719a2a71c7266751c360a">row1_</a>;</div>
-<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="classMove.html#a1fe9b921e9442e1101f2ea12063fb11a">   47</a></span>&#160;  int32_t <a class="code" href="classMove.html#a1fe9b921e9442e1101f2ea12063fb11a">col1_</a>;</div>
-<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classMove.html#a21f5c4a42dad71285098ce515184f81e">   49</a></span>&#160;  int32_t <a class="code" href="classMove.html#a21f5c4a42dad71285098ce515184f81e">row2_</a>{-1};</div>
-<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classMove.html#acf0a9c04dc0a0e10674f521bd20d1999">   51</a></span>&#160;  int32_t <a class="code" href="classMove.html#acf0a9c04dc0a0e10674f521bd20d1999">col2_</a>{-1};</div>
+<div class="line"><a name="l00035"></a><span class="lineno"><a class="line" href="classMove.html#a78c9eca1d159ed49f3fffc67d411cb00">   35</a></span>&#160;  int32_t <a class="code" href="classMove.html#a78c9eca1d159ed49f3fffc67d411cb00">row1</a>() const noexcept { <span class="keywordflow">return</span> row1_; }</div>
+<div class="line"><a name="l00037"></a><span class="lineno"><a class="line" href="classMove.html#a8e49579b1933b186c796e8a719437cec">   37</a></span>&#160;  int32_t <a class="code" href="classMove.html#a8e49579b1933b186c796e8a719437cec">col1</a>() const noexcept { <span class="keywordflow">return</span> col1_; }</div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classMove.html#ad3f8ebc772a434ef454e096178ba8009">   39</a></span>&#160;  int32_t <a class="code" href="classMove.html#ad3f8ebc772a434ef454e096178ba8009">row2</a>() const noexcept { <span class="keywordflow">return</span> row2_; }</div>
+<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="classMove.html#afb286d0ac8d955ed6b04edc7cbcb386d">   41</a></span>&#160;  int32_t <a class="code" href="classMove.html#afb286d0ac8d955ed6b04edc7cbcb386d">col2</a>() const noexcept { <span class="keywordflow">return</span> col2_; }</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="keyword">friend</span> std::ostream &amp;operator&lt;&lt;(std::ostream &amp;os, <span class="keyword">const</span> <a class="code" href="classMove.html">Move</a> &amp;move);</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  MoveType move_type_;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  int32_t piece_type_;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  int32_t row1_;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  int32_t col1_;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  int32_t row2_{-1};</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  int32_t col2_{-1};</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;};</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="comment">// Get the ID of a place move</span></div>
@@ -115,11 +115,11 @@ $(function() {
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassMove_html"><div class="ttname"><a href="classMove.html">Move</a></div><div class="ttdoc">This class represents a move in Corintho.</div><div class="ttdef"><b>Definition:</b> move.h:19</div></div>
-<div class="ttc" id="aclassMove_html_a1fe9b921e9442e1101f2ea12063fb11a"><div class="ttname"><a href="classMove.html#a1fe9b921e9442e1101f2ea12063fb11a">Move::col1_</a></div><div class="ttdeci">int32_t col1_</div><div class="ttdoc">The column of the space being moved from or placed on.</div><div class="ttdef"><b>Definition:</b> move.h:47</div></div>
-<div class="ttc" id="aclassMove_html_a21f5c4a42dad71285098ce515184f81e"><div class="ttname"><a href="classMove.html#a21f5c4a42dad71285098ce515184f81e">Move::row2_</a></div><div class="ttdeci">int32_t row2_</div><div class="ttdoc">The row of the space being moved to, not used for place moves.</div><div class="ttdef"><b>Definition:</b> move.h:49</div></div>
 <div class="ttc" id="aclassMove_html_a6e50d21a512e509b47a03d83a3812331"><div class="ttname"><a href="classMove.html#a6e50d21a512e509b47a03d83a3812331">Move::Move</a></div><div class="ttdeci">Move(int32_t id) noexcept</div><div class="ttdoc">Construct a move from its ID.</div></div>
-<div class="ttc" id="aclassMove_html_a7128fe70b4c719a2a71c7266751c360a"><div class="ttname"><a href="classMove.html#a7128fe70b4c719a2a71c7266751c360a">Move::row1_</a></div><div class="ttdeci">int32_t row1_</div><div class="ttdoc">The row of the space being moved from or placed on.</div><div class="ttdef"><b>Definition:</b> move.h:45</div></div>
-<div class="ttc" id="aclassMove_html_acf0a9c04dc0a0e10674f521bd20d1999"><div class="ttname"><a href="classMove.html#acf0a9c04dc0a0e10674f521bd20d1999">Move::col2_</a></div><div class="ttdeci">int32_t col2_</div><div class="ttdoc">The column of the space being moved to, not used for place moves.</div><div class="ttdef"><b>Definition:</b> move.h:51</div></div>
+<div class="ttc" id="aclassMove_html_a78c9eca1d159ed49f3fffc67d411cb00"><div class="ttname"><a href="classMove.html#a78c9eca1d159ed49f3fffc67d411cb00">Move::row1</a></div><div class="ttdeci">int32_t row1() const noexcept</div><div class="ttdoc">The row of the space being moved from or placed on.</div><div class="ttdef"><b>Definition:</b> move.h:35</div></div>
+<div class="ttc" id="aclassMove_html_a8e49579b1933b186c796e8a719437cec"><div class="ttname"><a href="classMove.html#a8e49579b1933b186c796e8a719437cec">Move::col1</a></div><div class="ttdeci">int32_t col1() const noexcept</div><div class="ttdoc">The column of the space being moved from or placed on.</div><div class="ttdef"><b>Definition:</b> move.h:37</div></div>
+<div class="ttc" id="aclassMove_html_ad3f8ebc772a434ef454e096178ba8009"><div class="ttname"><a href="classMove.html#ad3f8ebc772a434ef454e096178ba8009">Move::row2</a></div><div class="ttdeci">int32_t row2() const noexcept</div><div class="ttdoc">The row of the space being moved to, not used for place moves.</div><div class="ttdef"><b>Definition:</b> move.h:39</div></div>
+<div class="ttc" id="aclassMove_html_afb286d0ac8d955ed6b04edc7cbcb386d"><div class="ttname"><a href="classMove.html#afb286d0ac8d955ed6b04edc7cbcb386d">Move::col2</a></div><div class="ttdeci">int32_t col2() const noexcept</div><div class="ttdoc">The column of the space being moved to, not used for place moves.</div><div class="ttdef"><b>Definition:</b> move.h:41</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

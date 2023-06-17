@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['col1_5f_0',['col1_',['../classMove.html#a1fe9b921e9442e1101f2ea12063fb11a',1,'Move']]],
-  ['col2_5f_1',['col2_',['../classMove.html#acf0a9c04dc0a0e10674f521bd20d1999',1,'Move']]]
+  ['col1_0',['col1',['../classMove.html#a8e49579b1933b186c796e8a719437cec',1,'Move']]],
+  ['col2_1',['col2',['../classMove.html#afb286d0ac8d955ed6b04edc7cbcb386d',1,'Move']]]
 ];

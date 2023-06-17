@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['sample_18',['Sample',['../structSample.html',1,'']]],
-  ['selfplayer_19',['SelfPlayer',['../classSelfPlayer.html',1,'']]]
+  ['trainer_18',['Trainer',['../classTrainer.html',1,'']]],
+  ['trainmc_19',['TrainMC',['../classTrainMC.html',1,'']]]
 ];

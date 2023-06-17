@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['playmc_17',['PlayMC',['../classPlayMC.html',1,'']]]
+  ['sample_16',['Sample',['../structSample.html',1,'']]],
+  ['selfplayer_17',['SelfPlayer',['../classSelfPlayer.html',1,'']]]
 ];

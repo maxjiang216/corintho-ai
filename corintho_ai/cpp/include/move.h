@@ -51,7 +51,7 @@ private:
   int32_t col2_{-1};
 };
 
-/// Get the ID of a place move
+// Get the ID of a place move
 int32_t encodePlace(int32_t ptype, int32_t row, int32_t col);
 // Get the ID of a move move
 int32_t encodeMove(int32_t row1, int32_t col1, int32_t row2, int32_t col2);

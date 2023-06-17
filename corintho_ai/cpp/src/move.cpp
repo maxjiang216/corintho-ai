@@ -40,6 +40,30 @@ Move::Move(int32_t id) noexcept
   }
 }
 
+std::ostream &operator<<(std::ostream &os, const Move &move) {
+  if (move.move_type_ == Move::MoveType::kPlace) {
+    if (move.piece_type_ == 0) {
+      os << "B";
+    } else if (move.piece_type_ == 1) {
+      os << "C";
+    } else if (move.piece_type_ == 2) {
+      os << "A";
+    }
+    os << getColName(move.col1_) << 4 - move.row1_;
+  } else {
+    os << getColName(move.col1_) << 4 - move.row1_;
+    if (move.col2_ < move.col1_)
+      os << 'L';
+    else if (move.col2_ > move.col1_)
+      os << 'R';
+    else if (move.row2_ < move.row1_)
+      os << 'U';
+    else
+      os << 'D';
+  }
+  return os;
+}
+
 int32_t encodePlace(int32_t piece_type, int32_t row, int32_t col) {
   assert(piece_type >= 0 && piece_type < 3);
   assert(row >= 0 && row < 4);
@@ -87,28 +111,4 @@ char getColName(int32_t col) {
     assert(false);
     return ' ';
   }
-}
-
-std::ostream &operator<<(std::ostream &os, const Move &move) {
-  if (move.move_type_ == Move::MoveType::kPlace) {
-    if (move.piece_type_ == 0) {
-      os << "B";
-    } else if (move.piece_type_ == 1) {
-      os << "C";
-    } else if (move.piece_type_ == 2) {
-      os << "A";
-    }
-    os << getColName(move.col1_) << 4 - move.row1_;
-  } else {
-    os << getColName(move.col1_) << 4 - move.row1_;
-    if (move.col2_ < move.col1_)
-      os << 'L';
-    else if (move.col2_ > move.col1_)
-      os << 'R';
-    else if (move.row2_ < move.row1_)
-      os << 'U';
-    else
-      os << 'D';
-  }
-  return os;
 }

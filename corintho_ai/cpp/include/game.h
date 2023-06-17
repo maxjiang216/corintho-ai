@@ -33,7 +33,7 @@ class Game {
 
   void apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const;
 
-  bool is_legal_move(uintf move_id) const;
+  bool is_legal_move(int32_t move_id) const;
   bool can_place(uintf ptype, uintf row, uintf col) const;
   bool can_move(uintf row1, uintf col1, uintf row2, uintf col2) const;
   bool is_empty(uintf row, uintf col) const;
@@ -46,7 +46,7 @@ public:
   Game(long *board, int to_play, long *pieces);
   ~Game() = default;
 
-  void do_move(uintf move_id);
+  void do_move(int32_t move_id);
 
   // Returns whether there are lines
   bool get_legal_moves(bitset<NUM_MOVES> &legal_moves) const;

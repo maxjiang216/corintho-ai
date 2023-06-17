@@ -321,7 +321,7 @@ bool PlayMC::search() {
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
           best_prev_node =
-              prev_node; // This should always be the last node in the list
+              prev_node;  // This should always be the last node in the list
           max_value = u;
           move_choice = cur->edges[edge_index].move_id;
         }
@@ -490,18 +490,26 @@ void PlayMC::get_legal_moves(long *legal_moves) const {
   }
 }
 
-uintf PlayMC::get_node_number() const { return root->count_nodes(); }
+uintf PlayMC::get_node_number() const {
+  return root->count_nodes();
+}
 
-float PlayMC::get_evaluation() const { return root->evaluation; }
+float PlayMC::get_evaluation() const {
+  return root->evaluation;
+}
 
 bool PlayMC::is_done() const {
   return root->result == RESULT_WIN || root->result == RESULT_DRAW ||
          root->result == RESULT_LOSS;
 }
 
-bool PlayMC::has_won() const { return root->result == RESULT_WIN; }
+bool PlayMC::has_won() const {
+  return root->result == RESULT_WIN;
+}
 
-bool PlayMC::has_drawn() const { return root->result == RESULT_DRAW; }
+bool PlayMC::has_drawn() const {
+  return root->result == RESULT_DRAW;
+}
 
 uintf PlayMC::write_requests(float game_states[]) const {
   for (uintf i = 0; i < GAME_STATE_SIZE * searched.size(); ++i) {
@@ -510,4 +518,6 @@ uintf PlayMC::write_requests(float game_states[]) const {
   return searched.size();
 }
 
-void PlayMC::print_game() const { std::cout << root->game << '\n'; }
+void PlayMC::print_game() const {
+  std::cout << root->game << '\n';
+}

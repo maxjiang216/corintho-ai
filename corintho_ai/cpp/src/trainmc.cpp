@@ -238,9 +238,13 @@ bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
   return true;
 }
 
-const Game &TrainMC::get_game() const { return root->game; }
+const Game &TrainMC::get_game() const {
+  return root->game;
+}
 
-bool TrainMC::is_uninitialized() const { return root == nullptr; }
+bool TrainMC::is_uninitialized() const {
+  return root == nullptr;
+}
 
 void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
                           float new_epsilon, uintf new_searches_per_eval) {
@@ -383,7 +387,7 @@ bool TrainMC::search() {
         float u = cur->get_probability(edge_index) * v_sqrt;
         if (u > max_value) {
           best_prev_node =
-              prev_node; // This should always be the last node in the list
+              prev_node;  // This should always be the last node in the list
           max_value = u;
           move_choice = cur->edges[edge_index].move_id;
         }

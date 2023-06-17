@@ -1,110 +1,114 @@
 #include "move.h"
+
+#include <cassert>
+
 #include <stdlib.h>
 
-// Convert move_id to Move object
-// We can make this a table in the future, especially if we incude rotations (?)
-Move::Move(uintf move_id) : mtype{move_id >= 48} {
+Move::Move(int32_t id) noexcept
+    : move_type_{id >= 48 ? MoveType::kPlace : MoveType::kMove} {
+  assert(id >= 0 && id < 96);
 
-  // Place
-  // I believe that place is more common
-  if (mtype) {
-    ptype = (move_id - 48) / 16;
-    row1 = (move_id % 16) / 4;
-    col1 = move_id % 4;
+  // Place move
+  // This is more common
+  // So checking it first should be slightly more efficient
+  if (move_type_ == MoveType::kPlace) {
+    piece_type_ = (id - 48) / 16;
+    row1_ = (id % 16) / 4;
+    col1_ = id % 4;
   }
-
   // Move
-
-  // Right
-  else if (move_id < 12) {
-    row1 = move_id / 3;
-    col1 = move_id % 3;
-    row2 = row1;
-    col2 = col1 + 1;
-  }
-
-  // Down
-  else if (move_id < 24) {
-    row1 = (move_id - 12) / 4;
-    col1 = move_id % 4;
-    row2 = row1 + 1;
-    col2 = col1;
-  }
-
-  // Left
-  else if (move_id < 36) {
-    row1 = (move_id - 24) / 3;
-    col1 = move_id % 3 + 1;
-    row2 = row1;
-    col2 = col1 - 1;
-  }
-
-  // Up
-  else {
-    row1 = (move_id - 32) / 4;
-    col1 = move_id % 4;
-    row2 = row1 - 1;
-    col2 = col1;
+  else if (id < 12) { // Right
+    row1_ = id / 3;
+    col1_ = id % 3;
+    row2_ = row1_;
+    col2_ = col1_ + 1;
+  } else if (id < 24) { // Down
+    row1_ = (id - 12) / 4;
+    col1_ = id % 4;
+    row2_ = row1_ + 1;
+    col2_ = col1_;
+  } else if (id < 36) { // Left
+    row1_ = (id - 24) / 3;
+    col1_ = id % 3 + 1;
+    row2_ = row1_;
+    col2_ = col1_ - 1;
+  } else { // Up
+    row1_ = (id - 32) / 4;
+    col1_ = id % 4;
+    row2_ = row1_ - 1;
+    col2_ = col1_;
   }
 }
 
-// Convert place move to int
-uintf encode_place(uintf ptype, uintf row, uintf col) {
-
-  return 48 + ptype * 16 + row * 4 + col;
+int32_t encodePlace(int32_t piece_type, int32_t row, int32_t col) {
+  assert(piece_type >= 0 && piece_type < 3);
+  assert(row >= 0 && row < 4);
+  assert(col >= 0 && col < 4);
+  return 48 + piece_type * 16 + row * 4 + col;
 }
 
-// Convert move move to int
-uintf encode_move(uintf row1, uintf col1, uintf row2, uintf col2) {
-
-  // Right
-  if (col1 < col2)
+int32_t encodeMove(int32_t row1, int32_t col1, int32_t row2, int32_t col2) {
+  assert(row1 >= 0 && row1 < 4);
+  assert(col1 >= 0 && col1 < 4);
+  assert(row2 >= 0 && row2 < 4);
+  assert(col2 >= 0 && col2 < 4);
+  if (col1 < col2) { // Right
+    assert(row1 == row2);
+    assert(col1 + 1 == col2);
     return row1 * 3 + col1;
-
-  // Down
-  if (row1 < row2)
+  }
+  if (row1 < row2) { // Down
+    assert(col1 == col2);
+    assert(row1 + 1 == row2);
     return 12 + row1 * 4 + col1;
-
-  // Left
-  if (col1 > col2)
-    return 24 + row1 * 3 + (col1 - 1);
-
+  }
+  if (col1 > col2) { // Left
+    assert(row1 == row2);
+    assert(col1 - 1 == col2);
+    return 24 + row1 * 3 + col1 - 1;
+  }
   // Up
-  return 36 + (row1 - 1) * 4 + col1;
+  assert(col1 == col2);
+  assert(row1 - 1 == row2);
+  return 36 + row1 * 4 + col1;
 }
 
-char get_col_name(uintf col) {
-  if (col == 0)
+char getColName(int32_t col) {
+  switch (col) {
+  case 0:
     return 'a';
-  if (col == 1)
+  case 1:
     return 'b';
-  if (col == 2)
+  case 2:
     return 'c';
-  return 'd';
+  case 3:
+    return 'd';
+  default: // Should never happen
+    assert(false);
+    return ' ';
+  }
 }
 
 std::ostream &operator<<(std::ostream &os, const Move &move) {
-
-  if (move.mtype) {
-    if (move.ptype == 0) {
+  if (move.move_type_ == Move::MoveType::kPlace) {
+    if (move.piece_type_ == 0) {
       os << "B";
-    } else if (move.ptype == 1) {
+    } else if (move.piece_type_ == 1) {
       os << "C";
-    } else if (move.ptype == 2) {
+    } else if (move.piece_type_ == 2) {
       os << "A";
     }
-    os << get_col_name(move.col1) << 4 - move.row1;
+    os << getColName(move.col1_) << 4 - move.row1_;
   } else {
-    os << get_col_name(move.col1) << 4 - move.row1;
-    if (move.col2 < move.col1)
+    os << getColName(move.col1_) << 4 - move.row1_;
+    if (move.col2_ < move.col1_)
       os << 'L';
-    else if (move.col2 > move.col1)
+    else if (move.col2_ > move.col1_)
       os << 'R';
-    else if (move.row2 < move.row1)
+    else if (move.row2_ < move.row1_)
       os << 'U';
     else
       os << 'D';
   }
-
   return os;
 }

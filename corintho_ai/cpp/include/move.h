@@ -1,20 +1,27 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-#include "util.h"
 #include <ostream>
+
+#include "util.h"
 
 class Move {
 public:
-  enum MoveType { kPlace, kMove };
+  enum class MoveType { kPlace, kMove };
+  enum class Direction { kRight, kUp, kLeft, kDown };
 
   Move() = delete;
-  Move(const Move &move) = default;
-  Move(Move &&move) = default;
-  Move &operator=(const Move &move) = default;
-  Move &operator=(Move &&move) = default;
+  Move(const Move &move) noexcept = default;
+  Move(Move &&move) noexcept = default;
+  Move &operator=(const Move &move) noexcept = default;
+  Move &operator=(Move &&move) noexcept = default;
   ~Move() = default;
-  explicit Move(uintf move_id);
+  // Construct a move from its id
+  explicit Move(int32_t id);
+  // Construct a place move
+  Move(int32_t piece_type, int32_t row, int32_t col);
+  // Construct a move move
+  Move(int32_t row, int32_t col, Direction direction);
 
   MoveType move_type() const noexcept { return move_type_; }
   int32_t piece_type() const noexcept { return piece_type_; }
@@ -29,12 +36,15 @@ private:
   int32_t piece_type_;
   int32_t row1_;
   int32_t col1_;
-  int32_t row2_;
-  int32_t col2_;
+  int32_t row2_{0};
+  int32_t col2_{0};
 };
 
-char get_col_name(int32_t col);
-int32_t encode_place(int32_t ptype, int32_t row, int32_t col);
-int32_t encode_move(int32_t row1, int32_t col1, int32_t row2, int32_t col2);
+// Convert place move to its id
+int32_t encodePlace(int32_t ptype, int32_t row, int32_t col);
+// Convert move move to its id
+int32_t encodeMove(int32_t row1, int32_t col1, int32_t row2, int32_t col2);
+// Convert column index to its name (a, b, c, d)
+char getColName(int32_t col);
 
 #endif

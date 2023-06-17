@@ -69,11 +69,11 @@ $(function() {
 <div class="title">selfplayer.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef SELFPLAYER_H</span></div>
+<a href="selfplayer_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef SELFPLAYER_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define SELFPLAYER_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;trainmc.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="trainmc_8h.html">trainmc.h</a>&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util_8h.html">util.h</a>&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;array&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
@@ -84,12 +84,12 @@ $(function() {
 <div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="structSample.html">   13</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structSample.html">Sample</a> {</div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;  <span class="comment">// We do not store the evaluation as it is only computable once the game is</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <span class="comment">// complete</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  std::array&lt;float, GAME_STATE_SIZE&gt; game_state;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  std::array&lt;float, NUM_MOVES&gt; probabilities;</div>
+<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="structSample.html#af402cdb5e5871b58136276482644bbf3">   16</a></span>&#160;  std::array&lt;float, GAME_STATE_SIZE&gt; <a class="code" href="structSample.html#af402cdb5e5871b58136276482644bbf3">game_state</a>;</div>
+<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="structSample.html#a0eff671937bec1da3efe006b9cab0624">   17</a></span>&#160;  std::array&lt;float, NUM_MOVES&gt; <a class="code" href="structSample.html#a0eff671937bec1da3efe006b9cab0624">probabilities</a>;</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <a class="code" href="structSample.html">Sample</a>(std::array&lt;float, GAME_STATE_SIZE&gt; game_state,</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;         std::array&lt;float, NUM_MOVES&gt; probabilities)</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;      : game_state{game_state}, probabilities{probabilities} {}</div>
+<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="structSample.html#a974f9f4849b8282f8c1b03a1cacf64a3">   19</a></span>&#160;  <a class="code" href="structSample.html#a974f9f4849b8282f8c1b03a1cacf64a3">Sample</a>(std::array&lt;float, GAME_STATE_SIZE&gt; <a class="code" href="structSample.html#af402cdb5e5871b58136276482644bbf3">game_state</a>,</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;         std::array&lt;float, NUM_MOVES&gt; <a class="code" href="structSample.html#a0eff671937bec1da3efe006b9cab0624">probabilities</a>)</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;      : <a class="code" href="structSample.html#af402cdb5e5871b58136276482644bbf3">game_state</a>{<a class="code" href="structSample.html#af402cdb5e5871b58136276482644bbf3">game_state</a>}, <a class="code" href="structSample.html#a0eff671937bec1da3efe006b9cab0624">probabilities</a>{<a class="code" href="structSample.html#a0eff671937bec1da3efe006b9cab0624">probabilities</a>} {}</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;};</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
 <div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="classSelfPlayer.html">   24</a></span>&#160;<span class="keyword">class </span><a class="code" href="classSelfPlayer.html">SelfPlayer</a> {</div>
@@ -97,7 +97,7 @@ $(function() {
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="comment">// Monte Carlo tree for the players</span></div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <a class="code" href="classTrainMC.html">TrainMC</a> players[2];</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  uintf to_play;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> to_play;</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  <span class="comment">// Random generator for all operations</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  std::mt19937 *generator;</div>
@@ -109,54 +109,75 @@ $(function() {
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  std::vector&lt;Sample&gt; samples;</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="comment">// Game result for first player</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  uint8s result;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <a class="code" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> result;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="comment">// seed is only used in testing</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  uintf seed;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> seed;</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="comment">// This way we don&#39;t allocate memory if there is no logging file</span></div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  std::ofstream *logging_file;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="comment">// Turn at which game is solved</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  uintf mate_turn;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> mate_turn;</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keywordtype">bool</span> do_iteration();</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="comment">// Training mode</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, std::mt19937 *generator);</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, std::mt19937 *generator,</div>
+<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a11eba9e094946455136deb4b44fdf4d2">   56</a></span>&#160;  <a class="code" href="classSelfPlayer.html#a11eba9e094946455136deb4b44fdf4d2">SelfPlayer</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, std::mt19937 *generator);</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#ac60421b592095aaf7f3171e784e8c5b6">   57</a></span>&#160;  <a class="code" href="classSelfPlayer.html#ac60421b592095aaf7f3171e784e8c5b6">SelfPlayer</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, std::mt19937 *generator,</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;             std::ofstream *logging_file);</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="comment">// Testing mode</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, uintf seed, std::mt19937 *generator);</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, uintf seed, std::mt19937 *generator,</div>
+<div class="line"><a name="l00060"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#af46ea0be0801db42941e3bcd88a5f459">   60</a></span>&#160;  <a class="code" href="classSelfPlayer.html#af46ea0be0801db42941e3bcd88a5f459">SelfPlayer</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> seed, std::mt19937 *generator);</div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a4762bf718933e2c7d9e1f145546fdb93">   61</a></span>&#160;  <a class="code" href="classSelfPlayer.html#a4762bf718933e2c7d9e1f145546fdb93">SelfPlayer</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> seed, std::mt19937 *generator,</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;             std::ofstream *logging_file);</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  ~<a class="code" href="classSelfPlayer.html">SelfPlayer</a>();</div>
+<div class="line"><a name="l00063"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#aa4c145b82407d1065e76f9d6920f181a">   63</a></span>&#160;  <a class="code" href="classSelfPlayer.html#aa4c145b82407d1065e76f9d6920f181a">~SelfPlayer</a>();</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <span class="keywordtype">void</span> do_first_iteration();</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
+<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a191bfe04a992b6f591dbba431bdc75ac">   65</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classSelfPlayer.html#a191bfe04a992b6f591dbba431bdc75ac">do_first_iteration</a>();</div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#abacfb7e35fd490a81790d4a610179a14">   66</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classSelfPlayer.html#abacfb7e35fd490a81790d4a610179a14">do_iteration</a>(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;  uintf count_requests() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="keywordtype">void</span> write_requests(<span class="keywordtype">float</span> *game_states) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00068"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a9f3f777a0ee8b2bbfba437fad06c33f2">   68</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classSelfPlayer.html#a9f3f777a0ee8b2bbfba437fad06c33f2">count_requests</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#af9a48d3b65678590b47eb2d748586d2d">   69</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classSelfPlayer.html#af9a48d3b65678590b47eb2d748586d2d">write_requests</a>(<span class="keywordtype">float</span> *game_states) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  uintf count_samples() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a06058344d195eb4e5072691917a49e9e">   71</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classSelfPlayer.html#a06058344d195eb4e5072691917a49e9e">count_samples</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <span class="keywordtype">void</span> write_samples(<span class="keywordtype">float</span> *game_states, <span class="keywordtype">float</span> *evaluation_samples,</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a8a5a7bb4aa32f97a544c7b3a78779224">   73</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classSelfPlayer.html#a8a5a7bb4aa32f97a544c7b3a78779224">write_samples</a>(<span class="keywordtype">float</span> *game_states, <span class="keywordtype">float</span> *evaluation_samples,</div>
 <div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;                     <span class="keywordtype">float</span> *probability_samples) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  <span class="keywordtype">float</span> get_score() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  uintf count_nodes() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#abbd96b09f0db87fd7893d4188e79173a">   76</a></span>&#160;  <span class="keywordtype">float</span> <a class="code" href="classSelfPlayer.html#abbd96b09f0db87fd7893d4188e79173a">get_score</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00077"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a7069c37a4947a07e59660a9171f614ae">   77</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classSelfPlayer.html#a7069c37a4947a07e59660a9171f614ae">count_nodes</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  uintf get_mate_length() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00079"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#a0bc008c9586d50415d4c7532142e58c2">   79</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classSelfPlayer.html#a0bc008c9586d50415d4c7532142e58c2">get_mate_length</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classTrainer.html">Trainer</a>;</div>
+<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="classSelfPlayer.html#ad38c9566742be31ca860cf8b5d6ae11f">   81</a></span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classTrainer.html">Trainer</a>;</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;};</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160; </div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassSelfPlayer_html"><div class="ttname"><a href="classSelfPlayer.html">SelfPlayer</a></div><div class="ttdef"><b>Definition:</b> selfplayer.h:24</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a06058344d195eb4e5072691917a49e9e"><div class="ttname"><a href="classSelfPlayer.html#a06058344d195eb4e5072691917a49e9e">SelfPlayer::count_samples</a></div><div class="ttdeci">uintf count_samples() const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a0bc008c9586d50415d4c7532142e58c2"><div class="ttname"><a href="classSelfPlayer.html#a0bc008c9586d50415d4c7532142e58c2">SelfPlayer::get_mate_length</a></div><div class="ttdeci">uintf get_mate_length() const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a11eba9e094946455136deb4b44fdf4d2"><div class="ttname"><a href="classSelfPlayer.html#a11eba9e094946455136deb4b44fdf4d2">SelfPlayer::SelfPlayer</a></div><div class="ttdeci">SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a191bfe04a992b6f591dbba431bdc75ac"><div class="ttname"><a href="classSelfPlayer.html#a191bfe04a992b6f591dbba431bdc75ac">SelfPlayer::do_first_iteration</a></div><div class="ttdeci">void do_first_iteration()</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a4762bf718933e2c7d9e1f145546fdb93"><div class="ttname"><a href="classSelfPlayer.html#a4762bf718933e2c7d9e1f145546fdb93">SelfPlayer::SelfPlayer</a></div><div class="ttdeci">SelfPlayer(uintf searches_per_eval, uintf seed, std::mt19937 *generator, std::ofstream *logging_file)</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a7069c37a4947a07e59660a9171f614ae"><div class="ttname"><a href="classSelfPlayer.html#a7069c37a4947a07e59660a9171f614ae">SelfPlayer::count_nodes</a></div><div class="ttdeci">uintf count_nodes() const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a8a5a7bb4aa32f97a544c7b3a78779224"><div class="ttname"><a href="classSelfPlayer.html#a8a5a7bb4aa32f97a544c7b3a78779224">SelfPlayer::write_samples</a></div><div class="ttdeci">void write_samples(float *game_states, float *evaluation_samples, float *probability_samples) const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_a9f3f777a0ee8b2bbfba437fad06c33f2"><div class="ttname"><a href="classSelfPlayer.html#a9f3f777a0ee8b2bbfba437fad06c33f2">SelfPlayer::count_requests</a></div><div class="ttdeci">uintf count_requests() const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_aa4c145b82407d1065e76f9d6920f181a"><div class="ttname"><a href="classSelfPlayer.html#aa4c145b82407d1065e76f9d6920f181a">SelfPlayer::~SelfPlayer</a></div><div class="ttdeci">~SelfPlayer()</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_abacfb7e35fd490a81790d4a610179a14"><div class="ttname"><a href="classSelfPlayer.html#abacfb7e35fd490a81790d4a610179a14">SelfPlayer::do_iteration</a></div><div class="ttdeci">bool do_iteration(float evaluation[], float probabilities[])</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_abbd96b09f0db87fd7893d4188e79173a"><div class="ttname"><a href="classSelfPlayer.html#abbd96b09f0db87fd7893d4188e79173a">SelfPlayer::get_score</a></div><div class="ttdeci">float get_score() const</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_ac60421b592095aaf7f3171e784e8c5b6"><div class="ttname"><a href="classSelfPlayer.html#ac60421b592095aaf7f3171e784e8c5b6">SelfPlayer::SelfPlayer</a></div><div class="ttdeci">SelfPlayer(uintf searches_per_eval, std::mt19937 *generator, std::ofstream *logging_file)</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_af46ea0be0801db42941e3bcd88a5f459"><div class="ttname"><a href="classSelfPlayer.html#af46ea0be0801db42941e3bcd88a5f459">SelfPlayer::SelfPlayer</a></div><div class="ttdeci">SelfPlayer(uintf searches_per_eval, uintf seed, std::mt19937 *generator)</div></div>
+<div class="ttc" id="aclassSelfPlayer_html_af9a48d3b65678590b47eb2d748586d2d"><div class="ttname"><a href="classSelfPlayer.html#af9a48d3b65678590b47eb2d748586d2d">SelfPlayer::write_requests</a></div><div class="ttdeci">void write_requests(float *game_states) const</div></div>
 <div class="ttc" id="aclassTrainMC_html"><div class="ttname"><a href="classTrainMC.html">TrainMC</a></div><div class="ttdef"><b>Definition:</b> trainmc.h:15</div></div>
 <div class="ttc" id="aclassTrainer_html"><div class="ttname"><a href="classTrainer.html">Trainer</a></div><div class="ttdef"><b>Definition:</b> trainer.h:13</div></div>
 <div class="ttc" id="astructSample_html"><div class="ttname"><a href="structSample.html">Sample</a></div><div class="ttdef"><b>Definition:</b> selfplayer.h:13</div></div>
+<div class="ttc" id="astructSample_html_a0eff671937bec1da3efe006b9cab0624"><div class="ttname"><a href="structSample.html#a0eff671937bec1da3efe006b9cab0624">Sample::probabilities</a></div><div class="ttdeci">std::array&lt; float, NUM_MOVES &gt; probabilities</div><div class="ttdef"><b>Definition:</b> selfplayer.h:17</div></div>
+<div class="ttc" id="astructSample_html_a974f9f4849b8282f8c1b03a1cacf64a3"><div class="ttname"><a href="structSample.html#a974f9f4849b8282f8c1b03a1cacf64a3">Sample::Sample</a></div><div class="ttdeci">Sample(std::array&lt; float, GAME_STATE_SIZE &gt; game_state, std::array&lt; float, NUM_MOVES &gt; probabilities)</div><div class="ttdef"><b>Definition:</b> selfplayer.h:19</div></div>
+<div class="ttc" id="astructSample_html_af402cdb5e5871b58136276482644bbf3"><div class="ttname"><a href="structSample.html#af402cdb5e5871b58136276482644bbf3">Sample::game_state</a></div><div class="ttdeci">std::array&lt; float, GAME_STATE_SIZE &gt; game_state</div><div class="ttdef"><b>Definition:</b> selfplayer.h:16</div></div>
+<div class="ttc" id="atrainmc_8h_html"><div class="ttname"><a href="trainmc_8h.html">trainmc.h</a></div></div>
+<div class="ttc" id="autil_8h_html"><div class="ttname"><a href="util_8h.html">util.h</a></div></div>
+<div class="ttc" id="autil_8h_html_a70bb1d9b44c5ffb64da7c1a6efa4067b"><div class="ttname"><a href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a></div><div class="ttdeci">uint_least8_t uint8s</div><div class="ttdef"><b>Definition:</b> util.h:21</div></div>
+<div class="ttc" id="autil_8h_html_ad754fd19693421cf7395f91881c98cd5"><div class="ttname"><a href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a></div><div class="ttdeci">uint_fast32_t uintf</div><div class="ttdef"><b>Definition:</b> util.h:16</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

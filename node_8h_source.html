@@ -69,11 +69,11 @@ $(function() {
 <div class="title">node.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef NODE_H</span></div>
+<a href="node_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef NODE_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define NODE_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;game.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="game_8h.html">game.h</a>&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util_8h.html">util.h</a>&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;bitset&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
@@ -83,16 +83,16 @@ $(function() {
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;  <span class="keyword">static</span> constexpr <span class="keywordtype">float</span> MAX_PROBABILITY = 511.0;</div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160; </div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;  <span class="keyword">struct </span>Edge {</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;    uint16s move_id : 7, probability : 9;</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;    <a class="code" href="util_8h.html#a8975d56ddbb27dc84cffcbb2a732610c">uint16s</a> move_id : 7, probability : 9;</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;    Edge() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    Edge(uintf move_id, uintf probability)</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        : move_id{(uint16s)move_id}, probability{(uint16s)probability} {}</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    Edge(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> move_id, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> probability)</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;        : move_id{(<a class="code" href="util_8h.html#a8975d56ddbb27dc84cffcbb2a732610c">uint16s</a>)move_id}, probability{(<a class="code" href="util_8h.html#a8975d56ddbb27dc84cffcbb2a732610c">uint16s</a>)probability} {}</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  };</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;  <span class="comment">// Visited this evaluation cycle</span></div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;  <span class="keywordtype">bool</span> all_visited;</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  uint8s result, depth, num_legal_moves, child_num;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  uint16s visits;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  <a class="code" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> result, depth, num_legal_moves, child_num;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  <a class="code" href="util_8h.html#a8975d56ddbb27dc84cffcbb2a732610c">uint16s</a> visits;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="keywordtype">float</span> evaluation, denominator;</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  Edge *edges;</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <a class="code" href="classNode.html">Node</a> *parent, *next_sibling, *first_child;</div>
@@ -104,40 +104,57 @@ $(function() {
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="comment">// Used to create root nodes</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <a class="code" href="classNode.html">Node</a>();</div>
+<div class="line"><a name="l00036"></a><span class="lineno"><a class="line" href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">   36</a></span>&#160;  <a class="code" href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">Node</a>();</div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <span class="comment">// Create a new tree root from arbitrary state</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  <a class="code" href="classNode.html">Node</a>(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, uint8s depth);</div>
+<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classNode.html#a8caa81a0f701e8a6e41c754f00b5ac38">   38</a></span>&#160;  <a class="code" href="classNode.html#a8caa81a0f701e8a6e41c754f00b5ac38">Node</a>(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, <a class="code" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> depth);</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <span class="comment">// Common create new node function</span></div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="comment">// Will copy a game, then apply the move</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <a class="code" href="classNode.html">Node</a>(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, uint8s depth, <a class="code" href="classNode.html">Node</a> *parent, <a class="code" href="classNode.html">Node</a> *next_sibling,</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;       uint8s move_choice);</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  ~<a class="code" href="classNode.html">Node</a>();</div>
+<div class="line"><a name="l00041"></a><span class="lineno"><a class="line" href="classNode.html#ac8cd3fed52dc828c65040b5d9b56f392">   41</a></span>&#160;  <a class="code" href="classNode.html#ac8cd3fed52dc828c65040b5d9b56f392">Node</a>(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, <a class="code" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> depth, <a class="code" href="classNode.html">Node</a> *parent, <a class="code" href="classNode.html">Node</a> *next_sibling,</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;       <a class="code" href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a> move_choice);</div>
+<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classNode.html#aa0840c3cb5c7159be6d992adecd2097c">   43</a></span>&#160;  <a class="code" href="classNode.html#aa0840c3cb5c7159be6d992adecd2097c">~Node</a>();</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  <span class="comment">// Returns whether there are lines</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="keywordtype">bool</span> get_legal_moves(std::bitset&lt;NUM_MOVES&gt; &amp;legal_moves) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classNode.html#a59c47e2d643c1f1de8782704694f00ef">   46</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classNode.html#a59c47e2d643c1f1de8782704694f00ef">get_legal_moves</a>(std::bitset&lt;NUM_MOVES&gt; &amp;legal_moves) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <span class="comment">// Accessors</span></div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="keywordtype">bool</span> is_terminal() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keywordtype">float</span> get_probability(uintf edge_index) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="classNode.html#ae35c744363078606676f38fbcbda8200">   49</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classNode.html#ae35c744363078606676f38fbcbda8200">is_terminal</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classNode.html#a94570df6b3443c3ba661b978da5f436e">   50</a></span>&#160;  <span class="keywordtype">float</span> <a class="code" href="classNode.html#a94570df6b3443c3ba661b978da5f436e">get_probability</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> edge_index) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keywordtype">void</span> write_game_state(<span class="keywordtype">float</span> game_state[GAME_STATE_SIZE]) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno"><a class="line" href="classNode.html#a74e52acfa30b09c0bdd35ec3561a362f">   52</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classNode.html#a74e52acfa30b09c0bdd35ec3561a362f">write_game_state</a>(<span class="keywordtype">float</span> game_state[<a class="code" href="util_8h.html#a5ac9c2a1ef59ff2c39b253d9cfef2486">GAME_STATE_SIZE</a>]) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  uintf count_nodes() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00054"></a><span class="lineno"><a class="line" href="classNode.html#abfb21f9f84a9e6b039d86db85baa1ad8">   54</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classNode.html#abfb21f9f84a9e6b039d86db85baa1ad8">count_nodes</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <span class="keywordtype">void</span> print_main_line(std::ostream *logging_file) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keywordtype">void</span> print_known(std::ostream *logging_file) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="classNode.html#a39376885069aad134384206558ee6766">   56</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classNode.html#a39376885069aad134384206558ee6766">print_main_line</a>(std::ostream *logging_file) <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classNode.html#a5e8de31d4980a046d564e4c61a4071bb">   57</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classNode.html#a5e8de31d4980a046d564e4c61a4071bb">print_known</a>(std::ostream *logging_file) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classTrainMC.html">TrainMC</a>;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classSelfPlayer.html">SelfPlayer</a>;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classPlayMC.html">PlayMC</a>;</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classNode.html#aa3538c14c3e051fe76e4cd0e3d8da534">   59</a></span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classTrainMC.html">TrainMC</a>;</div>
+<div class="line"><a name="l00060"></a><span class="lineno"><a class="line" href="classNode.html#ac844afaf1fde7b43652b8946b521ef64">   60</a></span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classSelfPlayer.html">SelfPlayer</a>;</div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classNode.html#a749a73ed0d44b981c7a72a0fe2c8cb9b">   61</a></span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classPlayMC.html">PlayMC</a>;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;};</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdef"><b>Definition:</b> game.h:12</div></div>
 <div class="ttc" id="aclassNode_html"><div class="ttname"><a href="classNode.html">Node</a></div><div class="ttdef"><b>Definition:</b> node.h:10</div></div>
+<div class="ttc" id="aclassNode_html_a39376885069aad134384206558ee6766"><div class="ttname"><a href="classNode.html#a39376885069aad134384206558ee6766">Node::print_main_line</a></div><div class="ttdeci">void print_main_line(std::ostream *logging_file) const</div></div>
+<div class="ttc" id="aclassNode_html_a59c47e2d643c1f1de8782704694f00ef"><div class="ttname"><a href="classNode.html#a59c47e2d643c1f1de8782704694f00ef">Node::get_legal_moves</a></div><div class="ttdeci">bool get_legal_moves(std::bitset&lt; NUM_MOVES &gt; &amp;legal_moves) const</div></div>
+<div class="ttc" id="aclassNode_html_a5e8de31d4980a046d564e4c61a4071bb"><div class="ttname"><a href="classNode.html#a5e8de31d4980a046d564e4c61a4071bb">Node::print_known</a></div><div class="ttdeci">void print_known(std::ostream *logging_file) const</div></div>
+<div class="ttc" id="aclassNode_html_a74e52acfa30b09c0bdd35ec3561a362f"><div class="ttname"><a href="classNode.html#a74e52acfa30b09c0bdd35ec3561a362f">Node::write_game_state</a></div><div class="ttdeci">void write_game_state(float game_state[GAME_STATE_SIZE]) const</div></div>
+<div class="ttc" id="aclassNode_html_a8caa81a0f701e8a6e41c754f00b5ac38"><div class="ttname"><a href="classNode.html#a8caa81a0f701e8a6e41c754f00b5ac38">Node::Node</a></div><div class="ttdeci">Node(const Game &amp;game, uint8s depth)</div></div>
+<div class="ttc" id="aclassNode_html_a94570df6b3443c3ba661b978da5f436e"><div class="ttname"><a href="classNode.html#a94570df6b3443c3ba661b978da5f436e">Node::get_probability</a></div><div class="ttdeci">float get_probability(uintf edge_index) const</div></div>
+<div class="ttc" id="aclassNode_html_aa0840c3cb5c7159be6d992adecd2097c"><div class="ttname"><a href="classNode.html#aa0840c3cb5c7159be6d992adecd2097c">Node::~Node</a></div><div class="ttdeci">~Node()</div></div>
+<div class="ttc" id="aclassNode_html_abfb21f9f84a9e6b039d86db85baa1ad8"><div class="ttname"><a href="classNode.html#abfb21f9f84a9e6b039d86db85baa1ad8">Node::count_nodes</a></div><div class="ttdeci">uintf count_nodes() const</div></div>
+<div class="ttc" id="aclassNode_html_ac8cd3fed52dc828c65040b5d9b56f392"><div class="ttname"><a href="classNode.html#ac8cd3fed52dc828c65040b5d9b56f392">Node::Node</a></div><div class="ttdeci">Node(const Game &amp;game, uint8s depth, Node *parent, Node *next_sibling, uint8s move_choice)</div></div>
+<div class="ttc" id="aclassNode_html_ad7a34779cad45d997bfd6d3d8043c75f"><div class="ttname"><a href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">Node::Node</a></div><div class="ttdeci">Node()</div></div>
+<div class="ttc" id="aclassNode_html_ae35c744363078606676f38fbcbda8200"><div class="ttname"><a href="classNode.html#ae35c744363078606676f38fbcbda8200">Node::is_terminal</a></div><div class="ttdeci">bool is_terminal() const</div></div>
 <div class="ttc" id="aclassPlayMC_html"><div class="ttname"><a href="classPlayMC.html">PlayMC</a></div><div class="ttdef"><b>Definition:</b> playmc.h:15</div></div>
 <div class="ttc" id="aclassSelfPlayer_html"><div class="ttname"><a href="classSelfPlayer.html">SelfPlayer</a></div><div class="ttdef"><b>Definition:</b> selfplayer.h:24</div></div>
 <div class="ttc" id="aclassTrainMC_html"><div class="ttname"><a href="classTrainMC.html">TrainMC</a></div><div class="ttdef"><b>Definition:</b> trainmc.h:15</div></div>
+<div class="ttc" id="agame_8h_html"><div class="ttname"><a href="game_8h.html">game.h</a></div></div>
+<div class="ttc" id="autil_8h_html"><div class="ttname"><a href="util_8h.html">util.h</a></div></div>
+<div class="ttc" id="autil_8h_html_a5ac9c2a1ef59ff2c39b253d9cfef2486"><div class="ttname"><a href="util_8h.html#a5ac9c2a1ef59ff2c39b253d9cfef2486">GAME_STATE_SIZE</a></div><div class="ttdeci">const uintf GAME_STATE_SIZE</div><div class="ttdef"><b>Definition:</b> util.h:29</div></div>
+<div class="ttc" id="autil_8h_html_a70bb1d9b44c5ffb64da7c1a6efa4067b"><div class="ttname"><a href="util_8h.html#a70bb1d9b44c5ffb64da7c1a6efa4067b">uint8s</a></div><div class="ttdeci">uint_least8_t uint8s</div><div class="ttdef"><b>Definition:</b> util.h:21</div></div>
+<div class="ttc" id="autil_8h_html_a8975d56ddbb27dc84cffcbb2a732610c"><div class="ttname"><a href="util_8h.html#a8975d56ddbb27dc84cffcbb2a732610c">uint16s</a></div><div class="ttdeci">uint_least16_t uint16s</div><div class="ttdef"><b>Definition:</b> util.h:22</div></div>
+<div class="ttc" id="autil_8h_html_ad754fd19693421cf7395f91881c98cd5"><div class="ttname"><a href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a></div><div class="ttdeci">uint_fast32_t uintf</div><div class="ttdef"><b>Definition:</b> util.h:16</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

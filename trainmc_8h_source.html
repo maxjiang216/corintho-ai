@@ -69,11 +69,11 @@ $(function() {
 <div class="title">trainmc.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef TRAINMC_H</span></div>
+<a href="trainmc_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef TRAINMC_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define TRAINMC_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;node.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="node_8h.html">node.h</a>&quot;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util_8h.html">util.h</a>&quot;</span></div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;array&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;bitset&gt;</span></div>
 <div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
@@ -86,22 +86,22 @@ $(function() {
 <div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="classTrainMC.html">   15</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTrainMC.html">TrainMC</a> {</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  <span class="comment">// I think we have to initialize these</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="keyword">inline</span> <span class="keyword">static</span> uintf max_iterations = 1600, searches_per_eval = 1;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="keyword">inline</span> <span class="keyword">static</span> <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> max_iterations = 1600, searches_per_eval = 1;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keywordtype">float</span> c_puct = 1.0, epsilon = 0.25;</div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="comment">// Number of moves to use weighted random</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;  <span class="keyword">const</span> uintf NUM_OPENING_MOVES = 6;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;  <span class="keyword">const</span> <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> NUM_OPENING_MOVES = 6;</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  <a class="code" href="classNode.html">Node</a> *root, *cur;</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <span class="comment">// Which index to write to for the searched node</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  uintf eval_index;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> eval_index;</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  <span class="comment">// Nodes we have searches this cycle</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;  std::vector&lt;Node *&gt; searched;</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="comment">// We want to evaluate these vectors</span></div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <span class="keywordtype">float</span> *to_eval;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  <span class="comment">// Used to keep track of when to choose a move</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  uintf iterations_done;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> iterations_done;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="keywordtype">bool</span> testing, logging;</div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
@@ -116,37 +116,37 @@ $(function() {
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="comment">// Training</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <a class="code" href="classTrainMC.html">TrainMC</a>(std::mt19937 *generator);</div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="classTrainMC.html#aa042c4c7c9132018651777998af44c3d">   48</a></span>&#160;  <a class="code" href="classTrainMC.html#aa042c4c7c9132018651777998af44c3d">TrainMC</a>(std::mt19937 *generator);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="comment">// Testing</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <a class="code" href="classTrainMC.html">TrainMC</a>(std::mt19937 *generator, <span class="keywordtype">bool</span>);</div>
+<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classTrainMC.html#a3dd09303dcd222b28a4397fcc74a7e2c">   50</a></span>&#160;  <a class="code" href="classTrainMC.html#a3dd09303dcd222b28a4397fcc74a7e2c">TrainMC</a>(std::mt19937 *generator, <span class="keywordtype">bool</span>);</div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <a class="code" href="classTrainMC.html">TrainMC</a>(<a class="code" href="classTrainMC.html">TrainMC</a> &amp;&amp;) = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  ~<a class="code" href="classTrainMC.html">TrainMC</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00052"></a><span class="lineno"><a class="line" href="classTrainMC.html#a4ee676c6e259bd28f14ba09462604eed">   52</a></span>&#160;  <a class="code" href="classTrainMC.html#a4ee676c6e259bd28f14ba09462604eed">TrainMC</a>(<a class="code" href="classTrainMC.html">TrainMC</a> &amp;&amp;) = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00053"></a><span class="lineno"><a class="line" href="classTrainMC.html#a3a5a9e2531d1f0ce26660faa2985b594">   53</a></span>&#160;  <a class="code" href="classTrainMC.html#a3a5a9e2531d1f0ce26660faa2985b594">~TrainMC</a>() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="comment">// First iterations are guaranteed not to end a turn</span></div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <span class="comment">// First iteration on starting position</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <span class="keywordtype">void</span> do_first_iteration();</div>
+<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classTrainMC.html#a1b7962f170b6fb2aaebd737760b6c884">   57</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTrainMC.html#a1b7962f170b6fb2aaebd737760b6c884">do_first_iteration</a>();</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">void</span> do_first_iteration(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, uintf depth);</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classTrainMC.html#ad3aaf02b9114a4c09985b84693770888">   59</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTrainMC.html#ad3aaf02b9114a4c09985b84693770888">do_first_iteration</a>(<span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> depth);</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
+<div class="line"><a name="l00061"></a><span class="lineno"><a class="line" href="classTrainMC.html#a77590bad8f75fd9b5b72ebb27cc1e5d8">   61</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTrainMC.html#a77590bad8f75fd9b5b72ebb27cc1e5d8">do_iteration</a>(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  <span class="comment">// Choose the next child to visit</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  uintf choose_move(<span class="keywordtype">float</span> game_state[GAME_STATE_SIZE],</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                    <span class="keywordtype">float</span> probability_sample[NUM_MOVES]);</div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classTrainMC.html#a954abcb4263f3a0767eae8996a1234cc">   64</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classTrainMC.html#a954abcb4263f3a0767eae8996a1234cc">choose_move</a>(<span class="keywordtype">float</span> game_state[<a class="code" href="util_8h.html#a5ac9c2a1ef59ff2c39b253d9cfef2486">GAME_STATE_SIZE</a>],</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                    <span class="keywordtype">float</span> probability_sample[<a class="code" href="util_8h.html#a493dc143c8500e0f74d9e60e25f125a0">NUM_MOVES</a>]);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <span class="keywordtype">bool</span> receive_opp_move(uintf move_choice, <span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, uintf depth);</div>
+<div class="line"><a name="l00067"></a><span class="lineno"><a class="line" href="classTrainMC.html#a16531ae2af0c1f7d9ccf1ed65f83d002">   67</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTrainMC.html#a16531ae2af0c1f7d9ccf1ed65f83d002">receive_opp_move</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> move_choice, <span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> depth);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="comment">// Accessors</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  <span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;get_game() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  <span class="keywordtype">bool</span> is_uninitialized() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00070"></a><span class="lineno"><a class="line" href="classTrainMC.html#a074dfe44b0a89c4a6c07b424476bf202">   70</a></span>&#160;  <span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;<a class="code" href="classTrainMC.html#a074dfe44b0a89c4a6c07b424476bf202">get_game</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classTrainMC.html#a2b6ed8c50fdcbdced8b0770f07885424">   71</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTrainMC.html#a2b6ed8c50fdcbdced8b0770f07885424">is_uninitialized</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> set_statics(uintf new_max_iterations, <span class="keywordtype">float</span> new_c_puct,</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;                          <span class="keywordtype">float</span> new_epsilon, uintf new_searches_per_eval);</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classTrainMC.html#abd8efd823c592fddf268419c216875df">   73</a></span>&#160;  <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classTrainMC.html#abd8efd823c592fddf268419c216875df">set_statics</a>(<a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> new_max_iterations, <span class="keywordtype">float</span> new_c_puct,</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;                          <span class="keywordtype">float</span> new_epsilon, <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> new_searches_per_eval);</div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  uintf count_nodes() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="classTrainMC.html#a1e991e56df7cf3e6d5035b061075a12d">   76</a></span>&#160;  <a class="code" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> <a class="code" href="classTrainMC.html#a1e991e56df7cf3e6d5035b061075a12d">count_nodes</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160; </div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classSelfPlayer.html">SelfPlayer</a>;</div>
+<div class="line"><a name="l00078"></a><span class="lineno"><a class="line" href="classTrainMC.html#ac844afaf1fde7b43652b8946b521ef64">   78</a></span>&#160;  <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classSelfPlayer.html">SelfPlayer</a>;</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;};</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif</span></div>
@@ -154,6 +154,24 @@ $(function() {
 <div class="ttc" id="aclassNode_html"><div class="ttname"><a href="classNode.html">Node</a></div><div class="ttdef"><b>Definition:</b> node.h:10</div></div>
 <div class="ttc" id="aclassSelfPlayer_html"><div class="ttname"><a href="classSelfPlayer.html">SelfPlayer</a></div><div class="ttdef"><b>Definition:</b> selfplayer.h:24</div></div>
 <div class="ttc" id="aclassTrainMC_html"><div class="ttname"><a href="classTrainMC.html">TrainMC</a></div><div class="ttdef"><b>Definition:</b> trainmc.h:15</div></div>
+<div class="ttc" id="aclassTrainMC_html_a074dfe44b0a89c4a6c07b424476bf202"><div class="ttname"><a href="classTrainMC.html#a074dfe44b0a89c4a6c07b424476bf202">TrainMC::get_game</a></div><div class="ttdeci">const Game &amp; get_game() const</div></div>
+<div class="ttc" id="aclassTrainMC_html_a16531ae2af0c1f7d9ccf1ed65f83d002"><div class="ttname"><a href="classTrainMC.html#a16531ae2af0c1f7d9ccf1ed65f83d002">TrainMC::receive_opp_move</a></div><div class="ttdeci">bool receive_opp_move(uintf move_choice, const Game &amp;game, uintf depth)</div></div>
+<div class="ttc" id="aclassTrainMC_html_a1b7962f170b6fb2aaebd737760b6c884"><div class="ttname"><a href="classTrainMC.html#a1b7962f170b6fb2aaebd737760b6c884">TrainMC::do_first_iteration</a></div><div class="ttdeci">void do_first_iteration()</div></div>
+<div class="ttc" id="aclassTrainMC_html_a1e991e56df7cf3e6d5035b061075a12d"><div class="ttname"><a href="classTrainMC.html#a1e991e56df7cf3e6d5035b061075a12d">TrainMC::count_nodes</a></div><div class="ttdeci">uintf count_nodes() const</div></div>
+<div class="ttc" id="aclassTrainMC_html_a2b6ed8c50fdcbdced8b0770f07885424"><div class="ttname"><a href="classTrainMC.html#a2b6ed8c50fdcbdced8b0770f07885424">TrainMC::is_uninitialized</a></div><div class="ttdeci">bool is_uninitialized() const</div></div>
+<div class="ttc" id="aclassTrainMC_html_a3a5a9e2531d1f0ce26660faa2985b594"><div class="ttname"><a href="classTrainMC.html#a3a5a9e2531d1f0ce26660faa2985b594">TrainMC::~TrainMC</a></div><div class="ttdeci">~TrainMC()=default</div></div>
+<div class="ttc" id="aclassTrainMC_html_a3dd09303dcd222b28a4397fcc74a7e2c"><div class="ttname"><a href="classTrainMC.html#a3dd09303dcd222b28a4397fcc74a7e2c">TrainMC::TrainMC</a></div><div class="ttdeci">TrainMC(std::mt19937 *generator, bool)</div></div>
+<div class="ttc" id="aclassTrainMC_html_a4ee676c6e259bd28f14ba09462604eed"><div class="ttname"><a href="classTrainMC.html#a4ee676c6e259bd28f14ba09462604eed">TrainMC::TrainMC</a></div><div class="ttdeci">TrainMC(TrainMC &amp;&amp;)=default</div></div>
+<div class="ttc" id="aclassTrainMC_html_a77590bad8f75fd9b5b72ebb27cc1e5d8"><div class="ttname"><a href="classTrainMC.html#a77590bad8f75fd9b5b72ebb27cc1e5d8">TrainMC::do_iteration</a></div><div class="ttdeci">bool do_iteration(float evaluation[], float probabilities[])</div></div>
+<div class="ttc" id="aclassTrainMC_html_a954abcb4263f3a0767eae8996a1234cc"><div class="ttname"><a href="classTrainMC.html#a954abcb4263f3a0767eae8996a1234cc">TrainMC::choose_move</a></div><div class="ttdeci">uintf choose_move(float game_state[GAME_STATE_SIZE], float probability_sample[NUM_MOVES])</div></div>
+<div class="ttc" id="aclassTrainMC_html_aa042c4c7c9132018651777998af44c3d"><div class="ttname"><a href="classTrainMC.html#aa042c4c7c9132018651777998af44c3d">TrainMC::TrainMC</a></div><div class="ttdeci">TrainMC(std::mt19937 *generator)</div></div>
+<div class="ttc" id="aclassTrainMC_html_abd8efd823c592fddf268419c216875df"><div class="ttname"><a href="classTrainMC.html#abd8efd823c592fddf268419c216875df">TrainMC::set_statics</a></div><div class="ttdeci">static void set_statics(uintf new_max_iterations, float new_c_puct, float new_epsilon, uintf new_searches_per_eval)</div></div>
+<div class="ttc" id="aclassTrainMC_html_ad3aaf02b9114a4c09985b84693770888"><div class="ttname"><a href="classTrainMC.html#ad3aaf02b9114a4c09985b84693770888">TrainMC::do_first_iteration</a></div><div class="ttdeci">void do_first_iteration(const Game &amp;game, uintf depth)</div></div>
+<div class="ttc" id="anode_8h_html"><div class="ttname"><a href="node_8h.html">node.h</a></div></div>
+<div class="ttc" id="autil_8h_html"><div class="ttname"><a href="util_8h.html">util.h</a></div></div>
+<div class="ttc" id="autil_8h_html_a493dc143c8500e0f74d9e60e25f125a0"><div class="ttname"><a href="util_8h.html#a493dc143c8500e0f74d9e60e25f125a0">NUM_MOVES</a></div><div class="ttdeci">const uintf NUM_MOVES</div><div class="ttdef"><b>Definition:</b> util.h:31</div></div>
+<div class="ttc" id="autil_8h_html_a5ac9c2a1ef59ff2c39b253d9cfef2486"><div class="ttname"><a href="util_8h.html#a5ac9c2a1ef59ff2c39b253d9cfef2486">GAME_STATE_SIZE</a></div><div class="ttdeci">const uintf GAME_STATE_SIZE</div><div class="ttdef"><b>Definition:</b> util.h:29</div></div>
+<div class="ttc" id="autil_8h_html_ad754fd19693421cf7395f91881c98cd5"><div class="ttname"><a href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a></div><div class="ttdeci">uint_fast32_t uintf</div><div class="ttdef"><b>Definition:</b> util.h:16</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

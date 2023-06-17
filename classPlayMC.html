@@ -68,49 +68,385 @@ $(function() {
 <div class="title">PlayMC Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="playmc_8h_source.html">playmc.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6c17d59ba88cb478598ed7fe55b684f6"><td class="memItemLeft" align="right" valign="top"><a id="a6c17d59ba88cb478598ed7fe55b684f6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>PlayMC</b> (uintf max_iterations, uintf searches_per_eval, float c_puct, float epsilon, bool logging, uintf seed)</td></tr>
+<tr class="memitem:a4c3511fc2a8df6599edc36c3cae1d42a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a4c3511fc2a8df6599edc36c3cae1d42a">PlayMC</a> ()=default</td></tr>
+<tr class="separator:a4c3511fc2a8df6599edc36c3cae1d42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c17d59ba88cb478598ed7fe55b684f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a6c17d59ba88cb478598ed7fe55b684f6">PlayMC</a> (<a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> max_iterations, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, float c_puct, float epsilon, bool logging, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> seed)</td></tr>
 <tr class="separator:a6c17d59ba88cb478598ed7fe55b684f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9dc682779e5fdd08c64ec2d338a71d71"><td class="memItemLeft" align="right" valign="top"><a id="a9dc682779e5fdd08c64ec2d338a71d71"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>PlayMC</b> (long *board, int to_play, long *pieces, int searches_per_eval, int seed)</td></tr>
+<tr class="memitem:a9dc682779e5fdd08c64ec2d338a71d71"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a9dc682779e5fdd08c64ec2d338a71d71">PlayMC</a> (long *board, int to_play, long *pieces, int searches_per_eval, int seed)</td></tr>
 <tr class="separator:a9dc682779e5fdd08c64ec2d338a71d71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a426b477327fbda6e77da07869728445c"><td class="memItemLeft" align="right" valign="top"><a id="a426b477327fbda6e77da07869728445c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluation[], float probabilities[])</td></tr>
+<tr class="memitem:a13f971958afdfa04e5ed30232b107de9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a13f971958afdfa04e5ed30232b107de9">~PlayMC</a> ()</td></tr>
+<tr class="separator:a13f971958afdfa04e5ed30232b107de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a426b477327fbda6e77da07869728445c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a426b477327fbda6e77da07869728445c">do_iteration</a> (float evaluation[], float probabilities[])</td></tr>
 <tr class="separator:a426b477327fbda6e77da07869728445c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc639fd9b3ed7057678e36258b4df187"><td class="memItemLeft" align="right" valign="top"><a id="abc639fd9b3ed7057678e36258b4df187"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>choose_move</b> ()</td></tr>
+<tr class="memitem:abc639fd9b3ed7057678e36258b4df187"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#abc639fd9b3ed7057678e36258b4df187">choose_move</a> ()</td></tr>
 <tr class="separator:abc639fd9b3ed7057678e36258b4df187"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c803f460546ae0a6df6161348d6f485"><td class="memItemLeft" align="right" valign="top"><a id="a3c803f460546ae0a6df6161348d6f485"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>get_legal_moves</b> (long *legal_moves) const</td></tr>
+<tr class="memitem:a3c803f460546ae0a6df6161348d6f485"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a3c803f460546ae0a6df6161348d6f485">get_legal_moves</a> (long *legal_moves) const</td></tr>
 <tr class="separator:a3c803f460546ae0a6df6161348d6f485"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac87c6a2fb7dbe687e86c832135bfcbcc"><td class="memItemLeft" align="right" valign="top"><a id="ac87c6a2fb7dbe687e86c832135bfcbcc"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>receive_opp_move</b> (uintf move_choice)</td></tr>
+<tr class="memitem:ac87c6a2fb7dbe687e86c832135bfcbcc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#ac87c6a2fb7dbe687e86c832135bfcbcc">receive_opp_move</a> (<a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> move_choice)</td></tr>
 <tr class="separator:ac87c6a2fb7dbe687e86c832135bfcbcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0e320d6914db116203573368dc4371e0"><td class="memItemLeft" align="right" valign="top"><a id="a0e320d6914db116203573368dc4371e0"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float game_states[]) const</td></tr>
+<tr class="memitem:a0e320d6914db116203573368dc4371e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a0e320d6914db116203573368dc4371e0">write_requests</a> (float game_states[]) const</td></tr>
 <tr class="separator:a0e320d6914db116203573368dc4371e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6ef9186b929d67ccf41d86fa2db18a52"><td class="memItemLeft" align="right" valign="top"><a id="a6ef9186b929d67ccf41d86fa2db18a52"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>get_node_number</b> () const</td></tr>
+<tr class="memitem:a6ef9186b929d67ccf41d86fa2db18a52"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a6ef9186b929d67ccf41d86fa2db18a52">get_node_number</a> () const</td></tr>
 <tr class="separator:a6ef9186b929d67ccf41d86fa2db18a52"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac519a595fb8b2dfa9b53556e5346ca5"><td class="memItemLeft" align="right" valign="top"><a id="aac519a595fb8b2dfa9b53556e5346ca5"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_evaluation</b> () const</td></tr>
+<tr class="memitem:aac519a595fb8b2dfa9b53556e5346ca5"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#aac519a595fb8b2dfa9b53556e5346ca5">get_evaluation</a> () const</td></tr>
 <tr class="separator:aac519a595fb8b2dfa9b53556e5346ca5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a798391f85dd175526e31aeae5991f216"><td class="memItemLeft" align="right" valign="top"><a id="a798391f85dd175526e31aeae5991f216"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_done</b> () const</td></tr>
+<tr class="memitem:a798391f85dd175526e31aeae5991f216"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a798391f85dd175526e31aeae5991f216">is_done</a> () const</td></tr>
 <tr class="separator:a798391f85dd175526e31aeae5991f216"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43ed688b39e7499c7d17aea6b02aa081"><td class="memItemLeft" align="right" valign="top"><a id="a43ed688b39e7499c7d17aea6b02aa081"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_won</b> () const</td></tr>
+<tr class="memitem:a43ed688b39e7499c7d17aea6b02aa081"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a43ed688b39e7499c7d17aea6b02aa081">has_won</a> () const</td></tr>
 <tr class="separator:a43ed688b39e7499c7d17aea6b02aa081"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a88b70f815dd387de3927df4339a9350d"><td class="memItemLeft" align="right" valign="top"><a id="a88b70f815dd387de3927df4339a9350d"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_drawn</b> () const</td></tr>
+<tr class="memitem:a88b70f815dd387de3927df4339a9350d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a88b70f815dd387de3927df4339a9350d">has_drawn</a> () const</td></tr>
 <tr class="separator:a88b70f815dd387de3927df4339a9350d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82c76ee3f188bfc2258c3359f7c21f46"><td class="memItemLeft" align="right" valign="top"><a id="a82c76ee3f188bfc2258c3359f7c21f46"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>print_game</b> () const</td></tr>
+<tr class="memitem:a82c76ee3f188bfc2258c3359f7c21f46"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPlayMC.html#a82c76ee3f188bfc2258c3359f7c21f46">print_game</a> () const</td></tr>
 <tr class="separator:a82c76ee3f188bfc2258c3359f7c21f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a4c3511fc2a8df6599edc36c3cae1d42a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c3511fc2a8df6599edc36c3cae1d42a">&#9670;&nbsp;</a></span>PlayMC() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">PlayMC::PlayMC </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6c17d59ba88cb478598ed7fe55b684f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c17d59ba88cb478598ed7fe55b684f6">&#9670;&nbsp;</a></span>PlayMC() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">PlayMC::PlayMC </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>max_iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>searches_per_eval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>c_puct</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>epsilon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>logging</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9dc682779e5fdd08c64ec2d338a71d71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9dc682779e5fdd08c64ec2d338a71d71">&#9670;&nbsp;</a></span>PlayMC() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">PlayMC::PlayMC </td>
+          <td>(</td>
+          <td class="paramtype">long *&#160;</td>
+          <td class="paramname"><em>board</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>to_play</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">long *&#160;</td>
+          <td class="paramname"><em>pieces</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>searches_per_eval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a13f971958afdfa04e5ed30232b107de9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13f971958afdfa04e5ed30232b107de9">&#9670;&nbsp;</a></span>~PlayMC()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">PlayMC::~PlayMC </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="abc639fd9b3ed7057678e36258b4df187"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc639fd9b3ed7057678e36258b4df187">&#9670;&nbsp;</a></span>choose_move()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> PlayMC::choose_move </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a426b477327fbda6e77da07869728445c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a426b477327fbda6e77da07869728445c">&#9670;&nbsp;</a></span>do_iteration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PlayMC::do_iteration </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>evaluation</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>probabilities</em>[]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aac519a595fb8b2dfa9b53556e5346ca5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac519a595fb8b2dfa9b53556e5346ca5">&#9670;&nbsp;</a></span>get_evaluation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float PlayMC::get_evaluation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3c803f460546ae0a6df6161348d6f485"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c803f460546ae0a6df6161348d6f485">&#9670;&nbsp;</a></span>get_legal_moves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PlayMC::get_legal_moves </td>
+          <td>(</td>
+          <td class="paramtype">long *&#160;</td>
+          <td class="paramname"><em>legal_moves</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6ef9186b929d67ccf41d86fa2db18a52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ef9186b929d67ccf41d86fa2db18a52">&#9670;&nbsp;</a></span>get_node_number()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> PlayMC::get_node_number </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a88b70f815dd387de3927df4339a9350d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88b70f815dd387de3927df4339a9350d">&#9670;&nbsp;</a></span>has_drawn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PlayMC::has_drawn </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a43ed688b39e7499c7d17aea6b02aa081"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43ed688b39e7499c7d17aea6b02aa081">&#9670;&nbsp;</a></span>has_won()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PlayMC::has_won </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a798391f85dd175526e31aeae5991f216"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a798391f85dd175526e31aeae5991f216">&#9670;&nbsp;</a></span>is_done()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool PlayMC::is_done </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a82c76ee3f188bfc2258c3359f7c21f46"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82c76ee3f188bfc2258c3359f7c21f46">&#9670;&nbsp;</a></span>print_game()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PlayMC::print_game </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac87c6a2fb7dbe687e86c832135bfcbcc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac87c6a2fb7dbe687e86c832135bfcbcc">&#9670;&nbsp;</a></span>receive_opp_move()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PlayMC::receive_opp_move </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>move_choice</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0e320d6914db116203573368dc4371e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e320d6914db116203573368dc4371e0">&#9670;&nbsp;</a></span>write_requests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> PlayMC::write_requests </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>game_states</em>[]</td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="playmc_8h_source.html">playmc.h</a></li>
 </ul>

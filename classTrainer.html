@@ -68,43 +68,439 @@ $(function() {
 <div class="title">Trainer Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="trainer_8h_source.html">trainer.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac697ce7394061e632972251ddaf7ba40"><td class="memItemLeft" align="right" valign="top"><a id="ac697ce7394061e632972251ddaf7ba40"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, uintf threads, uintf searches_per_eval, const std::string &amp;logging_folder, uintf random_seed)</td></tr>
+<tr class="memitem:a8ac740bff57a68e5afcc385082ab96f4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer</a> ()=default</td></tr>
+<tr class="separator:a8ac740bff57a68e5afcc385082ab96f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac697ce7394061e632972251ddaf7ba40"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#ac697ce7394061e632972251ddaf7ba40">Trainer</a> (<a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_games, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_logged, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_iterations, float c_puct, float epsilon, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> threads, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, const std::string &amp;logging_folder, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> random_seed)</td></tr>
 <tr class="separator:ac697ce7394061e632972251ddaf7ba40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7ecc7e442cde7e12e6a4b0fe09f864b"><td class="memItemLeft" align="right" valign="top"><a id="ad7ecc7e442cde7e12e6a4b0fe09f864b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, uintf threads, uintf searches_per_eval, const std::string &amp;logging_folder, uintf random_seed, bool)</td></tr>
+<tr class="memitem:ad7ecc7e442cde7e12e6a4b0fe09f864b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#ad7ecc7e442cde7e12e6a4b0fe09f864b">Trainer</a> (<a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_games, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_logged, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> num_iterations, float c_puct, float epsilon, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> threads, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> searches_per_eval, const std::string &amp;logging_folder, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> random_seed, bool)</td></tr>
 <tr class="separator:ad7ecc7e442cde7e12e6a4b0fe09f864b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e04862c7e25dd834c60414616fbcc5c"><td class="memItemLeft" align="right" valign="top"><a id="a1e04862c7e25dd834c60414616fbcc5c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluations[], float probabilities[])</td></tr>
+<tr class="memitem:aa3d993d1eb090f4111e12a710fe9d3f6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#aa3d993d1eb090f4111e12a710fe9d3f6">~Trainer</a> ()</td></tr>
+<tr class="separator:aa3d993d1eb090f4111e12a710fe9d3f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e04862c7e25dd834c60414616fbcc5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a1e04862c7e25dd834c60414616fbcc5c">do_iteration</a> (float evaluations[], float probabilities[])</td></tr>
 <tr class="separator:a1e04862c7e25dd834c60414616fbcc5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7654f644e012557534599152294c43a2"><td class="memItemLeft" align="right" valign="top"><a id="a7654f644e012557534599152294c43a2"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluations[], float probabilities[], uintf to_play)</td></tr>
+<tr class="memitem:a7654f644e012557534599152294c43a2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a7654f644e012557534599152294c43a2">do_iteration</a> (float evaluations[], float probabilities[], <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> to_play)</td></tr>
 <tr class="separator:a7654f644e012557534599152294c43a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c79b900caa7e8145e6496aa88b770d9"><td class="memItemLeft" align="right" valign="top"><a id="a0c79b900caa7e8145e6496aa88b770d9"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float *game_states) const</td></tr>
+<tr class="memitem:a0c79b900caa7e8145e6496aa88b770d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a0c79b900caa7e8145e6496aa88b770d9">write_requests</a> (float *game_states) const</td></tr>
 <tr class="separator:a0c79b900caa7e8145e6496aa88b770d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d3bb96bf1698c4dfd0a08e8145d73ef"><td class="memItemLeft" align="right" valign="top"><a id="a7d3bb96bf1698c4dfd0a08e8145d73ef"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float *game_states, uintf to_play) const</td></tr>
+<tr class="memitem:a7d3bb96bf1698c4dfd0a08e8145d73ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a7d3bb96bf1698c4dfd0a08e8145d73ef">write_requests</a> (float *game_states, <a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> to_play) const</td></tr>
 <tr class="separator:a7d3bb96bf1698c4dfd0a08e8145d73ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2eef03f17665e47023d5c6875e7d7014"><td class="memItemLeft" align="right" valign="top"><a id="a2eef03f17665e47023d5c6875e7d7014"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_samples</b> () const</td></tr>
+<tr class="memitem:a2eef03f17665e47023d5c6875e7d7014"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a2eef03f17665e47023d5c6875e7d7014">count_samples</a> () const</td></tr>
 <tr class="separator:a2eef03f17665e47023d5c6875e7d7014"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17abaad1a293c90ae3bb82b9955ebb5c"><td class="memItemLeft" align="right" valign="top"><a id="a17abaad1a293c90ae3bb82b9955ebb5c"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_samples</b> (float *game_states, float *evaluation_samples, float *probability_samples) const</td></tr>
+<tr class="memitem:a17abaad1a293c90ae3bb82b9955ebb5c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a17abaad1a293c90ae3bb82b9955ebb5c">write_samples</a> (float *game_states, float *evaluation_samples, float *probability_samples) const</td></tr>
 <tr class="separator:a17abaad1a293c90ae3bb82b9955ebb5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac46692b5f0d336688c22702fd5b72b56"><td class="memItemLeft" align="right" valign="top"><a id="ac46692b5f0d336688c22702fd5b72b56"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_score</b> (const std::string &amp;out_file) const</td></tr>
+<tr class="memitem:ac46692b5f0d336688c22702fd5b72b56"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#ac46692b5f0d336688c22702fd5b72b56">get_score</a> (const std::string &amp;out_file) const</td></tr>
 <tr class="separator:ac46692b5f0d336688c22702fd5b72b56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2296992e888e638d067decdd450304da"><td class="memItemLeft" align="right" valign="top"><a id="a2296992e888e638d067decdd450304da"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_avg_mate_len</b> () const</td></tr>
+<tr class="memitem:a2296992e888e638d067decdd450304da"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a2296992e888e638d067decdd450304da">get_avg_mate_len</a> () const</td></tr>
 <tr class="separator:a2296992e888e638d067decdd450304da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aababca5a912ec026e39509be5d94b8d8"><td class="memItemLeft" align="right" valign="top"><a id="aababca5a912ec026e39509be5d94b8d8"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_nodes</b> () const</td></tr>
+<tr class="memitem:aababca5a912ec026e39509be5d94b8d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#aababca5a912ec026e39509be5d94b8d8">count_nodes</a> () const</td></tr>
 <tr class="separator:aababca5a912ec026e39509be5d94b8d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a8ac740bff57a68e5afcc385082ab96f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8ac740bff57a68e5afcc385082ab96f4">&#9670;&nbsp;</a></span>Trainer() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Trainer::Trainer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac697ce7394061e632972251ddaf7ba40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac697ce7394061e632972251ddaf7ba40">&#9670;&nbsp;</a></span>Trainer() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Trainer::Trainer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_games</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_logged</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>c_puct</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>epsilon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>threads</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>searches_per_eval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>logging_folder</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>random_seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad7ecc7e442cde7e12e6a4b0fe09f864b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7ecc7e442cde7e12e6a4b0fe09f864b">&#9670;&nbsp;</a></span>Trainer() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Trainer::Trainer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_games</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_logged</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>num_iterations</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>c_puct</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>epsilon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>threads</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>searches_per_eval</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>logging_folder</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>random_seed</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa3d993d1eb090f4111e12a710fe9d3f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3d993d1eb090f4111e12a710fe9d3f6">&#9670;&nbsp;</a></span>~Trainer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Trainer::~Trainer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="aababca5a912ec026e39509be5d94b8d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aababca5a912ec026e39509be5d94b8d8">&#9670;&nbsp;</a></span>count_nodes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> Trainer::count_nodes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2eef03f17665e47023d5c6875e7d7014"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2eef03f17665e47023d5c6875e7d7014">&#9670;&nbsp;</a></span>count_samples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> Trainer::count_samples </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1e04862c7e25dd834c60414616fbcc5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e04862c7e25dd834c60414616fbcc5c">&#9670;&nbsp;</a></span>do_iteration() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Trainer::do_iteration </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>evaluations</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>probabilities</em>[]&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7654f644e012557534599152294c43a2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7654f644e012557534599152294c43a2">&#9670;&nbsp;</a></span>do_iteration() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Trainer::do_iteration </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>evaluations</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>probabilities</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>to_play</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2296992e888e638d067decdd450304da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2296992e888e638d067decdd450304da">&#9670;&nbsp;</a></span>get_avg_mate_len()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Trainer::get_avg_mate_len </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac46692b5f0d336688c22702fd5b72b56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac46692b5f0d336688c22702fd5b72b56">&#9670;&nbsp;</a></span>get_score()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Trainer::get_score </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>out_file</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0c79b900caa7e8145e6496aa88b770d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c79b900caa7e8145e6496aa88b770d9">&#9670;&nbsp;</a></span>write_requests() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> Trainer::write_requests </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7d3bb96bf1698c4dfd0a08e8145d73ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d3bb96bf1698c4dfd0a08e8145d73ef">&#9670;&nbsp;</a></span>write_requests() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a> Trainer::write_requests </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="util_8h.html#ad754fd19693421cf7395f91881c98cd5">uintf</a>&#160;</td>
+          <td class="paramname"><em>to_play</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17abaad1a293c90ae3bb82b9955ebb5c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17abaad1a293c90ae3bb82b9955ebb5c">&#9670;&nbsp;</a></span>write_samples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Trainer::write_samples </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>evaluation_samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>probability_samples</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="trainer_8h_source.html">trainer.h</a></li>
 </ul>

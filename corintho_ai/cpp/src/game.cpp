@@ -1,7 +1,9 @@
 #include "game.h"
+
+#include <ostream>
+
 #include "move.h"
 #include "util.h"
-#include <ostream>
 
 Game::Game() : to_play{0}, pieces{4, 4, 4, 4, 4, 4} {}
 
@@ -15,7 +17,7 @@ Game::Game(long *board, int to_play, long *pieces)
   }
 }
 
-void Game::do_move(uintf move_id) {
+void Game::do_move(int32_t move_id) {
 
   Move move{move_id};
 
@@ -27,20 +29,20 @@ void Game::do_move(uintf move_id) {
   }
 
   // Place
-  if (move.mtype) {
-    --pieces[to_play * 3 + move.ptype];
-    set_board(move.row1, move.col1, move.ptype);
-    set_frozen(move.row1, move.col1);
+  if (move.move_type() == Move::MoveType::kPlace) {
+    --pieces[to_play * 3 + move.piece_type()];
+    set_board(move.row1(), move.col1(), move.piece_type());
+    set_frozen(move.row1(), move.col1());
   }
   // Move
   else {
     for (uintf i = 0; i < 3; ++i) {
-      set_board(move.row2, move.col2, i,
-                get_board(move.row1, move.col1, i) ||
-                    get_board(move.row2, move.col2, i));
-      set_board(move.row1, move.col1, i, false);
+      set_board(move.row2(), move.col2(), i,
+                get_board(move.row1(), move.col1(), i) ||
+                    get_board(move.row2(), move.col2(), i));
+      set_board(move.row1(), move.col1(), i, false);
     }
-    set_frozen(move.row2, move.col2, true);
+    set_frozen(move.row2(), move.col2(), true);
   }
   to_play = 1 - to_play;
 }
@@ -126,7 +128,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
   // Rows
   for (uintf i = 0; i < 4; ++i) {
     space_1 = get_top(i, 1);
-    if (space_1 != -1) { // If not empty
+    if (space_1 != -1) {  // If not empty
       space_2 = get_top(i, 2);
       if (space_1 == space_2) {
         space_0 = get_top(i, 0), space_3 = get_top(i, 3);
@@ -142,18 +144,18 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
               // We don't need to know which row it is
               // If it is wrong, the move is illegal anyways
               if (!get_board(0, 3, 2)) {
-                legal_moves[encode_move(0, 3, 1, 3)] = false;
+                legal_moves[encodeMove(0, 3, 1, 3)] = false;
               }
               if (!get_board(1, 3, 2)) {
-                legal_moves[encode_move(1, 3, 0, 3)] = false;
-                legal_moves[encode_move(1, 3, 2, 3)] = false;
+                legal_moves[encodeMove(1, 3, 0, 3)] = false;
+                legal_moves[encodeMove(1, 3, 2, 3)] = false;
               }
               if (!get_board(2, 3, 2)) {
-                legal_moves[encode_move(2, 3, 1, 3)] = false;
-                legal_moves[encode_move(2, 3, 3, 3)] = false;
+                legal_moves[encodeMove(2, 3, 1, 3)] = false;
+                legal_moves[encodeMove(2, 3, 3, 3)] = false;
               }
               if (!get_board(3, 3, 2)) {
-                legal_moves[encode_move(3, 3, 2, 3)] = false;
+                legal_moves[encodeMove(3, 3, 2, 3)] = false;
               }
             }
           }
@@ -163,18 +165,18 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
           if (space_3 == 2) {
             // Capital must be used to extend line when moving
             if (!get_board(0, 0, 2)) {
-              legal_moves[encode_move(0, 0, 1, 0)] = false;
+              legal_moves[encodeMove(0, 0, 1, 0)] = false;
             }
             if (!get_board(1, 0, 2)) {
-              legal_moves[encode_move(1, 0, 0, 0)] = false;
-              legal_moves[encode_move(1, 0, 2, 0)] = false;
+              legal_moves[encodeMove(1, 0, 0, 0)] = false;
+              legal_moves[encodeMove(1, 0, 2, 0)] = false;
             }
             if (!get_board(2, 0, 2)) {
-              legal_moves[encode_move(2, 0, 1, 0)] = false;
-              legal_moves[encode_move(2, 0, 3, 0)] = false;
+              legal_moves[encodeMove(2, 0, 1, 0)] = false;
+              legal_moves[encodeMove(2, 0, 3, 0)] = false;
             }
             if (!get_board(3, 0, 2)) {
-              legal_moves[encode_move(3, 0, 2, 0)] = false;
+              legal_moves[encodeMove(3, 0, 2, 0)] = false;
             }
           }
         }
@@ -185,7 +187,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
   // Columns
   for (uintf j = 0; j < 4; ++j) {
     space_1 = get_top(1, j);
-    if (space_1 != -1) { // If not empty
+    if (space_1 != -1) {  // If not empty
       space_2 = get_top(2, j);
       if (space_1 == space_2) {
         space_0 = get_top(0, j), space_3 = get_top(3, j);
@@ -201,18 +203,18 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
               // We don't need to know which column it is
               // If it is wrong, the move is illegal anyways
               if (!get_board(3, 0, 2)) {
-                legal_moves[encode_move(3, 0, 3, 1)] = false;
+                legal_moves[encodeMove(3, 0, 3, 1)] = false;
               }
               if (!get_board(3, 1, 2)) {
-                legal_moves[encode_move(3, 1, 3, 0)] = false;
-                legal_moves[encode_move(3, 1, 3, 2)] = false;
+                legal_moves[encodeMove(3, 1, 3, 0)] = false;
+                legal_moves[encodeMove(3, 1, 3, 2)] = false;
               }
               if (!get_board(3, 2, 2)) {
-                legal_moves[encode_move(3, 2, 3, 1)] = false;
-                legal_moves[encode_move(3, 2, 3, 3)] = false;
+                legal_moves[encodeMove(3, 2, 3, 1)] = false;
+                legal_moves[encodeMove(3, 2, 3, 3)] = false;
               }
               if (!get_board(3, 3, 2)) {
-                legal_moves[encode_move(3, 3, 3, 2)] = false;
+                legal_moves[encodeMove(3, 3, 3, 2)] = false;
               }
             }
           }
@@ -224,18 +226,18 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
             // We don't need to know which column it is
             // If it is wrong, the move is illegal anyways
             if (!get_board(0, 0, 2)) {
-              legal_moves[encode_move(0, 0, 0, 1)] = false;
+              legal_moves[encodeMove(0, 0, 0, 1)] = false;
             }
             if (!get_board(0, 1, 2)) {
-              legal_moves[encode_move(0, 1, 0, 0)] = false;
-              legal_moves[encode_move(0, 1, 0, 2)] = false;
+              legal_moves[encodeMove(0, 1, 0, 0)] = false;
+              legal_moves[encodeMove(0, 1, 0, 2)] = false;
             }
             if (!get_board(0, 2, 2)) {
-              legal_moves[encode_move(0, 2, 0, 1)] = false;
-              legal_moves[encode_move(0, 2, 0, 3)] = false;
+              legal_moves[encodeMove(0, 2, 0, 1)] = false;
+              legal_moves[encodeMove(0, 2, 0, 3)] = false;
             }
             if (!get_board(0, 3, 2)) {
-              legal_moves[encode_move(0, 3, 0, 2)] = false;
+              legal_moves[encodeMove(0, 3, 0, 2)] = false;
             }
           }
         }
@@ -245,7 +247,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
 
   // Upper left to lower right long diagonal
   space_1 = get_top(1, 1);
-  if (space_1 != -1) { // If not empty
+  if (space_1 != -1) {  // If not empty
     space_2 = get_top(2, 2);
     if (space_1 == space_2) {
       space_0 = get_top(0, 0), space_3 = get_top(3, 3);
@@ -259,10 +261,10 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
           if (space_0 == 2) {
             // Capital must be used to extend line when moving
             if (!get_board(2, 3, 2)) {
-              legal_moves[encode_move(2, 3, 3, 3)] = false;
+              legal_moves[encodeMove(2, 3, 3, 3)] = false;
             }
             if (!get_board(3, 2, 2)) {
-              legal_moves[encode_move(3, 2, 3, 3)] = false;
+              legal_moves[encodeMove(3, 2, 3, 3)] = false;
             }
           }
         }
@@ -272,10 +274,10 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
         if (space_3 == 2) {
           // Capital must be used to extend line when moving
           if (!get_board(0, 1, 2)) {
-            legal_moves[encode_move(0, 1, 0, 0)] = false;
+            legal_moves[encodeMove(0, 1, 0, 0)] = false;
           }
           if (!get_board(1, 0, 2)) {
-            legal_moves[encode_move(1, 0, 0, 0)] = false;
+            legal_moves[encodeMove(1, 0, 0, 0)] = false;
           }
         }
       }
@@ -284,7 +286,7 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
 
   // Upper right to lower left long diagonal
   space_1 = get_top(1, 2);
-  if (space_1 != -1) { // If not empty
+  if (space_1 != -1) {  // If not empty
     space_2 = get_top(2, 1);
     if (space_1 == space_2) {
       space_0 = get_top(0, 3), space_3 = get_top(3, 0);
@@ -298,10 +300,10 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
           if (space_0 == 2) {
             // Capital must be used to extend line when moving
             if (!get_board(2, 0, 2)) {
-              legal_moves[encode_move(2, 0, 3, 0)] = false;
+              legal_moves[encodeMove(2, 0, 3, 0)] = false;
             }
             if (!get_board(3, 1, 2)) {
-              legal_moves[encode_move(3, 1, 3, 0)] = false;
+              legal_moves[encodeMove(3, 1, 3, 0)] = false;
             }
           }
         }
@@ -311,10 +313,10 @@ bool Game::get_line_breakers(bitset<NUM_MOVES> &legal_moves) const {
         if (space_3 == 2) {
           // Capital must be used to extend line when moving
           if (!get_board(0, 2, 2)) {
-            legal_moves[encode_move(0, 2, 0, 3)] = false;
+            legal_moves[encodeMove(0, 2, 0, 3)] = false;
           }
           if (!get_board(1, 3, 2)) {
-            legal_moves[encode_move(1, 3, 0, 3)] = false;
+            legal_moves[encodeMove(1, 3, 0, 3)] = false;
           }
         }
       }
@@ -390,13 +392,13 @@ void Game::apply_line(uintf line, bitset<NUM_MOVES> &legal_moves) const {
   legal_moves &= line_breakers[line];
 }
 
-bool Game::is_legal_move(uintf move_id) const {
+bool Game::is_legal_move(int32_t move_id) const {
   Move move{move_id};
   // Place
-  if (move.mtype)
-    return can_place(move.ptype, move.row1, move.col1);
+  if (move.move_type() == Move::MoveType::kPlace)
+    return can_place(move.piece_type(), move.row1(), move.col1());
   // Move
-  return can_move(move.row1, move.col1, move.row2, move.col2);
+  return can_move(move.row1(), move.col1(), move.row2(), move.col2());
 }
 
 bool Game::can_place(uintf ptype, uintf row, uintf col) const {

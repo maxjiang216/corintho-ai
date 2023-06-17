@@ -17,7 +17,7 @@ public:
   Move &operator=(Move &&move) noexcept = default;
   ~Move() = default;
   // Construct a move from its id
-  explicit Move(int32_t id);
+  explicit Move(int32_t id) noexcept;
   // Construct a place move
   Move(int32_t piece_type, int32_t row, int32_t col);
   // Construct a move move
@@ -28,6 +28,7 @@ public:
   int32_t row1() const noexcept { return row1_; }
   int32_t col1() const noexcept { return col1_; }
   int32_t row2() const noexcept { return row2_; }
+  int32_t col2() const noexcept { return col2_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
 

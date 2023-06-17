@@ -68,7 +68,9 @@ SelfPlayer::~SelfPlayer() {
   }
 }
 
-void SelfPlayer::do_first_iteration() { players[0].do_first_iteration(); }
+void SelfPlayer::do_first_iteration() {
+  players[0].do_first_iteration();
+}
 
 bool SelfPlayer::do_iteration(float evaluation[], float probabilities[]) {
   bool done_turn = players[to_play].do_iteration(evaluation, probabilities);
@@ -244,7 +246,9 @@ void SelfPlayer::write_requests(float *game_states) const {
   }
 }
 
-uintf SelfPlayer::count_samples() const { return samples.size(); }
+uintf SelfPlayer::count_samples() const {
+  return samples.size();
+}
 
 void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
                                float *probability_samples) const {

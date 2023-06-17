@@ -16,23 +16,23 @@ Move::Move(int32_t id) noexcept
     row1_ = (id % 16) / 4;
     col1_ = id % 4;
   }
-  // Move
-  else if (id < 12) { // Right
+  // Move move
+  else if (id < 12) {  // Right
     row1_ = id / 3;
     col1_ = id % 3;
     row2_ = row1_;
     col2_ = col1_ + 1;
-  } else if (id < 24) { // Down
+  } else if (id < 24) {  // Down
     row1_ = (id - 12) / 4;
     col1_ = id % 4;
     row2_ = row1_ + 1;
     col2_ = col1_;
-  } else if (id < 36) { // Left
+  } else if (id < 36) {  // Left
     row1_ = (id - 24) / 3;
     col1_ = id % 3 + 1;
     row2_ = row1_;
     col2_ = col1_ - 1;
-  } else { // Up
+  } else {  // Up
     row1_ = (id - 32) / 4;
     col1_ = id % 4;
     row2_ = row1_ - 1;
@@ -52,25 +52,25 @@ int32_t encodeMove(int32_t row1, int32_t col1, int32_t row2, int32_t col2) {
   assert(col1 >= 0 && col1 < 4);
   assert(row2 >= 0 && row2 < 4);
   assert(col2 >= 0 && col2 < 4);
-  if (col1 < col2) { // Right
+  if (col1 < col2) {  // Right
     assert(row1 == row2);
     assert(col1 + 1 == col2);
     return row1 * 3 + col1;
   }
-  if (row1 < row2) { // Down
+  if (row1 < row2) {  // Down
     assert(col1 == col2);
     assert(row1 + 1 == row2);
     return 12 + row1 * 4 + col1;
   }
-  if (col1 > col2) { // Left
+  if (col1 > col2) {  // Left
     assert(row1 == row2);
     assert(col1 - 1 == col2);
-    return 24 + row1 * 3 + col1 - 1;
+    return 24 + row1 * 3 + (col1 - 1);
   }
   // Up
   assert(col1 == col2);
   assert(row1 - 1 == row2);
-  return 36 + row1 * 4 + col1;
+  return 36 + (row1 - 1) * 4 + col1;
 }
 
 char getColName(int32_t col) {
@@ -83,7 +83,7 @@ char getColName(int32_t col) {
     return 'c';
   case 3:
     return 'd';
-  default: // Should never happen
+  default:  // Should never happen
     assert(false);
     return ' ';
   }

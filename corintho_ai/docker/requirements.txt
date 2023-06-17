@@ -1,7 +1,0 @@
-Flask
-Flask-CORS
-numpy
-tensorflow
-cython
-keras
-

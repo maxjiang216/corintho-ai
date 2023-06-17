@@ -31,9 +31,13 @@ public:
 
   MoveType move_type() const noexcept { return move_type_; }
   int32_t piece_type() const noexcept { return piece_type_; }
+  /// @brief The row of the space being moved from or placed on
   int32_t row1() const noexcept { return row1_; }
+  /// @brief The column of the space being moved from or placed on
   int32_t col1() const noexcept { return col1_; }
+  /// @brief The row of the space being moved to, not used for place moves
   int32_t row2() const noexcept { return row2_; }
+  /// @brief The column of the space being moved to, not used for place moves
   int32_t col2() const noexcept { return col2_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
@@ -41,13 +45,9 @@ public:
 private:
   MoveType move_type_;
   int32_t piece_type_;
-  /// @brief The row of the space being moved from or placed on
   int32_t row1_;
-  /// @brief The column of the space being moved from or placed on
   int32_t col1_;
-  /// @brief The row of the space being moved to, not used for place moves
   int32_t row2_{-1};
-  /// @brief The column of the space being moved to, not used for place moves
   int32_t col2_{-1};
 };
 

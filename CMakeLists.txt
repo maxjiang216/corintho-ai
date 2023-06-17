@@ -5,13 +5,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(GTEST_PATH "googletest/googletest")
 
+set(GSL_PATH "gsl")
+
 set(CPP_PATH "corintho_ai/cpp")
 
 set(TEST_PATH "tests/cpp")
 
 set(CMAKE_CXX_FLAGS "--coverage -fopenmp")
 
-include_directories(${GTEST_PATH}/include ${CPP_PATH}/include)
+include_directories(${GTEST_PATH}/include ${GSL_PATH}/include ${CPP_PATH}/include)
 link_directories(googletest/lib)
 
 add_executable(

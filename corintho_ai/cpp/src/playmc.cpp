@@ -27,8 +27,8 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
   cur = root;
 }
 
-PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
-               int seed)
+PlayMC::PlayMC(int32_t board[4 * kBoardSize], int32_t to_play,
+               int32_t pieces[6], int searches_per_eval, int seed)
     : max_iterations{max_unsigned_int}, searches_per_eval{(
                                             uintf)searches_per_eval},
       c_puct{3.0}, epsilon{0.25}, root{nullptr}, cur{nullptr},

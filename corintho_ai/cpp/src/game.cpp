@@ -56,7 +56,7 @@ void Game::writeGameState(float game_state[GAME_STATE_SIZE]) const noexcept {
   }
 }
 
-void Game::doMove(int32_t move_id) {
+void Game::doMove(int32_t move_id) noexcept {
   assert(move_id >= 0 && move_id < kNumMoves);
   // This is not a conclusive check (doesn't factor in lines)
   // But might be useful for debugging

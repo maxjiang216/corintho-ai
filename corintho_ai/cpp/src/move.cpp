@@ -17,21 +17,27 @@ Move::Move(int32_t id) noexcept
   if (move_type_ == MoveType::kPlace) {
     piece_type_ = (id - 48) / 16;
     spaceTo_ = {(id % 16) / 4, id % 4};
+    return;
   }
   // Move move
-  else if (id < 12) {  // Right
+  if (id < 12) {  // Right
     spaceFrom_ = {id / 3, id % 3};
     spaceTo_ = {id / 3, id % 3 + 1};
-  } else if (id < 24) {  // Down
+    return;
+  }
+  if (id < 24) {  // Down
     spaceFrom_ = {(id - 12) / 4, id % 4};
     spaceTo_ = {(id - 12) / 4 + 1, id % 4};
-  } else if (id < 36) {  // Left
+    return;
+  }
+  if (id < 36) {  // Left
     spaceFrom_ = {(id - 24) / 3, id % 3 + 1};
     spaceTo_ = {(id - 24) / 3, id % 3};
-  } else {  // Up
-    spaceFrom_ = {(id - 36) / 4 + 1, id % 4};
-    spaceTo_ = {(id - 36) / 4, id % 4};
+    return;
   }
+  // Up
+  spaceFrom_ = {(id - 36) / 4 + 1, id % 4};
+  spaceTo_ = {(id - 36) / 4, id % 4};
 }
 
 Move::Move(Space space, PieceType piece_type) noexcept

@@ -44,8 +44,8 @@ class PlayMC {
   PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
          float epsilon, bool logging, uintf seed);
   // PlayMC for web app
-  PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
-         int seed);
+  PlayMC(int32_t board[4 * kBoardSize], int32_t to_play, int32_t pieces[6],
+         int searches_per_eval, int seed);
   ~PlayMC();
 
   bool do_iteration(float evaluation[], float probabilities[]);

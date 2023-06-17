@@ -38,13 +38,13 @@ class Move {
   /// @brief The row of the space being moved from, not used for place moves
   int32_t rowFrom() const noexcept { return spaceFrom_.row; }
   /// @brief The column of the space being moved from, not used for place moves
-  int32_t colFrom() const noexcept { return spaceFrom_.row; }
+  int32_t colFrom() const noexcept { return spaceFrom_.col; }
   /// @brief The space being moved from, not used for place moves
   Space spaceFrom() const noexcept { return spaceFrom_; }
   /// @brief The row of the space being moved to or placed on
   int32_t rowTo() const noexcept { return spaceTo_.row; }
   /// @brief The column of the space being moved to or placed on
-  int32_t colTo() const noexcept { return spaceTo_.row; }
+  int32_t colTo() const noexcept { return spaceTo_.col; }
   /// @brief The space being moved to or placed on
   Space spaceTo() const noexcept { return spaceTo_; }
 
@@ -58,9 +58,9 @@ class Move {
 };
 
 // Get the ID of a place move
-int32_t encodePlace(Space space, PieceType piece_type);
+int32_t encodePlace(Space space, PieceType piece_type) noexcept;
 // Get the ID of a move move
-int32_t encodeMove(Space spaceFrom, Space spaceTo);
+int32_t encodeMove(Space spaceFrom, Space spaceTo) noexcept;
 // Convert column index to its name (a, b, c, d)
 char getColName(int32_t col);
 

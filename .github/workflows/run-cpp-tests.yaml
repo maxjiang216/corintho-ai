@@ -30,7 +30,7 @@ jobs:
         mkdir build
         cd build
         cmake ..
-        make
+        make -j
 
     - name: Run tests
       run: ./build/CorinthoAI

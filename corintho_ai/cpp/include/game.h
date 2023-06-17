@@ -103,10 +103,19 @@ class Game {
   /// @return Whether there were any lines
   bool applyRowColLines(std::bitset<kNumMoves> &legal_moves,
                         bool isCol) const noexcept;
+  /// @brief Applies the long diagonal lines to a bitset of legal moves
+  /// @details We can combine the code for the 2 long diagonals
+  /// There is also only at most one long diagonal line, so we can return early
+  bool
+  Game::applyLongDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  /// @brief Applies the short diagonal lines to a bitset of legal moves
+  bool
+  Game::applyShortDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
   /// @brief Finds lines and moves that break all lines.
-  /// @details legal_moves is a bitset indicating which moves are legal based on
-  /// basic rules See getLegalMoves for more details legal_moves will be mutated
-  /// by applying a bitwise AND operation with the line breaking moves
+  /// @details legal_moves is a bitset indicating which moves are legal
+  /// based on basic rules See getLegalMoves for more details legal_moves
+  /// will be mutated by applying a bitwise AND operation with the line
+  /// breaking moves
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there were any lines
   bool applyLineBreakers(std::bitset<kNumMoves> &legal_moves) const noexcept;

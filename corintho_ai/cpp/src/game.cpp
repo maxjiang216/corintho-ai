@@ -247,6 +247,8 @@ bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
     int32_t top1 = getTop(Space{1, i, isCol});
     int32_t top2 = getTop(Space{2, i, isCol});
     int32_t top3 = getTop(Space{3, i, isCol});
+    if (top1 == -1 || top2 == -1)
+      continue;  // Empty space in middle, no line possible
     // Check for a long line
     if (top0 == top1 && top1 == top2 && top2 == top3) {
       if (isCol) {
@@ -257,80 +259,92 @@ bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
       return true;  // No need to check for other lines
     }
     // Check for a left/upper short line
-    if (top0 == top1 && top1 == top2) {
-      if (isCol) {
-        applyLine(CU * 12 + i * 3 + top0, legal_moves);
-      } else {
-        applyLine(RL * 12 + i * 3 + top0, legal_moves);
+    for (int32_t extend_coord : {3, 0}) {
+      if (top1 == top2 && ((extend_coord == 0 && top0 == top1) ||
+                           (extend_coord == 3 && top2 == top3))) {
+        if (isCol && extend_coord == 0) {  // Lower/down column
+          applyLine(CD * 12 + i * 3 + extend_coord, legal_moves);
+        } else if (isCol && extend_coord == 3) {  // Upper column
+          applyLine(CU * 12 + i * 3 + extend_coord, legal_moves);
+        } else if (extend_coord == 0) {  // Right row
+          applyLine(RR * 12 + i * 3 + extend_coord, legal_moves);
+        } else {  // Left row
+          applyLine(RL * 12 + i * 3 + extend_coord, legal_moves);
+        }
+        if (top1 == 2) {
+          // If the line is a capital line
+          // A capital must be used to extend line when moving
+          // The applyLine function is liberal in this case
+          // So we need to remove the illegal moves
+          // We turn off moving to adjacent rows/columns
+          // if the top is not a capital
+          // It doesn't matter which row/column the line is in
+          // When it is not the correct row/column, the move is illegal anyway
+          if (!board(Space{0, extend_coord, isCol}, kCapital)) {
+            legal_moves[encodeMove(Space{0, extend_coord, isCol},
+                                   Space{1, extend_coord, isCol})] = false;
+          }
+          if (!board(Space{1, extend_coord, isCol}, kCapital)) {
+            legal_moves[encodeMove(Space{1, extend_coord, isCol},
+                                   Space{0, extend_coord, isCol})] = false;
+            legal_moves[encodeMove(Space{1, extend_coord, isCol},
+                                   Space{2, extend_coord, isCol})] = false;
+          }
+          if (!board(Space{2, extend_coord, isCol}, kCapital)) {
+            legal_moves[encodeMove(Space{2, extend_coord, isCol},
+                                   Space{1, extend_coord, isCol})] = false;
+            legal_moves[encodeMove(Space{2, extend_coord, isCol},
+                                   Space{3, extend_coord, isCol})] = false;
+          }
+          if (!board(Space{3, extend_coord, isCol}, kCapital)) {
+            legal_moves[encodeMove(Space{3, extend_coord, isCol},
+                                   Space{2, extend_coord, isCol})] = false;
+          }
+        }
       }
-      if (top0 == 2) {
-        // If the line is a capital line
-        // A capital must be used to extend line when moving
-        // The applyLine function is liberal in this case
-        // So we need to remove the illegal moves
-        // We turn off moving to adjacent rows/columns
-        // if the top is not a capital
-        // It doesn't matter which row/column the line is in
-        // When it is not the correct row/column, the move is illegal anyway
-        if (!board(Space{0, 3, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{0, 3, isCol}, Space{1, 3, isCol})] =
-              false;
-        }
-        if (!board(Space{1, 3, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{1, 3, isCol}, Space{0, 3, isCol})] =
-              false;
-          legal_moves[encodeMove(Space{1, 3, isCol}, Space{2, 3, isCol})] =
-              false;
-        }
-        if (!board(Space{2, 3, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{2, 3, isCol}, Space{1, 3, isCol})] =
-              false;
-          legal_moves[encodeMove(Space{2, 3, isCol}, Space{3, 3, isCol})] =
-              false;
-        }
-        if (!board(Space{3, 3, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{3, 3, isCol}, Space{2, 3, isCol})] =
-              false;
-        }
+    }
+  }
+  return false;  // No lines
+}
+
+bool Game::applyLongDiagLines(
+    std::bitset<kNumMoves> &legal_moves) const noexcept {
+  // Checking the upper left to lower right long diagonal
+  // is the same as checking the upper right to lower left long diagonal
+  // except we flip over the y-axis
+  // and use different line numbers
+  for (bool flip : {false, true}) {
+    int32_t top0 = getTop(Space{0, flip ? 3 : 0});
+    int32_t top1 = getTop(Space{1, flip ? 2 : 1});
+    int32_t top2 = getTop(Space{2, flip ? 1 : 2});
+    int32_t top3 = getTop(Space{3, flip ? 0 : 3});
+    if (top1 == -1 || top2 == -1) {
+      continue;  // Empty space in middle, no line possible
+    }
+    // Long line
+    if (top0 == top1 && top1 == top2 && top2 == top3) {
+      if (flip) {
+        applyLine(D1B * 3 + top1, legal_moves);
+      } else {
+        applyLine(D0B * 3 + top1, legal_moves);
       }
       return true;  // No need to check for other lines
     }
-    // Check for a right/lower short line
-    if (top1 == top2 && top2 == top3) {
-      if (isCol) {
-        applyLine(CD * 12 + i * 3 + top1, legal_moves);
+    // Upper line
+    if (top0 == top1 && top1 == top2) {
+      if (flip) {
+        applyLine(D1U * 3 + top1, legal_moves);
       } else {
-        applyLine(RR * 12 + i * 3 + top1, legal_moves);
+        applyLine(D0U * 3 + top1, legal_moves);
       }
-      if (top3 == 2) {
-        // If the line is a capital line
-        // A capital must be used to extend line when moving
-        // The applyLine function is liberal in this case
-        // So we need to remove the illegal moves
-        // We turn off moving to adjacent rows/columns
-        // if the top is not a capital
-        // It doesn't matter which row/column the line is in
-        // When it is not the correct row/column, the move is illegal anyway
-        if (!board(Space{0, 0, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{0, 0, isCol}, Space{1, 0, isCol})] =
-              false;
-        }
-        if (!board(Space{1, 0, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{1, 0, isCol}, Space{0, 0, isCol})] =
-              false;
-          legal_moves[encodeMove(Space{1, 0, isCol}, Space{2, 0, isCol})] =
-              false;
-        }
-        if (!board(Space{2, 0, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{2, 0, isCol}, Space{1, 0, isCol})] =
-              false;
-          legal_moves[encodeMove(Space{2, 0, isCol}, Space{3, 0, isCol})] =
-              false;
-        }
-        if (!board(Space{3, 0, isCol}, kCapital)) {
-          legal_moves[encodeMove(Space{3, 0, isCol}, Space{2, 0, isCol})] =
-              false;
-        }
+      return true;  // No need to check for other lines
+    }
+    // Lower/down line
+    if (top1 == top2 && top2 == top3) {
+      if (flip) {
+        applyLine(D1D * 3 + top1, legal_moves);
+      } else {
+        applyLine(D0D * 3 + top1, legal_moves);
       }
       return true;  // No need to check for other lines
     }
@@ -338,126 +352,48 @@ bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
   return false;  // No lines
 }
 
-bool Game::applyLineBreakers(
+bool Game::applyShortDiagLines(
     std::bitset<kNumMoves> &legal_moves) const noexcept {
-
-  // Flag for if there are any lines
-  bool is_any_lines = false;
-  // Use the top of towers to determine lines
-  // These roughly correspond to the order in a long line
-  int32_t top0, top1, top2, top3;
-
-  // Row lines
-  applyRowColLines(legal_moves, false);
-
-  // Column lines
-  applyRowColLines(legal_moves, true);
-
-  // Upper left to lower right long diagonal
-  top1 = getTop(1, 1);
-  if (top1 != -1) {  // If not empty
-    top2 = getTop(2, 2);
-    if (top1 == top2) {
-      top0 = getTop(0, 0), top3 = getTop(3, 3);
-      if (top0 == top2) {
-        if (top0 == top3) {
-          is_any_lines = true;
-          applyLine(72 + D0B * 3 + top0, legal_moves);
-        } else {
-          is_any_lines = true;
-          applyLine(72 + D0U * 3 + top0, legal_moves);
-          if (top0 == 2) {
-            // Capital must be used to extend line when moving
-            if (!board(2, 3, 2)) {
-              legal_moves[encodeMove(2, 3, 3, 3)] = false;
-            }
-            if (!board(3, 2, 2)) {
-              legal_moves[encodeMove(3, 2, 3, 3)] = false;
-            }
-          }
-        }
-      } else if (top2 == top3) {
-        is_any_lines = true;
-        applyLine(72 + D0D * 3 + top3, legal_moves);
-        if (top3 == 2) {
-          // Capital must be used to extend line when moving
-          if (!board(0, 1, 2)) {
-            legal_moves[encodeMove(0, 1, 0, 0)] = false;
-          }
-          if (!board(1, 0, 2)) {
-            legal_moves[encodeMove(1, 0, 0, 0)] = false;
-          }
-        }
-      }
-    }
-  }
-
-  // Upper right to lower left long diagonal
-  top1 = getTop(1, 2);
-  if (top1 != -1) {  // If not empty
-    top2 = getTop(2, 1);
-    if (top1 == top2) {
-      top0 = getTop(0, 3), top3 = getTop(3, 0);
-      if (top0 == top2) {
-        if (top0 == top3) {
-          is_any_lines = true;
-          applyLine(72 + D1B * 3 + top0, legal_moves);
-        } else {
-          is_any_lines = true;
-          applyLine(72 + D1U * 3 + top0, legal_moves);
-          if (top0 == 2) {
-            // Capital must be used to extend line when moving
-            if (!board(2, 0, 2)) {
-              legal_moves[encodeMove(2, 0, 3, 0)] = false;
-            }
-            if (!board(3, 1, 2)) {
-              legal_moves[encodeMove(3, 1, 3, 0)] = false;
-            }
-          }
-        }
-      } else if (top2 == top3) {
-        is_any_lines = true;
-        applyLine(72 + D1D * 3 + top3, legal_moves);
-        if (top3 == 2) {
-          // Capital must be used to extend line when moving
-          if (!board(0, 2, 2)) {
-            legal_moves[encodeMove(0, 2, 0, 3)] = false;
-          }
-          if (!board(1, 3, 2)) {
-            legal_moves[encodeMove(1, 3, 0, 3)] = false;
-          }
-        }
-      }
-    }
-  }
-
   // Top left short diagonal
-  top1 = getTop(1, 1);
-  if (top1 != -1 && top1 == getTop(0, 2) && top1 == getTop(2, 0)) {
-    is_any_lines = true;
-    applyLine(72 + S0 * 3 + top1, legal_moves);
+  int32_t top = getTop(Space{1, 1});
+  if (top != -1 && top == getTop(Space{0, 2}) && top == getTop(Space{2, 0})) {
+    applyLine(72 + S0 * 3 + top, legal_moves);
+    return true;  // There can only be up to 1 short diagonal line
   }
-
   // Top right short diagonal
-  top1 = getTop(1, 2);
-  if (top1 != -1 && top1 == getTop(0, 1) && top1 == getTop(2, 3)) {
-    is_any_lines = true;
-    applyLine(72 + S1 * 3 + top1, legal_moves);
+  top = getTop(Space{1, 2});
+  if (top != -1 && top == getTop(Space{0, 1}) && top == getTop(Space{2, 3})) {
+    applyLine(72 + S1 * 3 + top, legal_moves);
+    return true;  // There can only be up to 1 short diagonal line
   }
 
   // Bottom right short diagonal
-  top1 = getTop(2, 2);
-  if (top1 != -1 && top1 == getTop(1, 3) && top1 == getTop(3, 1)) {
-    is_any_lines = true;
-    applyLine(72 + S2 * 3 + top1, legal_moves);
+  top = getTop(Space{2, 2});
+  if (top != -1 && top == getTop(Space{1, 3}) && top == getTop(Space{3, 1})) {
+    applyLine(72 + S2 * 3 + top, legal_moves);
+    return true;  // There can only be up to 1 short diagonal line
   }
 
   // Bottom left short diagonal
-  top1 = getTop(2, 1);
-  if (top1 != -1 && top1 == getTop(1, 0) && top1 == getTop(3, 2)) {
-    is_any_lines = true;
-    applyLine(72 + S3 * 3 + top1, legal_moves);
+  top = getTop(Space{2, 1});
+  if (top != -1 && top == getTop(Space{1, 0}) && top == getTop(Space{3, 2})) {
+    applyLine(72 + S3 * 3 + top, legal_moves);
+    return true;  // There can only be up to 1 short diagonal line
   }
+  return false;  // No lines
+}
 
+bool Game::applyLineBreakers(
+    std::bitset<kNumMoves> &legal_moves) const noexcept {
+  // Flag for if there are any lines
+  bool is_any_lines = false;
+  // Row lines
+  is_any_lines |= applyRowColLines(legal_moves, false);
+  // Column lines
+  is_any_lines |= applyRowColLines(legal_moves, true);
+  // Long diagonal lines
+  is_any_lines |= applyLongDiagLines(legal_moves);
+  // Short diagonal lines
+  is_any_lines |= applyShortDiagLines(legal_moves);
   return is_any_lines;
 }

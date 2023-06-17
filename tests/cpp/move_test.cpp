@@ -7,17 +7,17 @@ TEST(MoveTest, Constructor) {
   // Create a move with id 0 and check the properties
   Move m0(0);
   EXPECT_EQ(m0.move_type(), Move::MoveType::kMove);
-  EXPECT_EQ(m0.row1(), 0);
-  EXPECT_EQ(m0.col1(), 0);
-  EXPECT_EQ(m0.row2(), 0);
-  EXPECT_EQ(m0.col2(), 1);
+  EXPECT_EQ(m0.rowFrom(), 0);
+  EXPECT_EQ(m0.colFrom(), 0);
+  EXPECT_EQ(m0.rowTo(), 0);
+  EXPECT_EQ(m0.colTo(), 1);
 
   // Create a move with id 48 and check the properties
   Move m48(48);
   EXPECT_EQ(m48.move_type(), Move::MoveType::kPlace);
   EXPECT_EQ(m48.piece_type(), 0);
-  EXPECT_EQ(m48.row1(), 0);
-  EXPECT_EQ(m48.col1(), 0);
+  EXPECT_EQ(m48.rowFrom(), 0);
+  EXPECT_EQ(m48.colFrom(), 0);
 }
 
 TEST(MoveTest, EncodePlace) {
@@ -38,13 +38,13 @@ TEST(MoveTest, RecoverMove) {
     Move m(i);
     // std::cerr << i << encodeMove(m.row1(), m.col1(), m.row2(), m.col2()) <<
     // std::endl;
-    EXPECT_EQ(encodeMove(m.row1(), m.col1(), m.row2(), m.col2()), i);
+    EXPECT_EQ(encodeMove(m.rowFrom(), m.colFrom(), m.rowTo(), m.colTo()), i);
   }
   for (int i = 48; i < 96; i++) {
     Move m(i);
     // std::cerr << i << encodePlace(m.piece_type(), m.row1(), m.col1()) <<
     // std::endl;
-    EXPECT_EQ(encodePlace(m.piece_type(), m.row1(), m.col1()), i);
+    EXPECT_EQ(encodePlace(m.piece_type(), m.rowFrom(), m.colFrom()), i);
   }
 }
 

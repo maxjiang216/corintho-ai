@@ -39,7 +39,7 @@ class PlayMC {
   void move_down(Node *prev_node);
   void propagate_result();
 
-public:
+ public:
   PlayMC() = default;
   PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
          float epsilon, bool logging, uintf seed);

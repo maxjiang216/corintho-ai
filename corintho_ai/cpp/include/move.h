@@ -17,7 +17,7 @@
  * Search.
  */
 class Move {
-public:
+ public:
   enum class MoveType { kPlace, kMove };
 
   Move() = delete;
@@ -26,35 +26,41 @@ public:
   Move &operator=(const Move &move) noexcept = default;
   Move &operator=(Move &&move) noexcept = default;
   ~Move() = default;
-  /// Construct a move from its ID
+  /// @brief Construct a move from its ID
   explicit Move(int32_t id) noexcept;
+  /// @brief Construct a place move
+  Move(Space space, PieceType piece_type) noexcept;
+  /// @brief Construct a move move
+  Move(Space spaceFrom, Space spaceTo) noexcept;
 
   MoveType move_type() const noexcept { return move_type_; }
-  int32_t piece_type() const noexcept { return piece_type_; }
-  /// @brief The row of the space being moved from or placed on
-  int32_t row1() const noexcept { return row1_; }
-  /// @brief The column of the space being moved from or placed on
-  int32_t col1() const noexcept { return col1_; }
-  /// @brief The row of the space being moved to, not used for place moves
-  int32_t row2() const noexcept { return row2_; }
-  /// @brief The column of the space being moved to, not used for place moves
-  int32_t col2() const noexcept { return col2_; }
+  PieceType piece_type() const noexcept { return piece_type_; }
+  /// @brief The row of the space being moved from, not used for place moves
+  int32_t rowFrom() const noexcept { return spaceFrom_.row; }
+  /// @brief The column of the space being moved from, not used for place moves
+  int32_t colFrom() const noexcept { return spaceFrom_.row; }
+  /// @brief The space being moved from, not used for place moves
+  Space spaceFrom() const noexcept { return spaceFrom_; }
+  /// @brief The row of the space being moved to or placed on
+  int32_t rowTo() const noexcept { return spaceTo_.row; }
+  /// @brief The column of the space being moved to or placed on
+  int32_t colTo() const noexcept { return spaceTo_.row; }
+  /// @brief The space being moved to or placed on
+  Space spaceTo() const noexcept { return spaceTo_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
 
-private:
+ private:
   MoveType move_type_;
-  int32_t piece_type_;
-  int32_t row1_;
-  int32_t col1_;
-  int32_t row2_{-1};
-  int32_t col2_{-1};
+  PieceType piece_type_;
+  Space spaceFrom_{-1, -1};
+  Space spaceTo_;
 };
 
 // Get the ID of a place move
-int32_t encodePlace(int32_t ptype, int32_t row, int32_t col);
+int32_t encodePlace(Space space, PieceType piece_type);
 // Get the ID of a move move
-int32_t encodeMove(int32_t row1, int32_t col1, int32_t row2, int32_t col2);
+int32_t encodeMove(Space spaceFrom, Space spaceTo);
 // Convert column index to its name (a, b, c, d)
 char getColName(int32_t col);
 

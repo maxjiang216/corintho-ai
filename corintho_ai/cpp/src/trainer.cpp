@@ -64,7 +64,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[]) {
       if (i / std::max((uintf)1, (games.size() / num_iterations)) <
           iterations_done) {
         bool is_completed = games[i]->do_iteration(
-            &evaluations[offsets[i]], &probabilities[NUM_MOVES * offsets[i]]);
+            &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
         if (is_completed) {
           is_done[i] = true;
         }
@@ -116,7 +116,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   for (uintf i = 0; i < games.size(); ++i) {
     if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
       bool is_completed = games[i]->do_iteration(
-          &evaluations[offsets[i]], &probabilities[NUM_MOVES * offsets[i]]);
+          &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
       if (is_completed) {
         is_done[i] = true;
       }
@@ -263,7 +263,7 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
     games[i]->write_samples(
         game_states + offsets[i] * GAME_STATE_SIZE * SYMMETRY_NUM,
         evaluation_samples + offsets[i] * SYMMETRY_NUM,
-        probability_samples + offsets[i] * NUM_MOVES * SYMMETRY_NUM);
+        probability_samples + offsets[i] * kNumMoves * SYMMETRY_NUM);
   }
 }
 

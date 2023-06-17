@@ -66,13 +66,13 @@ bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
 }
 
 uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
-                           float probability_sample[NUM_MOVES]) {
+                           float probability_sample[kNumMoves]) {
   if (!testing) {
     // Before moving down, read the samples from the root node
     root->write_game_state(game_state);
     // Clear probabilities first
     // Most moves are not legal
-    std::memset(probability_sample, 0, NUM_MOVES * sizeof(float));
+    std::memset(probability_sample, 0, kNumMoves * sizeof(float));
   }
 
   uintf move_choice = 0;
@@ -264,10 +264,10 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
     // Since we want to avoid evaluating the node if it is terminal
     uintf edge_index = 0;
     float sum = 0.0, filtered_probs[cur->num_legal_moves];
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
+    for (uintf i = 0; i < kNumMoves; ++i) {
       if (edge_index < cur->num_legal_moves &&
           cur->edges[edge_index].move_id == i) {
-        filtered_probs[edge_index] = probabilities[NUM_MOVES * j + i];
+        filtered_probs[edge_index] = probabilities[kNumMoves * j + i];
         sum += filtered_probs[edge_index];
         ++edge_index;
       }

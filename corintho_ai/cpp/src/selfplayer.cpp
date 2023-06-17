@@ -160,7 +160,7 @@ bool SelfPlayer::do_iteration() {
     // This function will automatically apply the move to the TrainMC
     // Also write samples
     std::array<float, GAME_STATE_SIZE> sample_state;
-    std::array<float, NUM_MOVES> probability_sample;
+    std::array<float, kNumMoves> probability_sample;
     uintf move_choice = players[to_play].choose_move(sample_state.data(),
                                                      probability_sample.data());
     samples.emplace_back(sample_state, probability_sample);
@@ -265,24 +265,24 @@ void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
           samples[i].game_state[j];
     }
     *(evaluation_samples + offset * SYMMETRY_NUM) = evaluation;
-    for (uintf j = 0; j < NUM_MOVES; ++j) {
-      *(probability_samples + offset * NUM_MOVES * SYMMETRY_NUM + j) =
+    for (uintf j = 0; j < kNumMoves; ++j) {
+      *(probability_samples + offset * kNumMoves * SYMMETRY_NUM + j) =
           samples[i].probabilities[j];
     }
     for (uintf k = 0; k < SYMMETRY_NUM - 1; ++k) {
-      for (uintf j = 0; j < 4 * BOARD_SIZE; ++j) {
+      for (uintf j = 0; j < 4 * kBoardSize; ++j) {
         *(game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM +
           (k + 1) * GAME_STATE_SIZE + j) =
             samples[i].game_state[space_symmetries[k][j / 4] * 4 + j % 4];
       }
-      for (uintf j = 4 * BOARD_SIZE; j < GAME_STATE_SIZE; ++j) {
+      for (uintf j = 4 * kBoardSize; j < GAME_STATE_SIZE; ++j) {
         *(game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM +
           (k + 1) * GAME_STATE_SIZE + j) = samples[i].game_state[j];
       }
       *(evaluation_samples + offset * SYMMETRY_NUM + (k + 1)) = evaluation;
-      for (uintf j = 0; j < NUM_MOVES; ++j) {
-        *(probability_samples + offset * NUM_MOVES * SYMMETRY_NUM +
-          (k + 1) * NUM_MOVES + j) =
+      for (uintf j = 0; j < kNumMoves; ++j) {
+        *(probability_samples + offset * kNumMoves * SYMMETRY_NUM +
+          (k + 1) * kNumMoves + j) =
             samples[i].probabilities[move_symmetries[k][j]];
       }
     }

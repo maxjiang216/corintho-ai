@@ -31,3 +31,4 @@ googletest
 corintho_ai/docker/choose_move.cpp
 html
 latex
+gsl

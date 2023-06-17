@@ -14,10 +14,10 @@ struct Sample {
   // We do not store the evaluation as it is only computable once the game is
   // complete
   std::array<float, GAME_STATE_SIZE> game_state;
-  std::array<float, NUM_MOVES> probabilities;
+  std::array<float, kNumMoves> probabilities;
 
   Sample(std::array<float, GAME_STATE_SIZE> game_state,
-         std::array<float, NUM_MOVES> probabilities)
+         std::array<float, kNumMoves> probabilities)
       : game_state{game_state}, probabilities{probabilities} {}
 };
 
@@ -51,7 +51,7 @@ class SelfPlayer {
 
   bool do_iteration();
 
-public:
+ public:
   // Training mode
   SelfPlayer(uintf searches_per_eval, std::mt19937 *generator);
   SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,

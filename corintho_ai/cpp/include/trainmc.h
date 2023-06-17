@@ -43,7 +43,7 @@ class TrainMC {
 
   void propagate_result();
 
-public:
+ public:
   // Training
   TrainMC(std::mt19937 *generator);
   // Testing
@@ -62,7 +62,7 @@ public:
 
   // Choose the next child to visit
   uintf choose_move(float game_state[GAME_STATE_SIZE],
-                    float probability_sample[NUM_MOVES]);
+                    float probability_sample[kNumMoves]);
 
   bool receive_opp_move(uintf move_choice, const Game &game, uintf depth);
 

@@ -7,6 +7,6 @@ TEST(GameTest, Constructor) {
   // Create a game and check the properties
   Game game;
 
-  std::bitset<NUM_MOVES> legal_moves;
-  ASSERT_FALSE(game.get_legal_moves(legal_moves));
+  std::bitset<kNumMoves> legal_moves;
+  ASSERT_FALSE(game.getLegalMoves(legal_moves));
 }

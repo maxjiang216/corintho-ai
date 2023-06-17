@@ -46,7 +46,7 @@ struct Space {
 };
 
 // Size of game state sample
-const uintf GAME_STATE_SIZE = 70;
+const uintf kGameStateSize = 70;
 // Number of possible legal moves
 const int32_t kNumMoves = 96;
 

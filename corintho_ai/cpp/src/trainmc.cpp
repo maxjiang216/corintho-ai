@@ -65,7 +65,7 @@ bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
   return iterations_done == max_iterations || root->result != RESULT_NONE;
 }
 
-uintf TrainMC::choose_move(float game_state[GAME_STATE_SIZE],
+uintf TrainMC::choose_move(float game_state[kGameStateSize],
                            float probability_sample[kNumMoves]) {
   if (!testing) {
     // Before moving down, read the samples from the root node
@@ -467,7 +467,7 @@ bool TrainMC::search() {
       cur->evaluation = 1.0;
       need_evaluation = true;
       // Write game in offset position
-      cur->write_game_state(to_eval + eval_index * GAME_STATE_SIZE);
+      cur->write_game_state(to_eval + eval_index * kGameStateSize);
       // Record the node
       searched.push_back(cur);
       ++eval_index;

@@ -55,7 +55,7 @@ float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;
 }
 
-void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
+void Node::write_game_state(float game_state[kGameStateSize]) const {
   game.writeGameState(game_state);
 }
 

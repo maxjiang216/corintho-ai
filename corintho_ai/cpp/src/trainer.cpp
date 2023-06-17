@@ -196,7 +196,7 @@ uintf Trainer::write_requests(float *game_states) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    games[i]->write_requests(game_states + offsets[i] * GAME_STATE_SIZE);
+    games[i]->write_requests(game_states + offsets[i] * kGameStateSize);
   }
   return offsets[games.size() - 1] + games[games.size() - 1]->count_requests();
 }
@@ -221,7 +221,7 @@ uintf Trainer::write_requests(float *game_states, uintf to_play) const {
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
     if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
-      games[i]->write_requests(game_states + offsets[i] * GAME_STATE_SIZE);
+      games[i]->write_requests(game_states + offsets[i] * kGameStateSize);
     }
   }
   uintf num_requests = offsets[games.size() - 1];
@@ -261,7 +261,7 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
   }
   for (uintf i = 0; i < games.size(); ++i) {
     games[i]->write_samples(
-        game_states + offsets[i] * GAME_STATE_SIZE * SYMMETRY_NUM,
+        game_states + offsets[i] * kGameStateSize * SYMMETRY_NUM,
         evaluation_samples + offsets[i] * SYMMETRY_NUM,
         probability_samples + offsets[i] * kNumMoves * SYMMETRY_NUM);
   }

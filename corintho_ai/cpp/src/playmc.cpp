@@ -19,7 +19,7 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
     : max_iterations{max_iterations}, searches_per_eval{searches_per_eval},
       c_puct{c_puct}, epsilon{epsilon}, root{nullptr}, cur{nullptr},
       eval_index{0}, searched{std::vector<Node *>()},
-      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
+      to_eval{new float[searches_per_eval * kGameStateSize]},
       iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
   searched.reserve(searches_per_eval);
   root = new Node();
@@ -33,7 +33,7 @@ PlayMC::PlayMC(int32_t board[4 * kBoardSize], int32_t to_play,
                                             uintf)searches_per_eval},
       c_puct{3.0}, epsilon{0.25}, root{nullptr}, cur{nullptr},
       eval_index{0}, searched{std::vector<Node *>()},
-      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
+      to_eval{new float[searches_per_eval * kGameStateSize]},
       iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
   searched.reserve(searches_per_eval);
   Game game = Game{board, to_play, pieces};
@@ -401,7 +401,7 @@ bool PlayMC::search() {
       cur->evaluation = 1.0;
       need_evaluation = true;
       // Write game in offset position
-      cur->write_game_state(to_eval + eval_index * GAME_STATE_SIZE);
+      cur->write_game_state(to_eval + eval_index * kGameStateSize);
       // Record the node
       searched.push_back(cur);
       ++eval_index;
@@ -512,7 +512,7 @@ bool PlayMC::has_drawn() const {
 }
 
 uintf PlayMC::write_requests(float game_states[]) const {
-  for (uintf i = 0; i < GAME_STATE_SIZE * searched.size(); ++i) {
+  for (uintf i = 0; i < kGameStateSize * searched.size(); ++i) {
     *(game_states + i) = to_eval[i];
   }
   return searched.size();

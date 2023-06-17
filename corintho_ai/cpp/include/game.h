@@ -33,9 +33,9 @@ class Game {
   /// @return Whether there are any "lines" in the current position
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
   /// @brief Write a representation of the game state to a float array
-  /// @param game_state A float array of size GAME_STATE_SIZE, used for input to
+  /// @param game_state A float array of size kGameStateSize, used for input to
   /// the neural network
-  void writeGameState(float game_state[GAME_STATE_SIZE]) const noexcept;
+  void writeGameState(float game_state[kGameStateSize]) const noexcept;
   /// @brief Applies a move to the game state
   /// @warning Does not check if the move is legal
   /// @param move_id The ID of the move to apply

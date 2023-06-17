@@ -49,7 +49,7 @@ class alignas(64) Node {
   bool is_terminal() const;
   float get_probability(uintf edge_index) const;
 
-  void write_game_state(float game_state[GAME_STATE_SIZE]) const;
+  void write_game_state(float game_state[kGameStateSize]) const;
 
   uintf count_nodes() const;
 

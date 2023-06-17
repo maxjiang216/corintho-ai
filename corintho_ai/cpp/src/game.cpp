@@ -41,7 +41,7 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
-void Game::writeGameState(float game_state[GAME_STATE_SIZE]) const noexcept {
+void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
   for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
     if (board_[i]) {
       game_state[i] = 1.0;

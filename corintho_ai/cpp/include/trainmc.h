@@ -61,7 +61,7 @@ class TrainMC {
   bool do_iteration(float evaluation[], float probabilities[]);
 
   // Choose the next child to visit
-  uintf choose_move(float game_state[GAME_STATE_SIZE],
+  uintf choose_move(float game_state[kGameStateSize],
                     float probability_sample[kNumMoves]);
 
   bool receive_opp_move(uintf move_choice, const Game &game, uintf depth);

@@ -36,12 +36,14 @@ TEST(MoveTest, RecoverMove) {
   // Test that decoding and encoding a move returns the same move
   for (int i = 0; i < 48; i++) {
     Move m(i);
-    //std::cerr << i << encodeMove(m.row1(), m.col1(), m.row2(), m.col2()) << std::endl;
+    // std::cerr << i << encodeMove(m.row1(), m.col1(), m.row2(), m.col2()) <<
+    // std::endl;
     EXPECT_EQ(encodeMove(m.row1(), m.col1(), m.row2(), m.col2()), i);
   }
   for (int i = 48; i < 96; i++) {
     Move m(i);
-    //std::cerr << i << encodePlace(m.piece_type(), m.row1(), m.col1()) << std::endl;
+    // std::cerr << i << encodePlace(m.piece_type(), m.row1(), m.col1()) <<
+    // std::endl;
     EXPECT_EQ(encodePlace(m.piece_type(), m.row1(), m.col1()), i);
   }
 }

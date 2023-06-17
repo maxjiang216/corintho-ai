@@ -23,7 +23,7 @@ jobs:
 
     - name: Clone the GSL repo
       run: |
-        git clone https://github.com/microsoft/gsl.git
+        git clone --depth 1 https://github.com/microsoft/gsl.git
 
     - name: Build
       run: |

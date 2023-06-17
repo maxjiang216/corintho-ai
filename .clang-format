@@ -75,3 +75,4 @@ PointerAlignment: Right
 ReflowComments:  true
 SortIncludes:    true
 SpaceAfterCStyleCast: false
+SpacesBeforeTrailingComments: 2

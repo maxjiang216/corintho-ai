@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['row1_6',['row1',['../classMove.html#a78c9eca1d159ed49f3fffc67d411cb00',1,'Move']]],
-  ['row2_7',['row2',['../classMove.html#ad3f8ebc772a434ef454e096178ba8009',1,'Move']]]
+  ['frozen_14',['frozen',['../classGame.html#a8daac50a76b2bca9aefb8085456f36a3',1,'Game']]]
 ];

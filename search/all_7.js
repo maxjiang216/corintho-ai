@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['trainer_10',['Trainer',['../classTrainer.html',1,'']]],
-  ['trainmc_11',['TrainMC',['../classTrainMC.html',1,'']]]
+  ['islegalmove_19',['isLegalMove',['../classGame.html#aaeab89abce55b4cf91919f5a4de090eb',1,'Game']]]
 ];

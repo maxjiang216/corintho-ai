@@ -110,13 +110,13 @@ $(function() {
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  <span class="keywordtype">void</span> move_down(<a class="code" href="classNode.html">Node</a> *prev_node);</div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="keywordtype">void</span> propagate_result();</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>(uintf max_iterations, uintf searches_per_eval, <span class="keywordtype">float</span> c_puct,</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;         <span class="keywordtype">float</span> epsilon, <span class="keywordtype">bool</span> logging, uintf seed);</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="comment">// PlayMC for web app</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>(<span class="keywordtype">long</span> *board, <span class="keywordtype">int</span> to_play, <span class="keywordtype">long</span> *pieces, <span class="keywordtype">int</span> searches_per_eval,</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;         <span class="keywordtype">int</span> seed);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <a class="code" href="classPlayMC.html">PlayMC</a>(int32_t board[4 * kBoardSize], int32_t to_play, int32_t pieces[6],</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;         <span class="keywordtype">int</span> searches_per_eval, <span class="keywordtype">int</span> seed);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  ~<a class="code" href="classPlayMC.html">PlayMC</a>();</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
@@ -141,7 +141,7 @@ $(function() {
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;};</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdef"><b>Definition:</b> game.h:12</div></div>
+<div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdoc">Represents a Corintho game state.</div><div class="ttdef"><b>Definition:</b> game.h:17</div></div>
 <div class="ttc" id="aclassNode_html"><div class="ttname"><a href="classNode.html">Node</a></div><div class="ttdef"><b>Definition:</b> node.h:10</div></div>
 <div class="ttc" id="aclassPlayMC_html"><div class="ttname"><a href="classPlayMC.html">PlayMC</a></div><div class="ttdef"><b>Definition:</b> playmc.h:15</div></div>
 </div><!-- fragment --></div><!-- contents -->

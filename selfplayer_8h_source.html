@@ -84,11 +84,11 @@ $(function() {
 <div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="structSample.html">   13</a></span>&#160;<span class="keyword">struct </span><a class="code" href="structSample.html">Sample</a> {</div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;  <span class="comment">// We do not store the evaluation as it is only computable once the game is</span></div>
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <span class="comment">// complete</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  std::array&lt;float, GAME_STATE_SIZE&gt; game_state;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  std::array&lt;float, NUM_MOVES&gt; probabilities;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  std::array&lt;float, kGameStateSize&gt; game_state;</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;  std::array&lt;float, kNumMoves&gt; probabilities;</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <a class="code" href="structSample.html">Sample</a>(std::array&lt;float, GAME_STATE_SIZE&gt; game_state,</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;         std::array&lt;float, NUM_MOVES&gt; probabilities)</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  <a class="code" href="structSample.html">Sample</a>(std::array&lt;float, kGameStateSize&gt; game_state,</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;         std::array&lt;float, kNumMoves&gt; probabilities)</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;      : game_state{game_state}, probabilities{probabilities} {}</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;};</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160; </div>
@@ -122,7 +122,7 @@ $(function() {
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="keywordtype">bool</span> do_iteration();</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; </div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="comment">// Training mode</span></div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, std::mt19937 *generator);</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  <a class="code" href="classSelfPlayer.html">SelfPlayer</a>(uintf searches_per_eval, std::mt19937 *generator,</div>

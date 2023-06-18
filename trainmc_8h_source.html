@@ -114,7 +114,7 @@ $(function() {
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <span class="keywordtype">void</span> propagate_result();</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="comment">// Training</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <a class="code" href="classTrainMC.html">TrainMC</a>(std::mt19937 *generator);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="comment">// Testing</span></div>
@@ -132,8 +132,8 @@ $(function() {
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluation[], <span class="keywordtype">float</span> probabilities[]);</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;  <span class="comment">// Choose the next child to visit</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  uintf choose_move(<span class="keywordtype">float</span> game_state[GAME_STATE_SIZE],</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                    <span class="keywordtype">float</span> probability_sample[NUM_MOVES]);</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  uintf choose_move(<span class="keywordtype">float</span> game_state[kGameStateSize],</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;                    <span class="keywordtype">float</span> probability_sample[kNumMoves]);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <span class="keywordtype">bool</span> receive_opp_move(uintf move_choice, <span class="keyword">const</span> <a class="code" href="classGame.html">Game</a> &amp;game, uintf depth);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160; </div>
@@ -150,7 +150,7 @@ $(function() {
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;};</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdef"><b>Definition:</b> game.h:12</div></div>
+<div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdoc">Represents a Corintho game state.</div><div class="ttdef"><b>Definition:</b> game.h:17</div></div>
 <div class="ttc" id="aclassNode_html"><div class="ttname"><a href="classNode.html">Node</a></div><div class="ttdef"><b>Definition:</b> node.h:10</div></div>
 <div class="ttc" id="aclassSelfPlayer_html"><div class="ttname"><a href="classSelfPlayer.html">SelfPlayer</a></div><div class="ttdef"><b>Definition:</b> selfplayer.h:24</div></div>
 <div class="ttc" id="aclassTrainMC_html"><div class="ttname"><a href="classTrainMC.html">TrainMC</a></div><div class="ttdef"><b>Definition:</b> trainmc.h:15</div></div>

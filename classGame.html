@@ -63,40 +63,802 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classGame-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Game Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Represents a Corintho game state.  
+ <a href="classGame.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="game_8h_source.html">game.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2e717940e535bb3f58364f735ced3a5a"><td class="memItemLeft" align="right" valign="top"><a id="a2e717940e535bb3f58364f735ced3a5a"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (const <a class="el" href="classGame.html">Game</a> &amp;game)=default</td></tr>
-<tr class="separator:a2e717940e535bb3f58364f735ced3a5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d9eee341c877ada51c75befe7cbedb0"><td class="memItemLeft" align="right" valign="top"><a id="a2d9eee341c877ada51c75befe7cbedb0"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (long *board, int to_play, long *pieces)</td></tr>
-<tr class="separator:a2d9eee341c877ada51c75befe7cbedb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeceb8086ae398868fa6b9385bb7c724d"><td class="memItemLeft" align="right" valign="top"><a id="aeceb8086ae398868fa6b9385bb7c724d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>do_move</b> (int32_t move_id)</td></tr>
-<tr class="separator:aeceb8086ae398868fa6b9385bb7c724d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a453d1e7e7b728058be4ad22035a0be8f"><td class="memItemLeft" align="right" valign="top"><a id="a453d1e7e7b728058be4ad22035a0be8f"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>get_legal_moves</b> (bitset&lt; NUM_MOVES &gt; &amp;legal_moves) const</td></tr>
-<tr class="separator:a453d1e7e7b728058be4ad22035a0be8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe4429dcc55a686eb8a76f0237be6d5f"><td class="memItemLeft" align="right" valign="top"><a id="abe4429dcc55a686eb8a76f0237be6d5f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_game_state</b> (float game_state[GAME_STATE_SIZE]) const</td></tr>
-<tr class="separator:abe4429dcc55a686eb8a76f0237be6d5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a917b735bf9d8d7fe84e5a1fb6dc12aaf"><td class="memItemLeft" align="right" valign="top"><a id="a917b735bf9d8d7fe84e5a1fb6dc12aaf"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a917b735bf9d8d7fe84e5a1fb6dc12aaf">Game</a> () noexcept=default</td></tr>
+<tr class="memdesc:a917b735bf9d8d7fe84e5a1fb6dc12aaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The default constructor creates a game in the starting position. <br /></td></tr>
+<tr class="separator:a917b735bf9d8d7fe84e5a1fb6dc12aaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af83cb28578139052e1987739a284ed5f"><td class="memItemLeft" align="right" valign="top"><a id="af83cb28578139052e1987739a284ed5f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (const <a class="el" href="classGame.html">Game</a> &amp;game) noexcept=default</td></tr>
+<tr class="separator:af83cb28578139052e1987739a284ed5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a644702ed9767f950b1350504e3b2f242"><td class="memItemLeft" align="right" valign="top"><a id="a644702ed9767f950b1350504e3b2f242"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (<a class="el" href="classGame.html">Game</a> &amp;&amp;game) noexcept=default</td></tr>
+<tr class="separator:a644702ed9767f950b1350504e3b2f242"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63f136767afa4eec1a612ce1d211e1ae"><td class="memItemLeft" align="right" valign="top"><a id="a63f136767afa4eec1a612ce1d211e1ae"></a>
+<a class="el" href="classGame.html">Game</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classGame.html">Game</a> &amp;game) noexcept=default</td></tr>
+<tr class="separator:a63f136767afa4eec1a612ce1d211e1ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c610dcf4dd30deface76e6fc60bdd59"><td class="memItemLeft" align="right" valign="top"><a id="a4c610dcf4dd30deface76e6fc60bdd59"></a>
+<a class="el" href="classGame.html">Game</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classGame.html">Game</a> &amp;&amp;game) noexcept=default</td></tr>
+<tr class="separator:a4c610dcf4dd30deface76e6fc60bdd59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc88abd4718419d3373aad16748117a1"><td class="memItemLeft" align="right" valign="top"><a id="adc88abd4718419d3373aad16748117a1"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Game</b> (int32_t <a class="el" href="classGame.html#a0a231fd714902fc55cd41bfad13db482">board</a>[4 *kBoardSize], int32_t to_play, int32_t pieces[6]) noexcept</td></tr>
+<tr class="separator:adc88abd4718419d3373aad16748117a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbe195b6bb6a727f45da387cc5fe864d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#adbe195b6bb6a727f45da387cc5fe864d">getLegalMoves</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:adbe195b6bb6a727f45da387cc5fe864d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutates legal_moves to indicate which moves are legal.  <a href="classGame.html#adbe195b6bb6a727f45da387cc5fe864d">More...</a><br /></td></tr>
+<tr class="separator:adbe195b6bb6a727f45da387cc5fe864d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ad7c12d8e77bd88012278b4f1a3ddf28a">writeGameState</a> (float game_state[kGameStateSize]) const noexcept</td></tr>
+<tr class="memdesc:ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a representation of the game state to a float array.  <a href="classGame.html#ad7c12d8e77bd88012278b4f1a3ddf28a">More...</a><br /></td></tr>
+<tr class="separator:ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c42c87dacf3e39b7c1b315c320b47a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a9c42c87dacf3e39b7c1b315c320b47a1">doMove</a> (int32_t move_id) noexcept</td></tr>
+<tr class="memdesc:a9c42c87dacf3e39b7c1b315c320b47a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies a move to the game state.  <a href="classGame.html#a9c42c87dacf3e39b7c1b315c320b47a1">More...</a><br /></td></tr>
+<tr class="separator:a9c42c87dacf3e39b7c1b315c320b47a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:a0a231fd714902fc55cd41bfad13db482"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a0a231fd714902fc55cd41bfad13db482">board</a> (<a class="el" href="structSpace.html">Space</a> space, PieceType piece_type) const noexcept</td></tr>
+<tr class="memdesc:a0a231fd714902fc55cd41bfad13db482"><td class="mdescLeft">&#160;</td><td class="mdescRight">Private accessor for the board.  <a href="classGame.html#a0a231fd714902fc55cd41bfad13db482">More...</a><br /></td></tr>
+<tr class="separator:a0a231fd714902fc55cd41bfad13db482"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8daac50a76b2bca9aefb8085456f36a3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a8daac50a76b2bca9aefb8085456f36a3">frozen</a> (<a class="el" href="structSpace.html">Space</a> space) const noexcept</td></tr>
+<tr class="memdesc:a8daac50a76b2bca9aefb8085456f36a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a space is frozen.  <a href="classGame.html#a8daac50a76b2bca9aefb8085456f36a3">More...</a><br /></td></tr>
+<tr class="separator:a8daac50a76b2bca9aefb8085456f36a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d2370bb6969cffc369c5a992600b9e0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a7d2370bb6969cffc369c5a992600b9e0">empty</a> (<a class="el" href="structSpace.html">Space</a> space) const noexcept</td></tr>
+<tr class="memdesc:a7d2370bb6969cffc369c5a992600b9e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a space is empty.  <a href="classGame.html#a7d2370bb6969cffc369c5a992600b9e0">More...</a><br /></td></tr>
+<tr class="separator:a7d2370bb6969cffc369c5a992600b9e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa72c324f0b5799bc8621ab3810615689"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#aa72c324f0b5799bc8621ab3810615689">getTop</a> (<a class="el" href="structSpace.html">Space</a> space) const noexcept</td></tr>
+<tr class="memdesc:aa72c324f0b5799bc8621ab3810615689"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the top piece of a stack.  <a href="classGame.html#aa72c324f0b5799bc8621ab3810615689">More...</a><br /></td></tr>
+<tr class="separator:aa72c324f0b5799bc8621ab3810615689"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1cb6874a2896d7bd6f9106bd0f856af"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ae1cb6874a2896d7bd6f9106bd0f856af">getBottom</a> (<a class="el" href="structSpace.html">Space</a> space) const noexcept</td></tr>
+<tr class="memdesc:ae1cb6874a2896d7bd6f9106bd0f856af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds the bottom piece of a stack.  <a href="classGame.html#ae1cb6874a2896d7bd6f9106bd0f856af">More...</a><br /></td></tr>
+<tr class="separator:ae1cb6874a2896d7bd6f9106bd0f856af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee1b5d41d063a247502a7a2ea682fddc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#aee1b5d41d063a247502a7a2ea682fddc">setBoard</a> (<a class="el" href="structSpace.html">Space</a> space, PieceType piece_type, bool state=true) noexcept</td></tr>
+<tr class="memdesc:aee1b5d41d063a247502a7a2ea682fddc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutator for the board.  <a href="classGame.html#aee1b5d41d063a247502a7a2ea682fddc">More...</a><br /></td></tr>
+<tr class="separator:aee1b5d41d063a247502a7a2ea682fddc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a594e851abf99ded45293ce05755e361e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a594e851abf99ded45293ce05755e361e">setFrozen</a> (<a class="el" href="structSpace.html">Space</a> space, bool state=true) noexcept</td></tr>
+<tr class="memdesc:a594e851abf99ded45293ce05755e361e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mutator for the frozenness of a space.  <a href="classGame.html#a594e851abf99ded45293ce05755e361e">More...</a><br /></td></tr>
+<tr class="separator:a594e851abf99ded45293ce05755e361e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cd765c6a00b00f4641832a03642b9da"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a5cd765c6a00b00f4641832a03642b9da">canPlace</a> (const <a class="el" href="classMove.html">Move</a> &amp;move) const noexcept</td></tr>
+<tr class="memdesc:a5cd765c6a00b00f4641832a03642b9da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a piece can be placed on the space.  <a href="classGame.html#a5cd765c6a00b00f4641832a03642b9da">More...</a><br /></td></tr>
+<tr class="separator:a5cd765c6a00b00f4641832a03642b9da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e25ac5343005a4608ce9d1983229f8f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a3e25ac5343005a4608ce9d1983229f8f">canMove</a> (const <a class="el" href="classMove.html">Move</a> &amp;move) const noexcept</td></tr>
+<tr class="memdesc:a3e25ac5343005a4608ce9d1983229f8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a tower can be moved.  <a href="classGame.html#a3e25ac5343005a4608ce9d1983229f8f">More...</a><br /></td></tr>
+<tr class="separator:a3e25ac5343005a4608ce9d1983229f8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaeab89abce55b4cf91919f5a4de090eb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#aaeab89abce55b4cf91919f5a4de090eb">isLegalMove</a> (int32_t move_id) const noexcept</td></tr>
+<tr class="memdesc:aaeab89abce55b4cf91919f5a4de090eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a move is legal according to basic rules.  <a href="classGame.html#aaeab89abce55b4cf91919f5a4de090eb">More...</a><br /></td></tr>
+<tr class="separator:aaeab89abce55b4cf91919f5a4de090eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add203d7469fb0ce8a69e4d6b06efefbb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#add203d7469fb0ce8a69e4d6b06efefbb">applyLine</a> (int32_t line, std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:add203d7469fb0ce8a69e4d6b06efefbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the line breakers of a given line to a bitset of legal moves.  <a href="classGame.html#add203d7469fb0ce8a69e4d6b06efefbb">More...</a><br /></td></tr>
+<tr class="separator:add203d7469fb0ce8a69e4d6b06efefbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad15f9b3bc1e99f51edd727ef11a35fbb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ad15f9b3bc1e99f51edd727ef11a35fbb">applyRowColLines</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves, bool isCol) const noexcept</td></tr>
+<tr class="memdesc:ad15f9b3bc1e99f51edd727ef11a35fbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the row or column lines to a bitset of legal moves.  <a href="classGame.html#ad15f9b3bc1e99f51edd727ef11a35fbb">More...</a><br /></td></tr>
+<tr class="separator:ad15f9b3bc1e99f51edd727ef11a35fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af23e0efd3d196566f95a0c91385ce3cc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#af23e0efd3d196566f95a0c91385ce3cc">applyLongDiagLines</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:af23e0efd3d196566f95a0c91385ce3cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the long diagonal lines to a bitset of legal moves.  <a href="classGame.html#af23e0efd3d196566f95a0c91385ce3cc">More...</a><br /></td></tr>
+<tr class="separator:af23e0efd3d196566f95a0c91385ce3cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ecd6d13147bd6fa27c94b1aae9786fe"><td class="memItemLeft" align="right" valign="top"><a id="a6ecd6d13147bd6fa27c94b1aae9786fe"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a6ecd6d13147bd6fa27c94b1aae9786fe">applyShortDiagLines</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:a6ecd6d13147bd6fa27c94b1aae9786fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies the short diagonal lines to a bitset of legal moves. <br /></td></tr>
+<tr class="separator:a6ecd6d13147bd6fa27c94b1aae9786fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44a3d9dd480185e2c5f2b699e56bf42b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a44a3d9dd480185e2c5f2b699e56bf42b">applyLineBreakers</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:a44a3d9dd480185e2c5f2b699e56bf42b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds lines and moves that break all lines.  <a href="classGame.html#a44a3d9dd480185e2c5f2b699e56bf42b">More...</a><br /></td></tr>
+<tr class="separator:a44a3d9dd480185e2c5f2b699e56bf42b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a5006458c1bf61c6593482488043b7835"><td class="memItemLeft" align="right" valign="top">std::bitset&lt; 4 *kBoardSize &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a5006458c1bf61c6593482488043b7835">board_</a> {}</td></tr>
+<tr class="memdesc:a5006458c1bf61c6593482488043b7835"><td class="mdescLeft">&#160;</td><td class="mdescRight">The Corintho game board, stored as a bitset.  <a href="classGame.html#a5006458c1bf61c6593482488043b7835">More...</a><br /></td></tr>
+<tr class="separator:a5006458c1bf61c6593482488043b7835"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66c0a35f8ca9c6e691777ad16d80077f"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a66c0a35f8ca9c6e691777ad16d80077f">pieces_</a> [6] {4, 4, 4, 4, 4, 4}</td></tr>
+<tr class="memdesc:a66c0a35f8ca9c6e691777ad16d80077f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The pieces that each player has available to place.  <a href="classGame.html#a66c0a35f8ca9c6e691777ad16d80077f">More...</a><br /></td></tr>
+<tr class="separator:a66c0a35f8ca9c6e691777ad16d80077f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a214707f5e2f6cad01717fd7cab022c43"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a214707f5e2f6cad01717fd7cab022c43">to_play_</a> {}</td></tr>
+<tr class="memdesc:a214707f5e2f6cad01717fd7cab022c43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whose turn it is to play (0 for first player, 1 for second player)  <a href="classGame.html#a214707f5e2f6cad01717fd7cab022c43">More...</a><br /></td></tr>
+<tr class="separator:a214707f5e2f6cad01717fd7cab022c43"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:a6db9d28bd448a131448276ee03de1e6d"><td class="memItemLeft" align="right" valign="top"><a id="a6db9d28bd448a131448276ee03de1e6d"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b></td></tr>
-<tr class="separator:a6db9d28bd448a131448276ee03de1e6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa453cd184be886705567a45024697c7f"><td class="memItemLeft" align="right" valign="top"><a id="aa453cd184be886705567a45024697c7f"></a>
 std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;stream, const <a class="el" href="classGame.html">Game</a> &amp;game)</td></tr>
 <tr class="separator:aa453cd184be886705567a45024697c7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Represents a Corintho game state. </p>
+<dl class="section note"><dt>Note</dt><dd>The class is designed to be as memory efficient as possible since it is contained in each node of the Monte Carlo Search Tree which is the main memory bottleneck of the program </dd>
+<dd>
+The game state does not know if it is a terminal state This is deduced by the <a class="el" href="classNode.html">Node</a> class from the return value of getLegalMoves (when there are no legal moves) </dd></dl>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="add203d7469fb0ce8a69e4d6b06efefbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add203d7469fb0ce8a69e4d6b06efefbb">&#9670;&nbsp;</a></span>applyLine()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::applyLine </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>line</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Applies the line breakers of a given line to a bitset of legal moves. </p>
+<p>Applies a bitwise AND operation to legal_moves </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">line</td><td>The ID of the line to apply </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a44a3d9dd480185e2c5f2b699e56bf42b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44a3d9dd480185e2c5f2b699e56bf42b">&#9670;&nbsp;</a></span>applyLineBreakers()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::applyLineBreakers </td>
+          <td>(</td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Finds lines and moves that break all lines. </p>
+<p>legal_moves is a bitset indicating which moves are legal based on basic rules See getLegalMoves for more details legal_moves will be mutated by applying a bitwise AND operation with the line breaking moves </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">legal_moves</td><td>A bitset of size kNumMoves </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether there were any lines </dd></dl>
+
+</div>
+</div>
+<a id="af23e0efd3d196566f95a0c91385ce3cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af23e0efd3d196566f95a0c91385ce3cc">&#9670;&nbsp;</a></span>applyLongDiagLines()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::applyLongDiagLines </td>
+          <td>(</td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Applies the long diagonal lines to a bitset of legal moves. </p>
+<p>We can combine the code for the 2 long diagonals There is also only at most one long diagonal line, so we can return early </p>
+
+</div>
+</div>
+<a id="ad15f9b3bc1e99f51edd727ef11a35fbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad15f9b3bc1e99f51edd727ef11a35fbb">&#9670;&nbsp;</a></span>applyRowColLines()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::applyRowColLines </td>
+          <td>(</td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>isCol</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Applies the row or column lines to a bitset of legal moves. </p>
+<p>The row and column code are identical except for the order of the coordinates and the line numbers This function is used to avoid code duplication All the rows/columns are checked together as there can only be up to 1 of each type, so we can return early </p><dl class="section return"><dt>Returns</dt><dd>Whether there were any lines </dd></dl>
+
+</div>
+</div>
+<a id="a0a231fd714902fc55cd41bfad13db482"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a231fd714902fc55cd41bfad13db482">&#9670;&nbsp;</a></span>board()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::board </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">PieceType&#160;</td>
+          <td class="paramname"><em>piece_type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Private accessor for the board. </p>
+<p>Finds the correct index in the bitset for a given row, column, and piece type This interface saves the hassle and error-proneness of manually calculating the index each time </p>
+
+</div>
+</div>
+<a id="a3e25ac5343005a4608ce9d1983229f8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e25ac5343005a4608ce9d1983229f8f">&#9670;&nbsp;</a></span>canMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::canMove </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMove.html">Move</a> &amp;&#160;</td>
+          <td class="paramname"><em>move</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a tower can be moved. </p>
+<dl class="section return"><dt>Returns</dt><dd>Whether the tower can be moved </dd></dl>
+
+</div>
+</div>
+<a id="a5cd765c6a00b00f4641832a03642b9da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5cd765c6a00b00f4641832a03642b9da">&#9670;&nbsp;</a></span>canPlace()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::canPlace </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classMove.html">Move</a> &amp;&#160;</td>
+          <td class="paramname"><em>move</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a piece can be placed on the space. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">piece_type</td><td>The type of piece to place </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether the piece can be placed </dd></dl>
+
+</div>
+</div>
+<a id="a9c42c87dacf3e39b7c1b315c320b47a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c42c87dacf3e39b7c1b315c320b47a1">&#9670;&nbsp;</a></span>doMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::doMove </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>move_id</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Applies a move to the game state. </p>
+<dl class="section warning"><dt>Warning</dt><dd>Does not check if the move is legal </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">move_id</td><td>The ID of the move to apply </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7d2370bb6969cffc369c5a992600b9e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d2370bb6969cffc369c5a992600b9e0">&#9670;&nbsp;</a></span>empty()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::empty </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a space is empty. </p>
+<dl class="section return"><dt>Returns</dt><dd>Whether the space is empty </dd></dl>
+
+</div>
+</div>
+<a id="a8daac50a76b2bca9aefb8085456f36a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8daac50a76b2bca9aefb8085456f36a3">&#9670;&nbsp;</a></span>frozen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::frozen </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a space is frozen. </p>
+<dl class="section return"><dt>Returns</dt><dd>Whether the space is frozen </dd></dl>
+
+</div>
+</div>
+<a id="ae1cb6874a2896d7bd6f9106bd0f856af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae1cb6874a2896d7bd6f9106bd0f856af">&#9670;&nbsp;</a></span>getBottom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Game::getBottom </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Finds the bottom piece of a stack. </p>
+<p>This is used in legal move generation </p><dl class="section return"><dt>Returns</dt><dd>The index of the bottom piece of the stack or 3 if the stack is empty </dd></dl>
+
+</div>
+</div>
+<a id="adbe195b6bb6a727f45da387cc5fe864d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbe195b6bb6a727f45da387cc5fe864d">&#9670;&nbsp;</a></span>getLegalMoves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::getLegalMoves </td>
+          <td>(</td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mutates legal_moves to indicate which moves are legal. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">legal_moves</td><td>A bitset of size kNumMoves </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether there are any "lines" in the current position </dd></dl>
+
+</div>
+</div>
+<a id="aa72c324f0b5799bc8621ab3810615689"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa72c324f0b5799bc8621ab3810615689">&#9670;&nbsp;</a></span>getTop()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Game::getTop </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Finds the top piece of a stack. </p>
+<p>This is used in legal move generation </p><dl class="section return"><dt>Returns</dt><dd>The index of the top piece of the stack or -1 if the stack is empty </dd></dl>
+
+</div>
+</div>
+<a id="aaeab89abce55b4cf91919f5a4de090eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaeab89abce55b4cf91919f5a4de090eb">&#9670;&nbsp;</a></span>isLegalMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Game::isLegalMove </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>move_id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Checks if a move is legal according to basic rules. </p>
+<dl class="section warning"><dt>Warning</dt><dd>Does not check if the move is legal according to line breaking </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">move_id</td><td>The ID of the move to check </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Whether the move is legal </dd></dl>
+
+</div>
+</div>
+<a id="aee1b5d41d063a247502a7a2ea682fddc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee1b5d41d063a247502a7a2ea682fddc">&#9670;&nbsp;</a></span>setBoard()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::setBoard </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">PieceType&#160;</td>
+          <td class="paramname"><em>piece_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>state</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mutator for the board. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>Value to set the entry to </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Default is true to match bitset default </dd></dl>
+
+</div>
+</div>
+<a id="a594e851abf99ded45293ce05755e361e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a594e851abf99ded45293ce05755e361e">&#9670;&nbsp;</a></span>setFrozen()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::setFrozen </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structSpace.html">Space</a>&#160;</td>
+          <td class="paramname"><em>space</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>state</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Mutator for the frozenness of a space. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>Value to set the entry to </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>Default is true to match bitset default </dd></dl>
+
+</div>
+</div>
+<a id="ad7c12d8e77bd88012278b4f1a3ddf28a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7c12d8e77bd88012278b4f1a3ddf28a">&#9670;&nbsp;</a></span>writeGameState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::writeGameState </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>game_state</em>[kGameStateSize]</td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write a representation of the game state to a float array. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">game_state</td><td>A float array of size kGameStateSize, used for input to the neural network </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a5006458c1bf61c6593482488043b7835"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5006458c1bf61c6593482488043b7835">&#9670;&nbsp;</a></span>board_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::bitset&lt;4 * kBoardSize&gt; Game::board_ {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The Corintho game board, stored as a bitset. </p>
+<p>4x4 board with 4 bits per space (3 for pieces, 1 for frozenness) </p><dl class="section note"><dt>Note</dt><dd>Stored as a bitset for memory efficiency </dd></dl>
+
+</div>
+</div>
+<a id="a66c0a35f8ca9c6e691777ad16d80077f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a66c0a35f8ca9c6e691777ad16d80077f">&#9670;&nbsp;</a></span>pieces_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int8_t Game::pieces_[6] {4, 4, 4, 4, 4, 4}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The pieces that each player has available to place. </p>
+<p>Stored as an array of 6 int8_t's for where the first 3 are the first player's pieces </p>
+
+</div>
+</div>
+<a id="a214707f5e2f6cad01717fd7cab022c43"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a214707f5e2f6cad01717fd7cab022c43">&#9670;&nbsp;</a></span>to_play_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int8_t Game::to_play_ {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whose turn it is to play (0 for first player, 1 for second player) </p>
+<dl class="section note"><dt>Note</dt><dd>This is stored as an int8_t instead of a bool so that arithmetic operations can be performed on it </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="game_8h_source.html">game.h</a></li>
 </ul>

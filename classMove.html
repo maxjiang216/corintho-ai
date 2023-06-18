@@ -64,6 +64,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classMove-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -75,6 +76,11 @@ $(function() {
  <a href="classMove.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="move_8h_source.html">move.h</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for Move:</div>
+<div class="dyncontent">
+<div class="center"><img src="classMove__coll__graph.png" border="0" usemap="#aMove_coll__map" alt="Collaboration graph"/></div>
+<center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
@@ -101,28 +107,59 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a6e50d21a512e509b47a03d83a3812331">Move</a> (int32_t id) noexcept</td></tr>
 <tr class="memdesc:a6e50d21a512e509b47a03d83a3812331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a move from its ID. <br /></td></tr>
 <tr class="separator:a6e50d21a512e509b47a03d83a3812331"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac81f277bcc1c2121740da9d56a41aca7"><td class="memItemLeft" align="right" valign="top"><a id="ac81f277bcc1c2121740da9d56a41aca7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#ac81f277bcc1c2121740da9d56a41aca7">Move</a> (<a class="el" href="structSpace.html">Space</a> space, PieceType piece_type) noexcept</td></tr>
+<tr class="memdesc:ac81f277bcc1c2121740da9d56a41aca7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a place move. <br /></td></tr>
+<tr class="separator:ac81f277bcc1c2121740da9d56a41aca7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d6a38d9a0f2c620363ddd64d2550e34"><td class="memItemLeft" align="right" valign="top"><a id="a5d6a38d9a0f2c620363ddd64d2550e34"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a5d6a38d9a0f2c620363ddd64d2550e34">Move</a> (<a class="el" href="structSpace.html">Space</a> <a class="el" href="classMove.html#a7e534948f445a3caacbbf560e45bd542">spaceFrom</a>, <a class="el" href="structSpace.html">Space</a> <a class="el" href="classMove.html#acdc9a60dbacfa588faf1e035ccdcd056">spaceTo</a>) noexcept</td></tr>
+<tr class="memdesc:a5d6a38d9a0f2c620363ddd64d2550e34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a move move with two spaces. <br /></td></tr>
+<tr class="separator:a5d6a38d9a0f2c620363ddd64d2550e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3347f295949cfd1bccfd5d2390f96f20"><td class="memItemLeft" align="right" valign="top"><a id="a3347f295949cfd1bccfd5d2390f96f20"></a>
 MoveType&#160;</td><td class="memItemRight" valign="bottom"><b>move_type</b> () const noexcept</td></tr>
 <tr class="separator:a3347f295949cfd1bccfd5d2390f96f20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7562e36204a1e7f07073b4119711b0ec"><td class="memItemLeft" align="right" valign="top"><a id="a7562e36204a1e7f07073b4119711b0ec"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>piece_type</b> () const noexcept</td></tr>
-<tr class="separator:a7562e36204a1e7f07073b4119711b0ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78c9eca1d159ed49f3fffc67d411cb00"><td class="memItemLeft" align="right" valign="top"><a id="a78c9eca1d159ed49f3fffc67d411cb00"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a78c9eca1d159ed49f3fffc67d411cb00">row1</a> () const noexcept</td></tr>
-<tr class="memdesc:a78c9eca1d159ed49f3fffc67d411cb00"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row of the space being moved from or placed on. <br /></td></tr>
-<tr class="separator:a78c9eca1d159ed49f3fffc67d411cb00"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e49579b1933b186c796e8a719437cec"><td class="memItemLeft" align="right" valign="top"><a id="a8e49579b1933b186c796e8a719437cec"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a8e49579b1933b186c796e8a719437cec">col1</a> () const noexcept</td></tr>
-<tr class="memdesc:a8e49579b1933b186c796e8a719437cec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The column of the space being moved from or placed on. <br /></td></tr>
-<tr class="separator:a8e49579b1933b186c796e8a719437cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3f8ebc772a434ef454e096178ba8009"><td class="memItemLeft" align="right" valign="top"><a id="ad3f8ebc772a434ef454e096178ba8009"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#ad3f8ebc772a434ef454e096178ba8009">row2</a> () const noexcept</td></tr>
-<tr class="memdesc:ad3f8ebc772a434ef454e096178ba8009"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row of the space being moved to, not used for place moves. <br /></td></tr>
-<tr class="separator:ad3f8ebc772a434ef454e096178ba8009"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb286d0ac8d955ed6b04edc7cbcb386d"><td class="memItemLeft" align="right" valign="top"><a id="afb286d0ac8d955ed6b04edc7cbcb386d"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#afb286d0ac8d955ed6b04edc7cbcb386d">col2</a> () const noexcept</td></tr>
-<tr class="memdesc:afb286d0ac8d955ed6b04edc7cbcb386d"><td class="mdescLeft">&#160;</td><td class="mdescRight">The column of the space being moved to, not used for place moves. <br /></td></tr>
-<tr class="separator:afb286d0ac8d955ed6b04edc7cbcb386d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab39ab01590ee45d427636e154ebfdb8c"><td class="memItemLeft" align="right" valign="top"><a id="ab39ab01590ee45d427636e154ebfdb8c"></a>
+PieceType&#160;</td><td class="memItemRight" valign="bottom"><b>piece_type</b> () const noexcept</td></tr>
+<tr class="separator:ab39ab01590ee45d427636e154ebfdb8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9aa3486c81323c6068a565dae066a2a"><td class="memItemLeft" align="right" valign="top"><a id="ac9aa3486c81323c6068a565dae066a2a"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#ac9aa3486c81323c6068a565dae066a2a">rowFrom</a> () const noexcept</td></tr>
+<tr class="memdesc:ac9aa3486c81323c6068a565dae066a2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row of the space being moved from, not used for place moves. <br /></td></tr>
+<tr class="separator:ac9aa3486c81323c6068a565dae066a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1dd5adbcbdf5487cc4e71f6e0f0026f4"><td class="memItemLeft" align="right" valign="top"><a id="a1dd5adbcbdf5487cc4e71f6e0f0026f4"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a1dd5adbcbdf5487cc4e71f6e0f0026f4">colFrom</a> () const noexcept</td></tr>
+<tr class="memdesc:a1dd5adbcbdf5487cc4e71f6e0f0026f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The column of the space being moved from, not used for place moves. <br /></td></tr>
+<tr class="separator:a1dd5adbcbdf5487cc4e71f6e0f0026f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e534948f445a3caacbbf560e45bd542"><td class="memItemLeft" align="right" valign="top"><a id="a7e534948f445a3caacbbf560e45bd542"></a>
+<a class="el" href="structSpace.html">Space</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a7e534948f445a3caacbbf560e45bd542">spaceFrom</a> () const noexcept</td></tr>
+<tr class="memdesc:a7e534948f445a3caacbbf560e45bd542"><td class="mdescLeft">&#160;</td><td class="mdescRight">The space being moved from, not used for place moves. <br /></td></tr>
+<tr class="separator:a7e534948f445a3caacbbf560e45bd542"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3de590f400fcd1a2d8fefe8e4b95a40b"><td class="memItemLeft" align="right" valign="top"><a id="a3de590f400fcd1a2d8fefe8e4b95a40b"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a3de590f400fcd1a2d8fefe8e4b95a40b">rowTo</a> () const noexcept</td></tr>
+<tr class="memdesc:a3de590f400fcd1a2d8fefe8e4b95a40b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The row of the space being moved to or placed on. <br /></td></tr>
+<tr class="separator:a3de590f400fcd1a2d8fefe8e4b95a40b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80b33af9c156ec2a3d1305736c40c08e"><td class="memItemLeft" align="right" valign="top"><a id="a80b33af9c156ec2a3d1305736c40c08e"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#a80b33af9c156ec2a3d1305736c40c08e">colTo</a> () const noexcept</td></tr>
+<tr class="memdesc:a80b33af9c156ec2a3d1305736c40c08e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The column of the space being moved to or placed on. <br /></td></tr>
+<tr class="separator:a80b33af9c156ec2a3d1305736c40c08e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdc9a60dbacfa588faf1e035ccdcd056"><td class="memItemLeft" align="right" valign="top"><a id="acdc9a60dbacfa588faf1e035ccdcd056"></a>
+<a class="el" href="structSpace.html">Space</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMove.html#acdc9a60dbacfa588faf1e035ccdcd056">spaceTo</a> () const noexcept</td></tr>
+<tr class="memdesc:acdc9a60dbacfa588faf1e035ccdcd056"><td class="mdescLeft">&#160;</td><td class="mdescRight">The space being moved to or placed on. <br /></td></tr>
+<tr class="separator:acdc9a60dbacfa588faf1e035ccdcd056"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a5d5c904a9d14b79791614d73f0be6e2e"><td class="memItemLeft" align="right" valign="top"><a id="a5d5c904a9d14b79791614d73f0be6e2e"></a>
+MoveType&#160;</td><td class="memItemRight" valign="bottom"><b>move_type_</b></td></tr>
+<tr class="separator:a5d5c904a9d14b79791614d73f0be6e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2737a3aee935aad480ce95b7f53623aa"><td class="memItemLeft" align="right" valign="top"><a id="a2737a3aee935aad480ce95b7f53623aa"></a>
+PieceType&#160;</td><td class="memItemRight" valign="bottom"><b>piece_type_</b></td></tr>
+<tr class="separator:a2737a3aee935aad480ce95b7f53623aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c28c7ea6fed0efd9b191760e519c93c"><td class="memItemLeft" align="right" valign="top"><a id="a0c28c7ea6fed0efd9b191760e519c93c"></a>
+<a class="el" href="structSpace.html">Space</a>&#160;</td><td class="memItemRight" valign="bottom"><b>spaceFrom_</b> {-1, -1}</td></tr>
+<tr class="separator:a0c28c7ea6fed0efd9b191760e519c93c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace0c2b8eec24cc65837cce4db4a8fa2d"><td class="memItemLeft" align="right" valign="top"><a id="ace0c2b8eec24cc65837cce4db4a8fa2d"></a>
+<a class="el" href="structSpace.html">Space</a>&#160;</td><td class="memItemRight" valign="bottom"><b>spaceTo_</b></td></tr>
+<tr class="separator:ace0c2b8eec24cc65837cce4db4a8fa2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>

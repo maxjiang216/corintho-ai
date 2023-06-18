@@ -1,6 +1,7 @@
 #include "move.h"
 
 #include <cassert>
+#include <cstdint>
 
 #include <ostream>
 #include <stdlib.h>
@@ -16,38 +17,38 @@ Move::Move(int32_t id) noexcept
   // So checking it first should be slightly more efficient
   if (move_type_ == MoveType::kPlace) {
     piece_type_ = (id - 48) / 16;
-    spaceTo_ = {(id % 16) / 4, id % 4};
+    space_to_ = {(id % 16) / 4, id % 4};
     return;
   }
   // Move move
   if (id < 12) {  // Right
-    spaceFrom_ = {id / 3, id % 3};
-    spaceTo_ = {id / 3, id % 3 + 1};
+    space_from_ = {id / 3, id % 3};
+    space_to_ = {id / 3, id % 3 + 1};
     return;
   }
   if (id < 24) {  // Down
-    spaceFrom_ = {(id - 12) / 4, id % 4};
-    spaceTo_ = {(id - 12) / 4 + 1, id % 4};
+    space_from_ = {(id - 12) / 4, id % 4};
+    space_to_ = {(id - 12) / 4 + 1, id % 4};
     return;
   }
   if (id < 36) {  // Left
-    spaceFrom_ = {(id - 24) / 3, id % 3 + 1};
-    spaceTo_ = {(id - 24) / 3, id % 3};
+    space_from_ = {(id - 24) / 3, id % 3 + 1};
+    space_to_ = {(id - 24) / 3, id % 3};
     return;
   }
   // Up
-  spaceFrom_ = {(id - 36) / 4 + 1, id % 4};
-  spaceTo_ = {(id - 36) / 4, id % 4};
+  space_from_ = {(id - 36) / 4 + 1, id % 4};
+  space_to_ = {(id - 36) / 4, id % 4};
 }
 
 Move::Move(Space space, PieceType piece_type) noexcept
-    : move_type_{MoveType::kPlace}, piece_type_{piece_type}, spaceTo_{space} {
+    : move_type_{MoveType::kPlace}, piece_type_{piece_type}, space_to_{space} {
   assert(space.notNull());
   assert(piece_type >= 0 && piece_type < 3);
 }
 
 Move::Move(Space spaceFrom, Space spaceTo) noexcept
-    : move_type_{MoveType::kMove}, spaceFrom_{spaceFrom}, spaceTo_{spaceTo} {
+    : move_type_{MoveType::kMove}, space_from_{spaceFrom}, space_to_{spaceTo} {
   assert(spaceFrom.notNull());
   assert(spaceTo.notNull());
 }
@@ -61,14 +62,14 @@ std::ostream &operator<<(std::ostream &os, const Move &move) {
     } else if (move.piece_type_ == 2) {
       os << "A";
     }
-    os << getColName(move.spaceFrom_.col) << 4 - move.spaceFrom_.row;
+    os << getColName(move.space_from_.col) << 4 - move.space_from_.row;
   } else {
-    os << getColName(move.spaceFrom_.col) << 4 - move.spaceFrom_.row;
-    if (move.spaceTo_.col < move.spaceFrom_.col)
+    os << getColName(move.space_from_.col) << 4 - move.space_from_.row;
+    if (move.space_to_.col < move.space_from_.col)
       os << 'L';
-    else if (move.spaceTo_.col > move.spaceFrom_.col)
+    else if (move.space_to_.col > move.space_from_.col)
       os << 'R';
-    else if (move.spaceTo_.row < move.spaceFrom_.row)
+    else if (move.space_to_.row < move.space_from_.row)
       os << 'U';
     else
       os << 'D';

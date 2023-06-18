@@ -11,17 +11,17 @@ TEST(MoveTest, Constructor) {
   // Create a move with id 0 and check the properties
   Move move0{0};
   EXPECT_EQ(move0.move_type(), Move::MoveType::kMove);
-  EXPECT_EQ(move0.rowFrom(), 0);
-  EXPECT_EQ(move0.colFrom(), 0);
-  EXPECT_EQ(move0.rowTo(), 0);
-  EXPECT_EQ(move0.colTo(), 1);
+  EXPECT_EQ(move0.row_from(), 0);
+  EXPECT_EQ(move0.col_from(), 0);
+  EXPECT_EQ(move0.row_to(), 0);
+  EXPECT_EQ(move0.col_to(), 1);
 
   // Create a move with id 48 and check the properties
   Move move48{48};
   EXPECT_EQ(move48.move_type(), Move::MoveType::kPlace);
   EXPECT_EQ(move48.piece_type(), kBase);
-  EXPECT_EQ(move48.rowTo(), 0);
-  EXPECT_EQ(move48.colTo(), 0);
+  EXPECT_EQ(move48.row_to(), 0);
+  EXPECT_EQ(move48.col_to(), 0);
 }
 
 TEST(MoveTest, EncodePlace) {
@@ -41,11 +41,11 @@ TEST(MoveTest, RecoverMove) {
   // Test that decoding and encoding a move returns the same move
   for (int32_t id = 0; id < 48; ++id) {
     Move move{id};
-    EXPECT_EQ(encodeMove(move.spaceFrom(), move.spaceTo()), id);
+    EXPECT_EQ(encodeMove(move.space_from(), move.space_to()), id);
   }
   for (int32_t id = 48; id < kNumMoves; ++id) {
     Move move{id};
-    EXPECT_EQ(encodePlace(move.spaceTo(), move.piece_type()), id);
+    EXPECT_EQ(encodePlace(move.space_to(), move.piece_type()), id);
   }
 }
 

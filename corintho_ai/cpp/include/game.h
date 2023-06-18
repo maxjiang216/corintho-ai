@@ -1,6 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <cstdint>
+
 #include <bitset>
 #include <ostream>
 
@@ -18,10 +20,10 @@ class Game {
  public:
   /// @brief The default constructor creates a game in the starting position
   Game() noexcept = default;
-  Game(const Game &game) noexcept = default;
-  Game(Game &&game) noexcept = default;
-  Game &operator=(const Game &game) noexcept = default;
-  Game &operator=(Game &&game) noexcept = default;
+  Game(const Game &) noexcept = default;
+  Game(Game &&) noexcept = default;
+  Game &operator=(const Game &) noexcept = default;
+  Game &operator=(Game &&) noexcept = default;
   ~Game() = default;
   // Create a new game from an arbitrary state
   // Used in the web app to feed an arbitrary game state to the MCST
@@ -60,21 +62,21 @@ class Game {
   /// @details This is used in legal move generation
   /// @return The index of the top piece of the stack
   /// or -1 if the stack is empty
-  int32_t getTop(Space space) const noexcept;
+  int32_t top(Space space) const noexcept;
   /// @brief Finds the bottom piece of a stack
   /// @details This is used in legal move generation
   /// @return The index of the bottom piece of the stack
   /// or 3 if the stack is empty
-  int32_t getBottom(Space space) const noexcept;
+  int32_t bottom(Space space) const noexcept;
 
   /// @brief Mutator for the board
   /// @param state Value to set the entry to
   /// @note Default is true to match bitset default
-  void setBoard(Space space, PieceType piece_type, bool state = true) noexcept;
+  void set_board(Space space, PieceType piece_type, bool state = true) noexcept;
   /// @brief Mutator for the frozenness of a space
   /// @param state Value to set the entry to
   /// @note Default is true to match bitset default
-  void setFrozen(Space space, bool state = true) noexcept;
+  void set_frozen(Space space, bool state = true) noexcept;
 
   /// @brief Checks if a piece can be placed on the space
   /// @param piece_type The type of piece to place
@@ -116,7 +118,7 @@ class Game {
   /// breaking moves
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there were any lines
-  bool applyLineBreakers(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  bool applyLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

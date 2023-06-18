@@ -50,23 +50,23 @@ void print_line(uintf line) {
   }
 }
 
-string str_result(uint8s result) {
-  if (result == RESULT_LOSS) {
+string strResult(uint8s result) {
+  if (result == kResultLoss) {
     return "L";
   }
-  if (result == RESULT_DRAW) {
+  if (result == kResultDraw) {
     return "D";
   }
-  if (result == RESULT_WIN) {
+  if (result == kResultWin) {
     return "W";
   }
-  if (result == DEDUCED_LOSS) {
+  if (result == kDeducedLoss) {
     return "DL";
   }
-  if (result == DEDUCED_DRAW) {
+  if (result == kDeducedDraw) {
     return "DD";
   }
-  if (result == DEDUCED_WIN) {
+  if (result == kDeducedWin) {
     return "DW";
   }
   return "N";

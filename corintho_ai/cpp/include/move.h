@@ -1,6 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include <cstdint>
+
 #include <ostream>
 
 #include "util.h"
@@ -21,10 +23,10 @@ class Move {
   enum class MoveType { kPlace, kMove };
 
   Move() = delete;
-  Move(const Move &move) noexcept = default;
-  Move(Move &&move) noexcept = default;
-  Move &operator=(const Move &move) noexcept = default;
-  Move &operator=(Move &&move) noexcept = default;
+  Move(const Move &) noexcept = default;
+  Move(Move &&) noexcept = default;
+  Move &operator=(const Move &) noexcept = default;
+  Move &operator=(Move &&) noexcept = default;
   ~Move() = default;
   /// @brief Construct a move from its ID
   explicit Move(int32_t id) noexcept;
@@ -36,25 +38,25 @@ class Move {
   MoveType move_type() const noexcept { return move_type_; }
   PieceType piece_type() const noexcept { return piece_type_; }
   /// @brief The row of the space being moved from, not used for place moves
-  int32_t rowFrom() const noexcept { return spaceFrom_.row; }
+  int32_t row_from() const noexcept { return space_from_.row; }
   /// @brief The column of the space being moved from, not used for place moves
-  int32_t colFrom() const noexcept { return spaceFrom_.col; }
+  int32_t col_from() const noexcept { return space_from_.col; }
   /// @brief The space being moved from, not used for place moves
-  Space spaceFrom() const noexcept { return spaceFrom_; }
+  Space space_from() const noexcept { return space_from_; }
   /// @brief The row of the space being moved to or placed on
-  int32_t rowTo() const noexcept { return spaceTo_.row; }
+  int32_t row_to() const noexcept { return space_to_.row; }
   /// @brief The column of the space being moved to or placed on
-  int32_t colTo() const noexcept { return spaceTo_.col; }
+  int32_t col_to() const noexcept { return space_to_.col; }
   /// @brief The space being moved to or placed on
-  Space spaceTo() const noexcept { return spaceTo_; }
+  Space space_to() const noexcept { return space_to_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
 
  private:
-  MoveType move_type_;
+  const MoveType move_type_;
   PieceType piece_type_;
-  Space spaceFrom_{-1, -1};
-  Space spaceTo_;
+  Space space_from_{-1, -1};
+  Space space_to_;
 };
 
 // Get the ID of a place move

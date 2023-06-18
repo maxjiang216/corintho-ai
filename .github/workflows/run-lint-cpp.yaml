@@ -2,11 +2,15 @@ name: Lint C++
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'corintho_ai/cpp/src/*.cpp'
       - 'corintho_ai/cpp/include/*.h'
       - '.github/workflows/run-lint-cpp.yaml'
   pull_request:
+    branches:
+      - main
 
 jobs:
   lint:

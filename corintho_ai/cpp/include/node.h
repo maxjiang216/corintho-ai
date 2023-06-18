@@ -50,7 +50,7 @@ class alignas(64) Node {
   /// @param depth The depth of the position after applying the move
   /// or 1 more than the depth of parent
   Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
-       int32_t depth) noexcept;
+       int32_t depth);
 
   Game game() const noexcept;
   Node *parent() const noexcept;
@@ -85,7 +85,7 @@ class alignas(64) Node {
   void null_parent() noexcept;
   void null_next_sibling() noexcept;
 
-  int32_t countNodes() const;
+  int32_t countNodes() const noexcept;
 
   /// @returns If there are lines in the position
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
@@ -114,7 +114,7 @@ class alignas(64) Node {
   };
 
   /// @brief Initialize the edges of this node
-  void initializeEdges() noexcept;
+  void initializeEdges();
 
   /// @brief The game position
   Game game_{};

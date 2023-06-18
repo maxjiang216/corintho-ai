@@ -41,11 +41,11 @@ TEST(MoveTest, RecoverMove) {
   // Test that decoding and encoding a move returns the same move
   for (int32_t id = 0; id < 48; ++id) {
     Move move{id};
-    EXPECT_EQ(encodeMove(move.space_from(), move.spaceTo()), id);
+    EXPECT_EQ(encodeMove(move.space_from(), move.space_to()), id);
   }
   for (int32_t id = 48; id < kNumMoves; ++id) {
     Move move{id};
-    EXPECT_EQ(encodePlace(move.spaceTo(), move.piece_type()), id);
+    EXPECT_EQ(encodePlace(move.space_to(), move.piece_type()), id);
   }
 }
 

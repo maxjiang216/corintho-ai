@@ -74,22 +74,22 @@ void Game::doMove(int32_t move_id) noexcept {
     // Use a piece
     --pieces_[to_play_ * 3 + move.piece_type()];
     // Place the piece
-    set_board(move.spaceTo(), move.piece_type());
+    set_board(move.space_to(), move.piece_type());
     // Freeze the space
-    set_frozen(move.spaceTo());
+    set_frozen(move.space_to());
   }
   // Move move
   else {
     for (PieceType piece_type : kPieceTypes) {  // For each piece type
       // Add the piece to the new space
-      set_board(move.spaceTo(), piece_type,
+      set_board(move.space_to(), piece_type,
                 board(move.space_from(), piece_type) ||
-                    board(move.spaceTo(), piece_type));
+                    board(move.space_to(), piece_type));
       // Remove the piece from the old space
       set_board(move.space_from(), piece_type, false);
     }
     // Freeze the new space
-    set_frozen(move.spaceTo(), true);
+    set_frozen(move.space_to(), true);
   }
   // Switch player
   to_play_ = 1 - to_play_;
@@ -195,10 +195,10 @@ bool Game::canPlace(const Move &move) const noexcept {
   // Check if the space is empty
   // This is more common than frozen spaces, so we check it first
   // An empty space cannot be frozen
-  if (empty(move.spaceTo()))
+  if (empty(move.space_to()))
     return true;
   // Check if the space is frozen
-  if (frozen(move.spaceTo()))
+  if (frozen(move.space_to()))
     return false;
   // Bases can only be placed on empty spaces
   if (move.piece_type() == kBase)
@@ -206,24 +206,25 @@ bool Game::canPlace(const Move &move) const noexcept {
   // Place a column
   // Check for absence of a column or a capital
   if (move.piece_type() == kColumn) {
-    return !(board(move.spaceTo(), kColumn) || board(move.spaceTo(), kCapital));
+    return !(board(move.space_to(), kColumn) ||
+             board(move.space_to(), kCapital));
   }
   // Place a capital
   // Check for absence of a base without a column or a capital
-  return !(board(move.spaceTo(), kCapital) ||
-           (board(move.spaceTo(), kBase) && !board(move.spaceTo(), kColumn)));
+  return !(board(move.space_to(), kCapital) ||
+           (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
 }
 
 bool Game::canMove(const Move &move) const noexcept {
   assert(move.move_type() == Move::MoveType::kMove);
   // If either space is empty, move moves are not possible
-  if (empty(move.space_from()) || empty(move.spaceTo()))
+  if (empty(move.space_from()) || empty(move.space_to()))
     return false;
   // If either space is frozen, move moves are not possible
-  if (frozen(move.space_from()) || frozen(move.spaceTo()))
+  if (frozen(move.space_from()) || frozen(move.space_to()))
     return false;
   // The bottom of the first stack must go on the top of the second
-  return bottom(move.space_from()) - top(move.spaceTo()) == 1;
+  return bottom(move.space_from()) - top(move.space_to()) == 1;
 }
 
 bool Game::isLegalMove(int32_t move_id) const noexcept {
@@ -363,7 +364,7 @@ bool Game::applyShortDiagLines(
     return true;  // There can only be up to 1 short diagonal line
   }
   // Top right short diagonal
-  top = top(Space{1, 2});
+  top1 = top(Space{1, 2});
   if (top1 != -1 && top1 == top(Space{0, 1}) && top1 == top(Space{2, 3})) {
     applyLine(72 + S1 * 3 + top1, legal_moves);
     return true;  // There can only be up to 1 short diagonal line

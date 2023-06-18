@@ -122,14 +122,14 @@ class Game {
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)
   /// @note Stored as a bitset for memory efficiency
   std::bitset<4 * kBoardSize> board_{};
-  /// @brief Whose turn it is to play (0 for first player, 1 for second player)
-  /// @note This is stored as an int8_t instead of a bool
-  /// so that arithmetic operations can be performed on it
-  int8_t to_play_{};
   /// @brief The pieces that each player has available to place
   /// @details Stored as an array of 6 int8_t's for
   /// where the first 3 are the first player's pieces
   int8_t pieces_[6]{4, 4, 4, 4, 4, 4};
+  /// @brief Whose turn it is to play (0 for first player, 1 for second player)
+  /// @note This is stored as an int8_t instead of a bool
+  /// so that arithmetic operations can be performed on it
+  int8_t to_play_{};
 };
 
 #endif

@@ -5,7 +5,9 @@ on:
     paths:
       - 'corintho_ai/cpp/src/*.cpp'
       - 'corintho_ai/cpp/include/*.h'
+      - 'tests/cpp/src/*.cpp'
       - '.github/workflows/run-lint-cpp.yaml'
+      - '.clang-format'
   pull_request:
     branches:
       - main

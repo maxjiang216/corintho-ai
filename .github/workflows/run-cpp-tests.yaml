@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install dependencies
-      run: sudo apt-get install -y libgtest-dev cmake
+      run: sudo apt-get install -y libgtest-dev cmake lcov
 
     - name: Clone the GSL repo
       run: |
@@ -35,9 +35,8 @@ jobs:
     - name: Run tests
       run: ./build/CorinthoAI
 
-    - name: Install lcov and generate coverage report
+    - name: Generate coverage report with lcov
       run: |
-        sudo apt-get install lcov
         lcov --capture --directory build --output-file coverage.info
         lcov --remove coverage.info '/usr/*' --output-file coverage.info
         lcov --list coverage.info

@@ -465,3 +465,24 @@ TEST(GameTest, TestShortDiags) {
     }
   }
 }
+
+TEST(GameTest, TwoLines) {
+  // Test that there are no legal moves if there are two lines
+  for (int32_t row = 1; row < 3; ++row) {
+    for (int32_t col = 1; col < 3; ++col) {
+      for (PieceType piece_type : kPieceTypes) {
+        Game game;
+        game.doMove(encodePlace(Space{row - 1, col}, piece_type));
+        game.doMove(encodePlace(Space{row + 1, col}, piece_type));
+        game.doMove(encodePlace(Space{row, col - 1}, piece_type));
+        game.doMove(encodePlace(Space{row, col + 1}, piece_type));
+        game.doMove(encodePlace(Space{row, col}, piece_type));
+        std::bitset<kNumMoves> legal_moves;
+        bool has_lines = game.getLegalMoves(legal_moves);
+        EXPECT_TRUE(has_lines);  // there are lines
+        // Check that there are no legal moves
+        EXPECT_TRUE(legal_moves.none());
+      }
+    }
+  }
+}

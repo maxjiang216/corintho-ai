@@ -6,7 +6,7 @@
 // Test the default constructor
 TEST(NodeTest, DefaultConstructor) {
   Node node;
-  std::bitset<NUM_MOVES> legal_moves;
+  std::bitset<kNumMoves> legal_moves;
 
   // Starting position should not be terminal
   ASSERT_FALSE(node.is_terminal());

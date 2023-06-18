@@ -31,7 +31,7 @@ class alignas(64) Node {
 
   void initialize_edges();
 
-public:
+ public:
   // Used to create root nodes
   Node();
   // Create a new tree root from arbitrary state
@@ -43,13 +43,13 @@ public:
   ~Node();
 
   // Returns whether there are lines
-  bool get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const;
+  bool get_legal_moves(std::bitset<kNumMoves> &legal_moves) const;
 
   // Accessors
   bool is_terminal() const;
   float get_probability(uintf edge_index) const;
 
-  void write_game_state(float game_state[GAME_STATE_SIZE]) const;
+  void write_game_state(float game_state[kGameStateSize]) const;
 
   uintf count_nodes() const;
 

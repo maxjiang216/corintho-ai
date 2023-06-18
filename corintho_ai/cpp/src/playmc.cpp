@@ -19,7 +19,7 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
     : max_iterations{max_iterations}, searches_per_eval{searches_per_eval},
       c_puct{c_puct}, epsilon{epsilon}, root{nullptr}, cur{nullptr},
       eval_index{0}, searched{std::vector<Node *>()},
-      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
+      to_eval{new float[searches_per_eval * kGameStateSize]},
       iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
   searched.reserve(searches_per_eval);
   root = new Node();
@@ -27,13 +27,13 @@ PlayMC::PlayMC(uintf max_iterations, uintf searches_per_eval, float c_puct,
   cur = root;
 }
 
-PlayMC::PlayMC(long *board, int to_play, long *pieces, int searches_per_eval,
-               int seed)
+PlayMC::PlayMC(int32_t board[4 * kBoardSize], int32_t to_play,
+               int32_t pieces[6], int searches_per_eval, int seed)
     : max_iterations{max_unsigned_int}, searches_per_eval{(
                                             uintf)searches_per_eval},
       c_puct{3.0}, epsilon{0.25}, root{nullptr}, cur{nullptr},
       eval_index{0}, searched{std::vector<Node *>()},
-      to_eval{new float[searches_per_eval * GAME_STATE_SIZE]},
+      to_eval{new float[searches_per_eval * kGameStateSize]},
       iterations_done{0}, logging{false}, generator{new std::mt19937(seed)} {
   searched.reserve(searches_per_eval);
   Game game = Game{board, to_play, pieces};
@@ -165,7 +165,7 @@ void PlayMC::receive_opp_move(uintf move_choice) {
   }
 
   // The node doesn't exist, make new tree
-  root->game.do_move(move_choice);
+  root->game.doMove(move_choice);
   Node *new_root = new Node(root->game, root->depth + 1);
   --new_root->visits;
   delete root;
@@ -184,10 +184,10 @@ void PlayMC::receive_evaluation(float evaluation[], float probabilities[]) {
     // Since we want to avoid evaluating the node if it is terminal
     uintf edge_index = 0;
     float sum = 0.0, filtered_probs[cur->num_legal_moves];
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
+    for (uintf i = 0; i < kNumMoves; ++i) {
       if (edge_index < cur->num_legal_moves &&
           cur->edges[edge_index].move_id == i) {
-        filtered_probs[edge_index] = probabilities[NUM_MOVES * j + i];
+        filtered_probs[edge_index] = probabilities[kNumMoves * j + i];
         sum += filtered_probs[edge_index];
         ++edge_index;
       }
@@ -401,7 +401,7 @@ bool PlayMC::search() {
       cur->evaluation = 1.0;
       need_evaluation = true;
       // Write game in offset position
-      cur->write_game_state(to_eval + eval_index * GAME_STATE_SIZE);
+      cur->write_game_state(to_eval + eval_index * kGameStateSize);
       // Record the node
       searched.push_back(cur);
       ++eval_index;
@@ -482,7 +482,7 @@ void PlayMC::propagate_result() {
 }
 
 void PlayMC::get_legal_moves(long *legal_moves) const {
-  for (uintf i = 0; i < NUM_MOVES; ++i) {
+  for (uintf i = 0; i < kNumMoves; ++i) {
     legal_moves[i] = 0;
   }
   for (uintf i = 0; i < root->num_legal_moves; ++i) {
@@ -512,7 +512,7 @@ bool PlayMC::has_drawn() const {
 }
 
 uintf PlayMC::write_requests(float game_states[]) const {
-  for (uintf i = 0; i < GAME_STATE_SIZE * searched.size(); ++i) {
+  for (uintf i = 0; i < kGameStateSize * searched.size(); ++i) {
     *(game_states + i) = to_eval[i];
   }
   return searched.size();

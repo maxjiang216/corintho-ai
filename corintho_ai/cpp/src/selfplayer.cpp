@@ -19,7 +19,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE},
       logging_file{nullptr}, mate_turn{0} {
-  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
   samples.reserve(32);
@@ -30,7 +30,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
       generator{generator}, result{RESULT_NONE},
       logging_file{logging_file}, mate_turn{0} {
-  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
   samples.reserve(32);
@@ -41,7 +41,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed},
       logging_file{nullptr}, mate_turn{0} {
-  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
 }
@@ -51,7 +51,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
       generator{generator}, result{RESULT_NONE}, seed{seed},
       logging_file{logging_file}, mate_turn{0} {
-  to_eval = new float[searches_per_eval * GAME_STATE_SIZE];
+  to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
   players[1].to_eval = to_eval;
 }
@@ -159,8 +159,8 @@ bool SelfPlayer::do_iteration() {
 
     // This function will automatically apply the move to the TrainMC
     // Also write samples
-    std::array<float, GAME_STATE_SIZE> sample_state;
-    std::array<float, NUM_MOVES> probability_sample;
+    std::array<float, kGameStateSize> sample_state;
+    std::array<float, kNumMoves> probability_sample;
     uintf move_choice = players[to_play].choose_move(sample_state.data(),
                                                      probability_sample.data());
     samples.emplace_back(sample_state, probability_sample);
@@ -240,7 +240,7 @@ uintf SelfPlayer::count_requests() const {
 
 void SelfPlayer::write_requests(float *game_states) const {
   // Can change to memcpy later
-  for (uintf i = 0; i < GAME_STATE_SIZE * players[to_play].searched.size();
+  for (uintf i = 0; i < kGameStateSize * players[to_play].searched.size();
        ++i) {
     *(game_states + i) = to_eval[i];
   }
@@ -260,29 +260,29 @@ void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
   }
   // Start from back to front to figure out evaluations more easily
   for (intf i = samples.size() - 1; i >= 0; --i) {
-    for (uintf j = 0; j < GAME_STATE_SIZE; ++j) {
-      *(game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM + j) =
+    for (uintf j = 0; j < kGameStateSize; ++j) {
+      *(game_states + offset * kGameStateSize * SYMMETRY_NUM + j) =
           samples[i].game_state[j];
     }
     *(evaluation_samples + offset * SYMMETRY_NUM) = evaluation;
-    for (uintf j = 0; j < NUM_MOVES; ++j) {
-      *(probability_samples + offset * NUM_MOVES * SYMMETRY_NUM + j) =
+    for (uintf j = 0; j < kNumMoves; ++j) {
+      *(probability_samples + offset * kNumMoves * SYMMETRY_NUM + j) =
           samples[i].probabilities[j];
     }
     for (uintf k = 0; k < SYMMETRY_NUM - 1; ++k) {
-      for (uintf j = 0; j < 4 * BOARD_SIZE; ++j) {
-        *(game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM +
-          (k + 1) * GAME_STATE_SIZE + j) =
+      for (uintf j = 0; j < 4 * kBoardSize; ++j) {
+        *(game_states + offset * kGameStateSize * SYMMETRY_NUM +
+          (k + 1) * kGameStateSize + j) =
             samples[i].game_state[space_symmetries[k][j / 4] * 4 + j % 4];
       }
-      for (uintf j = 4 * BOARD_SIZE; j < GAME_STATE_SIZE; ++j) {
-        *(game_states + offset * GAME_STATE_SIZE * SYMMETRY_NUM +
-          (k + 1) * GAME_STATE_SIZE + j) = samples[i].game_state[j];
+      for (uintf j = 4 * kBoardSize; j < kGameStateSize; ++j) {
+        *(game_states + offset * kGameStateSize * SYMMETRY_NUM +
+          (k + 1) * kGameStateSize + j) = samples[i].game_state[j];
       }
       *(evaluation_samples + offset * SYMMETRY_NUM + (k + 1)) = evaluation;
-      for (uintf j = 0; j < NUM_MOVES; ++j) {
-        *(probability_samples + offset * NUM_MOVES * SYMMETRY_NUM +
-          (k + 1) * NUM_MOVES + j) =
+      for (uintf j = 0; j < kNumMoves; ++j) {
+        *(probability_samples + offset * kNumMoves * SYMMETRY_NUM +
+          (k + 1) * kNumMoves + j) =
             samples[i].probabilities[move_symmetries[k][j]];
       }
     }

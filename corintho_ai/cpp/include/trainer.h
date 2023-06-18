@@ -31,7 +31,7 @@ class Trainer {
                   float epsilon, uintf searches_per_eval,
                   const std::string &logging_folder);
 
-public:
+ public:
   // Training
   Trainer() = default;
   Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,

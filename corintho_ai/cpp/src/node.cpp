@@ -33,7 +33,7 @@ Node::Node(const Game &other_game, uint8s depth, Node *parent,
       num_legal_moves{0}, child_num{move_choice}, visits{1}, evaluation{0.0},
       denominator{0.0}, edges{nullptr}, parent{parent},
       next_sibling{next_sibling}, first_child{nullptr}, game{other_game} {
-  game.do_move(move_choice);
+  game.doMove(move_choice);
   initialize_edges();
 }
 
@@ -43,8 +43,8 @@ Node::~Node() {
   delete first_child;
 }
 
-bool Node::get_legal_moves(std::bitset<NUM_MOVES> &legal_moves) const {
-  return game.get_legal_moves(legal_moves);
+bool Node::get_legal_moves(std::bitset<kNumMoves> &legal_moves) const {
+  return game.getLegalMoves(legal_moves);
 }
 
 bool Node::is_terminal() const {
@@ -55,13 +55,13 @@ float Node::get_probability(uintf edge_index) const {
   return (float)edges[edge_index].probability * denominator;
 }
 
-void Node::write_game_state(float game_state[GAME_STATE_SIZE]) const {
-  game.write_game_state(game_state);
+void Node::write_game_state(float game_state[kGameStateSize]) const {
+  game.writeGameState(game_state);
 }
 
 void Node::initialize_edges() {
-  bitset<NUM_MOVES> legal_moves;
-  bool is_lines = game.get_legal_moves(legal_moves);
+  bitset<kNumMoves> legal_moves;
+  bool is_lines = game.getLegalMoves(legal_moves);
   num_legal_moves = legal_moves.count();
   // Terminal node
   if (num_legal_moves == 0) {
@@ -79,7 +79,7 @@ void Node::initialize_edges() {
   else {
     edges = new Edge[num_legal_moves];
     uintf edge_index = 0;
-    for (uintf i = 0; i < NUM_MOVES; ++i) {
+    for (uintf i = 0; i < kNumMoves; ++i) {
       if (legal_moves[i]) {
         edges[edge_index] = Edge(i, 0);
         ++edge_index;

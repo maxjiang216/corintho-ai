@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  push:
     paths:
       - 'corintho_ai/cpp/src/*.cpp'
       - 'corintho_ai/cpp/include/*.h'

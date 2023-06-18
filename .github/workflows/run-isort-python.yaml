@@ -2,9 +2,6 @@ name: Lint Python Import Order
 
 on:
   push:
-    branches:
-      - main
-  push:
     paths:
       - '**.py'
       - '**.pyx'

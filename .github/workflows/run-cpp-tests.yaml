@@ -2,8 +2,6 @@ name: Run C++ Tests
 
 on:
   push:
-    branches:
-      - main
     paths:
       - 'corintho_ai/cpp/src/*.cpp'
       - 'corintho_ai/cpp/include/*.h'

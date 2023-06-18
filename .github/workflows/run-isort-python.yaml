@@ -2,11 +2,15 @@ name: Lint Python Import Order
 
 on:
   push:
+    branches:
+      - main
     paths:
       - '**.py'
       - '**.pyx'
       - '.github/workflows/run-isort-python.yaml'
   pull_request:
+    branches:
+      - main
 
 jobs:
   isort:

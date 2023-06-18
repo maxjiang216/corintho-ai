@@ -2,6 +2,8 @@ name: Run C++ Tests
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'corintho_ai/cpp/src/*.cpp'
       - 'corintho_ai/cpp/include/*.h'
@@ -9,6 +11,8 @@ on:
       - '.github/workflows/run-cpp-tests.yaml'
       - 'CMakelists.txt'
   pull_request:
+    branches:
+      - main
 
 jobs:
   build-and-test:

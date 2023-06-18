@@ -325,27 +325,27 @@ bool Game::applyLongDiagLines(
     // Long line
     if (top0 == top1 && top1 == top2 && top2 == top3) {
       if (flip) {
-        applyLine(D1B * 3 + top1, legal_moves);
+        applyLine(72 + D1B * 3 + top1, legal_moves);
       } else {
-        applyLine(D0B * 3 + top1, legal_moves);
+        applyLine(72 + D0B * 3 + top1, legal_moves);
       }
       return true;  // No need to check for other lines
     }
     // Upper line
     if (top0 == top1 && top1 == top2) {
       if (flip) {
-        applyLine(D1U * 3 + top1, legal_moves);
+        applyLine(72 + D1U * 3 + top1, legal_moves);
       } else {
-        applyLine(D0U * 3 + top1, legal_moves);
+        applyLine(72 + D0U * 3 + top1, legal_moves);
       }
       return true;  // No need to check for other lines
     }
     // Lower/down line
     if (top1 == top2 && top2 == top3) {
       if (flip) {
-        applyLine(D1D * 3 + top1, legal_moves);
+        applyLine(72 + D1D * 3 + top1, legal_moves);
       } else {
-        applyLine(D0D * 3 + top1, legal_moves);
+        applyLine(72 + D0D * 3 + top1, legal_moves);
       }
       return true;  // No need to check for other lines
     }

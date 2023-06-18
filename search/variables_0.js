@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['board_5f_74',['board_',['../classGame.html#a5006458c1bf61c6593482488043b7835',1,'Game']]]
+  ['all_5fvisited_5f_101',['all_visited_',['../classNode.html#a9352897900a24c0bb72cf4a4b8289fa5',1,'Node']]]
 ];

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['rowfrom_66',['rowFrom',['../classMove.html#ac9aa3486c81323c6068a565dae066a2a',1,'Move']]],
-  ['rowto_67',['rowTo',['../classMove.html#a3de590f400fcd1a2d8fefe8e4b95a40b',1,'Move']]]
+  ['node_87',['Node',['../classNode.html#ad7a34779cad45d997bfd6d3d8043c75f',1,'Node::Node()'],['../classNode.html#a0a87d8bd02ff1d8e19d02adc52026f26',1,'Node::Node(const Game &amp;game, int32_t depth)'],['../classNode.html#a311f3543d0081b5bdeed8dcfd4533e1a',1,'Node::Node(const Game &amp;game, Node *parent, Node *next_sibling, int32_t move_id, int32_t depth)']]]
 ];

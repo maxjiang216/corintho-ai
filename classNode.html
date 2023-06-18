@@ -64,21 +64,25 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
-<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="classNode-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">Node Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A node in the Monte Carlo search tree.  
+ <a href="classNode.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="node_8h_source.html">node.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Node:</div>
 <div class="dyncontent">
 <div class="center"><img src="classNode__coll__graph.png" border="0" usemap="#aNode_coll__map" alt="Collaboration graph"/></div>
 <map name="aNode_coll__map" id="aNode_coll__map">
-<area shape="rect" title=" " alt="" coords="59,103,115,130"/>
+<area shape="rect" title="A node in the Monte Carlo search tree." alt="" coords="59,103,115,130"/>
 <area shape="rect" href="classGame.html" title="Represents a Corintho game state." alt="" coords="5,5,67,32"/>
 <area shape="rect" href="structNode_1_1Edge.html" title=" " alt="" coords="91,5,187,32"/>
 </map>
@@ -91,100 +95,719 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a8caa81a0f701e8a6e41c754f00b5ac38"><td class="memItemLeft" align="right" valign="top"><a id="a8caa81a0f701e8a6e41c754f00b5ac38"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, uint8s depth)</td></tr>
-<tr class="separator:a8caa81a0f701e8a6e41c754f00b5ac38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8cd3fed52dc828c65040b5d9b56f392"><td class="memItemLeft" align="right" valign="top"><a id="ac8cd3fed52dc828c65040b5d9b56f392"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, uint8s depth, <a class="el" href="classNode.html">Node</a> *parent, <a class="el" href="classNode.html">Node</a> *next_sibling, uint8s move_choice)</td></tr>
-<tr class="separator:ac8cd3fed52dc828c65040b5d9b56f392"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d74ea4cf0cc96a0d4e368f4749ddf2d"><td class="memItemLeft" align="right" valign="top"><a id="a2d74ea4cf0cc96a0d4e368f4749ddf2d"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>get_legal_moves</b> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const</td></tr>
-<tr class="separator:a2d74ea4cf0cc96a0d4e368f4749ddf2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae35c744363078606676f38fbcbda8200"><td class="memItemLeft" align="right" valign="top"><a id="ae35c744363078606676f38fbcbda8200"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_terminal</b> () const</td></tr>
-<tr class="separator:ae35c744363078606676f38fbcbda8200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94570df6b3443c3ba661b978da5f436e"><td class="memItemLeft" align="right" valign="top"><a id="a94570df6b3443c3ba661b978da5f436e"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_probability</b> (uintf edge_index) const</td></tr>
-<tr class="separator:a94570df6b3443c3ba661b978da5f436e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a785b502120845b5cbce46865b910f6d0"><td class="memItemLeft" align="right" valign="top"><a id="a785b502120845b5cbce46865b910f6d0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_game_state</b> (float game_state[kGameStateSize]) const</td></tr>
-<tr class="separator:a785b502120845b5cbce46865b910f6d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfb21f9f84a9e6b039d86db85baa1ad8"><td class="memItemLeft" align="right" valign="top"><a id="abfb21f9f84a9e6b039d86db85baa1ad8"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_nodes</b> () const</td></tr>
-<tr class="separator:abfb21f9f84a9e6b039d86db85baa1ad8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39376885069aad134384206558ee6766"><td class="memItemLeft" align="right" valign="top"><a id="a39376885069aad134384206558ee6766"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>print_main_line</b> (std::ostream *logging_file) const</td></tr>
-<tr class="separator:a39376885069aad134384206558ee6766"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e8de31d4980a046d564e4c61a4071bb"><td class="memItemLeft" align="right" valign="top"><a id="a5e8de31d4980a046d564e4c61a4071bb"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>print_known</b> (std::ostream *logging_file) const</td></tr>
-<tr class="separator:a5e8de31d4980a046d564e4c61a4071bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad7a34779cad45d997bfd6d3d8043c75f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">Node</a> ()</td></tr>
+<tr class="memdesc:ad7a34779cad45d997bfd6d3d8043c75f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor constructs a node with the starting position.  <a href="classNode.html#ad7a34779cad45d997bfd6d3d8043c75f">More...</a><br /></td></tr>
+<tr class="separator:ad7a34779cad45d997bfd6d3d8043c75f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54b83cd085cd4f9fda3faad9c0d558ed"><td class="memItemLeft" align="right" valign="top"><a id="a54b83cd085cd4f9fda3faad9c0d558ed"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (const <a class="el" href="classNode.html">Node</a> &amp;)=delete</td></tr>
+<tr class="separator:a54b83cd085cd4f9fda3faad9c0d558ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb49793cd6cdcbafc5b928c2aca45cb8"><td class="memItemLeft" align="right" valign="top"><a id="adb49793cd6cdcbafc5b928c2aca45cb8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Node</b> (<a class="el" href="classNode.html">Node</a> &amp;&amp;) noexcept=delete</td></tr>
+<tr class="separator:adb49793cd6cdcbafc5b928c2aca45cb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09b5a3e9d987903488452a880ed0a2e4"><td class="memItemLeft" align="right" valign="top"><a id="a09b5a3e9d987903488452a880ed0a2e4"></a>
+<a class="el" href="classNode.html">Node</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classNode.html">Node</a> &amp;)=delete</td></tr>
+<tr class="separator:a09b5a3e9d987903488452a880ed0a2e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a159333eefc971ef844989c7c2253d497"><td class="memItemLeft" align="right" valign="top"><a id="a159333eefc971ef844989c7c2253d497"></a>
+<a class="el" href="classNode.html">Node</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classNode.html">Node</a> &amp;&amp;)=delete</td></tr>
+<tr class="separator:a159333eefc971ef844989c7c2253d497"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a87d8bd02ff1d8e19d02adc52026f26"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a0a87d8bd02ff1d8e19d02adc52026f26">Node</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
+<tr class="memdesc:a0a87d8bd02ff1d8e19d02adc52026f26"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a node from a game position.  <a href="classNode.html#a0a87d8bd02ff1d8e19d02adc52026f26">More...</a><br /></td></tr>
+<tr class="separator:a0a87d8bd02ff1d8e19d02adc52026f26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a311f3543d0081b5bdeed8dcfd4533e1a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a311f3543d0081b5bdeed8dcfd4533e1a">Node</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, <a class="el" href="classNode.html">Node</a> *parent, <a class="el" href="classNode.html">Node</a> *next_sibling, int32_t move_id, int32_t depth)</td></tr>
+<tr class="memdesc:a311f3543d0081b5bdeed8dcfd4533e1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a node from its parent.  <a href="classNode.html#a311f3543d0081b5bdeed8dcfd4533e1a">More...</a><br /></td></tr>
+<tr class="separator:a311f3543d0081b5bdeed8dcfd4533e1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ecc38189faaa6e67886fa6672c6abc9"><td class="memItemLeft" align="right" valign="top"><a id="a3ecc38189faaa6e67886fa6672c6abc9"></a>
+<a class="el" href="classGame.html">Game</a>&#160;</td><td class="memItemRight" valign="bottom"><b>game</b> () const noexcept</td></tr>
+<tr class="separator:a3ecc38189faaa6e67886fa6672c6abc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a24d1eae4803e201d7d10dd338c5a34"><td class="memItemLeft" align="right" valign="top"><a id="a7a24d1eae4803e201d7d10dd338c5a34"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>parent</b> () const noexcept</td></tr>
+<tr class="separator:a7a24d1eae4803e201d7d10dd338c5a34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37c25f1b154bd10a705528bb42ea6351"><td class="memItemLeft" align="right" valign="top"><a id="a37c25f1b154bd10a705528bb42ea6351"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>next_sibling</b> () const noexcept</td></tr>
+<tr class="separator:a37c25f1b154bd10a705528bb42ea6351"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af442722502992cb097cecb902b089ecc"><td class="memItemLeft" align="right" valign="top"><a id="af442722502992cb097cecb902b089ecc"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>first_child</b> () const noexcept</td></tr>
+<tr class="separator:af442722502992cb097cecb902b089ecc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21c41fab0838553ac19c045fd42c34aa"><td class="memItemLeft" align="right" valign="top"><a id="a21c41fab0838553ac19c045fd42c34aa"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>evaluation</b> () const noexcept</td></tr>
+<tr class="separator:a21c41fab0838553ac19c045fd42c34aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a407ef55e77a28f61f10fc3215b843193"><td class="memItemLeft" align="right" valign="top"><a id="a407ef55e77a28f61f10fc3215b843193"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>visits</b> () const noexcept</td></tr>
+<tr class="separator:a407ef55e77a28f61f10fc3215b843193"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4deca3c78e78d6d3269a30145b4b5ad"><td class="memItemLeft" align="right" valign="top"><a id="af4deca3c78e78d6d3269a30145b4b5ad"></a>
+Result&#160;</td><td class="memItemRight" valign="bottom"><b>result</b> () const noexcept</td></tr>
+<tr class="separator:af4deca3c78e78d6d3269a30145b4b5ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8ef4d44bf26fcb2efe793b558413b99"><td class="memItemLeft" align="right" valign="top"><a id="aa8ef4d44bf26fcb2efe793b558413b99"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>child_id</b> () const noexcept</td></tr>
+<tr class="separator:aa8ef4d44bf26fcb2efe793b558413b99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae903becc205dca22d9033b8c2880a560"><td class="memItemLeft" align="right" valign="top"><a id="ae903becc205dca22d9033b8c2880a560"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_legal_moves</b> () const noexcept</td></tr>
+<tr class="separator:ae903becc205dca22d9033b8c2880a560"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad699e94f91b1a9844ef953a6cd85c81b"><td class="memItemLeft" align="right" valign="top"><a id="ad699e94f91b1a9844ef953a6cd85c81b"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>depth</b> () const noexcept</td></tr>
+<tr class="separator:ad699e94f91b1a9844ef953a6cd85c81b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6265e3929f68bb4ed3825bdfea50aa11"><td class="memItemLeft" align="right" valign="top"><a id="a6265e3929f68bb4ed3825bdfea50aa11"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>all_visited</b> () const noexcept</td></tr>
+<tr class="separator:a6265e3929f68bb4ed3825bdfea50aa11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a011e8ae2eca537a25196539758ca2976"><td class="memItemLeft" align="right" valign="top"><a id="a011e8ae2eca537a25196539758ca2976"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>move_id</b> (int32_t i) const noexcept</td></tr>
+<tr class="separator:a011e8ae2eca537a25196539758ca2976"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f81c7d33427d9e76b8fc172dfe7d2cc"><td class="memItemLeft" align="right" valign="top"><a id="a4f81c7d33427d9e76b8fc172dfe7d2cc"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>probability</b> (int32_t i) const noexcept</td></tr>
+<tr class="separator:a4f81c7d33427d9e76b8fc172dfe7d2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69ba9a98acd8c22992e64e4fdcda109b"><td class="memItemLeft" align="right" valign="top"><a id="a69ba9a98acd8c22992e64e4fdcda109b"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a69ba9a98acd8c22992e64e4fdcda109b">terminal</a> () const noexcept</td></tr>
+<tr class="memdesc:a69ba9a98acd8c22992e64e4fdcda109b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the game is in a terminal position. <br /></td></tr>
+<tr class="separator:a69ba9a98acd8c22992e64e4fdcda109b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fb93c8ae12dbce448c5873eeb60593a"><td class="memItemLeft" align="right" valign="top"><a id="a3fb93c8ae12dbce448c5873eeb60593a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_next_sibling</b> (<a class="el" href="classNode.html">Node</a> *next_sibling) noexcept</td></tr>
+<tr class="separator:a3fb93c8ae12dbce448c5873eeb60593a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeec24d4d8b2b6541f22ee04641b99204"><td class="memItemLeft" align="right" valign="top"><a id="aeec24d4d8b2b6541f22ee04641b99204"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_first_child</b> (<a class="el" href="classNode.html">Node</a> *first_child) noexcept</td></tr>
+<tr class="separator:aeec24d4d8b2b6541f22ee04641b99204"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ff7abaac2869c2825217912df8bead"><td class="memItemLeft" align="right" valign="top"><a id="a46ff7abaac2869c2825217912df8bead"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_evaluation</b> (float evaluation) noexcept</td></tr>
+<tr class="separator:a46ff7abaac2869c2825217912df8bead"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4ce36ddd2bb118bc98af08b9ebd3516"><td class="memItemLeft" align="right" valign="top"><a id="ae4ce36ddd2bb118bc98af08b9ebd3516"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_denominator</b> (float denominator) noexcept</td></tr>
+<tr class="separator:ae4ce36ddd2bb118bc98af08b9ebd3516"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a310e47beef8a3bb6a3eae6385b02fc51"><td class="memItemLeft" align="right" valign="top"><a id="a310e47beef8a3bb6a3eae6385b02fc51"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_visits</b> (int32_t visits) noexcept</td></tr>
+<tr class="separator:a310e47beef8a3bb6a3eae6385b02fc51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55bc2973a61ccca36a9f2e580f919912"><td class="memItemLeft" align="right" valign="top"><a id="a55bc2973a61ccca36a9f2e580f919912"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_result</b> (Result result) noexcept</td></tr>
+<tr class="separator:a55bc2973a61ccca36a9f2e580f919912"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea85fe8b2132cece691d483b522f84f8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#aea85fe8b2132cece691d483b522f84f8">set_all_visited</a> (bool all_visited=true) noexcept</td></tr>
+<tr class="memdesc:aea85fe8b2132cece691d483b522f84f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set all_visited.  <a href="classNode.html#aea85fe8b2132cece691d483b522f84f8">More...</a><br /></td></tr>
+<tr class="separator:aea85fe8b2132cece691d483b522f84f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3bfd734eb46dbd2f2210ff6187b8754"><td class="memItemLeft" align="right" valign="top"><a id="aa3bfd734eb46dbd2f2210ff6187b8754"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_probability</b> (int32_t i, int32_t probability) noexcept</td></tr>
+<tr class="separator:aa3bfd734eb46dbd2f2210ff6187b8754"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cd0aa34b6825b835ad5d5eabf5f784b"><td class="memItemLeft" align="right" valign="top"><a id="a9cd0aa34b6825b835ad5d5eabf5f784b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>increment_visits</b> () noexcept</td></tr>
+<tr class="separator:a9cd0aa34b6825b835ad5d5eabf5f784b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84dc81119512d2f3265180f1add63b98"><td class="memItemLeft" align="right" valign="top"><a id="a84dc81119512d2f3265180f1add63b98"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>decrement_visits</b> () noexcept</td></tr>
+<tr class="separator:a84dc81119512d2f3265180f1add63b98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad81e2fcc7a05ce4528dd7b3082dbcf48"><td class="memItemLeft" align="right" valign="top"><a id="ad81e2fcc7a05ce4528dd7b3082dbcf48"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>increase_evaluation</b> (float d) noexcept</td></tr>
+<tr class="separator:ad81e2fcc7a05ce4528dd7b3082dbcf48"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0dd5ead29eef9a8b395621402d546d94"><td class="memItemLeft" align="right" valign="top"><a id="a0dd5ead29eef9a8b395621402d546d94"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>decrease_evaluation</b> (float d) noexcept</td></tr>
+<tr class="separator:a0dd5ead29eef9a8b395621402d546d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc4016d74ecd0590c2ae853dacfdb6c6"><td class="memItemLeft" align="right" valign="top"><a id="abc4016d74ecd0590c2ae853dacfdb6c6"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>null_parent</b> () noexcept</td></tr>
+<tr class="separator:abc4016d74ecd0590c2ae853dacfdb6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49cb79c2d60d79fcbeddae7aa98f08fa"><td class="memItemLeft" align="right" valign="top"><a id="a49cb79c2d60d79fcbeddae7aa98f08fa"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>null_next_sibling</b> () noexcept</td></tr>
+<tr class="separator:a49cb79c2d60d79fcbeddae7aa98f08fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af653c7e1dac0ae93710da5916f907541"><td class="memItemLeft" align="right" valign="top"><a id="af653c7e1dac0ae93710da5916f907541"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>countNodes</b> () const noexcept</td></tr>
+<tr class="separator:af653c7e1dac0ae93710da5916f907541"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e585aa28f44e46390141b0c7cde2a4a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a8e585aa28f44e46390141b0c7cde2a4a">getLegalMoves</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
+<tr class="separator:a8e585aa28f44e46390141b0c7cde2a4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e4415a1974a0156d085efc9ddf3a4e4"><td class="memItemLeft" align="right" valign="top"><a id="a1e4415a1974a0156d085efc9ddf3a4e4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeGameState</b> (float game_state[kGameStateSize]) const noexcept</td></tr>
+<tr class="separator:a1e4415a1974a0156d085efc9ddf3a4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a302b7fd7ca91481774e2c358a158a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a2a302b7fd7ca91481774e2c358a158a9">printMainLine</a> (std::ostream &amp;logging_file) const</td></tr>
+<tr class="memdesc:a2a302b7fd7ca91481774e2c358a158a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print the main line of the game.  <a href="classNode.html#a2a302b7fd7ca91481774e2c358a158a9">More...</a><br /></td></tr>
+<tr class="separator:a2a302b7fd7ca91481774e2c358a158a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a79cc95674d327cd3100d8d9d3acdd9c8">printKnownLines</a> (std::ostream &amp;logging_file) const</td></tr>
+<tr class="memdesc:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print all lines where the result is deduced.  <a href="classNode.html#a79cc95674d327cd3100d8d9d3acdd9c8">More...</a><br /></td></tr>
+<tr class="separator:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a58a6aba98b35d1354482fd83d86cfe6f"><td class="memItemLeft" align="right" valign="top">static constexpr float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a58a6aba98b35d1354482fd83d86cfe6f">kMaxProbability</a> = 511.0</td></tr>
+<tr class="memdesc:a58a6aba98b35d1354482fd83d86cfe6f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum value of a edge probability weight.  <a href="classNode.html#a58a6aba98b35d1354482fd83d86cfe6f">More...</a><br /></td></tr>
+<tr class="separator:a58a6aba98b35d1354482fd83d86cfe6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:aa1e3626dd2557671ae78c7f9d19bfa66"><td class="memItemLeft" align="right" valign="top"><a id="aa1e3626dd2557671ae78c7f9d19bfa66"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize_edges</b> ()</td></tr>
-<tr class="separator:aa1e3626dd2557671ae78c7f9d19bfa66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af36a94abf2f8b836b4d499aa8790650a"><td class="memItemLeft" align="right" valign="top"><a id="af36a94abf2f8b836b4d499aa8790650a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#af36a94abf2f8b836b4d499aa8790650a">initializeEdges</a> ()</td></tr>
+<tr class="memdesc:af36a94abf2f8b836b4d499aa8790650a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the edges of this node. <br /></td></tr>
+<tr class="separator:af36a94abf2f8b836b4d499aa8790650a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:ad5a9e32b767c2c2f589ee49bf6ab1452"><td class="memItemLeft" align="right" valign="top"><a id="ad5a9e32b767c2c2f589ee49bf6ab1452"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>all_visited</b></td></tr>
-<tr class="separator:ad5a9e32b767c2c2f589ee49bf6ab1452"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fcad4e0372d9d9ab4ea3d0598cc37f8"><td class="memItemLeft" align="right" valign="top"><a id="a2fcad4e0372d9d9ab4ea3d0598cc37f8"></a>
-uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>result</b></td></tr>
-<tr class="separator:a2fcad4e0372d9d9ab4ea3d0598cc37f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6bfb6b85a4385d66c368202274ef086f"><td class="memItemLeft" align="right" valign="top"><a id="a6bfb6b85a4385d66c368202274ef086f"></a>
-uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>depth</b></td></tr>
-<tr class="separator:a6bfb6b85a4385d66c368202274ef086f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02335dd5ae5f1efb7fc1f7f74aa0373e"><td class="memItemLeft" align="right" valign="top"><a id="a02335dd5ae5f1efb7fc1f7f74aa0373e"></a>
-uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>num_legal_moves</b></td></tr>
-<tr class="separator:a02335dd5ae5f1efb7fc1f7f74aa0373e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4c599907e28441eea81dca74676caef"><td class="memItemLeft" align="right" valign="top"><a id="af4c599907e28441eea81dca74676caef"></a>
-uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>child_num</b></td></tr>
-<tr class="separator:af4c599907e28441eea81dca74676caef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31400cb5dae6fc5cc329d1aa0770e622"><td class="memItemLeft" align="right" valign="top"><a id="a31400cb5dae6fc5cc329d1aa0770e622"></a>
-uint16s&#160;</td><td class="memItemRight" valign="bottom"><b>visits</b></td></tr>
-<tr class="separator:a31400cb5dae6fc5cc329d1aa0770e622"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80338ebcccfb76b72a06e6cf90452e43"><td class="memItemLeft" align="right" valign="top"><a id="a80338ebcccfb76b72a06e6cf90452e43"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>evaluation</b></td></tr>
-<tr class="separator:a80338ebcccfb76b72a06e6cf90452e43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad768af1f63f4d6239995c774c297a0d1"><td class="memItemLeft" align="right" valign="top"><a id="ad768af1f63f4d6239995c774c297a0d1"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>denominator</b></td></tr>
-<tr class="separator:ad768af1f63f4d6239995c774c297a0d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5103a38d3cf843491a0301c574360aa4"><td class="memItemLeft" align="right" valign="top"><a id="a5103a38d3cf843491a0301c574360aa4"></a>
-<a class="el" href="structNode_1_1Edge.html">Edge</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>edges</b></td></tr>
-<tr class="separator:a5103a38d3cf843491a0301c574360aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8184598cdea70e4bbdfd76f2b0f9e85"><td class="memItemLeft" align="right" valign="top"><a id="ad8184598cdea70e4bbdfd76f2b0f9e85"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>parent</b></td></tr>
-<tr class="separator:ad8184598cdea70e4bbdfd76f2b0f9e85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3f22d032fd720558df53c2c23cdbe09d"><td class="memItemLeft" align="right" valign="top"><a id="a3f22d032fd720558df53c2c23cdbe09d"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>next_sibling</b></td></tr>
-<tr class="separator:a3f22d032fd720558df53c2c23cdbe09d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f76a28336db3c392d01e41030a2616b"><td class="memItemLeft" align="right" valign="top"><a id="a6f76a28336db3c392d01e41030a2616b"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>first_child</b></td></tr>
-<tr class="separator:a6f76a28336db3c392d01e41030a2616b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:accfd8b7ae2b13618e1a7407079b267df"><td class="memItemLeft" align="right" valign="top"><a id="accfd8b7ae2b13618e1a7407079b267df"></a>
-<a class="el" href="classGame.html">Game</a>&#160;</td><td class="memItemRight" valign="bottom"><b>game</b></td></tr>
-<tr class="separator:accfd8b7ae2b13618e1a7407079b267df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-static-attribs"></a>
-Static Private Attributes</h2></td></tr>
-<tr class="memitem:a46584bd258e545a615698e38cd39fa2b"><td class="memItemLeft" align="right" valign="top"><a id="a46584bd258e545a615698e38cd39fa2b"></a>
-static constexpr float&#160;</td><td class="memItemRight" valign="bottom"><b>MAX_PROBABILITY</b> = 511.0</td></tr>
-<tr class="separator:a46584bd258e545a615698e38cd39fa2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:aa3538c14c3e051fe76e4cd0e3d8da534"><td class="memItemLeft" align="right" valign="top"><a id="aa3538c14c3e051fe76e4cd0e3d8da534"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b></td></tr>
-<tr class="separator:aa3538c14c3e051fe76e4cd0e3d8da534"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac844afaf1fde7b43652b8946b521ef64"><td class="memItemLeft" align="right" valign="top"><a id="ac844afaf1fde7b43652b8946b521ef64"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b></td></tr>
-<tr class="separator:ac844afaf1fde7b43652b8946b521ef64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a749a73ed0d44b981c7a72a0fe2c8cb9b"><td class="memItemLeft" align="right" valign="top"><a id="a749a73ed0d44b981c7a72a0fe2c8cb9b"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>PlayMC</b></td></tr>
-<tr class="separator:a749a73ed0d44b981c7a72a0fe2c8cb9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a093bc8ee1e621c7d4ac3a996db37ab42"><td class="memItemLeft" align="right" valign="top"><a id="a093bc8ee1e621c7d4ac3a996db37ab42"></a>
+<a class="el" href="classGame.html">Game</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a093bc8ee1e621c7d4ac3a996db37ab42">game_</a> {}</td></tr>
+<tr class="memdesc:a093bc8ee1e621c7d4ac3a996db37ab42"><td class="mdescLeft">&#160;</td><td class="mdescRight">The game position. <br /></td></tr>
+<tr class="separator:a093bc8ee1e621c7d4ac3a996db37ab42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f0448247d19072d5c3fa54acda8dd55"><td class="memItemLeft" align="right" valign="top"><a id="a7f0448247d19072d5c3fa54acda8dd55"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a7f0448247d19072d5c3fa54acda8dd55">parent_</a> {nullptr}</td></tr>
+<tr class="memdesc:a7f0448247d19072d5c3fa54acda8dd55"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to the parent node. <br /></td></tr>
+<tr class="separator:a7f0448247d19072d5c3fa54acda8dd55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a332ff536f055a792652753122f8b86d5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a332ff536f055a792652753122f8b86d5">next_sibling_</a> {nullptr}</td></tr>
+<tr class="memdesc:a332ff536f055a792652753122f8b86d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to the next sibling node.  <a href="classNode.html#a332ff536f055a792652753122f8b86d5">More...</a><br /></td></tr>
+<tr class="separator:a332ff536f055a792652753122f8b86d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7b0815d30071ef7443dcce76e21cc9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#af7b0815d30071ef7443dcce76e21cc9a">first_child_</a> {nullptr}</td></tr>
+<tr class="memdesc:af7b0815d30071ef7443dcce76e21cc9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">A pointer to the first child node.  <a href="classNode.html#af7b0815d30071ef7443dcce76e21cc9a">More...</a><br /></td></tr>
+<tr class="separator:af7b0815d30071ef7443dcce76e21cc9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22f78983efd421935eae29501967a38d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structNode_1_1Edge.html">Edge</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a22f78983efd421935eae29501967a38d">edges_</a> {nullptr}</td></tr>
+<tr class="memdesc:a22f78983efd421935eae29501967a38d"><td class="mdescLeft">&#160;</td><td class="mdescRight">An array of edges to the children of this node.  <a href="classNode.html#a22f78983efd421935eae29501967a38d">More...</a><br /></td></tr>
+<tr class="separator:a22f78983efd421935eae29501967a38d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99e50b3a64f8fc5c5e26fa31c0ebd9f0"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a99e50b3a64f8fc5c5e26fa31c0ebd9f0">evaluation_</a> {0.0}</td></tr>
+<tr class="memdesc:a99e50b3a64f8fc5c5e26fa31c0ebd9f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The evaluation of this node.  <a href="classNode.html#a99e50b3a64f8fc5c5e26fa31c0ebd9f0">More...</a><br /></td></tr>
+<tr class="separator:a99e50b3a64f8fc5c5e26fa31c0ebd9f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d36333d8ee9106f4c0adfd6894f73fa"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a0d36333d8ee9106f4c0adfd6894f73fa">denominator_</a> {0.0}</td></tr>
+<tr class="memdesc:a0d36333d8ee9106f4c0adfd6894f73fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sum of the weights of the edges.  <a href="classNode.html#a0d36333d8ee9106f4c0adfd6894f73fa">More...</a><br /></td></tr>
+<tr class="separator:a0d36333d8ee9106f4c0adfd6894f73fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a895f751af963286ea6439b0d20b8dcf7"><td class="memItemLeft" align="right" valign="top">int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a895f751af963286ea6439b0d20b8dcf7">visits_</a> {1}</td></tr>
+<tr class="memdesc:a895f751af963286ea6439b0d20b8dcf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of times this node has been visited.  <a href="classNode.html#a895f751af963286ea6439b0d20b8dcf7">More...</a><br /></td></tr>
+<tr class="separator:a895f751af963286ea6439b0d20b8dcf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a921a4eb8fdccd44c28d53f74d2817e8c"><td class="memItemLeft" align="right" valign="top">Result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a921a4eb8fdccd44c28d53f74d2817e8c">result_</a> {kResultNone}</td></tr>
+<tr class="memdesc:a921a4eb8fdccd44c28d53f74d2817e8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The result of the game in this position.  <a href="classNode.html#a921a4eb8fdccd44c28d53f74d2817e8c">More...</a><br /></td></tr>
+<tr class="separator:a921a4eb8fdccd44c28d53f74d2817e8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a030b8fb777d027118ff995568c694680"><td class="memItemLeft" align="right" valign="top">const int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a030b8fb777d027118ff995568c694680">child_id_</a></td></tr>
+<tr class="memdesc:a030b8fb777d027118ff995568c694680"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ID of the move used to reach this node from its parent.  <a href="classNode.html#a030b8fb777d027118ff995568c694680">More...</a><br /></td></tr>
+<tr class="separator:a030b8fb777d027118ff995568c694680"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ca9a6d14ad46171351a48088ba50bb"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a46ca9a6d14ad46171351a48088ba50bb">num_legal_moves_</a> {0}</td></tr>
+<tr class="memdesc:a46ca9a6d14ad46171351a48088ba50bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of legal moves in this position.  <a href="classNode.html#a46ca9a6d14ad46171351a48088ba50bb">More...</a><br /></td></tr>
+<tr class="separator:a46ca9a6d14ad46171351a48088ba50bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a572e07f04e74e67257534830a3a00800"><td class="memItemLeft" align="right" valign="top">const int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a572e07f04e74e67257534830a3a00800">depth_</a></td></tr>
+<tr class="memdesc:a572e07f04e74e67257534830a3a00800"><td class="mdescLeft">&#160;</td><td class="mdescRight">The depth of this node.  <a href="classNode.html#a572e07f04e74e67257534830a3a00800">More...</a><br /></td></tr>
+<tr class="separator:a572e07f04e74e67257534830a3a00800"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9352897900a24c0bb72cf4a4b8289fa5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a9352897900a24c0bb72cf4a4b8289fa5">all_visited_</a> {true}</td></tr>
+<tr class="memdesc:a9352897900a24c0bb72cf4a4b8289fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether all the children of this node have been visited.  <a href="classNode.html#a9352897900a24c0bb72cf4a4b8289fa5">More...</a><br /></td></tr>
+<tr class="separator:a9352897900a24c0bb72cf4a4b8289fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A node in the Monte Carlo search tree. </p>
+<p>The Monte Carlo tree is a tree of nodes. Each node conatins a game position. Its children are states that can be reached by making a move from the parent. A parent node has a pointer to its first child, and each child has a pointer to its next sibling. </p><dl class="section note"><dt>Note</dt><dd>This is the memory bottleneck of the program. Many details of the implementation are designed to reduce the memory footprint of this class. </dd>
+<dd>
+The alignment is set to 64 bytes to reduce cache misses. The size of the class is currently just under 64 bytes. </dd></dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="ad7a34779cad45d997bfd6d3d8043c75f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7a34779cad45d997bfd6d3d8043c75f">&#9670;&nbsp;</a></span>Node() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node::Node </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Default constructor constructs a node with the starting position. </p>
+<p>This is used to initialize a Monte Carlo search tree. The starting position is never terminal. </p>
+
+</div>
+</div>
+<a id="a0a87d8bd02ff1d8e19d02adc52026f26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a87d8bd02ff1d8e19d02adc52026f26">&#9670;&nbsp;</a></span>Node() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node::Node </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
+          <td class="paramname"><em>game</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>depth</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Construct a node from a game position. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">depth</td><td>Number of turns from the starting position</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>This is used to copy a game state when the opponent chooses an unforeseen move. Any position we use in this way cannot be terminal, or else the game would have ended and we would not have received the position. </p>
+
+</div>
+</div>
+<a id="a311f3543d0081b5bdeed8dcfd4533e1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a311f3543d0081b5bdeed8dcfd4533e1a">&#9670;&nbsp;</a></span>Node() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node::Node </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
+          <td class="paramname"><em>game</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classNode.html">Node</a> *&#160;</td>
+          <td class="paramname"><em>parent</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classNode.html">Node</a> *&#160;</td>
+          <td class="paramname"><em>next_sibling</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>move_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>depth</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Construct a node from its parent. </p>
+<p>This is the most commonly used constructor during training. It is used to add a new node to the tree when considering a new move. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">depth</td><td>The depth of the position after applying the move or 1 more than the depth of parent </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a8e585aa28f44e46390141b0c7cde2a4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e585aa28f44e46390141b0c7cde2a4a">&#9670;&nbsp;</a></span>getLegalMoves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Node::getLegalMoves </td>
+          <td>(</td>
+          <td class="paramtype">std::bitset&lt; kNumMoves &gt; &amp;&#160;</td>
+          <td class="paramname"><em>legal_moves</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>If there are lines in the position </dd></dl>
+
+</div>
+</div>
+<a id="a79cc95674d327cd3100d8d9d3acdd9c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79cc95674d327cd3100d8d9d3acdd9c8">&#9670;&nbsp;</a></span>printKnownLines()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Node::printKnownLines </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>logging_file</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Print all lines where the result is deduced. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">logging_file</td><td>File to write lines into </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2a302b7fd7ca91481774e2c358a158a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a302b7fd7ca91481774e2c358a158a9">&#9670;&nbsp;</a></span>printMainLine()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Node::printMainLine </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>logging_file</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Print the main line of the game. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">logging_file</td><td>File to write line into</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>The main line is the sequence of moves with the most visits. Chooses moves as the Monte Carlo search tree would. </p>
+
+</div>
+</div>
+<a id="aea85fe8b2132cece691d483b522f84f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea85fe8b2132cece691d483b522f84f8">&#9670;&nbsp;</a></span>set_all_visited()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Node::set_all_visited </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>all_visited</em> = <code>true</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set all_visited. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">all_visited</td><td>Default is true to match other standard set functions </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9352897900a24c0bb72cf4a4b8289fa5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9352897900a24c0bb72cf4a4b8289fa5">&#9670;&nbsp;</a></span>all_visited_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Node::all_visited_ {true}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether all the children of this node have been visited. </p>
+<p>This is used to determine whether we should stop searching this node. It is set to true when the node is created, as it has no children and nodes are visited when they are created. </p>
+
+</div>
+</div>
+<a id="a030b8fb777d027118ff995568c694680"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a030b8fb777d027118ff995568c694680">&#9670;&nbsp;</a></span>child_id_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int8_t Node::child_id_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The ID of the move used to reach this node from its parent. </p>
+<p>The maximal move ID is 96, which fits in an 8-bit integer. </p>
+
+</div>
+</div>
+<a id="a0d36333d8ee9106f4c0adfd6894f73fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d36333d8ee9106f4c0adfd6894f73fa">&#9670;&nbsp;</a></span>denominator_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Node::denominator_ {0.0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The sum of the weights of the edges. </p>
+<p>This is used to normalize the probabilities of the edges. In this way, we can scale the weights of the edges up to get more precise probabilities while using a small number of bits to store the weights. </p>
+
+</div>
+</div>
+<a id="a572e07f04e74e67257534830a3a00800"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a572e07f04e74e67257534830a3a00800">&#9670;&nbsp;</a></span>depth_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int8_t Node::depth_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The depth of this node. </p>
+<p>The depth is the number of moves from the starting position. The maximal depth is 40, which fits in an 8-bit integer. </p>
+
+</div>
+</div>
+<a id="a22f78983efd421935eae29501967a38d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22f78983efd421935eae29501967a38d">&#9670;&nbsp;</a></span>edges_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structNode_1_1Edge.html">Edge</a>* Node::edges_ {nullptr}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An array of edges to the children of this node. </p>
+<p>The edges are stored in a variable length array so that we only allocate as much memory as we need (num_legal_moves). This is an idea taken from the Leela Zero implementation. Ideally, this would be a vector, but that would increase the size of the class over 64 bytes. </p>
+
+</div>
+</div>
+<a id="a99e50b3a64f8fc5c5e26fa31c0ebd9f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99e50b3a64f8fc5c5e26fa31c0ebd9f0">&#9670;&nbsp;</a></span>evaluation_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float Node::evaluation_ {0.0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The evaluation of this node. </p>
+<p>This is a sum of the initial evaluation and all the evaluations propagated from the children. </p>
+
+</div>
+</div>
+<a id="af7b0815d30071ef7443dcce76e21cc9a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7b0815d30071ef7443dcce76e21cc9a">&#9670;&nbsp;</a></span>first_child_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classNode.html">Node</a>* Node::first_child_ {nullptr}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>A pointer to the first child node. </p>
+<dl class="section note"><dt>Note</dt><dd>This would more ideally be a std::shared_ptr, but that would increase the size of the class over 64 bytes. </dd></dl>
+
+</div>
+</div>
+<a id="a58a6aba98b35d1354482fd83d86cfe6f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58a6aba98b35d1354482fd83d86cfe6f">&#9670;&nbsp;</a></span>kMaxProbability</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr float Node::kMaxProbability = 511.0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maximum value of a edge probability weight. </p>
+<p>This is used to scale up the probability weights </p>
+
+</div>
+</div>
+<a id="a332ff536f055a792652753122f8b86d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a332ff536f055a792652753122f8b86d5">&#9670;&nbsp;</a></span>next_sibling_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classNode.html">Node</a>* Node::next_sibling_ {nullptr}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>A pointer to the next sibling node. </p>
+<p>The children of a node are stored as a linked list. This saves us from having to allocate memory for an array of pointers to children at the cost of having to traverse the list to find a child. This is an idea taken from the Leela Zero implementation. </p>
+
+</div>
+</div>
+<a id="a46ca9a6d14ad46171351a48088ba50bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46ca9a6d14ad46171351a48088ba50bb">&#9670;&nbsp;</a></span>num_legal_moves_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int8_t Node::num_legal_moves_ {0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The number of legal moves in this position. </p>
+<p>This is used to determine the size of the array of edges. The maximal number of legal moves is 48, which fits in an 8-bit integer. </p>
+
+</div>
+</div>
+<a id="a921a4eb8fdccd44c28d53f74d2817e8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a921a4eb8fdccd44c28d53f74d2817e8c">&#9670;&nbsp;</a></span>result_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Result Node::result_ {kResultNone}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The result of the game in this position. </p>
+<p>The value is kResultNone unless it is a terminal position or we have deduced the result from the children (played out until the end) There are only 7 possible results, so we store them in an 8-bit integer, aliased by Result. </p>
+
+</div>
+</div>
+<a id="a895f751af963286ea6439b0d20b8dcf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a895f751af963286ea6439b0d20b8dcf7">&#9670;&nbsp;</a></span>visits_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int16_t Node::visits_ {1}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The number of times this node has been visited. </p>
+<dl class="section note"><dt>Note</dt><dd>int16_t is the largest size that can be used without increasing the size of the class over 64 bytes. It allows for 32,767 visits. This is more than enough for training. During play, this number may be exceeded. Search should stop for any node that has been visited 32,767 times. </dd>
+<dd>
+It is generally initialized to 1, since nodes are usually created just before it is visited. This saves us an increment. </dd></dl>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="node_8h_source.html">node.h</a></li>
 </ul>

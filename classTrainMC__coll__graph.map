@@ -1,6 +1,6 @@
 <map id="TrainMC" name="TrainMC">
 <area shape="rect" id="node1" title=" " alt="" coords="49,216,124,243"/>
-<area shape="rect" id="node2" href="$classNode.html" title=" " alt="" coords="59,103,115,130"/>
+<area shape="rect" id="node2" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="59,103,115,130"/>
 <area shape="rect" id="node3" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="5,5,67,32"/>
 <area shape="rect" id="node4" href="$structNode_1_1Edge.html" title=" " alt="" coords="91,5,187,32"/>
 </map>

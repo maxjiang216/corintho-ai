@@ -1,5 +1,5 @@
 <map id="Node" name="Node">
-<area shape="rect" id="node1" title=" " alt="" coords="59,103,115,130"/>
+<area shape="rect" id="node1" title="A node in the Monte Carlo search tree." alt="" coords="59,103,115,130"/>
 <area shape="rect" id="node2" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="5,5,67,32"/>
 <area shape="rect" id="node3" href="$structNode_1_1Edge.html" title=" " alt="" coords="91,5,187,32"/>
 </map>

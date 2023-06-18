@@ -1,151 +1,232 @@
 #include "node.h"
+
+#include <bitset>
+#include <ostream>
+
+#include <gsl/gsl>
+
 #include "game.h"
 #include "move.h"
 #include "util.h"
-#include <bitset>
-#include <iostream>
-using std::bitset;
-using std::cerr;
 
-// Starting position is never a terminal node
-Node::Node()
-    : all_visited{true}, result{RESULT_NONE}, depth{0},
-      num_legal_moves{0}, child_num{0}, visits{1}, evaluation{0.0},
-      denominator{0.0}, edges{nullptr}, parent{nullptr}, next_sibling{nullptr},
-      first_child{nullptr}, game{Game()} {
-  initialize_edges();
-}
-
-// We use this when opponent makes a move we did not anticipate
-// We only receive this move if it is not a terminal position
-// Or else the game would have ended
-Node::Node(const Game &game, uint8s depth)
-    : all_visited{true}, result{RESULT_NONE}, depth{depth},
-      num_legal_moves{0}, child_num{0}, visits{1}, evaluation{0.0},
-      denominator{0.0}, edges{nullptr}, parent{nullptr}, next_sibling{nullptr},
-      first_child{nullptr}, game{game} {
-  initialize_edges();
-}
-
-Node::Node(const Game &other_game, uint8s depth, Node *parent,
-           Node *next_sibling, uint8s move_choice)
-    : all_visited{true}, result{RESULT_NONE}, depth{depth},
-      num_legal_moves{0}, child_num{move_choice}, visits{1}, evaluation{0.0},
-      denominator{0.0}, edges{nullptr}, parent{parent},
-      next_sibling{next_sibling}, first_child{nullptr}, game{other_game} {
-  game.doMove(move_choice);
-  initialize_edges();
+Node::Node() : child_id_{0}, depth_{0} {
+  // initializeEdges can throw an exception from new
+  initializeEdges();
 }
 
 Node::~Node() {
-  delete[] edges;
-  delete next_sibling;
-  delete first_child;
+  delete[] edges_;
+  delete next_sibling_;
+  delete first_child_;
 }
 
-bool Node::get_legal_moves(std::bitset<kNumMoves> &legal_moves) const {
-  return game.getLegalMoves(legal_moves);
+Node::Node(const Game &game, int32_t depth)
+    : game_{game}, child_id_{0}, depth_{gsl::narrow_cast<int8_t>(depth)} {
+  // initializeEdges can throw an exception from new
+  initializeEdges();
 }
 
-bool Node::is_terminal() const {
-  return result == RESULT_LOSS || result == RESULT_DRAW;
+Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
+           int32_t depth)
+    : game_{game}, parent_{parent},
+      next_sibling_{next_sibling}, child_id_{gsl::narrow_cast<int8_t>(move_id)},
+      depth_{gsl::narrow_cast<int8_t>(depth)} {
+  game_.doMove(move_id);
+  // initializeEdges can throw an exception from new
+  initializeEdges();
 }
 
-float Node::get_probability(uintf edge_index) const {
-  return (float)edges[edge_index].probability * denominator;
+Game Node::game() const noexcept {
+  return game_;
 }
 
-void Node::write_game_state(float game_state[kGameStateSize]) const {
-  game.writeGameState(game_state);
+Node *Node::parent() const noexcept {
+  return parent_;
 }
 
-void Node::initialize_edges() {
-  bitset<kNumMoves> legal_moves;
-  bool is_lines = game.getLegalMoves(legal_moves);
-  num_legal_moves = legal_moves.count();
-  // Terminal node
-  if (num_legal_moves == 0) {
-    // Otherwise we overcount by 1
-    visits = 0;
-    // Decisive game
-    if (is_lines) {
-      // Current player has lost
-      result = RESULT_LOSS;
-    } else {
-      result = RESULT_DRAW;
-    }
-  }
-  // Otherwise, allocate some edges
-  else {
-    edges = new Edge[num_legal_moves];
-    uintf edge_index = 0;
-    for (uintf i = 0; i < kNumMoves; ++i) {
-      if (legal_moves[i]) {
-        edges[edge_index] = Edge(i, 0);
-        ++edge_index;
-      }
-    }
-  }
+Node *Node::next_sibling() const noexcept {
+  return next_sibling_;
 }
 
-uintf Node::count_nodes() const {
-  uintf counter = 1;
-  Node *cur_child = first_child;
+Node *Node::first_child() const noexcept {
+  return first_child_;
+}
+
+float Node::evaluation() const noexcept {
+  return evaluation_;
+}
+
+int32_t Node::visits() const noexcept {
+  return visits_;
+}
+
+Result Node::result() const noexcept {
+  return result_;
+}
+
+int32_t Node::child_id() const noexcept {
+  return child_id_;
+}
+
+int32_t Node::num_legal_moves() const noexcept {
+  return num_legal_moves_;
+}
+
+int32_t Node::depth() const noexcept {
+  return depth_;
+}
+
+bool Node::all_visited() const noexcept {
+  return all_visited_;
+}
+
+int32_t Node::move_id(int32_t i) const noexcept {
+  assert(i < num_legal_moves_);
+  return edges_[i].move_id;
+}
+
+float Node::probability(int32_t i) const noexcept {
+  assert(i < num_legal_moves_);
+  assert(denominator_ > 0.0);
+  return static_cast<float>(edges_[i].probability) * denominator_;
+}
+
+bool Node::terminal() const noexcept {
+  return result_ == kResultLoss || result_ == kResultDraw;
+}
+
+void Node::set_evaluation(float evaluation) noexcept {
+  evaluation_ = evaluation;
+}
+
+void Node::set_denominator(float denominator) noexcept {
+  denominator_ = denominator;
+}
+
+void Node::increment_visits() noexcept {
+  ++visits_;
+}
+
+void Node::decrement_visits() noexcept {
+  --visits_;
+}
+
+void Node::increase_evaluation(float d) noexcept {
+  evaluation_ += d;
+}
+
+void Node::decrease_evaluation(float d) noexcept {
+  evaluation_ -= d;
+}
+
+void Node::null_parent() noexcept {
+  parent_ = nullptr;
+}
+
+int32_t Node::countNodes() const noexcept {
+  int32_t counter = 1;
+  Node *cur_child = first_child_;
   while (cur_child != nullptr) {
-    counter += cur_child->count_nodes();
-    cur_child = cur_child->next_sibling;
+    counter += cur_child->countNodes();
+    cur_child = cur_child->next_sibling_;
   }
   return counter;
 }
 
-void Node::print_main_line(std::ostream *logging_file) const {
-  Node *cur_child = first_child, *best_child = nullptr;
-  uintf max_visits = 0, edge_index = 0;
-  float max_eval = 0.0, prob = 0.0;
+bool Node::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+  return game_.getLegalMoves(legal_moves);
+}
+
+void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
+  game_.writeGameState(game_state);
+}
+
+void Node::printMainLine(std::ostream &logging_file) const {
+  Node *cur_child = first_child_;
+  Node *best_child = nullptr;
+  int32_t max_visits = 0;
+  int32_t edge_index = 0;
+  float max_eval = 0.0;
+  float prob = 0.0;
   while (cur_child != nullptr) {
-    if (edges[edge_index].move_id == cur_child->child_num) {
-      if (cur_child->result == DEDUCED_LOSS ||
-          cur_child->result == RESULT_LOSS) {
+    // This edge has a corresponding child
+    // i.e. it has been visited
+    if (move_id(edge_index) == cur_child->child_id_) {
+      // If we have deduced a result, choose that move
+      if (cur_child->result_ == kDeducedLoss ||
+          cur_child->result_ == kResultLoss) {
         best_child = cur_child;
-        max_visits = cur_child->visits;
-        prob = get_probability(edge_index);
+        max_visits = cur_child->visits_;
+        prob = probability(edge_index);
         break;
       }
-      if (cur_child->visits > max_visits ||
-          (cur_child->visits == max_visits &&
-           cur_child->evaluation > max_eval)) {
+      // Choose the child with the most visits
+      // Break ties by choosing the child with the highest evaluation
+      if (cur_child->visits_ > max_visits ||
+          (cur_child->visits_ == max_visits &&
+           cur_child->evaluation_ > max_eval)) {
         best_child = cur_child;
-        max_visits = cur_child->visits;
-        max_eval = cur_child->evaluation;
-        prob = get_probability(edge_index);
+        max_visits = cur_child->visits_;
+        max_eval = cur_child->evaluation_;
+        prob = probability(edge_index);
       }
-      cur_child = cur_child->next_sibling;
+      cur_child = cur_child->next_sibling_;
     }
     ++edge_index;
   }
   if (best_child != nullptr) {
-    *logging_file << (uintf)best_child->depth << ". "
-                  << Move{best_child->child_num} << " v: " << max_visits
-                  << " e: ";
-    if (best_child->result != RESULT_NONE) {
-      *logging_file << str_result(best_child->result);
+    logging_file << static_cast<int32_t>(best_child->depth_) << ". "
+                 << Move{best_child->child_id_} << " v: " << max_visits
+                 << " e: ";
+    if (best_child->result_ != kResultNone) {
+      logging_file << strResult(best_child->result_);
     } else {
-      *logging_file << max_eval / (float)max_visits;
+      logging_file << max_eval / (float)max_visits;
     }
-    *logging_file << " p: " << prob << '\t';
-    best_child->print_main_line(logging_file);
+    logging_file << " p: " << prob << '\t';
+    best_child->printMainLine(logging_file);
   }
 }
 
-void Node::print_known(std::ostream *logging_file) const {
-  if (result != RESULT_NONE) {
-    *logging_file << (uintf)depth << ". " << Move{child_num} << ' '
-                  << str_result(result) << " ( ";
-    Node *cur_child = first_child;
+void Node::printKnownLines(std::ostream &logging_file) const {
+  if (result_ != kResultNone) {
+    logging_file << static_cast<int32_t>(depth_) << ". " << Move{child_id_}
+                 << ' ' << strResult(result_) << " ( ";
+    Node *cur_child = first_child_;
     while (cur_child != nullptr) {
-      cur_child->print_known(logging_file);
-      cur_child = cur_child->next_sibling;
+      cur_child->printKnownLines(logging_file);
+      cur_child = cur_child->next_sibling_;
     }
-    *logging_file << " ) ";
+    logging_file << " ) ";
+  }
+}
+
+void Node::initializeEdges() {
+  std::bitset<kNumMoves> legal_moves;
+  bool is_lines = game_.getLegalMoves(legal_moves);
+  num_legal_moves_ = legal_moves.count();
+  // Terminal node
+  if (num_legal_moves_ == 0) {
+    // We have to set visits_ to 0 for terminal nodes
+    // Otherwise, we will overcount by 1
+    visits_ = 0;
+    // Current player has lost if there are lines
+    if (is_lines) {
+      result_ = kResultLoss;
+      return;
+    }
+    // If there are no lines and no legal moves, the game is a draw
+    result_ = kResultDraw;
+    return;
+  }
+  // Otherwise, allocate edges for the legal moves
+  edges_ = new Edge[num_legal_moves_];
+  int32_t edge_index = 0;
+  // Fill the array with legal moves
+  for (int32_t i = 0; i < kNumMoves; ++i) {
+    if (legal_moves[i]) {
+      edges_[edge_index] = Edge(i, 0);
+      ++edge_index;
+    }
   }
 }

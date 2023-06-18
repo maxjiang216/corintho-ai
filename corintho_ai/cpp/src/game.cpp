@@ -243,10 +243,10 @@ void Game::applyLine(int32_t line,
 bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
                             bool isCol) const noexcept {
   for (int32_t i = 0; i < 4; ++i) {
-    int32_t top0 = getTop(Space{0, i, isCol});
-    int32_t top1 = getTop(Space{1, i, isCol});
-    int32_t top2 = getTop(Space{2, i, isCol});
-    int32_t top3 = getTop(Space{3, i, isCol});
+    int32_t top0 = getTop(Space{i, 0, isCol});
+    int32_t top1 = getTop(Space{i, 1, isCol});
+    int32_t top2 = getTop(Space{i, 2, isCol});
+    int32_t top3 = getTop(Space{i, 3, isCol});
     if (top1 == -1 || top2 == -1)
       continue;  // Empty space in middle, no line possible
     // Check for a long line
@@ -260,16 +260,16 @@ bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
     }
     // Check for a left/upper short line
     for (int32_t extend_coord : {3, 0}) {
-      if (top1 == top2 && ((extend_coord == 0 && top0 == top1) ||
-                           (extend_coord == 3 && top2 == top3))) {
+      if (top1 == top2 && ((extend_coord == 3 && top0 == top1) ||
+                           (extend_coord == 0 && top2 == top3))) {
         if (isCol && extend_coord == 0) {  // Lower/down column
-          applyLine(CD * 12 + i * 3 + extend_coord, legal_moves);
+          applyLine(CD * 12 + i * 3 + top1, legal_moves);
         } else if (isCol && extend_coord == 3) {  // Upper column
-          applyLine(CU * 12 + i * 3 + extend_coord, legal_moves);
+          applyLine(CU * 12 + i * 3 + top1, legal_moves);
         } else if (extend_coord == 0) {  // Right row
-          applyLine(RR * 12 + i * 3 + extend_coord, legal_moves);
+          applyLine(RR * 12 + i * 3 + top1, legal_moves);
         } else {  // Left row
-          applyLine(RL * 12 + i * 3 + extend_coord, legal_moves);
+          applyLine(RL * 12 + i * 3 + top1, legal_moves);
         }
         if (top1 == 2) {
           // If the line is a capital line
@@ -301,6 +301,7 @@ bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
                                    Space{2, extend_coord, isCol})] = false;
           }
         }
+        return true;  // No need to check for other lines
       }
     }
   }

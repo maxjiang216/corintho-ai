@@ -19,6 +19,7 @@
 class Move {
  public:
   enum class MoveType { kPlace, kMove };
+  enum class Direction { kRight, kUp, kLeft, kDown };
 
   Move() = delete;
   Move(const Move &move) noexcept = default;
@@ -30,8 +31,10 @@ class Move {
   explicit Move(int32_t id) noexcept;
   /// @brief Construct a place move
   Move(Space space, PieceType piece_type) noexcept;
-  /// @brief Construct a move move
+  /// @brief Construct a move move with two spaces
   Move(Space spaceFrom, Space spaceTo) noexcept;
+  /// @brief Construct a move move with a space and a direction
+  Move(Space spaceFrom, Direction direction) noexcept;
 
   MoveType move_type() const noexcept { return move_type_; }
   PieceType piece_type() const noexcept { return piece_type_; }

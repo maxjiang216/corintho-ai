@@ -83,3 +83,221 @@ TEST(GameTest, PlaceOnEmptyBoard) {
     }
   }
 }
+
+TEST(GameTest, MoveCapitalOnBaseColumn) {
+  // Offsets for more testing
+  for (int32_t y = 0; y < 4; ++y) {
+    // Move doesn't work with wrap-around
+    for (int32_t x = 0; x < 3; ++x) {
+      // Move capital on base and column tower
+      Game game;
+      game.doMove(encodePlace(Space{y, x}, kBase));
+      game.doMove(encodePlace(Space{y, x + 1}, kCapital));
+      game.doMove(encodePlace(Space{y, x}, kColumn));
+      game.doMove(encodePlace(Space{(y + 1) % 4, x}, kBase));
+      game.doMove(encodeMove(Space{y, x + 1}, Space{y, x}));
+      std::bitset<kNumMoves> legal_moves;
+      bool has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_FALSE(has_lines);
+      // Check that all move moves are illegal
+      for (int32_t id = 0; id < 48; ++id) {
+        EXPECT_FALSE(legal_moves[id]);
+      }
+      // Check that all place moves are legal
+      // except at (y, x) and base or capital at ((y+1)%4, x)
+      for (int32_t row = 0; row < 4; ++row) {
+        for (int32_t col = 0; col < 4; ++col) {
+          for (PieceType piece_type : kPieceTypes) {
+            int32_t move_id = encodePlace(Space{row, col}, piece_type);
+            if (row == y && col == x ||
+                row == (y + 1) % 4 && col == x &&
+                    (piece_type == kBase || piece_type == kCapital)) {
+              EXPECT_FALSE(legal_moves[move_id]);
+            } else {
+              EXPECT_TRUE(legal_moves[move_id]);
+            }
+          }
+        }
+      }
+      // Write out the game state and check that it is correct
+      float game_state[kGameStateSize];
+      game.writeGameState(game_state);
+      // All spaces should be empty except (0, 0) (which is full)
+      // and (1, 0) (which has a base)
+      for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
+        if (i / 4 == y * 4 + x || i == ((y + 1) % 4) * 16 + x * 4 + kBase) {
+          EXPECT_EQ(game_state[i], 1.0);
+        } else {
+          EXPECT_EQ(game_state[i], 0.0);
+        }
+      }
+    }
+  }
+}
+
+TEST(GameTest, ColumnCapitalOnBase) {
+  // Offsets for more testing
+  for (int32_t y = 0; y < 4; ++y) {
+    // Move doesn't work with wrap-around
+    for (int32_t x = 0; x < 3; ++x) {
+      // Move column and capital tower on base
+      Game game;
+      game.doMove(encodePlace(Space{y, x}, kColumn));
+      game.doMove(encodePlace(Space{y, x + 1}, kBase));
+      game.doMove(encodePlace(Space{y, x}, kCapital));
+      game.doMove(encodePlace(Space{(y + 1) % 4, x}, kCapital));
+      game.doMove(encodeMove(Space{y, x}, Space{y, x + 1}));
+      std::bitset<kNumMoves> legal_moves;
+      bool has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_FALSE(has_lines);
+      // Check that all move moves are illegal
+      for (int32_t id = 0; id < 48; ++id) {
+        EXPECT_FALSE(legal_moves[id]);
+      }
+      // Check that all place moves are legal except at (0, 0) and (1, 0)
+      for (int32_t row = 0; row < 4; ++row) {
+        for (int32_t col = 0; col < 4; ++col) {
+          for (PieceType piece_type : kPieceTypes) {
+            int32_t move_id = encodePlace(Space{row, col}, piece_type);
+            if ((row == y && col == x + 1) ||
+                (row == (y + 1) % 4 && col == x)) {
+              EXPECT_FALSE(legal_moves[move_id]);
+            } else {
+              EXPECT_TRUE(legal_moves[move_id]);
+            }
+          }
+        }
+      }
+      // Write out the game state and check that it is correct
+      float game_state[kGameStateSize];
+      game.writeGameState(game_state);
+      // All spaces should be empty except (0, 1) (which is full)
+      // and (1, 0) (which has a capital)
+      for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
+        if (i / 4 == y * 4 + (x + 1) ||
+            i == ((y + 1) % 4) * 16 + x * 4 + kCapital) {
+          EXPECT_EQ(game_state[i], 1.0);
+        } else {
+          EXPECT_EQ(game_state[i], 0.0);
+        }
+      }
+    }
+  }
+}
+
+TEST(GameTest, NoPieceLeft) {
+  // Test that a player cannot place a piece
+  // if he has none left
+  for (int32_t y = 0; y < 4; ++y) {
+    for (int32_t x = 0; x < 4; ++x) {
+      Game game;
+      game.doMove(encodePlace(Space{y, x}, kBase));
+      game.doMove(encodePlace(Space{y, (x + 1) % 4}, kColumn));
+      game.doMove(encodePlace(Space{y, (x + 2) % 4}, kBase));
+      game.doMove(encodePlace(Space{y, (x + 3) % 4}, kCapital));
+      game.doMove(encodePlace(Space{(y + 1) % 4, x}, kBase));
+      game.doMove(encodePlace(Space{(y + 1) % 4, (x + 1) % 4}, kColumn));
+      game.doMove(encodePlace(Space{(y + 1) % 4, (x + 2) % 4}, kBase));
+      game.doMove(encodePlace(Space{(y + 1) % 4, (x + 3) % 4}, kCapital));
+      std::bitset<kNumMoves> legal_moves;
+      bool has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_FALSE(has_lines);
+      // Check that player 1 cannot place a base
+      for (int32_t row = 0; row < 4; ++row) {
+        for (int32_t col = 0; col < 4; ++col) {
+          int32_t move_id = encodePlace(Space{row, col}, kBase);
+          EXPECT_FALSE(legal_moves[move_id]);
+        }
+      }
+    }
+  }
+}
+
+TEST(GameTest, PlacePieceOnSame) {
+  for (int32_t row = 0; row < 4; ++row) {
+    for (int32_t col = 0; col < 4; ++col) {
+      for (PieceType piece_type : kPieceTypes) {
+        Game game;
+        game.doMove(encodePlace(Space{row, col}, piece_type));
+        game.doMove(
+            encodePlace(Space{(row + 1) % 4, (col + 1) % 4}, piece_type));
+        std::bitset<kNumMoves> legal_moves;
+        bool has_lines = game.getLegalMoves(legal_moves);
+        EXPECT_FALSE(has_lines);
+        // Check that placing the same piece on (row, col) is illegal
+        EXPECT_FALSE(legal_moves[encodePlace(Space{row, col}, piece_type)]);
+      }
+    }
+  }
+}
+
+TEST(GameTest, MoveWithFrozen) {
+  for (int32_t y = 0; y < 4; ++y) {
+    for (int32_t x = 0; x < 4; ++x) {
+      Game game;
+      game.doMove(encodePlace(Space{y, (x + 3) % 4}, kCapital));
+      game.doMove(encodePlace(Space{y, (x + 1) % 4}, kBase));
+      game.doMove(encodePlace(Space{y, x}, kColumn));
+      std::bitset<kNumMoves> legal_moves;
+      bool has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_FALSE(has_lines);
+      // Check that all move moves are illegal
+      for (int32_t id = 0; id < 48; ++id) {
+        EXPECT_FALSE(legal_moves[id]);
+      }
+    }
+  }
+}
+
+TEST(GameTest, TestLongRow) {
+  for (int32_t row = 0; row < 4; ++row) {
+    for (PieceType piece_type : kPieceTypes) {
+      // Test long lines that must be broken so that there are no lines left
+      Game game;
+      game.doMove(encodePlace(Space{row, 0}, piece_type));
+      game.doMove(encodePlace(Space{row, 1}, piece_type));
+      game.doMove(encodePlace(Space{row, 2}, piece_type));
+      std::bitset<kNumMoves> legal_moves;
+      bool has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_TRUE(has_lines);  // there is a line
+      // Check that extending the line is legal
+      EXPECT_TRUE(legal_moves[encodePlace(Space{row, 3}, piece_type)])
+          << "row: " << row << ", piece_type: " << piece_type
+          << ", legal_moves: " << legal_moves;
+      game.doMove(encodePlace(Space{row, 3}, piece_type));
+      has_lines = game.getLegalMoves(legal_moves);
+      EXPECT_TRUE(has_lines);  // there is a line
+      if (piece_type == kCapital) {
+        // No legal moves in this case
+        for (int32_t id = 0; id < kNumMoves; ++id) {
+          EXPECT_FALSE(legal_moves[id]);
+        }
+      } else {
+        // Check that all move moves are illegal
+        for (int32_t id = 0; id < 48; ++id) {
+          EXPECT_FALSE(legal_moves[id]);
+        }
+        // Check that all place moves not in the middle of the line are illegal
+        // and that all legal moves leave no lines
+        for (int32_t row2 = 0; row2 < 4; ++row2) {
+          for (int32_t col2 = 0; col2 < 4; ++col2) {
+            for (PieceType piece_type2 : kPieceTypes) {
+              int32_t move_id = encodePlace(Space{row2, col2}, piece_type2);
+              if (row2 == row && (col2 == 1 || col2 == 2)) {
+                if (legal_moves[move_id]) {
+                  Game game2 = game;
+                  game2.doMove(move_id);
+                  std::bitset<kNumMoves> legal_moves2;
+                  bool has_lines2 = game2.getLegalMoves(legal_moves2);
+                  EXPECT_FALSE(has_lines2);  // All lines should be broken
+                }
+              } else {
+                EXPECT_FALSE(legal_moves[move_id]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

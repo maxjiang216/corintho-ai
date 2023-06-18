@@ -17,7 +17,7 @@ using std::pair;
 // Since it deletes it
 SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE},
+      generator{generator}, result{kResultNone},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
@@ -28,7 +28,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
 SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
                        std::ofstream *logging_file)
     : players{TrainMC{generator}, TrainMC{generator}}, to_play{0},
-      generator{generator}, result{RESULT_NONE},
+      generator{generator}, result{kResultNone},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
@@ -39,7 +39,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
                        std::mt19937 *generator)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed},
+      generator{generator}, result{kResultNone}, seed{seed},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
@@ -49,7 +49,7 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
                        std::mt19937 *generator, std::ofstream *logging_file)
     : players{TrainMC{generator, true}, TrainMC{generator, true}}, to_play{0},
-      generator{generator}, result{RESULT_NONE}, seed{seed},
+      generator{generator}, result{kResultNone}, seed{seed},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
   players[0].to_eval = to_eval;
@@ -90,40 +90,41 @@ bool SelfPlayer::do_iteration() {
   while (!need_evaluation) {
 
     if (logging_file != nullptr) {
-      *logging_file << "TURN " << (uintf)players[to_play].root->depth << '\n'
+      *logging_file << "TURN " << (uintf)players[to_play].root->depth() << '\n'
                     << "PLAYER " << (uintf)(to_play + 1) << " TO PLAY\nVISITS: "
-                    << (uintf)players[to_play].root->visits
+                    << (uintf)players[to_play].root->visits()
                     << "\nPOSITION EVALUATION: ";
-      if (players[to_play].root->result != RESULT_NONE) {
+      if (players[to_play].root->result() != kResultNone) {
         if (mate_turn == 0) {
-          mate_turn = players[to_play].root->depth;
+          mate_turn = players[to_play].root->depth();
         }
-        *logging_file << str_result(players[to_play].root->result);
+        *logging_file << strResult(players[to_play].root->result());
       } else {
         *logging_file << std::fixed << std::setprecision(6)
-                      << players[to_play].root->evaluation /
-                             (float)players[to_play].root->visits;
+                      << players[to_play].root->evaluation() /
+                             (float)players[to_play].root->visits();
       }
       *logging_file << "\nLEGAL MOVES:\n";
       // Print main line
-      players[to_play].root->print_main_line(logging_file);
+      players[to_play].root->printMainLine(*logging_file);
       *logging_file << '\n';
       // Get and sort moves by visit count and evaluation
       std::vector<pair<pair<pair<uintf, float>, pair<float, uintf>>, uint8s>>
           moves;
-      Node *cur_child = players[to_play].root->first_child;
+      Node *cur_child = players[to_play].root->first_child();
       uintf edge_index = 0;
       while (cur_child != nullptr) {
-        if (cur_child->child_num ==
-            players[to_play].root->edges[edge_index].move_id) {
+        if (cur_child->child_id() ==
+            players[to_play].root->move_id(edge_index)) {
           moves.emplace_back(
               make_pair(
-                  make_pair(cur_child->visits,
-                            cur_child->evaluation / (float)cur_child->visits),
-                  make_pair(players[to_play].root->get_probability(edge_index),
-                            cur_child->child_num)),
-              cur_child->result);
-          cur_child = cur_child->next_sibling;
+                  make_pair(cur_child->visits(),
+                            cur_child->evaluation() /
+                                (float)cur_child->visits()),
+                  make_pair(players[to_play].root->probability(edge_index),
+                            cur_child->child_id())),
+              cur_child->result());
+          cur_child = cur_child->next_sibling();
         }
         ++edge_index;
       }
@@ -147,8 +148,8 @@ bool SelfPlayer::do_iteration() {
       for (uintf i = 1; i < moves.size(); ++i) {
         *logging_file << Move{moves[i].first.second.second}
                       << " V: " << moves[i].first.first.first << " E: ";
-        if (moves[i].second != RESULT_NONE) {
-          *logging_file << str_result(moves[i].second);
+        if (moves[i].second != kResultNone) {
+          *logging_file << strResult(moves[i].second);
         } else {
           *logging_file << moves[i].first.first.second;
         }
@@ -167,23 +168,23 @@ bool SelfPlayer::do_iteration() {
 
     if (logging_file != nullptr) {
       *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
-                    << players[to_play].root->game << "\n\n";
+                    << players[to_play].root->game() << "\n\n";
     }
 
     // Check if the game is over
-    if (players[to_play].root->is_terminal()) {
+    if (players[to_play].root->terminal()) {
       // Get result
-      if (players[to_play].root->result == RESULT_DRAW) {
-        result = RESULT_DRAW;
+      if (players[to_play].root->result() == kResultDraw) {
+        result = kResultDraw;
         // Second player win (to_play not updated yet)
       } else if (to_play == 1) {
-        result = RESULT_LOSS;
+        result = kResultLoss;
       } else {
-        result = RESULT_WIN;
+        result = kResultWin;
       }
       // Log game result
       if (logging_file != nullptr) {
-        if (result == RESULT_DRAW) {
+        if (result == kResultDraw) {
           *logging_file << "GAME IS DRAWN.\n";
         } else {
           *logging_file << "PLAYER " << to_play + 1 << " WON!\n";
@@ -207,8 +208,8 @@ bool SelfPlayer::do_iteration() {
       to_play = 1 - to_play;
       // First time iterating the second TrainMC
       if (players[to_play].is_uninitialized()) {
-        players[to_play].do_first_iteration(players[1 - to_play].root->game,
-                                            players[1 - to_play].root->depth);
+        players[to_play].do_first_iteration(players[1 - to_play].root->game(),
+                                            players[1 - to_play].root->depth());
         // Game is not over, evaluation is needed
         // It cannot be a terminal state
         return false;
@@ -217,7 +218,7 @@ bool SelfPlayer::do_iteration() {
         // in the case that received move has not been searched
         need_evaluation = players[to_play].receive_opp_move(
             move_choice, players[1 - to_play].get_game(),
-            players[1 - to_play].root->depth);
+            players[1 - to_play].root->depth());
         if (!need_evaluation) {
           // Otherwise, we search again
           need_evaluation =
@@ -255,7 +256,7 @@ void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
   uintf offset = 0;
   // The last player to play a move is the winner, except in a draw
   float evaluation = 1.0;
-  if (result == RESULT_DRAW) {
+  if (result == kResultDraw) {
     evaluation = 0.0;
   }
   // Start from back to front to figure out evaluations more easily
@@ -292,9 +293,9 @@ void SelfPlayer::write_samples(float *game_states, float *evaluation_samples,
 }
 
 float SelfPlayer::get_score() const {
-  if (result == RESULT_WIN)
+  if (result == kResultWin)
     return 1.0;
-  if (result == RESULT_LOSS)
+  if (result == kResultLoss)
     return 0.0;
   return 0.5;
 }

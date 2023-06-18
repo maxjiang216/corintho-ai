@@ -95,12 +95,37 @@ bool Node::terminal() const noexcept {
   return result_ == kResultLoss || result_ == kResultDraw;
 }
 
+void Node::set_next_sibling(Node *next_sibling) noexcept {
+  next_sibling_ = next_sibling;
+}
+
+void Node::set_first_child(Node *first_child) noexcept {
+  first_child_ = first_child;
+}
+
 void Node::set_evaluation(float evaluation) noexcept {
   evaluation_ = evaluation;
 }
 
 void Node::set_denominator(float denominator) noexcept {
   denominator_ = denominator;
+}
+
+void Node::set_visits(int32_t visits) noexcept {
+  visits_ = gsl::narrow_cast<int16_t>(visits);
+}
+
+void Node::set_result(Result result) noexcept {
+  result_ = result;
+}
+
+void Node::set_all_visited(bool all_visited) noexcept {
+  all_visited_ = all_visited;
+}
+
+void Node::set_probability(int32_t i, int32_t probability) noexcept {
+  assert(i < num_legal_moves_);
+  edges_[i].probability = gsl::narrow_cast<uint16_t>(probability);
 }
 
 void Node::increment_visits() noexcept {
@@ -121,6 +146,10 @@ void Node::decrease_evaluation(float d) noexcept {
 
 void Node::null_parent() noexcept {
   parent_ = nullptr;
+}
+
+void Node::null_next_sibling() noexcept {
+  next_sibling_ = nullptr;
 }
 
 int32_t Node::countNodes() const noexcept {

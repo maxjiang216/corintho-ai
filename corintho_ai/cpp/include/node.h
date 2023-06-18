@@ -68,13 +68,22 @@ class alignas(64) Node {
   /// @brief Whether the game is in a terminal position
   bool terminal() const noexcept;
 
+  void set_next_sibling(Node *next_sibling) noexcept;
+  void set_first_child(Node *first_child) noexcept;
   void set_evaluation(float evaluation) noexcept;
   void set_denominator(float denominator) noexcept;
+  void set_visits(int32_t visits) noexcept;
+  void set_result(Result result) noexcept;
+  /// @brief Set all_visited
+  /// @param all_visited Default is true to match other standard set functions
+  void set_all_visited(bool all_visited = true) noexcept;
+  void set_probability(int32_t i, int32_t probability) noexcept;
   void increment_visits() noexcept;
   void decrement_visits() noexcept;
   void increase_evaluation(float d) noexcept;
   void decrease_evaluation(float d) noexcept;
   void null_parent() noexcept;
+  void null_next_sibling() noexcept;
 
   int32_t countNodes() const;
 

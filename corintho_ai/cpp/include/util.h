@@ -50,13 +50,14 @@ const uintf kGameStateSize = 70;
 // Number of possible legal moves
 const int32_t kNumMoves = 96;
 
-const uint8s RESULT_NONE = 0;
-const uint8s RESULT_LOSS = 1;
-const uint8s RESULT_DRAW = 2;
-const uint8s RESULT_WIN = 3;
-const uint8s DEDUCED_LOSS = 4;
-const uint8s DEDUCED_DRAW = 5;
-const uint8s DEDUCED_WIN = 6;
+typedef int8_t Result;
+const Result kResultNone = 0;
+const Result kResultLoss = 1;
+const Result kResultDraw = 2;
+const Result kResultWin = 3;
+const Result kDeducedLoss = 4;
+const Result kDeducedDraw = 5;
+const Result kDeducedWin = 6;
 
 typedef int32_t PieceType;
 const PieceType kBase = 0;
@@ -65,7 +66,7 @@ const PieceType kCapital = 2;
 const PieceType kPieceTypes[3] = {kBase, kColumn, kCapital};
 const int32_t kFrozen = 3;
 
-string str_result(uint8s result);
+string strResult(uint8s result);
 
 // Indexing for lines
 const uintf RL = 0;

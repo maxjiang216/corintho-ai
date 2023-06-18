@@ -261,6 +261,9 @@ TEST(GameTest, TestLongRowCols) {
         std::bitset<kNumMoves> legal_moves;
         bool has_lines = game.getLegalMoves(legal_moves);
         EXPECT_TRUE(has_lines);  // there is a line
+        // Check legal move count (2 breaks if not capital and 1 extend)
+        EXPECT_EQ(legal_moves.count(), piece_type == kCapital ? 1 : 3)
+            << "row: " << row << ", piece_type: " << piece_type;
         // Check that extending the line is legal
         EXPECT_TRUE(legal_moves[encodePlace(Space{row, 3, flip}, piece_type)])
             << "row: " << row << ", piece_type: " << piece_type
@@ -270,10 +273,10 @@ TEST(GameTest, TestLongRowCols) {
         EXPECT_TRUE(has_lines);  // there is a line
         if (piece_type == kCapital) {
           // No legal moves in this case
-          for (int32_t id = 0; id < kNumMoves; ++id) {
-            EXPECT_FALSE(legal_moves[id]);
-          }
+          EXPECT_TRUE(legal_moves.none());
         } else {
+          // Check legal move count
+          EXPECT_EQ(legal_moves.count(), 2);
           // Check that all move moves are illegal
           for (int32_t id = 0; id < 48; ++id) {
             EXPECT_FALSE(legal_moves[id]);
@@ -318,6 +321,8 @@ TEST(GameTest, TestShortRowCols) {
         std::bitset<kNumMoves> legal_moves;
         bool has_lines = game.getLegalMoves(legal_moves);
         EXPECT_TRUE(has_lines);  // there is a line
+        // Check legal move count
+        EXPECT_EQ(legal_moves.count(), piece_type == kColumn ? 3 : 2);
         // Cannot move the capital onto a base
         if (piece_type == kBase) {
           for (int32_t id = 0; id < 48; ++id) {
@@ -371,6 +376,8 @@ TEST(GameTest, TestLongDiags) {
       std::bitset<kNumMoves> legal_moves;
       bool has_lines = game.getLegalMoves(legal_moves);
       EXPECT_TRUE(has_lines);  // there is a line
+      // Check legal move count (2 breaks if not capital and 1 extend)
+      EXPECT_EQ(legal_moves.count(), piece_type == kCapital ? 1 : 3);
       // Check that extending the line is legal
       EXPECT_TRUE(legal_moves[encodePlace(Space{3, flip ? 0 : 3}, piece_type)]);
       game.doMove(encodePlace(Space{3, flip ? 0 : 3}, piece_type));
@@ -378,10 +385,10 @@ TEST(GameTest, TestLongDiags) {
       EXPECT_TRUE(has_lines);  // there is a line
       if (piece_type == kCapital) {
         // No legal moves in this case
-        for (int32_t id = 0; id < kNumMoves; ++id) {
-          EXPECT_FALSE(legal_moves[id]);
-        }
+        EXPECT_TRUE(legal_moves.none());
       } else {
+        // Check legal move count
+        EXPECT_EQ(legal_moves.count(), 2);
         // Check that all move moves are illegal
         for (int32_t id = 0; id < 48; ++id) {
           EXPECT_FALSE(legal_moves[id]);
@@ -426,10 +433,10 @@ TEST(GameTest, TestShortDiags) {
       EXPECT_TRUE(has_lines);  // there is a line
       if (piece_type == kCapital) {
         // No legal moves in this case
-        for (int32_t id = 0; id < kNumMoves; ++id) {
-          EXPECT_FALSE(legal_moves[id]);
-        }
+        EXPECT_TRUE(legal_moves.none());
       } else {
+        // Check legal move count
+        EXPECT_EQ(legal_moves.count(), 2);
         // Check that all move moves are illegal
         for (int32_t id = 0; id < 48; ++id) {
           EXPECT_FALSE(legal_moves[id]);

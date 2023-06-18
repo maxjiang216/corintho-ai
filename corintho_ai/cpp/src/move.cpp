@@ -52,29 +52,6 @@ Move::Move(Space spaceFrom, Space spaceTo) noexcept
   assert(spaceTo.notNull());
 }
 
-Move::Move(Space spaceFrom, Direction direction) noexcept
-    : move_type_{MoveType::kMove}, spaceFrom_{spaceFrom} {
-  assert(spaceFrom.notNull());
-  switch (direction) {
-  case Direction::kRight:
-    assert(spaceFrom.col < 3);
-    spaceTo_ = {spaceFrom.row, spaceFrom.col + 1};
-    break;
-  case Direction::kUp:
-    assert(spaceFrom.row > 0);
-    spaceTo_ = {spaceFrom.row - 1, spaceFrom.col};
-    break;
-  case Direction::kLeft:
-    assert(spaceFrom.col > 0);
-    spaceTo_ = {spaceFrom.row, spaceFrom.col - 1};
-    break;
-  case Direction::kDown:
-    assert(spaceFrom.row < 3);
-    spaceTo_ = {spaceFrom.row + 1, spaceFrom.col};
-    break;
-  }
-}
-
 std::ostream &operator<<(std::ostream &os, const Move &move) {
   if (move.move_type_ == Move::MoveType::kPlace) {
     if (move.piece_type_ == 0) {

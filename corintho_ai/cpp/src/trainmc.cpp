@@ -211,7 +211,7 @@ uintf TrainMC::choose_move(float game_state[kGameStateSize],
   return move_choice;
 }
 
-bool TrainMC::receive_opp_move(uintf move_choice, const Game &game,
+bool TrainMC::receiveOpponentMove(uintf move_choice, const Game &game,
                                uintf depth) {
   Node *prev_node = nullptr, *cur_child = root->first_child();
   while (cur_child != nullptr) {

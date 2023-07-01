@@ -162,7 +162,7 @@ bool SelfPlayer::do_iteration() {
     // Also write samples
     std::array<float, kGameStateSize> sample_state;
     std::array<float, kNumMoves> probability_sample;
-    uintf move_choice = players[to_play].choose_move(sample_state.data(),
+    uintf move_choice = players[to_play].chooseMove(sample_state.data(),
                                                      probability_sample.data());
     samples.emplace_back(sample_state, probability_sample);
 
@@ -216,7 +216,7 @@ bool SelfPlayer::do_iteration() {
       } else {
         // It's possible that we need an evaluation for this
         // in the case that received move has not been searched
-        need_evaluation = players[to_play].receive_opp_move(
+        need_evaluation = players[to_play].receiveOpponentMove(
             move_choice, players[1 - to_play].get_game(),
             players[1 - to_play].root->depth());
         if (!need_evaluation) {

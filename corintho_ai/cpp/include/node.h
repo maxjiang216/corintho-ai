@@ -67,6 +67,12 @@ class alignas(64) Node {
   float probability(int32_t i) const noexcept;
   /// @brief Whether the game is in a terminal position
   bool terminal() const noexcept;
+  /// @brief Whether the game result is deduced 
+  bool known() const noexcept;
+  bool won() const noexcept;
+  bool lost() const noexcept;
+  bool drawn() const noexcept;
+  const Game &get_game() const noexcept;
 
   void set_next_sibling(Node *next_sibling) noexcept;
   void set_first_child(Node *first_child) noexcept;

@@ -20,8 +20,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
       generator{generator}, result{kResultNone},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval = to_eval;
-  players[1].to_eval = to_eval;
+  players[0].to_eval_ = to_eval;
+  players[1].to_eval_ = to_eval;
   samples.reserve(32);
 }
 
@@ -31,8 +31,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
       generator{generator}, result{kResultNone},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval = to_eval;
-  players[1].to_eval = to_eval;
+  players[0].to_eval_ = to_eval;
+  players[1].to_eval_ = to_eval;
   samples.reserve(32);
 }
 
@@ -42,8 +42,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
       generator{generator}, result{kResultNone}, seed{seed},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval = to_eval;
-  players[1].to_eval = to_eval;
+  players[0].to_eval_ = to_eval;
+  players[1].to_eval_ = to_eval;
 }
 
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
@@ -52,8 +52,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
       generator{generator}, result{kResultNone}, seed{seed},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval = to_eval;
-  players[1].to_eval = to_eval;
+  players[0].to_eval_ = to_eval;
+  players[1].to_eval_ = to_eval;
 }
 
 SelfPlayer::~SelfPlayer() {
@@ -77,7 +77,7 @@ bool SelfPlayer::do_iteration(float evaluation[], float probabilities[]) {
   // If we have completed a turn
   // and we don't need to evaluate any positions
   // We can choose a move
-  if (done_turn && players[to_play].eval_index == 0)
+  if (done_turn && players[to_play].searched_index_ == 0)
     return do_iteration();
   // Game is not complete
   return false;
@@ -222,7 +222,7 @@ bool SelfPlayer::do_iteration() {
         if (!need_evaluation) {
           // Otherwise, we search again
           need_evaluation =
-              !(players[to_play].search() && players[to_play].eval_index == 0);
+              !(players[to_play].search() && players[to_play].searched_index_ == 0);
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
           // This is unlikely, however
@@ -236,12 +236,12 @@ bool SelfPlayer::do_iteration() {
 }
 
 uintf SelfPlayer::count_requests() const {
-  return players[to_play].searched.size();
+  return players[to_play].searched_.size();
 }
 
 void SelfPlayer::write_requests(float *game_states) const {
-  // Can change to memcpy later
-  for (uintf i = 0; i < kGameStateSize * players[to_play].searched.size();
+  // Change to std::copy, speed is not important as the array is small and this is only done once per move
+  for (uintf i = 0; i < kGameStateSize * players[to_play].searched_.size();
        ++i) {
     *(game_states + i) = to_eval[i];
   }

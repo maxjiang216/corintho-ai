@@ -1,214 +1,246 @@
 #include "trainmc.h"
 
-#include <array>
-#include <bitset>
+#include <cstdint>
 #include <cmath>
 #include <cstring>
+#include <cassert>
+
 #include <fstream>
-#include <iostream>
 #include <random>
 #include <vector>
 
 #include "move.h"
 #include "node.h"
-using std::cerr;
 
-using std::bitset;
-
-TrainMC::TrainMC(std::mt19937 *generator)
-    : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
-      iterations_done{0}, testing{false}, generator{generator} {
-  searched.reserve(searches_per_eval);
+TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, bool testing):
+max_searches_{max_searches}, searches_per_eval_{searches_per_eval}, c_puct_{c_puct}, epsilon_{epsilon}, testing_{testing}, generator_{generator} {
+  assert(max_searches_ > 0);
+  assert(searches_per_eval_ > 0);
+  assert(c_puct_ > 0.0);
+  assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
+  assert(generator_ != nullptr);
+  // seached_ will only ever need this many elements
+  searched_.reserve(searches_per_eval_);
 }
 
-TrainMC::TrainMC(std::mt19937 *generator, bool)
-    : root{nullptr}, cur{nullptr},
-      eval_index{0}, searched{std::vector<Node *>()}, to_eval{nullptr},
-      iterations_done{0}, testing{true}, generator{generator} {
-  searched.reserve(searches_per_eval);
+Node *TrainMC::root() const noexcept {
+  return root_;
 }
 
-void TrainMC::do_first_iteration() {
-  // Create the root node
-  root = new Node();
-  cur = root;
-  iterations_done = 1;
-
-  cur->writeGameState(to_eval);
-  searched.push_back(cur);
-  eval_index = 1;
+int32_t TrainMC::root_depth() const noexcept {
+  assert(root_ != nullptr);
+  return root_->depth();
 }
 
-void TrainMC::do_first_iteration(const Game &game, uintf depth) {
-  // Create the root node
-  root = new Node(game, depth);
-  cur = root;
-  iterations_done = 1;
-
-  cur->writeGameState(to_eval);
-  searched.push_back(cur);
-  eval_index = 1;
+const Game& TrainMC::get_root_game() const noexcept {
+  assert(root_ != nullptr);
+  return root_->get_game();
 }
 
-bool TrainMC::do_iteration(float evaluation[], float probabilities[]) {
-  receive_evaluation(evaluation, probabilities);
-  while (eval_index < searches_per_eval && root->result() == kResultNone) {
-    // We are done the search prematurely if
-    // The root has no more children to search
-    // Or if we have done max_iterations searches
-    bool done_search = search();
-    if (done_search)
+bool TrainMC::noEvalsRequested() const noexcept {
+  return searched_index_ == 0;
+}
+
+int32_t TrainMC::numNodesSearched() const noexcept {
+  return searches_done_;
+}
+
+bool TrainMC::isUninitialized() const noexcept {
+  return root_ == nullptr;
+}
+
+int32_t TrainMC::numNodes() const noexcept {
+  if (root_ == nullptr) {
+    return 0;
+  }
+  return root_->countNodes();
+}
+
+void TrainMC::createRoot(const Game &game, int32_t depth) {
+  assert(root_ == nullptr);
+  root_ = new Node(game, depth);
+  cur_ = root_;
+}
+
+bool TrainMC::doIteration(float eval[], float probs[]) {
+  // This is the first iteration of a game
+  if (isUninitialized()) {
+    // We should not be getting evaluations
+    assert(eval == nullptr);
+    assert(probs == nullptr);
+    // Initialize the Monte Carlo search tree
+    root_ = new Node();
+    cur_ = root_;
+    // "Search" the root node
+    searches_done_ = 1;
+    // Request an evaluation
+    // The result is not deduced at this point
+    cur_->writeGameState(to_eval_);
+    searched_.push_back(cur_);
+    searched_index_ = 1;
+    return false;
+  }
+  // Otherwise, we should have evaluations
+  assert(eval != nullptr);
+  assert(probs != nullptr);
+  receiveEval(eval, probs);
+  while (searches_done_ < max_searches_ && !root_->known()) {
+    // search returns if we should continue searching
+    if (search()) {
       break;
+    }
   }
-  // Return whether the turn is done
-  return iterations_done == max_iterations || root->result() != kResultNone;
+  assert(searches_done_ <= max_searches_);
+  return searches_done_ == max_searches_ || root_->known();
 }
 
-uintf TrainMC::choose_move(float game_state[kGameStateSize],
-                           float probability_sample[kNumMoves]) {
-  if (!testing) {
+int32_t TrainMC::chooseMove(float game_state[kGameStateSize], float prob_sample[kNumMoves]) noexcept {
+  assert(game_state != nullptr);
+  assert(prob_sample != nullptr);
+  assert(!isUninitialized());
+  if (!testing_) {  // Write samples if we are not testing
     // Before moving down, read the samples from the root node
-    root->writeGameState(game_state);
-    // Clear probabilities first
-    // Most moves are not legal
-    std::memset(probability_sample, 0, kNumMoves * sizeof(float));
+    root_->writeGameState(game_state);
+    // Clear the probability sample
+    // We will write the probabilities when we determine which move to do
+    std::memset(prob_sample, 0, kNumMoves * sizeof(float));
   }
-
-  uintf move_choice = 0;
+  int32_t choice = 0;
   // Keep track of the previous sibling of the chosen node
   // For when we delete deprecated nodes
-  Node *best_prev_node = nullptr;
-
-  // Mating sequence available, find the first winning move
-  // There should only ever be 1 winning move
-  // Since after it is found, the node is not searched again for the most part
-  // Ignore opening stuff here
-  if (root->result() == kDeducedWin) {
-    Node *cur_child = root->first_child(), *prev_node = nullptr;
-    while (cur_child != nullptr) {
-      if (cur_child->result() == kDeducedLoss ||
-          cur_child->result() == kResultLoss) {
-        move_choice = cur_child->child_id();
-        best_prev_node = prev_node;
+  Node *best_prev = nullptr;
+  // If the root is a deduced win, find the first winning move
+  // There should only ever be 1 winning move, since after it is found,
+  // the node is not searched again
+  // Temperature is 0 in this case, even in the opening.
+  if (root_->won()) {
+    Node *cur = root_->first_child();
+    Node *prev = nullptr;
+    while (cur != nullptr) {
+      // Winning moves lead to lost positions
+      if (cur->lost()) {
+        choice = cur->child_id();
+        best_prev = prev;
         break;
       }
-      prev_node = cur_child;
-      cur_child = cur_child->next_sibling();
+      prev = cur;
+      cur = cur->next_sibling();
     }
-    probability_sample[move_choice] = 1.0;
-  }
+    // Set the probability of the winning move to 1
+    prob_sample[choice] = 1.0;
 
-  // Losing position, find the move with the most searches
+  }
+  // For losing positions, find the move with the most searches
   // The most searched line is likely the one with the longest and/or hardest to
-  // find mate which is pratically better. Ignore opening stuff
-  else if (root->result() == kDeducedLoss) {
-    uintf max_visits = 0;
-    Node *cur_child = root->first_child(), *prev_node = nullptr;
-    while (cur_child != nullptr) {
-      if (cur_child->visits() > max_visits) {
-        move_choice = cur_child->child_id();
-        best_prev_node = prev_node;
-        max_visits = cur_child->visits();
+  // find mate which is practically better.
+  // Temperature is 0 in this case, even in the opening.
+  else if (root_->lost()) {
+    int32_t max_visits = 0;
+    Node *cur = root_->first_child();
+    Node *prev = nullptr;
+    while (cur != nullptr) {
+      if (cur->visits() > max_visits) {
+        choice = cur->child_id();
+        best_prev = prev;
+        max_visits = cur->visits();
       }
-      prev_node = cur_child;
-      cur_child = cur_child->next_sibling();
+      prev = cur;
+      cur = cur->next_sibling();
     }
-    probability_sample[move_choice] = 1.0;
+    prob_sample[choice] = 1.0;
   }
-
-  // Drawn position, find the drawing move with the most searches
-  // Which again is practically more likely to get winning chances
-  // Against a suboptimal opponent
-  // Ignore opening stuff
-  else if (root->result() == kDeducedDraw) {
-    uintf max_visits = 0;
-    Node *cur_child = root->first_child(), *prev_node = nullptr;
-    while (cur_child != nullptr) {
-      if (cur_child->visits() > max_visits &&
-          cur_child->result() != kDeducedWin) {
-        move_choice = cur_child->child_id();
-        best_prev_node = prev_node;
-        max_visits = cur_child->visits();
+  // In a drawn position, find the drawing move with the most searches
+  // that is not a losing move.
+  // This again is better practically.
+  // Temperature is 0.
+  else if (root_->drawn()) {
+    int32_t max_visit = 0;
+    Node *cur = root_->first_child();
+    Node *prev = nullptr;
+    while (cur != nullptr) {
+      if (cur->visits() > max_visit && !cur->won()) {
+        choice = cur->child_id();
+        best_prev = prev;
+        max_visit = cur->visits();
       }
-      prev_node = cur_child;
-      cur_child = cur_child->next_sibling();
+      prev = cur;
+      cur = cur->next_sibling();
     }
-    probability_sample[move_choice] = 1.0;
+    prob_sample[choice] = 1.0;
   }
-
-  // In training, choose weighted random
-  // For the first few moves
-  else if (root->depth() < NUM_OPENING_MOVES && !testing) {
-    // We exclude losing moves from our choices
-    uintf visits = 0;
-    Node *cur_child = root->first_child();
-    while (cur_child != nullptr) {
-      if (cur_child->result() != kDeducedWin) {
-        visits += cur_child->visits();
+  // For opening moves during training, temperature is 1.
+  else if (root_->depth() < kNumOpeningMoves && !testing_) {
+    assert(!root_->known());
+    // Count the number of visits to non-losing moves
+    // Which will be the denominator for the probabilities
+    int32_t visits = 0;
+    Node *cur = root_->first_child();
+    while (cur != nullptr) {
+      // Exclude losing moves
+      if (!cur->won()) {
+        visits += cur->visits();
       }
-      cur_child = cur_child->next_sibling();
+      cur = cur->next_sibling();
     }
-    uintf total = 0, target = (*generator)() % visits;
-    float denominator = 1.0 / (float)visits;
-    cur_child = root->first_child();
-    // This loop will always break out
-    // There is always at least one child
-    while (true) {
-      if (cur_child->result() != kDeducedWin) {
-        total += cur_child->visits();
-        probability_sample[cur_child->child_id()] =
-            static_cast<float>(cur_child->visits()) * denominator;
+    float denominator = 1.0 / static_cast<float>(visits);
+    cur = root_->first_child();
+    // Get the probability sample
+    while (cur != nullptr) {
+      // Exclude losing moves
+      if (!cur->won()) {
+        prob_sample[cur->child_id()] = static_cast<float>(cur->visits()) * denominator;
+      }
+      best_prev = cur;
+      cur = cur->next_sibling();
+    }
+    // Choose a random move weighted by the number of visits
+    int32_t target = (*generator_)() % visits;
+    int32_t total = 0;
+    while (cur != nullptr) {
+      // Exclude losing moves
+      if (!cur->won()) {
+        total += cur->visits();
         if (total > target) {
-          move_choice = cur_child->child_id();
+          choice = cur->child_id();
           break;
         }
       }
-      best_prev_node = cur_child;
-      cur_child = cur_child->next_sibling();
-    }
-    cur_child = cur_child->next_sibling();
-    while (cur_child != nullptr) {
-      if (cur_child->result() != kDeducedWin) {
-        probability_sample[cur_child->child_id()] =
-            static_cast<float>(cur_child->visits()) * denominator;
-      }
-      cur_child = cur_child->next_sibling();
+      best_prev = cur;
+      cur = cur->next_sibling();
     }
   }
-
+  // Otherwise, choose the move with the most searches
+  // Break ties with evaluation
+  // We never choose losing moves and treat draws as having evaluation 0
   else {
-    // Otherwise, choose the move with the most searches
-    // Breaking ties with evaluation
-    // We never choose losing moves
-    // And treat draws as having evaluation 0
-    uintf max_visits = 0;
-    float max_eval = 0.0, eval;
-    Node *cur_child = root->first_child(), *prev_node = nullptr;
-    while (cur_child != nullptr) {
-      if (cur_child->result() != kDeducedWin) {
-        eval = cur_child->evaluation();
-        if (cur_child->result() == kResultDraw ||
-            cur_child->result() == kDeducedDraw) {
+    assert(!root_->known());
+    int32_t max_visits = 0;
+    float max_eval = 0.0;
+    Node *cur = root_->first_child();
+    Node *prev = nullptr;
+    while (cur != nullptr) {
+      if (!cur->won()) {
+        float eval = cur->evaluation();
+        if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
           eval = 0.0;
         }
-        if (cur_child->visits() > max_visits ||
-            (cur_child->visits() == max_visits && eval > max_eval)) {
-          move_choice = cur_child->child_id();
-          best_prev_node = prev_node;
-          max_visits = cur_child->visits();
+        if (cur->visits() > max_visits || (cur->visits() == max_visits && eval > max_eval)) {
+          choice = cur->child_id();
+          best_prev = prev;
+          max_visits = cur->visits();
           max_eval = eval;
         }
       }
-      prev_node = cur_child;
-      cur_child = cur_child->next_sibling();
+      prev = cur;
+      cur = cur->next_sibling();
     }
-    probability_sample[move_choice] = 1.0;
+    prob_sample[choice] = 1.0;
   }
 
-  move_down(best_prev_node);
+  // Move down the tree
+  moveDown(best_prev);
 
-  return move_choice;
+  return choice;
 }
 
 bool TrainMC::receiveOpponentMove(uintf move_choice, const Game &game,
@@ -216,7 +248,7 @@ bool TrainMC::receiveOpponentMove(uintf move_choice, const Game &game,
   Node *prev_node = nullptr, *cur_child = root->first_child();
   while (cur_child != nullptr) {
     if (cur_child->child_id() == move_choice) {
-      move_down(prev_node);
+      moveDown(prev_node);
       // we don't need an evaluation
       return false;
     }
@@ -230,11 +262,11 @@ bool TrainMC::receiveOpponentMove(uintf move_choice, const Game &game,
   root = new Node(game, depth);
   cur = root;
   // We need an evaluation
-  cur->writeGameState(to_eval);
-  searched.push_back(cur);
+  cur->writeGameState(to_eval_);
+  searched_.push_back(cur);
   // this is the first iteration of the turn
   iterations_done = 1;
-  eval_index = 1;
+  searched_index_ = 1;
   // we need an evaluation
   return true;
 }
@@ -252,12 +284,12 @@ void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
   max_iterations = new_max_iterations;
   c_puct = new_c_puct;
   epsilon = new_epsilon;
-  searches_per_eval = new_searches_per_eval;
+  searches_per_eval_ = new_searches_per_eval;
 }
 
-void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
-  for (uintf j = 0; j < searched.size(); ++j) {
-    cur = searched[j];
+void TrainMC::receiveEval(float evaluation[], float probabilities[]) {
+  for (uintf j = 0; j < searched_.size(); ++j) {
+    cur = searched_[j];
 
     // Apply the legal move filter
     // Legal moves can be deduced from edges
@@ -284,7 +316,7 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
     float dirichlet_noise[cur->num_legal_moves()];
 
     for (uintf i = 0; i < cur->num_legal_moves(); ++i) {
-      dirichlet_noise[i] = gamma_samples[(*generator)() % GAMMA_BUCKETS];
+      dirichlet_noise[i] = gamma_samples[(*generator_)() % GAMMA_BUCKETS];
       sum += dirichlet_noise[i];
     }
     float dirichlet_scalar = 1.0 / sum * epsilon;
@@ -327,8 +359,8 @@ void TrainMC::receive_evaluation(float evaluation[], float probabilities[]) {
     cur->increase_evaluation(cur_eval - 1.0);
   }
   root->set_all_visited(false);
-  eval_index = 0;
-  searched.clear();
+  searched_index_ = 0;
+  searched_.clear();
 }
 
 bool TrainMC::search() {
@@ -406,7 +438,7 @@ bool TrainMC::search() {
       // No nodes are available
       if (max_value == -2.0) {
         cur->set_all_visited();
-        // If it is the root that is all searched, we should stop
+        // If it is the root that is all searched_, we should stop
         bool done = cur == root;
         // Remove the search
         // This should be rare
@@ -448,7 +480,7 @@ bool TrainMC::search() {
     if (cur->terminal()) {
       // propagate the result
       // new deductions can only be made after a new terminal node is found
-      propagate_result();
+      propagateTerminal();
       // Count the visit
       cur->increment_visits();
       // In a decisive terminal state, the person to play is always the
@@ -471,10 +503,10 @@ bool TrainMC::search() {
       cur->set_evaluation(1.0);
       need_evaluation = true;
       // Write game in offset position
-      cur->writeGameState(to_eval + eval_index * kGameStateSize);
+      cur->writeGameState(to_eval_ + searched_index_ * kGameStateSize);
       // Record the node
-      searched.push_back(cur);
-      ++eval_index;
+      searched_.push_back(cur);
+      ++searched_index_;
     }
   }
   // Reset cur for next search
@@ -483,7 +515,7 @@ bool TrainMC::search() {
   return iterations_done == max_iterations || root->result() != kResultNone;
 }
 
-void TrainMC::move_down(Node *prev_node) {
+void TrainMC::moveDown(Node *prev_node) {
   // Extricate the node we want
   Node *new_root;
   // Chosen node is first child
@@ -510,7 +542,7 @@ uintf TrainMC::count_nodes() const {
   return root->countNodes();
 }
 
-void TrainMC::propagate_result() {
+void TrainMC::propagateTerminal() {
   Node *node = cur, *cur_node;
 
   while (node != root) {

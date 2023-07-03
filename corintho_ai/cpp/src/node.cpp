@@ -95,6 +95,27 @@ bool Node::terminal() const noexcept {
   return result_ == kResultLoss || result_ == kResultDraw;
 }
 
+bool Node::known() const noexcept {
+  return result_ != kResultNone;
+}
+
+bool Node::won() const noexcept {
+  // A terminal position can never be winning for the current player
+  return result_ == kDeducedWin;
+}
+
+bool Node::lost() const noexcept {
+  return result_ == kResultLoss || result_ == kDeducedLoss;
+}
+
+bool Node::drawn() const noexcept {
+  return result_ == kResultDraw || result_ == kDeducedDraw;
+}
+
+const Game &Node::get_game() const noexcept {
+  return game_;
+}
+
 void Node::set_next_sibling(Node *next_sibling) noexcept {
   next_sibling_ = next_sibling;
 }

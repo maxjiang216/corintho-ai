@@ -15,6 +15,7 @@ class TrainMC {
 
   // @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;
+  int32_t searched_index() const noexcept;
   // @brief Return the depth of the root node
   int32_t root_depth() const noexcept;
   // @brief Return a reference to the game of the root node
@@ -33,58 +34,90 @@ class TrainMC {
   void createRoot(const Game &game, int32_t depth);
 
   // @brief Do an iteration of searches
-  // @param evaluation The evaluations for the positions requested.
+  // @param eval The evaluations for the positions requested.
   // For the first search, this is nullptr
-  // @param probabilities The probabilities for legal moves for the positions requested
+  // @param probs The probabilities for legal moves for the positions requested
   // For the first search, this is nullptr
   // @return Whether the turn is done. This happens when the number of searches equals TrainMC::max_iterations_
   // Or when the root node's outcome is known.
   // @details This function will perform searches until the number of positions where an evaluation is requested
   // equals TrainMC::searches_per_eval_, when the root node's outcome is known,
   // or when the root node's children are completely searched.
-  bool doIteration(float evaluation[]=nullptr, float probabilities[]=nullptr);
+  bool doIteration(float eval[]=nullptr, float probs[]=nullptr);
 
-  // Choose the next child to visit
+  // @brief Find best move and move the root node to that node. Writes the game state and probability samples for training.
+  // @return The ID of the best move
   int32_t chooseMove(float game_state[kGameStateSize],
-                    float probability_sample[kNumMoves]) noexcept;
+                    float prob_sample[kNumMoves]) noexcept;
 
+  // @brief Receive the opponent's move and move the root node to that node
+  // @details Will copy game and depth from the opponent if the move has not been searched
   bool receiveOpponentMove(uintf move_choice, const Game &game, uintf depth);
 
 private:
 
-  static void set_max_iterations(uintf new_max_iterations) noexcept;
-  static void set_c_puct(float new_c_puct) noexcept;
-  static void set_epsilon(float new_epsilon) noexcept;
-  static void set_searches_per_eval(uintf new_searches_per_eval) noexcept;
+  // @brief Write the neural network outputs into the node
+  void receiveEval(float eval[], float probs[]) noexcept;
 
-  // I think we have to initialize these
-  inline static uintf max_iterations = 1600, searches_per_eval = 1;
-  inline static float c_puct = 1.0, epsilon = 0.25;
-  // Number of moves to use weighted random
-  const uintf NUM_OPENING_MOVES = 6;
+  // @brief Move down the Monte Carlo search tree
+  // @details This occurs when we choose a move.
+  void moveDown(Node *prev_node) noexcept;
 
-  Node *root, *cur;
+  // @brief Propagate results of terminal nodes and deduced results
+  // @details We do this each time a terminal node is searched.
+  // Although it may potentially propagate results all the way up the tree, on average this operation is relatively cheap,
+  // especially compared to neural network evaluations.
+  // We use elementary game theory to deduce the results of nodes that are not terminal.
+  void propagateTerminal() noexcept;
 
-  // Which index to write to for the searched node
-  uintf eval_index;
-  // Nodes we have searches this cycle
-  std::vector<Node *> searched;
-  // We want to evaluate these vectors
-  float *to_eval;
-
-  // Used to keep track of when to choose a move
-  uintf iterations_done;
-
-  bool testing, logging;
-
-  std::mt19937 *generator;
-
-  void receive_evaluation(float evaluation[], float probabilities[]);
+  // @brief Repeated move down the Monte Carlo search tree until a terminal or unsearched node is reached
+  // @returns Whether an evaluation is needed for the last node (if it is not a terminal node)
+  // @details Uses UCB to search the best edge to take in a Monte Carlo search tree
   bool search();
 
-  void move_down(Node *prev_node);
+  // @brief The number of initial moves to consider "opening" moves
+  // @details When choosing a move during the opening, temperature is 1
+  // Compared to elsewhere where it is 0. This is a hyperparameter.
+  // Note that the average Corintho game lasts about 30 moves.
+  const int32_t kNumOpeningMoves = 6;
 
-  void propagate_result();
+  // @brief The root node of the Monte Carlo search tree
+  Node *root_;
+  // @brief The current node we are at when searching the Monte Carlo search tree
+  Node *cur_;
+  // @brief The number of searches done for the current move
+  int32_t searches_done_;
+  // @brief The maximum number of searches to do per move.
+  // @details 1600 was used during training.
+  const int32_t max_searches_;
+  // @brief The number of searches to do per neural network evaluation
+  // @details The actual number of searches done can be greater than this
+  // since some searches do not require an evaluation and are not counted.
+  // Evaluating many positions at the same time leverages parallelism in the neural network.
+  // 16 was used during training.
+  const int32_t searches_per_eval_;
+  // @brief c_puct in the UCB formula
+  // @details 1.0 was used during training.
+  const float c_puct_;
+  // @brief The weight of Dirichlet noise compared to neural network probabilities
+  // @details 0.25 was used during training.
+  const float epsilon_;
+  // @brief The nodes we have searched this cycle that need to be evaluated
+  std::vector<Node *> searched;
+  // @brief The index to put the next searched node into
+  int32_t search_index_;
+  // @brief The location to write the game position that needs to be evaluated
+  // @details This is shared between the two players in a SelfPlayer,
+  // since only one player is searching at a time.
+  float *to_eval_;
+  // @brief Whether this is testing mode or training mode
+  // @details In testing mode, we do not use temperature 1 in the opening
+  // and we also do not write training samples.
+  bool testing_;
+  // @brief The random generator for all operations
+  // @details This is shared between the two players in a SelfPlayer,
+  // since only one player is searching at a time.
+  std::mt19937 *generator_;
 
 };
 

@@ -349,6 +349,27 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   searched_.clear();
 }
 
+void TrainMC::moveDown(Node *prev) noexcept {
+  // Extricate the node we want
+  Node *new_root;
+  // Chosen node is first child
+  if (prev == nullptr) {
+    new_root = root_->first_child();
+    root_->set_first_child(new_root->next_sibling());
+  } else {
+    new_root = prev->next_sibling();
+    prev->set_next_sibling(new_root->next_sibling());
+  }
+  // Remove new root from the tree
+  // So that it is not deleted with the old root
+  new_root->null_next_sibling();
+  new_root->null_parent();
+  delete root_;
+  root_ = new_root;
+  cur_ = root_;
+  searches_done_ = 0;
+}
+
 bool TrainMC::search() {
   bool need_evaluation = false;
 
@@ -499,27 +520,6 @@ bool TrainMC::search() {
   cur = root;
 
   return iterations_done == max_iterations || root->result() != kResultNone;
-}
-
-void TrainMC::moveDown(Node *prev_node) {
-  // Extricate the node we want
-  Node *new_root;
-  // Chosen node is first child
-  if (prev_node == nullptr) {
-    new_root = root->first_child();
-    root->set_first_child(new_root->next_sibling());
-  } else {
-    new_root = prev_node->next_sibling();
-    prev_node->set_next_sibling(new_root->next_sibling());
-  }
-
-  new_root->null_next_sibling();
-  new_root->null_parent();
-
-  delete root;
-  root = new_root;
-  cur = root;
-  iterations_done = 0;
 }
 
 uintf TrainMC::count_nodes() const {

@@ -163,7 +163,7 @@ bool SelfPlayer::do_iteration() {
     std::array<float, kGameStateSize> sample_state;
     std::array<float, kNumMoves> probability_sample;
     uintf move_choice = players[to_play].chooseMove(sample_state.data(),
-                                                     probability_sample.data());
+                                                    probability_sample.data());
     samples.emplace_back(sample_state, probability_sample);
 
     if (logging_file != nullptr) {
@@ -221,8 +221,8 @@ bool SelfPlayer::do_iteration() {
             players[1 - to_play].root->depth());
         if (!need_evaluation) {
           // Otherwise, we search again
-          need_evaluation =
-              !(players[to_play].search() && players[to_play].searched_index_ == 0);
+          need_evaluation = !(players[to_play].search() &&
+                              players[to_play].searched_index_ == 0);
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
           // This is unlikely, however
@@ -240,7 +240,8 @@ uintf SelfPlayer::count_requests() const {
 }
 
 void SelfPlayer::write_requests(float *game_states) const {
-  // Change to std::copy, speed is not important as the array is small and this is only done once per move
+  // Change to std::copy, speed is not important as the array is small and this
+  // is only done once per move
   for (uintf i = 0; i < kGameStateSize * players[to_play].searched_.size();
        ++i) {
     *(game_states + i) = to_eval[i];

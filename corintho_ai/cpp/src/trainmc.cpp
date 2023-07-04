@@ -1,19 +1,25 @@
 #include "trainmc.h"
 
-#include <cstdint>
-#include <cmath>
-#include <cstring>
 #include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
 
 #include <fstream>
 #include <random>
 #include <vector>
 
+#include <gsl/gsl>
+
 #include "move.h"
 #include "node.h"
 
-TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, bool testing):
-max_searches_{max_searches}, searches_per_eval_{searches_per_eval}, c_puct_{c_puct}, epsilon_{epsilon}, testing_{testing}, generator_{generator} {
+TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches,
+                 int32_t searches_per_eval, float c_puct, float epsilon,
+                 bool testing)
+    : max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
+      c_puct_{c_puct}, epsilon_{epsilon}, testing_{testing}, generator_{
+                                                                 generator} {
   assert(max_searches_ > 0);
   assert(searches_per_eval_ > 0);
   assert(c_puct_ > 0.0);
@@ -32,7 +38,7 @@ int32_t TrainMC::root_depth() const noexcept {
   return root_->depth();
 }
 
-const Game& TrainMC::get_root_game() const noexcept {
+const Game &TrainMC::get_root_game() const noexcept {
   assert(root_ != nullptr);
   return root_->get_game();
 }
@@ -62,39 +68,8 @@ void TrainMC::createRoot(const Game &game, int32_t depth) {
   cur_ = root_;
 }
 
-bool TrainMC::doIteration(float eval[], float probs[]) {
-  // This is the first iteration of a game
-  if (isUninitialized()) {
-    // We should not be getting evaluations
-    assert(eval == nullptr);
-    assert(probs == nullptr);
-    // Initialize the Monte Carlo search tree
-    root_ = new Node();
-    cur_ = root_;
-    // "Search" the root node
-    searches_done_ = 1;
-    // Request an evaluation
-    // The result is not deduced at this point
-    cur_->writeGameState(to_eval_);
-    searched_.push_back(cur_);
-    searched_index_ = 1;
-    return false;
-  }
-  // Otherwise, we should have evaluations
-  assert(eval != nullptr);
-  assert(probs != nullptr);
-  receiveEval(eval, probs);
-  while (searches_done_ < max_searches_ && !root_->known()) {
-    // search returns if we should continue searching
-    if (search()) {
-      break;
-    }
-  }
-  assert(searches_done_ <= max_searches_);
-  return searches_done_ == max_searches_ || root_->known();
-}
-
-int32_t TrainMC::chooseMove(float game_state[kGameStateSize], float prob_sample[kNumMoves]) noexcept {
+int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
+                            float prob_sample[kNumMoves]) noexcept {
   assert(game_state != nullptr);
   assert(prob_sample != nullptr);
   assert(!isUninitialized());
@@ -188,7 +163,8 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize], float prob_sample[
     while (cur != nullptr) {
       // Exclude losing moves
       if (!cur->won()) {
-        prob_sample[cur->child_id()] = static_cast<float>(cur->visits()) * denominator;
+        prob_sample[cur->child_id()] =
+            static_cast<float>(cur->visits()) * denominator;
       }
       best_prev = cur;
       cur = cur->next_sibling();
@@ -224,7 +200,8 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize], float prob_sample[
         if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
           eval = 0.0;
         }
-        if (cur->visits() > max_visits || (cur->visits() == max_visits && eval > max_eval)) {
+        if (cur->visits() > max_visits ||
+            (cur->visits() == max_visits && eval > max_eval)) {
           choice = cur->child_id();
           best_prev = prev;
           max_visits = cur->visits();
@@ -236,129 +213,138 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize], float prob_sample[
     }
     prob_sample[choice] = 1.0;
   }
-
   // Move down the tree
   moveDown(best_prev);
 
   return choice;
 }
 
-bool TrainMC::receiveOpponentMove(uintf move_choice, const Game &game,
-                               uintf depth) {
-  Node *prev_node = nullptr, *cur_child = root->first_child();
-  while (cur_child != nullptr) {
-    if (cur_child->child_id() == move_choice) {
-      moveDown(prev_node);
-      // we don't need an evaluation
+bool TrainMC::doIteration(float eval[], float probs[]) {
+  // This is the first iteration of a game
+  if (isUninitialized()) {
+    // We should not be getting evaluations
+    assert(eval == nullptr);
+    assert(probs == nullptr);
+    // Initialize the Monte Carlo search tree
+    root_ = new Node();
+    cur_ = root_;
+    // "Search" the root node
+    searches_done_ = 1;
+    // Request an evaluation
+    // The result is not deduced at this point
+    cur_->writeGameState(to_eval_);
+    searched_.push_back(cur_);
+    searched_index_ = 1;
+    return false;
+  }
+  // Otherwise, we should have evaluations
+  assert(eval != nullptr);
+  assert(probs != nullptr);
+  receiveEval(eval, probs);
+  while (searches_done_ < max_searches_ && !root_->known()) {
+    // search returns if we should continue searching
+    if (search()) {
+      break;
+    }
+  }
+  assert(searches_done_ <= max_searches_);
+  return searches_done_ == max_searches_ || root_->known();
+}
+
+bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
+                                  int32_t depth) {
+  Node *cur = root_->first_child();
+  Node *prev = nullptr;
+  while (cur != nullptr) {
+    if (cur->child_id() == move_choice) {
+      moveDown(prev);
       return false;
     }
-    prev_node = cur_child;
-    cur_child = cur_child->next_sibling();
+    prev = cur;
+    cur = cur->next_sibling();
   }
-
-  // The node doesn't exist, delete tree
-  delete root;
+  // Haven't searched this move yet
+  // The current tree is not needed
+  delete root_;
   // Copy opponent game state into our root
-  root = new Node(game, depth);
-  cur = root;
+  root_ = nullptr;
+  createRoot(game, depth);
   // We need an evaluation
-  cur->writeGameState(to_eval_);
-  searched_.push_back(cur);
-  // this is the first iteration of the turn
-  iterations_done = 1;
+  cur_->writeGameState(to_eval_);
+  searched_.push_back(cur_);
+  searches_done_ = 1;
   searched_index_ = 1;
-  // we need an evaluation
   return true;
 }
 
-const Game &TrainMC::get_game() const {
-  return root->game();
-}
-
-bool TrainMC::is_uninitialized() const {
-  return root == nullptr;
-}
-
-void TrainMC::set_statics(uintf new_max_iterations, float new_c_puct,
-                          float new_epsilon, uintf new_searches_per_eval) {
-  max_iterations = new_max_iterations;
-  c_puct = new_c_puct;
-  epsilon = new_epsilon;
-  searches_per_eval_ = new_searches_per_eval;
-}
-
-void TrainMC::receiveEval(float evaluation[], float probabilities[]) {
-  for (uintf j = 0; j < searched_.size(); ++j) {
-    cur = searched_[j];
+void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
+  assert(eval != nullptr);
+  assert(probs != nullptr);
+  assert(searched_index_ > 0);
+  for (int32_t i = 0; i < searched_.size(); ++i) {
+    cur_ = searched_[i];
 
     // Apply the legal move filter
     // Legal moves can be deduced from edges
-    // We should find the legal moves when the node is created
-    // Since we want to avoid evaluating the node if it is terminal
-    uintf edge_index = 0;
-    float sum = 0.0, filtered_probs[cur->num_legal_moves()];
-    for (uintf i = 0; i < kNumMoves; ++i) {
-      if (edge_index < cur->num_legal_moves() &&
-          cur->move_id(edge_index) == i) {
-        filtered_probs[edge_index] = probabilities[kNumMoves * j + i];
+    int32_t edge_index = 0;
+    float sum = 0.0;
+    float filtered_probs[cur_->num_legal_moves()];
+    for (int32_t j = 0; j < kNumMoves; ++j) {
+      if (edge_index < cur_->num_legal_moves() &&
+          cur_->move_id(edge_index) == j) {
+        filtered_probs[edge_index] = probs[kNumMoves * i + j];
         sum += filtered_probs[edge_index];
         ++edge_index;
+        if (edge_index == cur_->num_legal_moves()) {
+          break;
+        }
       }
     }
-
-    // Multiplying by this is more efficient
-    float scalar = 1.0 / sum * (1 - epsilon);
-
-    // Generate Dirichlet noise (approximation)
-    // We cannot generate this at node creation as we don't store floats in the
-    // node
-    sum = 0.0;
-    float dirichlet_noise[cur->num_legal_moves()];
-
-    for (uintf i = 0; i < cur->num_legal_moves(); ++i) {
-      dirichlet_noise[i] = gamma_samples[(*generator_)() % GAMMA_BUCKETS];
-      sum += dirichlet_noise[i];
+    // Generate Dirichlet noise
+    float dirichlet_sum = 0.0;
+    float dirichlet_noise[cur_->num_legal_moves()];
+    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+      dirichlet_noise[j] = gamma_samples[(*generator_)() % GAMMA_BUCKETS];
+      dirichlet_sum += dirichlet_noise[j];
     }
-    float dirichlet_scalar = 1.0 / sum * epsilon;
-
-    // Weighted average of probabilities and Dirichlet noise
-    float weighted_probabilities[cur->num_legal_moves()], max_probability = 0.0;
+    // Normalizing factors
+    // Factoring this out saves division operations
+    float scalar = 1.0 / sum * (1 - epsilon_);
+    float dirichlet_scalar = 1.0 / dirichlet_sum * epsilon_;
+    // Combine probabilities and Dirichlet noise
+    float weighted_probs[cur_->num_legal_moves()];
+    float max_prob = 0.0;
     edge_index = 0;
-    for (uintf i = 0; i < cur->num_legal_moves(); ++i) {
-      // Make all legal moves have positive probability
-      weighted_probabilities[i] =
-          filtered_probs[i] * scalar + dirichlet_noise[i] * dirichlet_scalar;
-      max_probability = std::max(weighted_probabilities[i], max_probability);
+    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+      weighted_probs[j] =
+          filtered_probs[j] * scalar + dirichlet_noise[j] * dirichlet_scalar;
+      max_prob = std::max(weighted_probs[j], max_prob);
     }
-
-    // Compute final scaled probabilities
-    float denominator = Node::kMaxProbability / max_probability;
-    uintf final_sum = 0;
-    for (uintf i = 0; i < cur->num_legal_moves(); ++i) {
+    // Scale up probabilities and convert to integers
+    float denom = Node::kMaxProbability / max_prob;
+    int32_t final_sum = 0;
+    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
       // Make all probabilities positive
-      cur->set_probability(
-          i, std::max((long int)1,
-                      lround(weighted_probabilities[i] * denominator)));
-      final_sum += cur->probability(i);
+      cur_->set_probability(
+          j, std::max(1, gsl::narrow_cast<int32_t>(lround(
+                             static_cast<double>(weighted_probs[j]) * denom))));
+      final_sum += cur_->probability(j);
     }
-
-    // Record scalar for node
-    cur->set_denominator(1.0 / (float)final_sum);
-
-    // Propagate evaluation
-    float cur_eval = evaluation[j];
-    while (cur->parent() != nullptr) {
+    cur_->set_denominator(1.0 / (float)final_sum);
+    // Propagate the evaluation up the tree
+    float cur_eval = eval[i];
+    while (cur_->parent() != nullptr) {
       // Correct default +1 evaluation
-      cur->increase_evaluation(cur_eval - 1.0);
+      cur_->increase_evaluation(cur_eval - 1.0);
       // Reset this marker
-      cur->set_all_visited(false);
+      cur_->set_all_visited(false);
       cur_eval *= -1.0;
-      cur = cur->parent();
+      cur_ = cur_->parent();
     }
-    // Propagate to root
-    cur->increase_evaluation(cur_eval - 1.0);
+    // Propagate to the root
+    cur_->increase_evaluation(cur_eval - 1.0);
   }
-  root->set_all_visited(false);
+  root_->set_all_visited(false);
   searched_index_ = 0;
   searched_.clear();
 }

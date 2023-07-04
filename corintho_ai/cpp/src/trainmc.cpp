@@ -476,14 +476,14 @@ bool TrainMC::search() {
       }
       cur_->increment_visits();
       // We use a default evaluation of 1.0 before we have a neural net
-      // evaluation This helps diversify the searches In particular, the second
-      // player has a large advantage in Corintho So most positions the first
-      // player plays has only losing moves In such a position, a move getting a
-      // 0.0 evaluation search will improve its evaluation and will very likely
-      // be searched again before neural net evaluations are received This
-      // drastically decreases the effective number of searches Most
+      // evaluation This helps diversify the searches. In particular, the second
+      // player has a large advantage in Corintho, so most positions the first
+      // player plays has only losing moves. In such a position, a move getting
+      // a 0.0 evaluation search will improve its evaluation and will very
+      // likely be searched again before neural net evaluations are received.
+      // This drastically decreases the effective number of searches. Most
       // pessimistically, with 1600 searches and 16 searches per evaluation, we
-      // effectively get 100 searches Change the default value from 0.0 to 1.0
+      // effectively get 100 searches. Change the default value from 0.0 to 1.0
       // empirically drastically improved improvement rate. Note that every node
       // visited gets this default, as opposed to a leaf node getting it and
       // having it propagate the normal way. This ensures that visited nodes are

@@ -134,8 +134,7 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
                          float c_puct, float epsilon, uintf searches_per_eval,
                          const string &logging_folder) {
 
-  // Set TrainMC static variables
-  TrainMC::set_statics(num_iterations, c_puct, epsilon, searches_per_eval);
+  // Remember to pass down hyperparameters to selfplayer and trainmc
 
   games.reserve(num_games);
 

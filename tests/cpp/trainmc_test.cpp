@@ -7,6 +7,6 @@ TEST(TrainMCTest, TrainingConstructor) {
   std::mt19937 generator;
   TrainMC trainmc(&generator);
 
-  EXPECT_EQ(trainmc.is_uninitialized(), true);
-  EXPECT_EQ(trainmc.count_nodes(), 0);
+  EXPECT_EQ(trainmc.isUninitialized(), true);
+  EXPECT_EQ(trainmc.numNodes(), 0);
 }

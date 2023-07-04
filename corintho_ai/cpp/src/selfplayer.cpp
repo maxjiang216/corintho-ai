@@ -20,8 +20,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator)
       generator{generator}, result{kResultNone},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval_ = to_eval;
-  players[1].to_eval_ = to_eval;
+  players[0].set_to_eval(to_eval);
+  players[1].set_to_eval(to_eval);
   samples.reserve(32);
 }
 
@@ -31,8 +31,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, std::mt19937 *generator,
       generator{generator}, result{kResultNone},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval_ = to_eval;
-  players[1].to_eval_ = to_eval;
+  players[0].set_to_eval(to_eval);
+  players[1].set_to_eval(to_eval);
   samples.reserve(32);
 }
 
@@ -42,8 +42,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
       generator{generator}, result{kResultNone}, seed{seed},
       logging_file{nullptr}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval_ = to_eval;
-  players[1].to_eval_ = to_eval;
+  players[0].set_to_eval(to_eval);
+  players[1].set_to_eval(to_eval);
 }
 
 SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
@@ -52,8 +52,8 @@ SelfPlayer::SelfPlayer(uintf searches_per_eval, uintf seed,
       generator{generator}, result{kResultNone}, seed{seed},
       logging_file{logging_file}, mate_turn{0} {
   to_eval = new float[searches_per_eval * kGameStateSize];
-  players[0].to_eval_ = to_eval;
-  players[1].to_eval_ = to_eval;
+  players[0].set_to_eval(to_eval);
+  players[1].set_to_eval(to_eval);
 }
 
 SelfPlayer::~SelfPlayer() {
@@ -69,15 +69,15 @@ SelfPlayer::~SelfPlayer() {
 }
 
 void SelfPlayer::do_first_iteration() {
-  players[0].do_first_iteration();
+  players[0].doIteration();
 }
 
 bool SelfPlayer::do_iteration(float evaluation[], float probabilities[]) {
-  bool done_turn = players[to_play].do_iteration(evaluation, probabilities);
+  bool done_turn = players[to_play].doIteration(evaluation, probabilities);
   // If we have completed a turn
   // and we don't need to evaluate any positions
   // We can choose a move
-  if (done_turn && players[to_play].searched_index_ == 0)
+  if (done_turn && players[to_play].noEvalsRequested())
     return do_iteration();
   // Game is not complete
   return false;
@@ -90,38 +90,39 @@ bool SelfPlayer::do_iteration() {
   while (!need_evaluation) {
 
     if (logging_file != nullptr) {
-      *logging_file << "TURN " << (uintf)players[to_play].root->depth() << '\n'
+      *logging_file << "TURN " << (uintf)players[to_play].root()->depth()
+                    << '\n'
                     << "PLAYER " << (uintf)(to_play + 1) << " TO PLAY\nVISITS: "
-                    << (uintf)players[to_play].root->visits()
+                    << (uintf)players[to_play].root()->visits()
                     << "\nPOSITION EVALUATION: ";
-      if (players[to_play].root->result() != kResultNone) {
+      if (players[to_play].root()->result() != kResultNone) {
         if (mate_turn == 0) {
-          mate_turn = players[to_play].root->depth();
+          mate_turn = players[to_play].root()->depth();
         }
-        *logging_file << strResult(players[to_play].root->result());
+        *logging_file << strResult(players[to_play].root()->result());
       } else {
         *logging_file << std::fixed << std::setprecision(6)
-                      << players[to_play].root->evaluation() /
-                             (float)players[to_play].root->visits();
+                      << players[to_play].root()->evaluation() /
+                             (float)players[to_play].root()->visits();
       }
       *logging_file << "\nLEGAL MOVES:\n";
       // Print main line
-      players[to_play].root->printMainLine(*logging_file);
+      players[to_play].root()->printMainLine(*logging_file);
       *logging_file << '\n';
       // Get and sort moves by visit count and evaluation
       std::vector<pair<pair<pair<uintf, float>, pair<float, uintf>>, uint8s>>
           moves;
-      Node *cur_child = players[to_play].root->first_child();
+      Node *cur_child = players[to_play].root()->first_child();
       uintf edge_index = 0;
       while (cur_child != nullptr) {
         if (cur_child->child_id() ==
-            players[to_play].root->move_id(edge_index)) {
+            players[to_play].root()->move_id(edge_index)) {
           moves.emplace_back(
               make_pair(
                   make_pair(cur_child->visits(),
                             cur_child->evaluation() /
                                 (float)cur_child->visits()),
-                  make_pair(players[to_play].root->probability(edge_index),
+                  make_pair(players[to_play].root()->probability(edge_index),
                             cur_child->child_id())),
               cur_child->result());
           cur_child = cur_child->next_sibling();
@@ -168,13 +169,13 @@ bool SelfPlayer::do_iteration() {
 
     if (logging_file != nullptr) {
       *logging_file << "CHOSE MOVE " << Move{move_choice} << "\nNEW POSITION:\n"
-                    << players[to_play].root->game() << "\n\n";
+                    << players[to_play].root()->game() << "\n\n";
     }
 
     // Check if the game is over
-    if (players[to_play].root->terminal()) {
+    if (players[to_play].root()->terminal()) {
       // Get result
-      if (players[to_play].root->result() == kResultDraw) {
+      if (players[to_play].root()->result() == kResultDraw) {
         result = kResultDraw;
         // Second player win (to_play not updated yet)
       } else if (to_play == 1) {
@@ -190,11 +191,8 @@ bool SelfPlayer::do_iteration() {
           *logging_file << "PLAYER " << to_play + 1 << " WON!\n";
         }
       }
-      delete players[0].root;
-      players[0].root = nullptr;
-      delete players[1].root;
-      players[1].root = nullptr;
-      delete[] to_eval;
+      players[0].null_root();
+      players[1].null_root();
       to_eval = nullptr;
       delete logging_file;
       logging_file = nullptr;
@@ -207,9 +205,10 @@ bool SelfPlayer::do_iteration() {
     else {
       to_play = 1 - to_play;
       // First time iterating the second TrainMC
-      if (players[to_play].is_uninitialized()) {
-        players[to_play].do_first_iteration(players[1 - to_play].root->game(),
-                                            players[1 - to_play].root->depth());
+      if (players[to_play].isUninitialized()) {
+        players[to_play].createRoot(players[1 - to_play].root()->game(),
+                                    players[1 - to_play].root()->depth());
+        players[to_play].doIteration();
         // Game is not over, evaluation is needed
         // It cannot be a terminal state
         return false;
@@ -217,12 +216,12 @@ bool SelfPlayer::do_iteration() {
         // It's possible that we need an evaluation for this
         // in the case that received move has not been searched
         need_evaluation = players[to_play].receiveOpponentMove(
-            move_choice, players[1 - to_play].get_game(),
-            players[1 - to_play].root->depth());
+            move_choice, players[1 - to_play].root()->get_game(),
+            players[1 - to_play].root()->depth());
         if (!need_evaluation) {
           // Otherwise, we search again
-          need_evaluation = !(players[to_play].search() &&
-                              players[to_play].searched_index_ == 0);
+          need_evaluation = !(players[to_play].doIteration() &&
+                              players[to_play].noEvalsRequested());
           // If no evaluation is needed, this player also did all its iterations
           // without needing evaluations, so we loop again
           // This is unlikely, however
@@ -236,13 +235,13 @@ bool SelfPlayer::do_iteration() {
 }
 
 uintf SelfPlayer::count_requests() const {
-  return players[to_play].searched_.size();
+  return players[to_play].numNodesSearched();
 }
 
 void SelfPlayer::write_requests(float *game_states) const {
   // Change to std::copy, speed is not important as the array is small and this
   // is only done once per move
-  for (uintf i = 0; i < kGameStateSize * players[to_play].searched_.size();
+  for (uintf i = 0; i < kGameStateSize * players[to_play].numNodesSearched();
        ++i) {
     *(game_states + i) = to_eval[i];
   }
@@ -302,7 +301,7 @@ float SelfPlayer::get_score() const {
 }
 
 uintf SelfPlayer::count_nodes() const {
-  return players[0].count_nodes() + players[1].count_nodes();
+  return players[0].numNodes() + players[1].numNodes();
 }
 
 uintf SelfPlayer::get_mate_length() const {

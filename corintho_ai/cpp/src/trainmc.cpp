@@ -34,16 +34,6 @@ Node *TrainMC::root() const noexcept {
   return root_;
 }
 
-int32_t TrainMC::root_depth() const noexcept {
-  assert(root_ != nullptr);
-  return root_->depth();
-}
-
-const Game &TrainMC::get_root_game() const noexcept {
-  assert(root_ != nullptr);
-  return root_->get_game();
-}
-
 bool TrainMC::noEvalsRequested() const noexcept {
   return searched_index_ == 0;
 }
@@ -61,6 +51,18 @@ int32_t TrainMC::numNodes() const noexcept {
     return 0;
   }
   return root_->countNodes();
+}
+
+void TrainMC::set_to_eval(float *to_eval) noexcept {
+  assert(to_eval != nullptr);
+  to_eval_ = to_eval;
+}
+
+void TrainMC::null_root() noexcept {
+  assert(root_ != nullptr);
+  delete root_;
+  root_ = nullptr;
+  cur_ = nullptr;
 }
 
 void TrainMC::createRoot(const Game &game, int32_t depth) {

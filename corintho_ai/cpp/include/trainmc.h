@@ -4,6 +4,8 @@
 #include <random>
 #include <vector>
 
+#include "util.h"
+
 class Game;
 class Node;
 
@@ -16,10 +18,6 @@ class TrainMC {
 
   // @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;
-  // @brief Return the depth of the root node
-  int32_t root_depth() const noexcept;
-  // @brief Return a reference to the game of the root node
-  const Game &get_root_game() const noexcept;
 
   // @brief Return if there are no evaluations requested
   bool noEvalsRequested() const noexcept;
@@ -31,7 +29,9 @@ class TrainMC {
   // @brief Return the number of nodes in the tree
   int32_t numNodes() const noexcept;
 
+  void set_to_eval(float *to_eval) noexcept;
   // @brief Set the root node to have the given game and depth
+  void null_root() noexcept;
   void createRoot(const Game &game, int32_t depth);
 
   // @brief Find best move and move the root node to that node. Writes the game

@@ -63,7 +63,7 @@ class TrainMC {
   void receiveEval(float eval[], float probs[]) noexcept;
   // @brief Move down the Monte Carlo search tree
   // @details This occurs when we choose a move.
-  void moveDown(Node *prev_node) noexcept;
+  void moveDown(Node *prev) noexcept;
   // @brief Propagate results of terminal nodes and deduced results
   // @details We do this each time a terminal node is searched.
   // Although it may potentially propagate results all the way up the tree, on

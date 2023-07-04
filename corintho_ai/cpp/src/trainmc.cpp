@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include <fstream>
+#include <limits>
 #include <random>
 #include <vector>
 
@@ -370,206 +371,201 @@ void TrainMC::moveDown(Node *prev) noexcept {
   searches_done_ = 0;
 }
 
-bool TrainMC::search() {
-  bool need_evaluation = false;
-
-  while (!need_evaluation && iterations_done < max_iterations &&
-         root->result() == kResultNone) {
-    cur = root;
-
-    ++iterations_done;
-
-    while (!cur->terminal()) {
-      // Choose next
-
-      // Random value lower than -1.0
-      float max_value = -2.0;
-      // Initialize this variable to be safe
-      uintf move_choice = 0;
-
+void TrainMC::propagateTerminal() noexcept {
+  // We can only deduce more results from new terminal nodes
+  assert(cur_->terminal());
+  Node *cur = cur_;
+  while (cur != root_) {
+    // We only need one loss to deduce a win
+    if (cur->lost()) {
+      cur = cur->parent();
+      cur->set_result(kDeducedWin);
+    } else {
+      cur = cur->parent();
       Node *cur_child = cur->first_child();
-      uintf edge_index = 0;
-      // Keep track of previous node to insert into linked list
-      Node *prev_node = nullptr, *best_prev_node = nullptr;
-      // Factor this value out, as it is expense to compute
-      float v_sqrt = c_puct * sqrt(static_cast<float>(cur->visits()));
-      // Loop through existing children
+      // Position has a drawing move
+      bool has_draw = false;
+      int32_t edge_index = 0;
       while (cur_child != nullptr) {
-        // Random value lower than -1.0
-        float u = -2.0;
-        if (cur_child->child_id() == cur->move_id(edge_index)) {
-          // Don't visit all_visited nodes
-          if (!cur_child->all_visited() &&
-              (cur_child->result() == kResultNone ||
-               cur_child->result() == kResultDraw ||
-               cur_child->result() == kDeducedDraw)) {
+        // If there is an unknown or unvisited move, we can deduce no further
+        if (cur_child->child_id() != cur->move_id(edge_index) ||
+            !cur_child->known()) {
+          return;
+        }
+        if (cur->drawn()) {
+          has_draw = true;
+        }
+        cur_child = cur_child->next_sibling();
+        ++edge_index;
+      }
+      // There are unvisited moves after the last visited move
+      if (edge_index < cur->num_legal_moves())
+        return;
+      // No winning or unknown moves
+      // If there are any drawing moves, the position is a draw
+      if (has_draw) {
+        cur->set_result(kDeducedDraw);
+      }
+      // Otherwise, there are only losing moves, so the position is a loss
+      else {
+        cur->set_result(kDeducedLoss);
+      }
+    }
+  }
+}
+
+bool TrainMC::search() {
+  bool need_eval = false;
+  // While we have not found a node needing evaluation,
+  // have not done too many searches, and
+  // the result of the root is not known
+  while (!need_eval && searches_done_ < max_searches_ && !root_->known()) {
+    assert(cur_ == root_);
+    const float neg_inf = -std::numeric_limits<float>::infinity();
+    ++searches_done_;
+    while (!cur_->terminal()) {
+      // Choose the next node to move down to
+      float max_eval = neg_inf;
+      int32_t choice = 0;
+      Node *cur_child = cur_->first_child();
+      int32_t edge_index = 0;
+      // Keep track of previous node to insert into linked list
+      Node *prev = nullptr;
+      Node *best_prev = nullptr;
+      // Factor this value out, as it is expense to compute
+      float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+      while (cur_child != nullptr || edge_index < cur_->num_legal_moves()) {
+        float u = neg_inf;
+        // This node has already been visited
+        if (cur_child != nullptr &&
+            cur_child->child_id() == cur_->move_id(edge_index)) {
+          // Don't all_visited nodes or won or lost positions
+          // We search draws since the number of searches they have
+          // makes a difference in choose_move
+          // as they are not automatically chosen or excluded
+          if ((!cur_child->known() || cur_child->drawn()) &&
+              !cur_child->all_visited()) {
             // Known draw, use evaluation 0
-            if (cur_child->result() != kResultNone) {
-              u = cur->probability(edge_index) * v_sqrt;
+            if (cur_child->drawn()) {
+              u = cur_->probability(edge_index) * v_sqrt;
             } else {
-              u = -1.0 * cur_child->evaluation() /
+              u = -1.0 * cur_->evaluation() /
                       static_cast<float>(cur_child->visits()) +
-                  cur->probability(edge_index) * v_sqrt /
+                  cur_->probability(edge_index) * v_sqrt /
                       (static_cast<float>(cur_child->visits()) + 1.0);
             }
           }
-          prev_node = cur_child;
+          prev = cur_child;
           cur_child = cur_child->next_sibling();
+          // This node has not been visited, ignore the evaluation term in the
+          // UCB formula This is essentially using a default evaluation of 0
+          // (but we avoid division by 0)
         } else {
-          u = cur->probability(edge_index) * v_sqrt;
+          u = cur_->probability(edge_index) * v_sqrt;
         }
-        if (u > max_value) {
-          // This is the previous node unless it is a match
-          best_prev_node = prev_node;
-          max_value = u;
-          move_choice = cur->move_id(edge_index);
-        }
-        ++edge_index;
-      }
-      while (edge_index < cur->num_legal_moves()) {
-        float u = cur->probability(edge_index) * v_sqrt;
-        if (u > max_value) {
-          best_prev_node =
-              prev_node;  // This should always be the last node in the list
-          max_value = u;
-          move_choice = cur->move_id(edge_index);
+        if (u > max_eval) {
+          // If the node has not been visited, prev is the previous node
+          // and can be used to insert the new node
+          // otherwise it is the current node, but if this is the best node,
+          // best_prev is not needed since we don't insert
+          best_prev = prev;
+          max_eval = u;
+          choice = cur_->move_id(edge_index);
         }
         ++edge_index;
       }
-      // Count the visit
-      cur->increment_visits();
-      // Default eval is +1 for all positions
-      // This prevents repeatedly choosing the same line
-      cur->increase_evaluation(1.0);
-
-      // No nodes are available
-      if (max_value == -2.0) {
-        cur->set_all_visited();
-        // If it is the root that is all searched_, we should stop
-        bool done = cur == root;
-        // Remove the search
-        // This should be rare
-        // So this is the best way to do this
-        // as we need to update visits within the same cycle
-        while (cur->parent() != nullptr) {
-          cur->decrement_visits();
-          cur->decrease_evaluation(1.0);
-          cur = cur->parent();
+      cur_->increment_visits();
+      // We use a default evaluation of 1.0 before we have a neural net
+      // evaluation This helps diversify the searches In particular, the second
+      // player has a large advantage in Corintho So most positions the first
+      // player plays has only losing moves In such a position, a move getting a
+      // 0.0 evaluation search will improve its evaluation and will very likely
+      // be searched again before neural net evaluations are received This
+      // drastically decreases the effective number of searches Most
+      // pessimistically, with 1600 searches and 16 searches per evaluation, we
+      // effectively get 100 searches Change the default value from 0.0 to 1.0
+      // empirically drastically improved improvement rate. Note that every node
+      // visited gets this default, as opposed to a leaf node getting it and
+      // having it propagate the normal way. This ensures that visited nodes are
+      // maximally unlikely to get visited again.
+      cur_->increase_evaluation(1.0);
+      // If no nodes were searched, this means all nodes are all_visited
+      // or won or lost positions
+      // This node is then all_visited
+      if (max_eval == neg_inf) {
+        cur_->set_all_visited();
+        // If it is the root that is all searched_
+        // we should stop the search and get evaluations immediately
+        bool done = (cur_ == root_);
+        // Since no search was done
+        // We need to undo the visit count and default 1.0 evaluation
+        while (cur_->parent() != nullptr) {
+          cur_->decrement_visits();
+          cur_->decrease_evaluation(1.0);
+          cur_ = cur_->parent();
         }
         // Remove search from root
-        cur->decrement_visits();
-        cur->decrease_evaluation(1.0);
-        --iterations_done;
+        cur_->decrement_visits();
+        cur_->decrease_evaluation(1.0);
+        --searches_done_;
         return done;
       }
-      // Best node should be inserted at the beginning of the list
-      if (best_prev_node == nullptr) {
-        cur->set_first_child(new Node(cur->game(), cur, cur->first_child(),
-                                      move_choice, cur->depth() + 1));
-        cur = cur->first_child();
+      // New node at the beginning of the list
+      if (best_prev == nullptr) {
+        cur_->set_first_child(new Node(cur_child->game(), cur_child,
+                                       cur_child->first_child(), choice,
+                                       cur_child->depth() + 1));
+        cur_ = cur_->first_child();
         break;
       }
       // New node somewhere else in the list
-      else if (best_prev_node->child_id() != move_choice) {
-        best_prev_node->set_next_sibling(
-            new Node(cur->game(), cur, best_prev_node->next_sibling(),
-                     move_choice, cur->depth() + 1));
-        cur = best_prev_node->next_sibling();
+      else if (best_prev->child_id() != choice) {
+        best_prev->set_next_sibling(new Node(cur_->get_game(), cur_,
+                                             best_prev->next_sibling(), choice,
+                                             cur_->depth() + 1));
+        cur_ = best_prev->next_sibling();
         break;
       }
       // Existing node, continue searching
+      // In this case, best_prev is the best child node
       else {
-        cur = best_prev_node;
+        cur_ = best_prev;
       }
     }
-
-    // Check for terminal state, otherwise evaluation is needed
-    if (cur->terminal()) {
-      // propagate the result
-      // new deductions can only be made after a new terminal node is found
+    // Terminal node
+    // This is usually a new node
+    // But may be a drawn node that has been searched before
+    if (cur_->terminal()) {
+      // Propagate the result
       propagateTerminal();
-      // Count the visit
-      cur->increment_visits();
-      // In a decisive terminal state, the person to play is always the
-      // loser
+      // In a decisive terminal state, the person to play is always the loser
+      // Otherwise the evaluation is 0.0 for a draw.
       float cur_eval = -1.0;
-      if (cur->result() == kResultDraw) {
+      if (cur_->drawn()) {
         cur_eval = 0.0;
       }
-      cur->set_evaluation(cur_eval);
-      while (cur->parent() != nullptr) {
-        cur = cur->parent();
-        // Correct default +1 evaluation
-        cur->increase_evaluation(cur_eval - 1.0);
+      cur_->set_evaluation(cur_eval);
+      while (cur_->parent() != nullptr) {
+        cur_ = cur_->parent();
+        // Correct default +1.0 evaluation
+        cur_->increase_evaluation(cur_eval - 1.0);
         cur_eval *= -1.0;
       }
     }
-    // Otherwise, request an evaluation
+    // Otherwise, request an evaluation for the new node
     else {
-      // Default +1 evaluation
-      cur->set_evaluation(1.0);
-      need_evaluation = true;
-      // Write game in offset position
-      cur->writeGameState(to_eval_ + searched_index_ * kGameStateSize);
-      // Record the node
-      searched_.push_back(cur);
+      // Default +1 evaluation for new node
+      cur_->set_evaluation(1.0);
+      need_eval = true;
+      // Write game in correct position
+      cur_->writeGameState(to_eval_ + searched_index_ * kGameStateSize);
+      // Record the node in searched_
+      searched_.push_back(cur_);
       ++searched_index_;
     }
   }
   // Reset cur for next search
-  cur = root;
-
-  return iterations_done == max_iterations || root->result() != kResultNone;
-}
-
-uintf TrainMC::count_nodes() const {
-  if (root == nullptr)
-    return 0;
-  return root->countNodes();
-}
-
-void TrainMC::propagateTerminal() {
-  Node *node = cur, *cur_node;
-
-  while (node != root) {
-    // We only need one loss to deduce
-    if (node->result() == kResultLoss || node->result() == kDeducedLoss) {
-      node = node->parent();
-      node->set_result(kDeducedWin);
-    } else {
-      // There are no winning moves
-      node = node->parent();
-      cur_node = node->first_child();
-      // Position has a drawing move
-      bool has_draw = false;
-      uintf edge_index = 0;
-      while (cur_node != nullptr) {
-        // We can deduce no further (not visited or not known)
-        if (cur_node->child_id() != node->move_id(edge_index) ||
-            cur_node->result() == kResultNone) {
-          return;
-        }
-        if (cur_node->result() == kResultDraw ||
-            cur_node->result() == kDeducedDraw) {
-          has_draw = true;
-        }
-        cur_node = cur_node->next_sibling();
-        ++edge_index;
-      }
-      // Unvisited moves at the end
-      if (edge_index < node->num_legal_moves())
-        return;
-      // If we reach this part, we are guaranteed
-      // No winning moves and
-      // no unknown moves
-      // If there are any drawing moves, the position is a draw
-      if (has_draw) {
-        node->set_result(kDeducedDraw);
-      }
-      // Otherwise, there are only losing moves, so the position is a loss
-      else {
-        node->set_result(kDeducedLoss);
-      }
-    }
-  }
+  cur_ = root_;
+  // Conditions for searches being done for this move
+  return searches_done_ == max_searches_ || root_->known();
 }

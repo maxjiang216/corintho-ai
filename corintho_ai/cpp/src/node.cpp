@@ -129,6 +129,7 @@ void Node::set_evaluation(float evaluation) noexcept {
 }
 
 void Node::set_denominator(float denominator) noexcept {
+  assert(denominator > 0.0);
   denominator_ = denominator;
 }
 
@@ -275,6 +276,7 @@ void Node::initializeEdges() {
   // Fill the array with legal moves
   for (int32_t i = 0; i < kNumMoves; ++i) {
     if (legal_moves[i]) {
+      assert(i < kNumMoves);
       edges_[edge_index] = Edge(i, 0);
       ++edge_index;
     }

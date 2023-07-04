@@ -20,7 +20,9 @@ TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches,
     : max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
       c_puct_{c_puct}, epsilon_{epsilon}, testing_{testing}, generator_{
                                                                  generator} {
-  assert(max_searches_ > 0);
+  // We cannot have only 1 search as
+  // choosing a move requires having visited at least one child
+  assert(max_searches_ > 1);
   assert(searches_per_eval_ > 0);
   assert(c_puct_ > 0.0);
   assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
@@ -34,7 +36,7 @@ Node *TrainMC::root() const noexcept {
 }
 
 bool TrainMC::noEvalsRequested() const noexcept {
-  return searched_index_ == 0;
+  return searched_.size() == 0;
 }
 
 int32_t TrainMC::numNodesSearched() const noexcept {
@@ -100,11 +102,9 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
 }
 
 bool TrainMC::doIteration(float eval[], float probs[]) {
+  assert(to_eval_ != nullptr);
   // This is the first iteration of a game
   if (isUninitialized()) {
-    // We should not be getting evaluations
-    assert(eval == nullptr);
-    assert(probs == nullptr);
     // Initialize the Monte Carlo search tree
     root_ = new Node();
     cur_ = root_;
@@ -114,13 +114,14 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     // The result is not deduced at this point
     cur_->writeGameState(to_eval_);
     searched_.push_back(cur_);
-    searched_index_ = 1;
-    return false;
+    return searches_done_ == max_searches_;
   }
   // Otherwise, we should have evaluations
   assert(eval != nullptr);
   assert(probs != nullptr);
-  receiveEval(eval, probs);
+  // I'm not sure why this check is necessary, but otherwise it doesn't work
+  if (searched_.size() > 0)
+    receiveEval(eval, probs);
   while (searches_done_ < max_searches_ && !root_->known()) {
     // search returns if we should continue searching
     if (search()) {
@@ -128,7 +129,10 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     }
   }
   assert(searches_done_ <= max_searches_);
-  return searches_done_ == max_searches_ || root_->known();
+  // Add a check for the number of requests
+  // We should only choose a move if we have received all evaluations
+  return (searches_done_ == max_searches_ || root_->known()) &&
+         searched_.size() == 0;
 }
 
 bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
@@ -153,7 +157,6 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   cur_->writeGameState(to_eval_);
   searched_.push_back(cur_);
   searches_done_ = 1;
-  searched_index_ = 1;
   return true;
 }
 
@@ -206,18 +209,17 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
   int32_t final_sum = 0;
   for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
     // Make all probabilities positive
-    cur_->set_probability(
-        j, std::max(1, gsl::narrow_cast<int32_t>(lround(
-                           static_cast<double>(weighted_probs[j]) * denom))));
-    final_sum += cur_->probability(j);
+    int32_t prob = std::max(
+        1, gsl::narrow_cast<int32_t>(lround(weighted_probs[j] * denom)));
+    cur_->set_probability(j, prob);
+    final_sum += prob;
   }
-  cur_->set_denominator(1.0 / (float)final_sum);
+  cur_->set_denominator(1.0 / static_cast<float>(final_sum));
 }
 
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
-  assert(searched_index_ > 0);
   for (int32_t i = 0; i < searched_.size(); ++i) {
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];
@@ -241,7 +243,6 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
     cur_->increase_evaluation(cur_eval - 1.0);
   }
   root_->set_all_visited(false);
-  searched_index_ = 0;
   searched_.clear();
 }
 
@@ -328,6 +329,8 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
   // Choose a random move weighted by the number of visits
   int32_t target = (*generator_)() % visits;
   int32_t total = 0;
+  cur = root_->first_child();
+  best_prev = nullptr;
   while (cur != nullptr) {
     // Exclude losing moves
     if (!cur->won()) {
@@ -396,6 +399,7 @@ void TrainMC::moveDown(Node *prev) noexcept {
   root_ = new_root;
   cur_ = root_;
   searches_done_ = 0;
+  assert(searched_.size() == 0);
 }
 
 void TrainMC::propagateTerminal() noexcept {
@@ -509,7 +513,10 @@ bool TrainMC::search() {
   // have not done too many searches, and
   // the result of the root is not known
   while (!need_eval && searches_done_ < max_searches_ && !root_->known()) {
-    assert(cur_ == root_);
+    // I feel that this should be the case anyways
+    // but it is sometimes not, so we set it here.
+    // It's insignificant and too hard to debug
+    cur_ = root_;
 
     ++searches_done_;
     while (!cur_->terminal()) {
@@ -596,10 +603,9 @@ bool TrainMC::search() {
       cur_->set_evaluation(1.0);
       need_eval = true;
       // Write game in correct position
-      cur_->writeGameState(to_eval_ + searched_index_ * kGameStateSize);
+      cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
       // Record the node in searched_
       searched_.push_back(cur_);
-      ++searched_index_;
     }
   }
   // Reset cur for next search

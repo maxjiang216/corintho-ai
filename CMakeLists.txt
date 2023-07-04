@@ -11,7 +11,7 @@ set(CPP_PATH "corintho_ai/cpp")
 
 set(TEST_PATH "tests/cpp")
 
-set(CMAKE_CXX_FLAGS "--coverage -fopenmp")
+set(CMAKE_CXX_FLAGS "--coverage -fopenmp -g")
 
 include_directories(${GTEST_PATH}/include ${GSL_PATH}/include ${CPP_PATH}/include)
 link_directories(googletest/lib)

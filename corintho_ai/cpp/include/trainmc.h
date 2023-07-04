@@ -22,7 +22,6 @@ class TrainMC {
   // @brief Return if there are no evaluations requested
   bool noEvalsRequested() const noexcept;
   // @brief Return the number of nodes searched since the last evaluation
-  // TODO Check if this is used
   int32_t numNodesSearched() const noexcept;
   // @brief Return if the tree is uninitialized
   bool isUninitialized() const noexcept;
@@ -139,8 +138,6 @@ class TrainMC {
   const float epsilon_{0.25};
   // @brief The nodes we have searched this cycle that need to be evaluated
   std::vector<Node *> searched_{};
-  // @brief The index to put the next searched node into
-  int32_t searched_index_{0};
   // @brief The location to write the game position that needs to be evaluated
   // @details This is shared between the two players in a SelfPlayer,
   // since only one player is searching at a time.

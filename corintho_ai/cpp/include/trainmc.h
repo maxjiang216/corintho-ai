@@ -59,8 +59,32 @@ class TrainMC {
                            int32_t depth);
 
  private:
+  struct ChooseNextOutput {
+    enum class Type { kVisited, kNew, kNone } type;
+    int32_t choice;
+    Node *node;
+  };
+  // Apply legal move filter and normalize
+  void getFilteredProbs(float probs[kNumMoves],
+                        float filtered_probs[]) const noexcept;
+  // Generate Dirichlet noise
+  void generateDirichlet(float dirichlet[]) const noexcept;
+
+  // @brief Set integer probabilities to edges, sets denominator of cur_ node
+  void setProbs(float filtered_probs[], float dirichlet[]) noexcept;
   // @brief Write the neural network outputs into the node
   void receiveEval(float eval[], float probs[]) noexcept;
+  // @brief Choose move for when the root node is a winning position
+  int32_t chooseMoveWon(float prob_sample[kNumMoves]) noexcept;
+  // @brief Choose move for when the root node is a losing or drawn position
+  // @details The logic in these cases is the same except drawn positions will
+  // avoid choosing losing moves
+  int32_t chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept;
+  // @brief Choose a move for the opening moves
+  // @details Temperate is 1.
+  int32_t chooseMoveOpening(float prob_sample[kNumMoves]) noexcept;
+  // @brief Choose a move for the standard case
+  int32_t chooseMoveNormal(float prob_sample[kNumMoves]) noexcept;
   // @brief Move down the Monte Carlo search tree
   // @details This occurs when we choose a move.
   void moveDown(Node *prev) noexcept;
@@ -71,6 +95,10 @@ class TrainMC {
   // network evaluations. We use elementary game theory to deduce the results of
   // nodes that are not terminal.
   void propagateTerminal() noexcept;
+  // @brief Choose the next node in the Monte Carlo search
+  // @return The ID of the move to take or -1 if no move is available
+  // @details Sets cur_ to a child node of cur_.
+  ChooseNextOutput chooseNext() noexcept;
   // @brief Repeated move down the Monte Carlo search tree until a terminal or
   // unsearched node is reached
   // @return Whether our search is done. This occurs if we have done the maximum

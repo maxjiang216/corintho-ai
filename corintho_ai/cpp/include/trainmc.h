@@ -15,6 +15,7 @@ class TrainMC {
   TrainMC(std::mt19937 *generator, int32_t max_searches = 1600,
           int32_t searches_per_eval = 16, float c_puct = 1.0,
           float epsilon = 0.25, bool testing = false);
+  ~TrainMC();
 
   // @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;

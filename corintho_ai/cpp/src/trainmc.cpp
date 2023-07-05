@@ -31,6 +31,12 @@ TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches,
   searched_.reserve(searches_per_eval_);
 }
 
+TrainMC::~TrainMC() {
+  if (root_ != nullptr) {
+    delete root_;
+  }
+}
+
 Node *TrainMC::root() const noexcept {
   return root_;
 }
@@ -122,7 +128,7 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   // I'm not sure why this check is necessary, but otherwise it doesn't work
   if (searched_.size() > 0)
     receiveEval(eval, probs);
-  while (searches_done_ < max_searches_ && !root_->known()) {
+  while (searched_.size() < searches_per_eval_ && !root_->known()) {
     // search returns if we should continue searching
     if (search()) {
       break;
@@ -220,6 +226,7 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
+  assert(searched_.size() <= searches_per_eval_);
   for (int32_t i = 0; i < searched_.size(); ++i) {
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];

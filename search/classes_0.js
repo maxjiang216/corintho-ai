@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['edge_58',['Edge',['../structNode_1_1Edge.html',1,'Node']]]
+  ['choosenextoutput_60',['ChooseNextOutput',['../structTrainMC_1_1ChooseNextOutput.html',1,'TrainMC']]]
 ];

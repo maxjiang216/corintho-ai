@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['row_5ffrom_90',['row_from',['../classMove.html#a2620eb3e92fdfef71984346e883eb0c6',1,'Move']]],
-  ['row_5fto_91',['row_to',['../classMove.html#a485cf4cdff01d818f5683737cadcd6b9',1,'Move']]]
+  ['printknownlines_92',['printKnownLines',['../classNode.html#a79cc95674d327cd3100d8d9d3acdd9c8',1,'Node']]],
+  ['printmainline_93',['printMainLine',['../classNode.html#a2a302b7fd7ca91481774e2c358a158a9',1,'Node']]]
 ];

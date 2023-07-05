@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['node_87',['Node',['../classNode.html#ad7a34779cad45d997bfd6d3d8043c75f',1,'Node::Node()'],['../classNode.html#a0a87d8bd02ff1d8e19d02adc52026f26',1,'Node::Node(const Game &amp;game, int32_t depth)'],['../classNode.html#a311f3543d0081b5bdeed8dcfd4533e1a',1,'Node::Node(const Game &amp;game, Node *parent, Node *next_sibling, int32_t move_id, int32_t depth)']]]
+  ['move_90',['Move',['../classMove.html#a6e50d21a512e509b47a03d83a3812331',1,'Move::Move(int32_t id) noexcept'],['../classMove.html#ac81f277bcc1c2121740da9d56a41aca7',1,'Move::Move(Space space, PieceType piece_type) noexcept'],['../classMove.html#a5d6a38d9a0f2c620363ddd64d2550e34',1,'Move::Move(Space spaceFrom, Space spaceTo) noexcept']]]
 ];

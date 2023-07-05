@@ -62,12 +62,11 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#pri-static-attribs">Static Private Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="classTrainMC-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">TrainMC Class Reference</div>  </div>
@@ -85,116 +84,130 @@ Collaboration diagram for TrainMC:</div>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structTrainMC_1_1ChooseNextOutput.html">ChooseNextOutput</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa042c4c7c9132018651777998af44c3d"><td class="memItemLeft" align="right" valign="top"><a id="aa042c4c7c9132018651777998af44c3d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (std::mt19937 *generator)</td></tr>
-<tr class="separator:aa042c4c7c9132018651777998af44c3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3dd09303dcd222b28a4397fcc74a7e2c"><td class="memItemLeft" align="right" valign="top"><a id="a3dd09303dcd222b28a4397fcc74a7e2c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (std::mt19937 *generator, bool)</td></tr>
-<tr class="separator:a3dd09303dcd222b28a4397fcc74a7e2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ee676c6e259bd28f14ba09462604eed"><td class="memItemLeft" align="right" valign="top"><a id="a4ee676c6e259bd28f14ba09462604eed"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
-<tr class="separator:a4ee676c6e259bd28f14ba09462604eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b7962f170b6fb2aaebd737760b6c884"><td class="memItemLeft" align="right" valign="top"><a id="a1b7962f170b6fb2aaebd737760b6c884"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>do_first_iteration</b> ()</td></tr>
-<tr class="separator:a1b7962f170b6fb2aaebd737760b6c884"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad3aaf02b9114a4c09985b84693770888"><td class="memItemLeft" align="right" valign="top"><a id="ad3aaf02b9114a4c09985b84693770888"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>do_first_iteration</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, uintf depth)</td></tr>
-<tr class="separator:ad3aaf02b9114a4c09985b84693770888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a77590bad8f75fd9b5b72ebb27cc1e5d8"><td class="memItemLeft" align="right" valign="top"><a id="a77590bad8f75fd9b5b72ebb27cc1e5d8"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluation[], float probabilities[])</td></tr>
-<tr class="separator:a77590bad8f75fd9b5b72ebb27cc1e5d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb814ed11f6b2b33a5dc1c4220133521"><td class="memItemLeft" align="right" valign="top"><a id="adb814ed11f6b2b33a5dc1c4220133521"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>choose_move</b> (float game_state[kGameStateSize], float probability_sample[kNumMoves])</td></tr>
-<tr class="separator:adb814ed11f6b2b33a5dc1c4220133521"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16531ae2af0c1f7d9ccf1ed65f83d002"><td class="memItemLeft" align="right" valign="top"><a id="a16531ae2af0c1f7d9ccf1ed65f83d002"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>receive_opp_move</b> (uintf move_choice, const <a class="el" href="classGame.html">Game</a> &amp;game, uintf depth)</td></tr>
-<tr class="separator:a16531ae2af0c1f7d9ccf1ed65f83d002"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a074dfe44b0a89c4a6c07b424476bf202"><td class="memItemLeft" align="right" valign="top"><a id="a074dfe44b0a89c4a6c07b424476bf202"></a>
-const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get_game</b> () const</td></tr>
-<tr class="separator:a074dfe44b0a89c4a6c07b424476bf202"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b6ed8c50fdcbdced8b0770f07885424"><td class="memItemLeft" align="right" valign="top"><a id="a2b6ed8c50fdcbdced8b0770f07885424"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_uninitialized</b> () const</td></tr>
-<tr class="separator:a2b6ed8c50fdcbdced8b0770f07885424"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e991e56df7cf3e6d5035b061075a12d"><td class="memItemLeft" align="right" valign="top"><a id="a1e991e56df7cf3e6d5035b061075a12d"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_nodes</b> () const</td></tr>
-<tr class="separator:a1e991e56df7cf3e6d5035b061075a12d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:abd8efd823c592fddf268419c216875df"><td class="memItemLeft" align="right" valign="top"><a id="abd8efd823c592fddf268419c216875df"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>set_statics</b> (uintf new_max_iterations, float new_c_puct, float new_epsilon, uintf new_searches_per_eval)</td></tr>
-<tr class="separator:abd8efd823c592fddf268419c216875df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47f02de5028796e31732432110ca10be"><td class="memItemLeft" align="right" valign="top"><a id="a47f02de5028796e31732432110ca10be"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (std::mt19937 *generator, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, bool testing=false)</td></tr>
+<tr class="separator:a47f02de5028796e31732432110ca10be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memItemLeft" align="right" valign="top"><a id="a5df9fe232181d0d10cf8eae75cbf4cdc"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>root</b> () const noexcept</td></tr>
+<tr class="separator:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd058a0dc949afe81dd19980f2da0fee"><td class="memItemLeft" align="right" valign="top"><a id="afd058a0dc949afe81dd19980f2da0fee"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>noEvalsRequested</b> () const noexcept</td></tr>
+<tr class="separator:afd058a0dc949afe81dd19980f2da0fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ff93c98a90863740df6bc122a995670"><td class="memItemLeft" align="right" valign="top"><a id="a7ff93c98a90863740df6bc122a995670"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>numNodesSearched</b> () const noexcept</td></tr>
+<tr class="separator:a7ff93c98a90863740df6bc122a995670"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="memItemLeft" align="right" valign="top"><a id="ab4f00faf0a9aa6f41cf38bd6c03bfea3"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isUninitialized</b> () const noexcept</td></tr>
+<tr class="separator:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a678e09603e4f929850fa20c836798f6a"><td class="memItemLeft" align="right" valign="top"><a id="a678e09603e4f929850fa20c836798f6a"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>numNodes</b> () const noexcept</td></tr>
+<tr class="separator:a678e09603e4f929850fa20c836798f6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2da56e38e16dec198690e3899309867"><td class="memItemLeft" align="right" valign="top"><a id="af2da56e38e16dec198690e3899309867"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_to_eval</b> (float *to_eval) noexcept</td></tr>
+<tr class="separator:af2da56e38e16dec198690e3899309867"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memItemLeft" align="right" valign="top"><a id="a93d75b10ef4bf91444e081b45d33e3b1"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>null_root</b> () noexcept</td></tr>
+<tr class="separator:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a680349df19cb86cb3a50af882aa5c4e4"><td class="memItemLeft" align="right" valign="top"><a id="a680349df19cb86cb3a50af882aa5c4e4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>createRoot</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
+<tr class="separator:a680349df19cb86cb3a50af882aa5c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8b429b328ba8317889ed82184f63234"><td class="memItemLeft" align="right" valign="top"><a id="ad8b429b328ba8317889ed82184f63234"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMove</b> (float game_state[kGameStateSize], float prob_sample[kNumMoves]) noexcept</td></tr>
+<tr class="separator:ad8b429b328ba8317889ed82184f63234"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b86f0869b129e0a5ec7459406a8083"><td class="memItemLeft" align="right" valign="top"><a id="a82b86f0869b129e0a5ec7459406a8083"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>doIteration</b> (float eval[]=nullptr, float probs[]=nullptr)</td></tr>
+<tr class="separator:a82b86f0869b129e0a5ec7459406a8083"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7943d9886dc28720289509b97aa71d13"><td class="memItemLeft" align="right" valign="top"><a id="a7943d9886dc28720289509b97aa71d13"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>receiveOpponentMove</b> (int32_t move_choice, const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
+<tr class="separator:a7943d9886dc28720289509b97aa71d13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:ad6d7189311a8c9b3b0446522e6361512"><td class="memItemLeft" align="right" valign="top"><a id="ad6d7189311a8c9b3b0446522e6361512"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>receive_evaluation</b> (float evaluation[], float probabilities[])</td></tr>
-<tr class="separator:ad6d7189311a8c9b3b0446522e6361512"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c2391d09e2966cce0f4acbef32d5856"><td class="memItemLeft" align="right" valign="top"><a id="a3c2391d09e2966cce0f4acbef32d5856"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>getFilteredProbs</b> (float probs[kNumMoves], float filtered_probs[]) const noexcept</td></tr>
+<tr class="separator:a3c2391d09e2966cce0f4acbef32d5856"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a494a10cff55fff2882fa0dc3a9f7b0cf"><td class="memItemLeft" align="right" valign="top"><a id="a494a10cff55fff2882fa0dc3a9f7b0cf"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>generateDirichlet</b> (float dirichlet[]) const noexcept</td></tr>
+<tr class="separator:a494a10cff55fff2882fa0dc3a9f7b0cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c15a74f6dce448146cffd9f02d7c38f"><td class="memItemLeft" align="right" valign="top"><a id="a1c15a74f6dce448146cffd9f02d7c38f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setProbs</b> (float filtered_probs[], float dirichlet[]) noexcept</td></tr>
+<tr class="separator:a1c15a74f6dce448146cffd9f02d7c38f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49728ba45c2457360d1a076449f88fee"><td class="memItemLeft" align="right" valign="top"><a id="a49728ba45c2457360d1a076449f88fee"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>receiveEval</b> (float eval[], float probs[]) noexcept</td></tr>
+<tr class="separator:a49728ba45c2457360d1a076449f88fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f19b4bb1f403460587a2830e1a68c07"><td class="memItemLeft" align="right" valign="top"><a id="a4f19b4bb1f403460587a2830e1a68c07"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMoveWon</b> (float prob_sample[kNumMoves]) noexcept</td></tr>
+<tr class="separator:a4f19b4bb1f403460587a2830e1a68c07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25e3a3f7fa257dbdaad7c1f8ce4e24a2"><td class="memItemLeft" align="right" valign="top"><a id="a25e3a3f7fa257dbdaad7c1f8ce4e24a2"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMoveLostDrawn</b> (float prob_sample[kNumMoves]) noexcept</td></tr>
+<tr class="separator:a25e3a3f7fa257dbdaad7c1f8ce4e24a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7620abbf4812e189778d4038cdbd318"><td class="memItemLeft" align="right" valign="top"><a id="ac7620abbf4812e189778d4038cdbd318"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMoveOpening</b> (float prob_sample[kNumMoves]) noexcept</td></tr>
+<tr class="separator:ac7620abbf4812e189778d4038cdbd318"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfe687dec8174065e2208f2e53cb9bfa"><td class="memItemLeft" align="right" valign="top"><a id="acfe687dec8174065e2208f2e53cb9bfa"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMoveNormal</b> (float prob_sample[kNumMoves]) noexcept</td></tr>
+<tr class="separator:acfe687dec8174065e2208f2e53cb9bfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04a624d3759e8e3d5df4fd834a3fc56f"><td class="memItemLeft" align="right" valign="top"><a id="a04a624d3759e8e3d5df4fd834a3fc56f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>moveDown</b> (<a class="el" href="classNode.html">Node</a> *prev) noexcept</td></tr>
+<tr class="separator:a04a624d3759e8e3d5df4fd834a3fc56f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab030e7eca910efd95cc1e39eb3ed8903"><td class="memItemLeft" align="right" valign="top"><a id="ab030e7eca910efd95cc1e39eb3ed8903"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>propagateTerminal</b> () noexcept</td></tr>
+<tr class="separator:ab030e7eca910efd95cc1e39eb3ed8903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abecc145117f6b2f56f224e75cea01821"><td class="memItemLeft" align="right" valign="top"><a id="abecc145117f6b2f56f224e75cea01821"></a>
+<a class="el" href="structTrainMC_1_1ChooseNextOutput.html">ChooseNextOutput</a>&#160;</td><td class="memItemRight" valign="bottom"><b>chooseNext</b> () noexcept</td></tr>
+<tr class="separator:abecc145117f6b2f56f224e75cea01821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac71a6614803fcdd1579008ee715ea6fd"><td class="memItemLeft" align="right" valign="top"><a id="ac71a6614803fcdd1579008ee715ea6fd"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>search</b> ()</td></tr>
 <tr class="separator:ac71a6614803fcdd1579008ee715ea6fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72ef44a0e0df06fac7f29d52241e8a21"><td class="memItemLeft" align="right" valign="top"><a id="a72ef44a0e0df06fac7f29d52241e8a21"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>move_down</b> (<a class="el" href="classNode.html">Node</a> *prev_node)</td></tr>
-<tr class="separator:a72ef44a0e0df06fac7f29d52241e8a21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8a24899cf8ec1552a146f90db6e53aa"><td class="memItemLeft" align="right" valign="top"><a id="aa8a24899cf8ec1552a146f90db6e53aa"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>propagate_result</b> ()</td></tr>
-<tr class="separator:aa8a24899cf8ec1552a146f90db6e53aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a0fe54b5ca913ea2f9cdcb08c85f4500e"><td class="memItemLeft" align="right" valign="top"><a id="a0fe54b5ca913ea2f9cdcb08c85f4500e"></a>
-const uintf&#160;</td><td class="memItemRight" valign="bottom"><b>NUM_OPENING_MOVES</b> = 6</td></tr>
-<tr class="separator:a0fe54b5ca913ea2f9cdcb08c85f4500e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0319c0320e8abd5d591262d361f0a5e7"><td class="memItemLeft" align="right" valign="top"><a id="a0319c0320e8abd5d591262d361f0a5e7"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>root</b></td></tr>
-<tr class="separator:a0319c0320e8abd5d591262d361f0a5e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a686c2d451c6c92a8ebfd0deb2351c5cf"><td class="memItemLeft" align="right" valign="top"><a id="a686c2d451c6c92a8ebfd0deb2351c5cf"></a>
-<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cur</b></td></tr>
-<tr class="separator:a686c2d451c6c92a8ebfd0deb2351c5cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a418559a8b57af51150c75873edc9fec0"><td class="memItemLeft" align="right" valign="top"><a id="a418559a8b57af51150c75873edc9fec0"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>eval_index</b></td></tr>
-<tr class="separator:a418559a8b57af51150c75873edc9fec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14b73489b7760be6d646ef453f3c13bb"><td class="memItemLeft" align="right" valign="top"><a id="a14b73489b7760be6d646ef453f3c13bb"></a>
-std::vector&lt; <a class="el" href="classNode.html">Node</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>searched</b></td></tr>
-<tr class="separator:a14b73489b7760be6d646ef453f3c13bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86caabdd4f55054d295ef81b4f3ef7c4"><td class="memItemLeft" align="right" valign="top"><a id="a86caabdd4f55054d295ef81b4f3ef7c4"></a>
-float *&#160;</td><td class="memItemRight" valign="bottom"><b>to_eval</b></td></tr>
-<tr class="separator:a86caabdd4f55054d295ef81b4f3ef7c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81e98da9abb52744e54e96085fdcfb2a"><td class="memItemLeft" align="right" valign="top"><a id="a81e98da9abb52744e54e96085fdcfb2a"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>iterations_done</b></td></tr>
-<tr class="separator:a81e98da9abb52744e54e96085fdcfb2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab13ae79fd77a9c7cda16a6e88b8e3125"><td class="memItemLeft" align="right" valign="top"><a id="ab13ae79fd77a9c7cda16a6e88b8e3125"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>testing</b></td></tr>
-<tr class="separator:ab13ae79fd77a9c7cda16a6e88b8e3125"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68758f9cbb48784e95c24588a8cc9da4"><td class="memItemLeft" align="right" valign="top"><a id="a68758f9cbb48784e95c24588a8cc9da4"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>logging</b></td></tr>
-<tr class="separator:a68758f9cbb48784e95c24588a8cc9da4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66bb79753e9dc63e29d107cacb05e300"><td class="memItemLeft" align="right" valign="top"><a id="a66bb79753e9dc63e29d107cacb05e300"></a>
-std::mt19937 *&#160;</td><td class="memItemRight" valign="bottom"><b>generator</b></td></tr>
-<tr class="separator:a66bb79753e9dc63e29d107cacb05e300"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a4ba69e8c58b373bfccb4488736984a"><td class="memItemLeft" align="right" valign="top"><a id="a6a4ba69e8c58b373bfccb4488736984a"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>root_</b> {nullptr}</td></tr>
+<tr class="separator:a6a4ba69e8c58b373bfccb4488736984a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a99b67ac6ad934087c89ca14969328e"><td class="memItemLeft" align="right" valign="top"><a id="a2a99b67ac6ad934087c89ca14969328e"></a>
+<a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cur_</b> {nullptr}</td></tr>
+<tr class="separator:a2a99b67ac6ad934087c89ca14969328e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6355c7901073fcb397c44621391d2ab8"><td class="memItemLeft" align="right" valign="top"><a id="a6355c7901073fcb397c44621391d2ab8"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>searches_done_</b> {0}</td></tr>
+<tr class="separator:a6355c7901073fcb397c44621391d2ab8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a783998b5c3c1bbcd5dc22c820b24d3cc"><td class="memItemLeft" align="right" valign="top"><a id="a783998b5c3c1bbcd5dc22c820b24d3cc"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_searches_</b> {1600}</td></tr>
+<tr class="separator:a783998b5c3c1bbcd5dc22c820b24d3cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a381cc439e28442f88a44a5aec614aecf"><td class="memItemLeft" align="right" valign="top"><a id="a381cc439e28442f88a44a5aec614aecf"></a>
+const int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>searches_per_eval_</b> {16}</td></tr>
+<tr class="separator:a381cc439e28442f88a44a5aec614aecf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2da67892e515bb61776a340440f7f88"><td class="memItemLeft" align="right" valign="top"><a id="ae2da67892e515bb61776a340440f7f88"></a>
+const float&#160;</td><td class="memItemRight" valign="bottom"><b>c_puct_</b> {1.0}</td></tr>
+<tr class="separator:ae2da67892e515bb61776a340440f7f88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a481aea6b958720c30b8630847807a717"><td class="memItemLeft" align="right" valign="top"><a id="a481aea6b958720c30b8630847807a717"></a>
+const float&#160;</td><td class="memItemRight" valign="bottom"><b>epsilon_</b> {0.25}</td></tr>
+<tr class="separator:a481aea6b958720c30b8630847807a717"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8e1a8fdc4e9531f4098ca202a224aa0"><td class="memItemLeft" align="right" valign="top"><a id="af8e1a8fdc4e9531f4098ca202a224aa0"></a>
+std::vector&lt; <a class="el" href="classNode.html">Node</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>searched_</b> {}</td></tr>
+<tr class="separator:af8e1a8fdc4e9531f4098ca202a224aa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15a07e62254af9d40da5b32b047fdf8a"><td class="memItemLeft" align="right" valign="top"><a id="a15a07e62254af9d40da5b32b047fdf8a"></a>
+float *&#160;</td><td class="memItemRight" valign="bottom"><b>to_eval_</b> {nullptr}</td></tr>
+<tr class="separator:a15a07e62254af9d40da5b32b047fdf8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a036f410bddafcbf51484cab2e53f0468"><td class="memItemLeft" align="right" valign="top"><a id="a036f410bddafcbf51484cab2e53f0468"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>testing_</b> {false}</td></tr>
+<tr class="separator:a036f410bddafcbf51484cab2e53f0468"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c68c3c397c740ccdc1464adbd45bab3"><td class="memItemLeft" align="right" valign="top"><a id="a2c68c3c397c740ccdc1464adbd45bab3"></a>
+std::mt19937 *&#160;</td><td class="memItemRight" valign="bottom"><b>generator_</b> {nullptr}</td></tr>
+<tr class="separator:a2c68c3c397c740ccdc1464adbd45bab3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
-<tr class="memitem:ad04b84f4175c3ab638b081c5b0df4de6"><td class="memItemLeft" align="right" valign="top"><a id="ad04b84f4175c3ab638b081c5b0df4de6"></a>
-static uintf&#160;</td><td class="memItemRight" valign="bottom"><b>max_iterations</b> = 1600</td></tr>
-<tr class="separator:ad04b84f4175c3ab638b081c5b0df4de6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7ac5d2556beb772f5fb682f66467494"><td class="memItemLeft" align="right" valign="top"><a id="ab7ac5d2556beb772f5fb682f66467494"></a>
-static uintf&#160;</td><td class="memItemRight" valign="bottom"><b>searches_per_eval</b> = 1</td></tr>
-<tr class="separator:ab7ac5d2556beb772f5fb682f66467494"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a410a99cd71b421fad3fd70366ede13d6"><td class="memItemLeft" align="right" valign="top"><a id="a410a99cd71b421fad3fd70366ede13d6"></a>
-static float&#160;</td><td class="memItemRight" valign="bottom"><b>c_puct</b> = 1.0</td></tr>
-<tr class="separator:a410a99cd71b421fad3fd70366ede13d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afec0d1e0f84cf6b0f497f768e445faa6"><td class="memItemLeft" align="right" valign="top"><a id="afec0d1e0f84cf6b0f497f768e445faa6"></a>
-static float&#160;</td><td class="memItemRight" valign="bottom"><b>epsilon</b> = 0.25</td></tr>
-<tr class="separator:afec0d1e0f84cf6b0f497f768e445faa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:ac844afaf1fde7b43652b8946b521ef64"><td class="memItemLeft" align="right" valign="top"><a id="ac844afaf1fde7b43652b8946b521ef64"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b></td></tr>
-<tr class="separator:ac844afaf1fde7b43652b8946b521ef64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae628c8118700970988e3c0c68a3c4f21"><td class="memItemLeft" align="right" valign="top"><a id="ae628c8118700970988e3c0c68a3c4f21"></a>
+static constexpr int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kNumOpeningMoves</b> = 6</td></tr>
+<tr class="separator:ae628c8118700970988e3c0c68a3c4f21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="trainmc_8h_source.html">trainmc.h</a></li>

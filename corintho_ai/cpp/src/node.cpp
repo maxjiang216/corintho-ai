@@ -192,7 +192,7 @@ void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
   game_.writeGameState(game_state);
 }
 
-void Node::printMainLine(std::ostream &logging_file) const {
+void Node::printMainLine(std::ostream *log_file) const {
   Node *cur_child = first_child_;
   Node *best_child = nullptr;
   int32_t max_visits = 0;
@@ -226,29 +226,28 @@ void Node::printMainLine(std::ostream &logging_file) const {
     ++edge_index;
   }
   if (best_child != nullptr) {
-    logging_file << static_cast<int32_t>(best_child->depth_) << ". "
-                 << Move{best_child->child_id_} << " v: " << max_visits
-                 << " e: ";
+    *log_file << static_cast<int32_t>(best_child->depth_) << ". "
+              << Move{best_child->child_id_} << " v: " << max_visits << " e: ";
     if (best_child->result_ != kResultNone) {
-      logging_file << strResult(best_child->result_);
+      *log_file << strResult(best_child->result_);
     } else {
-      logging_file << max_eval / (float)max_visits;
+      *log_file << max_eval / (float)max_visits;
     }
-    logging_file << " p: " << prob << '\t';
-    best_child->printMainLine(logging_file);
+    *log_file << " p: " << prob << '\t';
+    best_child->printMainLine(log_file);
   }
 }
 
-void Node::printKnownLines(std::ostream &logging_file) const {
+void Node::printKnownLines(std::ostream *log_file) const {
   if (result_ != kResultNone) {
-    logging_file << static_cast<int32_t>(depth_) << ". " << Move{child_id_}
-                 << ' ' << strResult(result_) << " ( ";
+    *log_file << static_cast<int32_t>(depth_) << ". " << Move{child_id_} << ' '
+              << strResult(result_) << " ( ";
     Node *cur_child = first_child_;
     while (cur_child != nullptr) {
-      cur_child->printKnownLines(logging_file);
+      cur_child->printKnownLines(log_file);
       cur_child = cur_child->next_sibling_;
     }
-    logging_file << " ) ";
+    *log_file << " ) ";
   }
 }
 

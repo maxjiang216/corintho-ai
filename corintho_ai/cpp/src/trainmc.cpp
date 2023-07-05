@@ -14,12 +14,12 @@
 #include "move.h"
 #include "node.h"
 
-TrainMC::TrainMC(std::mt19937 *generator, int32_t max_searches,
+TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
     : max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
-      c_puct_{c_puct}, epsilon_{epsilon}, testing_{testing}, generator_{
-                                                                 generator} {
+      c_puct_{c_puct}, epsilon_{epsilon}, to_eval_{to_eval}, testing_{testing},
+      generator_{generator} {
   // We cannot have only 1 search as
   // choosing a move requires having visited at least one child
   assert(max_searches_ > 1);
@@ -58,11 +58,6 @@ int32_t TrainMC::numNodes() const noexcept {
     return 0;
   }
   return root_->countNodes();
-}
-
-void TrainMC::set_to_eval(float *to_eval) noexcept {
-  assert(to_eval != nullptr);
-  to_eval_ = to_eval;
 }
 
 void TrainMC::null_root() noexcept {
@@ -122,10 +117,7 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     searched_.push_back(cur_);
     return searches_done_ == max_searches_;
   }
-  // Otherwise, we should have evaluations
-  assert(eval != nullptr);
-  assert(probs != nullptr);
-  // I'm not sure why this check is necessary, but otherwise it doesn't work
+  // At the start of a turn, there are no evaluations
   if (searched_.size() > 0)
     receiveEval(eval, probs);
   while (searched_.size() < searches_per_eval_ && !root_->known()) {

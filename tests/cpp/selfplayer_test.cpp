@@ -3,17 +3,15 @@
 
 // Test the training constructor
 TEST(SelfPlayerTest, TrainingConstructor) {
-  std::mt19937 *generator = new std::mt19937;
-  SelfPlayer selfplayer(1, generator);
+  SelfPlayer selfplayer{12345};
 
-  EXPECT_EQ(selfplayer.count_samples(), 0);
+  EXPECT_EQ(selfplayer.numSamples(), 0);
 }
 
 // Test do first iteration
 TEST(SelfPlayerTest, DoFirstIteration) {
-  std::mt19937 *generator = new std::mt19937;
-  SelfPlayer selfplayer(1, generator);
+  SelfPlayer selfplayer{12345};
 
-  selfplayer.do_first_iteration();
-  EXPECT_EQ(selfplayer.count_requests(), 1);
+  selfplayer.doIteration();
+  EXPECT_EQ(selfplayer.numRequests(), 1);
 }

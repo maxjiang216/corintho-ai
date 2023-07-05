@@ -49,7 +49,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[]) {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->count_requests();
+    offsets[i] = games[i - 1]->numRequests();
   }
   for (uintf i = 1; i < games.size(); ++i) {
     offsets[i] += offsets[i - 1];
@@ -63,14 +63,14 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[]) {
       // 2, which sometimes occurs when testing small runs
       if (i / std::max((uintf)1, (games.size() / num_iterations)) <
           iterations_done) {
-        bool is_completed = games[i]->do_iteration(
+        bool is_completed = games[i]->doIteration(
             &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
         if (is_completed) {
           is_done[i] = true;
         }
       } else if (i / std::max((uintf)1, (games.size() / num_iterations)) ==
                  iterations_done) {
-        games[i]->do_first_iteration();
+        games[i]->doIteration(nullptr, nullptr);
       }
     }
   }
@@ -89,7 +89,7 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
     omp_set_num_threads(threads);
 #pragma omp parallel for
     for (uintf i = 0; i < games.size(); ++i) {
-      games[i]->do_first_iteration();
+      games[i]->doIteration();
     }
     iterations_done = 1;
     return false;
@@ -100,9 +100,9 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); ++i) {
-    if (games[i - 1]->to_play == (to_play + games[i - 1]->seed) % 2 &&
+    if (games[i - 1]->to_play() == (to_play + games[i - 1]->parity()) % 2 &&
         !is_done[i - 1]) {
-      offsets[i] = games[i - 1]->count_requests();
+      offsets[i] = games[i - 1]->numRequests();
     } else {
       offsets[i] = 0;
     }
@@ -114,8 +114,9 @@ bool Trainer::do_iteration(float evaluations[], float probabilities[],
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
-      bool is_completed = games[i]->do_iteration(
+    if (games[i]->to_play() == (to_play + games[i]->parity()) % 2 &&
+        !is_done[i]) {
+      bool is_completed = games[i]->doIteration(
           &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
       if (is_completed) {
         is_done[i] = true;
@@ -144,41 +145,31 @@ void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
   if (testing) {
     for (uintf i = 0; i < num_logged; ++i) {
       games.emplace_back(new SelfPlayer{
-          searches_per_eval, i % 2, new std::mt19937(generator()),
-          new std::ofstream{logging_folder + "/game_" + std::to_string(i) +
-                                ".txt",
-                            std::ofstream::out}});
+          generator(), num_iterations, searches_per_eval, c_puct, epsilon,
+          std::move(std::make_unique<std::ofstream>(
+              logging_folder + "/game_" + std::to_string(i) + ".txt",
+              std::ofstream::out)),
+          i % 2});
     }
     for (uintf i = num_logged; i < num_games; ++i) {
-      games.emplace_back(new SelfPlayer{searches_per_eval, i % 2,
-                                        new std::mt19937(generator())});
+      games.emplace_back(new SelfPlayer{generator(), num_iterations,
+                                        searches_per_eval, c_puct, epsilon,
+                                        nullptr, i % 2});
     }
   } else {
     for (uintf i = 0; i < num_logged; ++i) {
-      games.emplace_back(
-          new SelfPlayer{searches_per_eval, new std::mt19937(generator()),
-                         new std::ofstream{logging_folder + "/game_" +
-                                               std::to_string(i) + ".txt",
-                                           std::ofstream::out}});
+      games.emplace_back(new SelfPlayer{
+          generator(), num_iterations, searches_per_eval, c_puct, epsilon,
+          std::move(std::make_unique<std::ofstream>(
+              logging_folder + "/game_" + std::to_string(i) + ".txt",
+              std::ofstream::out))});
     }
     for (uintf i = num_logged; i < num_games; ++i) {
-      games.emplace_back(
-          new SelfPlayer{searches_per_eval, new std::mt19937(generator())});
+      games.emplace_back(new SelfPlayer{generator(), num_iterations,
+                                        searches_per_eval, c_puct, epsilon,
+                                        nullptr});
     }
   }
-}
-
-uintf Trainer::count_nodes() const {
-  uintf counts[games.size()];
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    counts[i] = games[i]->count_nodes();
-  }
-  uintf counter = 0;
-  for (uintf i = 0; i < games.size(); ++i) {
-    counter += counts[i];
-  }
-  return counter;
 }
 
 uintf Trainer::write_requests(float *game_states) const {
@@ -187,7 +178,7 @@ uintf Trainer::write_requests(float *game_states) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->count_requests();
+    offsets[i] = games[i - 1]->numRequests();
   }
   for (uintf i = 1; i < games.size(); ++i) {
     offsets[i] += offsets[i - 1];
@@ -195,9 +186,9 @@ uintf Trainer::write_requests(float *game_states) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    games[i]->write_requests(game_states + offsets[i] * kGameStateSize);
+    games[i]->writeRequests(game_states + offsets[i] * kGameStateSize);
   }
-  return offsets[games.size() - 1] + games[games.size() - 1]->count_requests();
+  return offsets[games.size() - 1] + games[games.size() - 1]->numRequests();
 }
 
 uintf Trainer::write_requests(float *game_states, uintf to_play) const {
@@ -206,9 +197,9 @@ uintf Trainer::write_requests(float *game_states, uintf to_play) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); ++i) {
-    if (games[i - 1]->to_play == (to_play + games[i - 1]->seed) % 2 &&
+    if (games[i - 1]->to_play() == (to_play + games[i - 1]->parity()) % 2 &&
         !is_done[i - 1]) {
-      offsets[i] = games[i - 1]->count_requests();
+      offsets[i] = games[i - 1]->numRequests();
     } else {
       offsets[i] = 0;
     }
@@ -219,15 +210,16 @@ uintf Trainer::write_requests(float *game_states, uintf to_play) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    if (games[i]->to_play == (to_play + games[i]->seed) % 2 && !is_done[i]) {
-      games[i]->write_requests(game_states + offsets[i] * kGameStateSize);
+    if (games[i]->to_play() == (to_play + games[i]->parity()) % 2 &&
+        !is_done[i]) {
+      games[i]->writeRequests(game_states + offsets[i] * kGameStateSize);
     }
   }
   uintf num_requests = offsets[games.size() - 1];
-  if (games[games.size() - 1]->to_play ==
-          (to_play + games[games.size() - 1]->seed) % 2 &&
+  if (games[games.size() - 1]->to_play() ==
+          (to_play + games[games.size() - 1]->parity()) % 2 &&
       !is_done[games.size() - 1]) {
-    num_requests += games[games.size() - 1]->count_requests();
+    num_requests += games[games.size() - 1]->numRequests();
   }
   return num_requests;
 }
@@ -237,7 +229,7 @@ uintf Trainer::count_samples() const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    counts[i] = games[i]->count_samples();
+    counts[i] = games[i]->numSamples();
   }
   uintf counter = 0;
   for (uintf i = 0; i < games.size(); ++i) {
@@ -253,16 +245,16 @@ void Trainer::write_samples(float *game_states, float *evaluation_samples,
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->count_samples();
+    offsets[i] = games[i - 1]->numSamples();
   }
   for (uintf i = 1; i < games.size(); ++i) {
     offsets[i] += offsets[i - 1];
   }
   for (uintf i = 0; i < games.size(); ++i) {
-    games[i]->write_samples(
-        game_states + offsets[i] * kGameStateSize * SYMMETRY_NUM,
-        evaluation_samples + offsets[i] * SYMMETRY_NUM,
-        probability_samples + offsets[i] * kNumMoves * SYMMETRY_NUM);
+    games[i]->writeSamples(
+        game_states + offsets[i] * kGameStateSize * kNumSymmetries,
+        evaluation_samples + offsets[i] * kNumSymmetries,
+        probability_samples + offsets[i] * kNumMoves * kNumSymmetries);
   }
 }
 
@@ -271,11 +263,11 @@ float Trainer::get_score(const std::string &out_file) const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); i += 2) {
-    scores[i] = games[i]->get_score();
+    scores[i] = games[i]->score();
   }
 #pragma omp parallel for
   for (uintf i = 1; i < games.size(); i += 2) {
-    scores[i] = 1.0 - games[i]->get_score();
+    scores[i] = 1.0 - games[i]->score();
   }
   float score = 0;
   uintf wins = 0, draws = 0;
@@ -323,7 +315,7 @@ float Trainer::get_avg_mate_len() const {
   omp_set_num_threads(threads);
 #pragma omp parallel for
   for (uintf i = 0; i < games.size(); ++i) {
-    lens[i] = games[i]->get_mate_length();
+    lens[i] = games[i]->mateLength();
   }
   uintf total_len = 0;
   for (uintf i = 0; i < games.size(); ++i) {

@@ -6,6 +6,7 @@
 #include <array>
 #include <bitset>
 #include <cstdint>
+#include <limits>
 #include <string>
 
 using std::bitset;
@@ -49,6 +50,8 @@ struct Space {
 const uintf kGameStateSize = 70;
 // Number of possible legal moves
 const int32_t kNumMoves = 96;
+
+const float kNegInf = -std::numeric_limits<float>::infinity();
 
 typedef int8_t Result;
 const Result kResultNone = 0;

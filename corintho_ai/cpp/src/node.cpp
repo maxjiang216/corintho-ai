@@ -95,6 +95,27 @@ bool Node::terminal() const noexcept {
   return result_ == kResultLoss || result_ == kResultDraw;
 }
 
+bool Node::known() const noexcept {
+  return result_ != kResultNone;
+}
+
+bool Node::won() const noexcept {
+  // A terminal position can never be winning for the current player
+  return result_ == kDeducedWin;
+}
+
+bool Node::lost() const noexcept {
+  return result_ == kResultLoss || result_ == kDeducedLoss;
+}
+
+bool Node::drawn() const noexcept {
+  return result_ == kResultDraw || result_ == kDeducedDraw;
+}
+
+const Game &Node::get_game() const noexcept {
+  return game_;
+}
+
 void Node::set_next_sibling(Node *next_sibling) noexcept {
   next_sibling_ = next_sibling;
 }
@@ -108,6 +129,7 @@ void Node::set_evaluation(float evaluation) noexcept {
 }
 
 void Node::set_denominator(float denominator) noexcept {
+  assert(denominator > 0.0);
   denominator_ = denominator;
 }
 
@@ -254,6 +276,7 @@ void Node::initializeEdges() {
   // Fill the array with legal moves
   for (int32_t i = 0; i < kNumMoves; ++i) {
     if (legal_moves[i]) {
+      assert(i < kNumMoves);
       edges_[edge_index] = Edge(i, 0);
       ++edge_index;
     }

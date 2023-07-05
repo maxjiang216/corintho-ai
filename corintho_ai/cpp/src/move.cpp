@@ -62,7 +62,7 @@ std::ostream &operator<<(std::ostream &os, const Move &move) {
     } else if (move.piece_type_ == 2) {
       os << "A";
     }
-    os << getColName(move.space_from_.col) << 4 - move.space_from_.row;
+    os << getColName(move.space_to_.col) << 4 - move.space_to_.row;
   } else {
     os << getColName(move.space_from_.col) << 4 - move.space_from_.row;
     if (move.space_to_.col < move.space_from_.col)

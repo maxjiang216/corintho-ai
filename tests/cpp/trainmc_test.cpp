@@ -1,11 +1,14 @@
+#include "trainmc.h"
+
+#include <bitset>
+#include <random>
+
+#include "gtest/gtest.h"
+
 #include "game.h"
 #include "move.h"
 #include "node.h"
-#include "trainmc.h"
 #include "util.h"
-#include "gtest/gtest.h"
-#include <bitset>
-#include <random>
 
 // Test the training constructor
 TEST(TrainMCTest, TrainingConstructor) {

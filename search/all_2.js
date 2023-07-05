@@ -13,5 +13,6 @@ var searchData=
   ['choosenextoutput_19',['ChooseNextOutput',['../structTrainMC_1_1ChooseNextOutput.html',1,'TrainMC']]],
   ['col_5ffrom_20',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
   ['col_5fto_21',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
-  ['cur_5f_22',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
+  ['corintho_20ai_20documentation_22',['Corintho AI Documentation',['../index.html',1,'']]],
+  ['cur_5f_23',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
 ];

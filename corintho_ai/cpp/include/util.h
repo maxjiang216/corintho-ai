@@ -29,8 +29,9 @@ typedef uint_least16_t uint16s;
 // Otherwise keep the constants in the file that uses it
 
 struct Space {
-  int32_t row, col;
-  Space() : row{-1}, col{-1} {}
+  int32_t row{-1};
+  int32_t col{-1};
+  Space() = default;
   /// @brief Construct a space from two coordinates
   /// @details This is used to abstract over rows and columns
   /// @param flip If true, flip the coordinates

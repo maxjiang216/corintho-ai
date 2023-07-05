@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['visits_5f_123',['visits_',['../classNode.html#a895f751af963286ea6439b0d20b8dcf7',1,'Node']]]
+  ['testing_5f_187',['testing_',['../classTrainMC.html#a036f410bddafcbf51484cab2e53f0468',1,'TrainMC']]],
+  ['to_5feval_5f_188',['to_eval_',['../classTrainMC.html#a15a07e62254af9d40da5b32b047fdf8a',1,'TrainMC']]],
+  ['to_5fplay_5f_189',['to_play_',['../classGame.html#a214707f5e2f6cad01717fd7cab022c43',1,'Game']]]
 ];

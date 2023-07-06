@@ -18,7 +18,6 @@
 struct Sample {
   std::array<float, kGameStateSize> game_state;
   std::array<float, kNumMoves> probabilities;
-
   Sample(std::array<float, kGameStateSize> game_state,
          std::array<float, kNumMoves> probabilities)
       : game_state{game_state}, probabilities{probabilities} {}
@@ -83,7 +82,6 @@ class SelfPlayer {
   int32_t chooseMove();
   /// @brief Choose a move and then do an iteration of searches
   bool chooseMoveAndContinue();
-  bool do_iteration();
   /// @brief Random generator for all operations
   /// @details Shared with the TrainMC objects
   std::unique_ptr<std::mt19937> generator_{};

@@ -37,6 +37,78 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
   }
 }
 
+int32_t SelfPlayer::to_play() const noexcept {
+  return to_play_;
+}
+
+int32_t SelfPlayer::parity() const noexcept {
+  return parity_;
+}
+
+int32_t SelfPlayer::numRequests() const noexcept {
+  return players_[to_play_].numNodesSearched();
+}
+
+int32_t SelfPlayer::numSamples() const noexcept {
+  return samples_.size();
+}
+
+float SelfPlayer::score() const noexcept {
+  // There are more first player losses
+  if (result_ == kResultLoss)
+    return 0.0;
+  if (result_ == kResultWin)
+    return 1.0;
+  return 0.5;
+}
+
+int32_t SelfPlayer::mateLength() const noexcept {
+  // No mate found
+  if (mate_turn_ == 0)
+    return 0;
+  return samples_.size() - mate_turn_ + 1;
+}
+
+void SelfPlayer::writeRequests(float *game_states) const noexcept {
+  int32_t count = kGameStateSize * players_[to_play_].numNodesSearched();
+  std::copy(to_eval_.get(), to_eval_.get() + count, game_states);
+}
+
+void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
+                              float *prob_samples) const noexcept {
+  // The last player to play a move is the winner, except in a draw
+  float evaluation = 1.0;
+  if (result_ == kResultDraw) {
+    evaluation = 0.0;
+  }
+  // Start from end of the game to get evaluations more easily
+  int32_t offset = 0;
+  for (int32_t i = samples_.size() - 1; i >= 0; --i) {
+    // Apply symmetries
+    // The first symmetry is the identity, which is a bit inefficient but
+    // makes the code simpler
+    for (int32_t k = 0; k < kNumSymmetries; ++k) {
+      for (int32_t j = 0; j < 4 * kBoardSize; ++j) {
+        *(game_states + offset * kGameStateSize * kNumSymmetries +
+          (k + 1) * kGameStateSize + j) =
+            samples_[i].game_state[space_symmetries[k][j / 4] * 4 + j % 4];
+      }
+      for (int32_t j = 4 * kBoardSize; j < kGameStateSize; ++j) {
+        *(game_states + offset * kGameStateSize * kNumSymmetries +
+          (k + 1) * kGameStateSize + j) = samples_[i].game_state[j];
+      }
+      *(eval_samples + offset * kNumSymmetries + (k + 1)) = evaluation;
+      for (int32_t j = 0; j < kNumMoves; ++j) {
+        *(prob_samples + offset * kNumMoves * kNumSymmetries +
+          (k + 1) * kNumMoves + j) =
+            samples_[i].probabilities[move_symmetries[k][j]];
+      }
+    }
+    ++offset;
+    evaluation *= -1.0;
+  }
+}
+
 bool SelfPlayer::doIteration(float eval[], float probs[]) {
   bool done = players_[to_play_].doIteration(eval, probs);
   // If we have completed a turn, we can choose a move
@@ -121,15 +193,6 @@ void SelfPlayer::writePreMoveLogs() const noexcept {
   writeMoves();
 }
 
-int32_t SelfPlayer::chooseMove() {
-  std::array<float, kGameStateSize> game_state;
-  std::array<float, kNumMoves> prob_sample;
-  int32_t choice =
-      players_[to_play_].chooseMove(game_state.data(), prob_sample.data());
-  samples_.emplace_back(game_state, prob_sample);
-  return choice;
-}
-
 void SelfPlayer::writeMoveChoice(int32_t choice) const noexcept {
   assert(log_file_ != nullptr);
   *log_file_ << "CHOSE MOVE " << Move{choice} << "\nNEW POSITION:\n"
@@ -163,6 +226,15 @@ void SelfPlayer::endGame() noexcept {
   generator_.reset();
   to_eval_.reset();
   log_file_.reset();
+}
+
+int32_t SelfPlayer::chooseMove() {
+  std::array<float, kGameStateSize> game_state;
+  std::array<float, kNumMoves> prob_sample;
+  int32_t choice =
+      players_[to_play_].chooseMove(game_state.data(), prob_sample.data());
+  samples_.emplace_back(game_state, prob_sample);
+  return choice;
 }
 
 bool SelfPlayer::chooseMoveAndContinue() {
@@ -210,76 +282,4 @@ bool SelfPlayer::chooseMoveAndContinue() {
     }
   }
   return false;
-}
-
-int32_t SelfPlayer::numRequests() const noexcept {
-  return players_[to_play_].numNodesSearched();
-}
-
-void SelfPlayer::writeRequests(float *game_states) const noexcept {
-  int32_t count = kGameStateSize * players_[to_play_].numNodesSearched();
-  std::copy(to_eval_.get(), to_eval_.get() + count, game_states);
-}
-
-int32_t SelfPlayer::numSamples() const noexcept {
-  return samples_.size();
-}
-
-void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
-                              float *prob_samples) const noexcept {
-  // The last player to play a move is the winner, except in a draw
-  float evaluation = 1.0;
-  if (result_ == kResultDraw) {
-    evaluation = 0.0;
-  }
-  // Start from end of the game to get evaluations more easily
-  int32_t offset = 0;
-  for (int32_t i = samples_.size() - 1; i >= 0; --i) {
-    // Apply symmetries
-    // The first symmetry is the identity, which is a bit inefficient but
-    // makes the code simpler
-    for (int32_t k = 0; k < kNumSymmetries; ++k) {
-      for (int32_t j = 0; j < 4 * kBoardSize; ++j) {
-        *(game_states + offset * kGameStateSize * kNumSymmetries +
-          (k + 1) * kGameStateSize + j) =
-            samples_[i].game_state[space_symmetries[k][j / 4] * 4 + j % 4];
-      }
-      for (int32_t j = 4 * kBoardSize; j < kGameStateSize; ++j) {
-        *(game_states + offset * kGameStateSize * kNumSymmetries +
-          (k + 1) * kGameStateSize + j) = samples_[i].game_state[j];
-      }
-      *(eval_samples + offset * kNumSymmetries + (k + 1)) = evaluation;
-      for (int32_t j = 0; j < kNumMoves; ++j) {
-        *(prob_samples + offset * kNumMoves * kNumSymmetries +
-          (k + 1) * kNumMoves + j) =
-            samples_[i].probabilities[move_symmetries[k][j]];
-      }
-    }
-    ++offset;
-    evaluation *= -1.0;
-  }
-}
-
-float SelfPlayer::score() const noexcept {
-  // There are more first player losses
-  if (result_ == kResultLoss)
-    return 0.0;
-  if (result_ == kResultWin)
-    return 1.0;
-  return 0.5;
-}
-
-int32_t SelfPlayer::mateLength() const noexcept {
-  // No mate found
-  if (mate_turn_ == 0)
-    return 0;
-  return samples_.size() - mate_turn_ + 1;
-}
-
-int32_t SelfPlayer::to_play() const noexcept {
-  return to_play_;
-}
-
-int32_t SelfPlayer::parity() const noexcept {
-  return parity_;
 }

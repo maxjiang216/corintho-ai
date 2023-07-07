@@ -16,7 +16,7 @@ TEST(TrainMCTest, TrainingConstructor) {
   float to_eval[kGameStateSize];
   TrainMC trainmc(&generator, to_eval);
 
-  EXPECT_EQ(trainmc.numNodesSearched(), 0);
+  EXPECT_EQ(trainmc.numRequests(), 0);
   EXPECT_EQ(trainmc.isUninitialized(), true);
   EXPECT_EQ(trainmc.numNodes(), 0);
 }
@@ -28,7 +28,7 @@ TEST(TrainMCTest, FirstIteration) {
   TrainMC trainmc(&generator, to_eval);
   EXPECT_EQ(trainmc.doIteration(nullptr, nullptr), false);
   EXPECT_EQ(trainmc.noEvalsRequested(), false);
-  EXPECT_EQ(trainmc.numNodesSearched(), 1);
+  EXPECT_EQ(trainmc.numRequests(), 1);
   EXPECT_EQ(trainmc.isUninitialized(), false);
   EXPECT_EQ(trainmc.numNodes(), 1);
 }
@@ -80,6 +80,7 @@ TEST(TrainMCTest, FewPerMove) {
           }
         }
         while (!trainmc.doIteration(eval, probs)) {
+          assert(trainmc.numRequests() <= searches_per_eval);
         }
         float game_state[kGameStateSize];
         float prob_sample[kNumMoves];

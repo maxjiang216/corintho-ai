@@ -25,10 +25,10 @@ class TrainMC {
   /// @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;
 
+  /// @brief Return the number of requests for evaluations
+  int32_t numRequests() const noexcept;
   /// @brief Return if there are no evaluations requested
   bool noEvalsRequested() const noexcept;
-  /// @brief Return the number of nodes searched since the last evaluation
-  int32_t numNodesSearched() const noexcept;
   /// @brief Return if the tree is uninitialized
   bool isUninitialized() const noexcept;
   /// @brief Return the number of nodes in the tree

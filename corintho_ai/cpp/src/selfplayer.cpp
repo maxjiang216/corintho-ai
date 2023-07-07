@@ -46,7 +46,7 @@ int32_t SelfPlayer::parity() const noexcept {
 }
 
 int32_t SelfPlayer::numRequests() const noexcept {
-  return players_[to_play_].numNodesSearched();
+  return players_[to_play_].numRequests();
 }
 
 int32_t SelfPlayer::numSamples() const noexcept {
@@ -70,12 +70,16 @@ int32_t SelfPlayer::mateLength() const noexcept {
 }
 
 void SelfPlayer::writeRequests(float *game_states) const noexcept {
-  int32_t count = kGameStateSize * players_[to_play_].numNodesSearched();
+  assert(game_states != nullptr);
+  int32_t count = kGameStateSize * players_[to_play_].numRequests();
   std::copy(to_eval_.get(), to_eval_.get() + count, game_states);
 }
 
 void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
                               float *prob_samples) const noexcept {
+  assert(game_states != nullptr);
+  assert(eval_samples != nullptr);
+  assert(prob_samples != nullptr);
   // The last player to play a move is the winner, except in a draw
   float evaluation = 1.0;
   if (result_ == kResultDraw) {

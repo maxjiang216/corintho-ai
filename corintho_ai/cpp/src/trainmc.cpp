@@ -41,12 +41,12 @@ Node *TrainMC::root() const noexcept {
   return root_;
 }
 
-bool TrainMC::noEvalsRequested() const noexcept {
-  return searched_.size() == 0;
+int32_t TrainMC::numRequests() const noexcept {
+  return searched_.size();
 }
 
-int32_t TrainMC::numNodesSearched() const noexcept {
-  return searches_done_;
+bool TrainMC::noEvalsRequested() const noexcept {
+  return searched_.size() == 0;
 }
 
 bool TrainMC::isUninitialized() const noexcept {

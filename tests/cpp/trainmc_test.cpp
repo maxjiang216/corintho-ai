@@ -10,6 +10,9 @@
 #include "node.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 // Test the training constructor
 TEST(TrainMCTest, TrainingConstructor) {
   std::mt19937 generator;

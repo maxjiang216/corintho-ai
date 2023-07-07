@@ -110,7 +110,7 @@ class TrainMC {
   /// node, or if all the possible new nodes have been searched.
   /// @details Uses UCB to search the best edge to take in a Monte Carlo search
   /// tree
-  bool search();
+  void search();
 
   /// @brief The number of initial moves to consider "opening" moves
   /// @details When choosing a move during the opening, temperature is 1

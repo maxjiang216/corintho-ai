@@ -14,6 +14,9 @@
 #include "move.h"
 #include "node.h"
 
+#include <iostream>
+using namespace std;
+
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -115,18 +118,27 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     // The result is not deduced at this point
     cur_->writeGameState(to_eval_);
     searched_.push_back(cur_);
-    return searches_done_ == max_searches_;
+    assert(searched_.size() <= searches_per_eval_);
+    return false;
+  }
+  // This occurs when we receive a new root from the opponent
+  // We should ignore the all_visited and not increment visit count
+  if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
+    searches_done_ = 1;
+    // We need an evaluation
+    cur_->writeGameState(to_eval_);
+    searched_.push_back(cur_);
+    assert(searched_.size() <= searches_per_eval_);
+    return false;
   }
   // At the start of a turn, there are no evaluations
   if (searched_.size() > 0)
     receiveEval(eval, probs);
-  while (searched_.size() < searches_per_eval_ && !root_->known()) {
-    // search returns if we should continue searching
-    if (search()) {
-      break;
-    }
+  while (searched_.size() < searches_per_eval_ &&
+         searches_done_ < max_searches_ && !root_->known() &&
+         !root_->all_visited()) {
+    search();
   }
-  assert(searches_done_ <= max_searches_);
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
   return (searches_done_ == max_searches_ || root_->known()) &&
@@ -154,6 +166,7 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   // We need an evaluation
   cur_->writeGameState(to_eval_);
   searched_.push_back(cur_);
+  assert(searched_.size() <= searches_per_eval_);
   searches_done_ = 1;
   return true;
 }
@@ -506,109 +519,98 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   return ChooseNextOutput{ChooseNextOutput::Type::kVisited, choice, best_prev};
 }
 
-bool TrainMC::search() {
-  bool need_eval = false;
-  // While we have not found a node needing evaluation,
-  // have not done too many searches, and
-  // the result of the root is not known
-  while (!need_eval && searches_done_ < max_searches_ && !root_->known()) {
-    // I feel that this should be the case anyways
-    // but it is sometimes not, so we set it here.
-    // It's insignificant and too hard to debug
-    cur_ = root_;
-
-    ++searches_done_;
-    while (!cur_->terminal()) {
-      // Choose the next node to move down to
-      ChooseNextOutput res = chooseNext();
-      cur_->increment_visits();
-      // We use a default evaluation of 1.0 before we have a neural net
-      // evaluation This helps diversify the searches. In particular, the second
-      // player has a large advantage in Corintho, so most positions the first
-      // player plays has only losing moves. In such a position, a move getting
-      // a 0.0 evaluation search will improve its evaluation and will very
-      // likely be searched again before neural net evaluations are received.
-      // This drastically decreases the effective number of searches. Most
-      // pessimistically, with 1600 searches and 16 searches per evaluation, we
-      // effectively get 100 searches. Change the default value from 0.0 to 1.0
-      // empirically drastically improved improvement rate. Note that every node
-      // visited gets this default, as opposed to a leaf node getting it and
-      // having it propagate the normal way. This ensures that visited nodes are
-      // maximally unlikely to get visited again.
-      cur_->increase_evaluation(1.0);
-      // If no nodes were searched, this means all nodes are all_visited
-      // or won or lost positions
-      // This node is then all_visited
-      if (res.type == ChooseNextOutput::Type::kNone) {
-        cur_->set_all_visited();
-        // If it is the root that is all searched_
-        // we should stop the search and get evaluations immediately
-        bool done = (cur_ == root_);
-        // Since no search was done
-        // We need to undo the visit count and default 1.0 evaluation
-        while (cur_->parent() != nullptr) {
-          cur_->decrement_visits();
-          cur_->decrease_evaluation(1.0);
-          cur_ = cur_->parent();
-        }
-        // Remove search from root
+void TrainMC::search() {
+  // I feel that this should be the case anyways
+  // but it is sometimes not, so we set it here.
+  // It's insignificant and too hard to debug
+  cur_ = root_;
+  ++searches_done_;
+  while (!cur_->terminal()) {
+    // Choose the next node to move down to
+    ChooseNextOutput res = chooseNext();
+    cur_->increment_visits();
+    // We use a default evaluation of 1.0 before we have a neural net
+    // evaluation This helps diversify the searches. In particular, the second
+    // player has a large advantage in Corintho, so most positions the first
+    // player plays has only losing moves. In such a position, a move getting
+    // a 0.0 evaluation search will improve its evaluation and will very
+    // likely be searched again before neural net evaluations are received.
+    // This drastically decreases the effective number of searches. Most
+    // pessimistically, with 1600 searches and 16 searches per evaluation, we
+    // effectively get 100 searches. Change the default value from 0.0 to 1.0
+    // empirically drastically improved improvement rate. Note that every node
+    // visited gets this default, as opposed to a leaf node getting it and
+    // having it propagate the normal way. This ensures that visited nodes are
+    // maximally unlikely to get visited again.
+    cur_->increase_evaluation(1.0);
+    // If no nodes were searched, this means all nodes are all_visited
+    // or won or lost positions
+    // This node is then all_visited
+    if (res.type == ChooseNextOutput::Type::kNone) {
+      cur_->set_all_visited();
+      // Since no search was done
+      // We need to undo the visit count and default 1.0 evaluation
+      while (cur_->parent() != nullptr) {
         cur_->decrement_visits();
         cur_->decrease_evaluation(1.0);
-        --searches_done_;
-        return done;
-      }
-      // New node at the beginning of the list
-      if (res.type == ChooseNextOutput::Type::kNew && res.node == nullptr) {
-        cur_->set_first_child(new Node(cur_->get_game(), cur_,
-                                       cur_->first_child(), res.choice,
-                                       cur_->depth() + 1));
-        cur_ = cur_->first_child();
-        break;
-      }
-      // New node somewhere else in the list
-      if (res.type == ChooseNextOutput::Type::kNew) {
-        res.node->set_next_sibling(new Node(cur_->get_game(), cur_,
-                                            res.node->next_sibling(),
-                                            res.choice, cur_->depth() + 1));
-        cur_ = res.node->next_sibling();
-        break;
-      }
-      // Existing node, continue searching
-      cur_ = res.node;
-    }
-    // Terminal node
-    // This is usually a new node
-    // But may be a drawn node that has been searched before
-    if (cur_->terminal()) {
-      // Propagate the result
-      propagateTerminal();
-      // In a decisive terminal state, the person to play is always the loser
-      // Otherwise the evaluation is 0.0 for a draw.
-      float cur_eval = -1.0;
-      if (cur_->drawn()) {
-        cur_eval = 0.0;
-      }
-      cur_->set_evaluation(cur_eval);
-      while (cur_->parent() != nullptr) {
         cur_ = cur_->parent();
-        // Correct default +1.0 evaluation
-        cur_->increase_evaluation(cur_eval - 1.0);
-        cur_eval *= -1.0;
       }
+      // Remove search from root
+      cur_->decrement_visits();
+      cur_->decrease_evaluation(1.0);
+      --searches_done_;
+      return;
     }
-    // Otherwise, request an evaluation for the new node
-    else {
-      // Default +1 evaluation for new node
-      cur_->set_evaluation(1.0);
-      need_eval = true;
-      // Write game in correct position
-      cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
-      // Record the node in searched_
-      searched_.push_back(cur_);
+    // New node at the beginning of the list
+    if (res.type == ChooseNextOutput::Type::kNew && res.node == nullptr) {
+      cur_->set_first_child(new Node(cur_->get_game(), cur_,
+                                     cur_->first_child(), res.choice,
+                                     cur_->depth() + 1));
+      cur_ = cur_->first_child();
+      break;
+    }
+    // New node somewhere else in the list
+    if (res.type == ChooseNextOutput::Type::kNew) {
+      res.node->set_next_sibling(new Node(cur_->get_game(), cur_,
+                                          res.node->next_sibling(), res.choice,
+                                          cur_->depth() + 1));
+      cur_ = res.node->next_sibling();
+      break;
+    }
+    // Existing node, continue searching
+    cur_ = res.node;
+  }
+  // Terminal node
+  // This is usually a new node
+  // But may be a drawn node that has been searched before
+  if (cur_->terminal()) {
+    // Propagate the result
+    propagateTerminal();
+    // In a decisive terminal state, the person to play is always the loser
+    // Otherwise the evaluation is 0.0 for a draw.
+    float cur_eval = -1.0;
+    if (cur_->drawn()) {
+      cur_eval = 0.0;
+    }
+    cur_->set_evaluation(cur_eval);
+    while (cur_->parent() != nullptr) {
+      cur_ = cur_->parent();
+      // Correct default +1.0 evaluation
+      cur_->increase_evaluation(cur_eval - 1.0);
+      cur_eval *= -1.0;
     }
   }
+  // Otherwise, request an evaluation for the new node
+  else {
+    // Default +1 evaluation for new node
+    cur_->set_evaluation(1.0);
+    // Write game in correct position
+    cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
+    // Record the node in searched_
+    searched_.push_back(cur_);
+    assert(searched_.size() <= searches_per_eval_);
+  }
   // Reset cur for next search
+  // Try not doing this?
   cur_ = root_;
-  // Conditions for searches being done for this move
-  return searches_done_ == max_searches_ || root_->known();
 }

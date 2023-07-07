@@ -95,6 +95,7 @@ float Node::probability(int32_t i) const noexcept {
     cerr << "Visits is " << visits_ << endl;
     cerr << "Probability is " << static_cast<int32_t>(edges_[i].probability)
          << endl;
+    cerr << game_ << endl;
   }
   assert(denominator_ > 0.0);
   return static_cast<float>(edges_[i].probability) * denominator_;

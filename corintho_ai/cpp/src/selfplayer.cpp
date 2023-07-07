@@ -15,6 +15,9 @@
 #include "trainer.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
@@ -86,29 +89,26 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
     evaluation = 0.0;
   }
   // Start from end of the game to get evaluations more easily
-  int32_t offset = 0;
   for (int32_t i = samples_.size() - 1; i >= 0; --i) {
     // Apply symmetries
     // The first symmetry is the identity, which is a bit inefficient but
     // makes the code simpler
     for (int32_t k = 0; k < kNumSymmetries; ++k) {
       for (int32_t j = 0; j < 4 * kBoardSize; ++j) {
-        *(game_states + offset * kGameStateSize * kNumSymmetries +
-          (k + 1) * kGameStateSize + j) =
+        *(game_states + i * kGameStateSize * kNumSymmetries +
+          k * kGameStateSize + j) =
             samples_[i].game_state[space_symmetries[k][j / 4] * 4 + j % 4];
       }
       for (int32_t j = 4 * kBoardSize; j < kGameStateSize; ++j) {
-        *(game_states + offset * kGameStateSize * kNumSymmetries +
-          (k + 1) * kGameStateSize + j) = samples_[i].game_state[j];
+        *(game_states + i * kGameStateSize * kNumSymmetries +
+          k * kGameStateSize + j) = samples_[i].game_state[j];
       }
-      *(eval_samples + offset * kNumSymmetries + (k + 1)) = evaluation;
+      *(eval_samples + i * kNumSymmetries + (k + 1)) = evaluation;
       for (int32_t j = 0; j < kNumMoves; ++j) {
-        *(prob_samples + offset * kNumMoves * kNumSymmetries +
-          (k + 1) * kNumMoves + j) =
+        *(prob_samples + i * kNumMoves * kNumSymmetries + k * kNumMoves + j) =
             samples_[i].probabilities[move_symmetries[k][j]];
       }
     }
-    ++offset;
     evaluation *= -1.0;
   }
 }

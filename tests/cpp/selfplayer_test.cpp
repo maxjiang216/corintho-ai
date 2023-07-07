@@ -1,5 +1,11 @@
 #include "selfplayer.h"
+
 #include "gtest/gtest.h"
+
+#include "util.h"
+
+#include <iostream>
+using namespace std;
 
 // Test the training constructor
 TEST(SelfPlayerTest, TrainingConstructor) {
@@ -72,7 +78,10 @@ TEST(SelfPlayerTest, FewSearches) {
                                            j * kGameStateSize + k] >= 0.0 &&
                         sample_game_states[i * kNumSymmetries * kGameStateSize +
                                            j * kGameStateSize + k] <= 1.0);
+            cerr << sample_game_states[i * kNumSymmetries * kGameStateSize +
+                                       j * kGameStateSize + k] << ' ';
           }
+          cerr << endl;
           EXPECT_TRUE(sample_evals[i * kNumSymmetries + j] >= -1.0 &&
                       sample_evals[i * kNumSymmetries + j] <= 1.0);
           float sum = 0.0;
@@ -105,7 +114,7 @@ TEST(SelfPlayerTest, FewSearches) {
       }
       // Check that the sorted game states and probabilities for the other
       // symmetries are the same
-      for (int32_t i = 1; i < kNumMoves; ++i) {
+      for (int32_t i = 1; i < kNumSymmetries; ++i) {
         for (int32_t j = 0; j < selfplayer.numSamples(); ++j) {
           float game_state[kGameStateSize];
           float prob_sample[kNumMoves];

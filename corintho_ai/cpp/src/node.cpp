@@ -9,6 +9,9 @@
 #include "move.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 Node::Node() : child_id_{0}, depth_{0} {
   // initializeEdges can throw an exception from new
   initializeEdges();
@@ -87,6 +90,12 @@ int32_t Node::move_id(int32_t i) const noexcept {
 
 float Node::probability(int32_t i) const noexcept {
   assert(i < num_legal_moves_);
+  if (denominator_ <= 0.0) {
+    cerr << "Denominator is " << denominator_ << endl;
+    cerr << "Visits is " << visits_ << endl;
+    cerr << "Probability is " << static_cast<int32_t>(edges_[i].probability)
+         << endl;
+  }
   assert(denominator_ > 0.0);
   return static_cast<float>(edges_[i].probability) * denominator_;
 }

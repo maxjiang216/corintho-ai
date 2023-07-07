@@ -1,16 +1,10 @@
 var searchData=
 [
-  ['sample_72',['Sample',['../structSample.html',1,'']]],
-  ['search_73',['search',['../classTrainMC.html#ac71a6614803fcdd1579008ee715ea6fd',1,'TrainMC']]],
-  ['searched_5f_74',['searched_',['../classTrainMC.html#af8e1a8fdc4e9531f4098ca202a224aa0',1,'TrainMC']]],
-  ['searches_5fdone_5f_75',['searches_done_',['../classTrainMC.html#a6355c7901073fcb397c44621391d2ab8',1,'TrainMC']]],
-  ['searches_5fper_5feval_5f_76',['searches_per_eval_',['../classTrainMC.html#a381cc439e28442f88a44a5aec614aecf',1,'TrainMC']]],
-  ['selfplayer_77',['SelfPlayer',['../classSelfPlayer.html',1,'']]],
-  ['set_5fall_5fvisited_78',['set_all_visited',['../classNode.html#aea85fe8b2132cece691d483b522f84f8',1,'Node']]],
-  ['set_5fboard_79',['set_board',['../classGame.html#aae0471818c9ff556426bd85d0aff4dc5',1,'Game']]],
-  ['set_5ffrozen_80',['set_frozen',['../classGame.html#a9a9290fa4221cfba16024df1877ad506',1,'Game']]],
-  ['setprobs_81',['setProbs',['../classTrainMC.html#a1c15a74f6dce448146cffd9f02d7c38f',1,'TrainMC']]],
-  ['space_82',['Space',['../structSpace.html',1,'Space'],['../structSpace.html#a664748240bc72eca77461ccf028450ac',1,'Space::Space()']]],
-  ['space_5ffrom_83',['space_from',['../classMove.html#a7cf39e595edbc60c3800f1b2504875a3',1,'Move']]],
-  ['space_5fto_84',['space_to',['../classMove.html#a3070b0038ab745d6fbae8420ecde2ecf',1,'Move']]]
+  ['receiveeval_73',['receiveEval',['../classTrainMC.html#a49728ba45c2457360d1a076449f88fee',1,'TrainMC']]],
+  ['receiveopponentmove_74',['receiveOpponentMove',['../classTrainMC.html#a7943d9886dc28720289509b97aa71d13',1,'TrainMC']]],
+  ['result_5f_75',['result_',['../classNode.html#a921a4eb8fdccd44c28d53f74d2817e8c',1,'Node::result_()'],['../classSelfPlayer.html#ad64e0f8018c10d4858b205480768ee44',1,'SelfPlayer::result_()']]],
+  ['root_76',['root',['../classTrainMC.html#a5df9fe232181d0d10cf8eae75cbf4cdc',1,'TrainMC']]],
+  ['root_5f_77',['root_',['../classTrainMC.html#a6a4ba69e8c58b373bfccb4488736984a',1,'TrainMC']]],
+  ['row_5ffrom_78',['row_from',['../classMove.html#a2620eb3e92fdfef71984346e883eb0c6',1,'Move']]],
+  ['row_5fto_79',['row_to',['../classMove.html#a485cf4cdff01d818f5683737cadcd6b9',1,'Move']]]
 ];

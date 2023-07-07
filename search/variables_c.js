@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['searched_5f_185',['searched_',['../classTrainMC.html#af8e1a8fdc4e9531f4098ca202a224aa0',1,'TrainMC']]],
-  ['searches_5fdone_5f_186',['searches_done_',['../classTrainMC.html#a6355c7901073fcb397c44621391d2ab8',1,'TrainMC']]],
-  ['searches_5fper_5feval_5f_187',['searches_per_eval_',['../classTrainMC.html#a381cc439e28442f88a44a5aec614aecf',1,'TrainMC']]]
+  ['result_5f_214',['result_',['../classNode.html#a921a4eb8fdccd44c28d53f74d2817e8c',1,'Node::result_()'],['../classSelfPlayer.html#ad64e0f8018c10d4858b205480768ee44',1,'SelfPlayer::result_()']]],
+  ['root_5f_215',['root_',['../classTrainMC.html#a6a4ba69e8c58b373bfccb4488736984a',1,'TrainMC']]]
 ];

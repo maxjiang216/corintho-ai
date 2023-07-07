@@ -63,20 +63,23 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
-<a href="#pri-attribs">Private Attributes</a> &#124;
-<a href="#friends">Friends</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="classSelfPlayer-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">SelfPlayer Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A training match with 2 <a class="el" href="classTrainMC.html" title="Class for Monte Carlo tree search.">TrainMC</a> players.  
+ <a href="classSelfPlayer.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="selfplayer_8h_source.html">selfplayer.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for SelfPlayer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classSelfPlayer__coll__graph.png" border="0" usemap="#aSelfPlayer_coll__map" alt="Collaboration graph"/></div>
 <map name="aSelfPlayer_coll__map" id="aSelfPlayer_coll__map">
-<area shape="rect" title=" " alt="" coords="43,305,131,332"/>
+<area shape="rect" title="A training match with 2 TrainMC players." alt="" coords="43,305,131,332"/>
 <area shape="rect" href="classTrainMC.html" title="Class for Monte Carlo tree search." alt="" coords="49,216,124,243"/>
 <area shape="rect" href="classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="59,103,115,130"/>
 <area shape="rect" href="classGame.html" title="Represents a Corintho game state." alt="" coords="5,5,67,32"/>
@@ -86,88 +89,409 @@ Collaboration diagram for SelfPlayer:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a11eba9e094946455136deb4b44fdf4d2"><td class="memItemLeft" align="right" valign="top"><a id="a11eba9e094946455136deb4b44fdf4d2"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (uintf searches_per_eval, std::mt19937 *generator)</td></tr>
-<tr class="separator:a11eba9e094946455136deb4b44fdf4d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac60421b592095aaf7f3171e784e8c5b6"><td class="memItemLeft" align="right" valign="top"><a id="ac60421b592095aaf7f3171e784e8c5b6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (uintf searches_per_eval, std::mt19937 *generator, std::ofstream *logging_file)</td></tr>
-<tr class="separator:ac60421b592095aaf7f3171e784e8c5b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af46ea0be0801db42941e3bcd88a5f459"><td class="memItemLeft" align="right" valign="top"><a id="af46ea0be0801db42941e3bcd88a5f459"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (uintf searches_per_eval, uintf seed, std::mt19937 *generator)</td></tr>
-<tr class="separator:af46ea0be0801db42941e3bcd88a5f459"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4762bf718933e2c7d9e1f145546fdb93"><td class="memItemLeft" align="right" valign="top"><a id="a4762bf718933e2c7d9e1f145546fdb93"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (uintf searches_per_eval, uintf seed, std::mt19937 *generator, std::ofstream *logging_file)</td></tr>
-<tr class="separator:a4762bf718933e2c7d9e1f145546fdb93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a191bfe04a992b6f591dbba431bdc75ac"><td class="memItemLeft" align="right" valign="top"><a id="a191bfe04a992b6f591dbba431bdc75ac"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>do_first_iteration</b> ()</td></tr>
-<tr class="separator:a191bfe04a992b6f591dbba431bdc75ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abacfb7e35fd490a81790d4a610179a14"><td class="memItemLeft" align="right" valign="top"><a id="abacfb7e35fd490a81790d4a610179a14"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluation[], float probabilities[])</td></tr>
-<tr class="separator:abacfb7e35fd490a81790d4a610179a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f3f777a0ee8b2bbfba437fad06c33f2"><td class="memItemLeft" align="right" valign="top"><a id="a9f3f777a0ee8b2bbfba437fad06c33f2"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_requests</b> () const</td></tr>
-<tr class="separator:a9f3f777a0ee8b2bbfba437fad06c33f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9a48d3b65678590b47eb2d748586d2d"><td class="memItemLeft" align="right" valign="top"><a id="af9a48d3b65678590b47eb2d748586d2d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float *game_states) const</td></tr>
-<tr class="separator:af9a48d3b65678590b47eb2d748586d2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06058344d195eb4e5072691917a49e9e"><td class="memItemLeft" align="right" valign="top"><a id="a06058344d195eb4e5072691917a49e9e"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_samples</b> () const</td></tr>
-<tr class="separator:a06058344d195eb4e5072691917a49e9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a5a7bb4aa32f97a544c7b3a78779224"><td class="memItemLeft" align="right" valign="top"><a id="a8a5a7bb4aa32f97a544c7b3a78779224"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_samples</b> (float *game_states, float *evaluation_samples, float *probability_samples) const</td></tr>
-<tr class="separator:a8a5a7bb4aa32f97a544c7b3a78779224"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbd96b09f0db87fd7893d4188e79173a"><td class="memItemLeft" align="right" valign="top"><a id="abbd96b09f0db87fd7893d4188e79173a"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_score</b> () const</td></tr>
-<tr class="separator:abbd96b09f0db87fd7893d4188e79173a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7069c37a4947a07e59660a9171f614ae"><td class="memItemLeft" align="right" valign="top"><a id="a7069c37a4947a07e59660a9171f614ae"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_nodes</b> () const</td></tr>
-<tr class="separator:a7069c37a4947a07e59660a9171f614ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0bc008c9586d50415d4c7532142e58c2"><td class="memItemLeft" align="right" valign="top"><a id="a0bc008c9586d50415d4c7532142e58c2"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>get_mate_length</b> () const</td></tr>
-<tr class="separator:a0bc008c9586d50415d4c7532142e58c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a398a0841825f059b58ec8a2e96dd97a3"><td class="memItemLeft" align="right" valign="top"><a id="a398a0841825f059b58ec8a2e96dd97a3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (int32_t random_seed, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, std::unique_ptr&lt; std::ofstream &gt; log_file=nullptr, bool testing=false, int32_t parity=0)</td></tr>
+<tr class="separator:a398a0841825f059b58ec8a2e96dd97a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f046c84b084cd175acec9bd2e629263"><td class="memItemLeft" align="right" valign="top"><a id="a2f046c84b084cd175acec9bd2e629263"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>to_play</b> () const noexcept</td></tr>
+<tr class="separator:a2f046c84b084cd175acec9bd2e629263"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad451805655875ded10b0385e7f1a03b2"><td class="memItemLeft" align="right" valign="top"><a id="ad451805655875ded10b0385e7f1a03b2"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>parity</b> () const noexcept</td></tr>
+<tr class="separator:ad451805655875ded10b0385e7f1a03b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ee2084a7185c7bf3d4cf8404e728c12"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a1ee2084a7185c7bf3d4cf8404e728c12">numRequests</a> () const noexcept</td></tr>
+<tr class="memdesc:a1ee2084a7185c7bf3d4cf8404e728c12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations.  <a href="classSelfPlayer.html#a1ee2084a7185c7bf3d4cf8404e728c12">More...</a><br /></td></tr>
+<tr class="separator:a1ee2084a7185c7bf3d4cf8404e728c12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea901ff793dbb37c21abb3bec043706f"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#aea901ff793dbb37c21abb3bec043706f">numSamples</a> () const noexcept</td></tr>
+<tr class="memdesc:aea901ff793dbb37c21abb3bec043706f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of training samples.  <a href="classSelfPlayer.html#aea901ff793dbb37c21abb3bec043706f">More...</a><br /></td></tr>
+<tr class="separator:aea901ff793dbb37c21abb3bec043706f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af66611ac4f38d1094e6b016ea47d378c"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#af66611ac4f38d1094e6b016ea47d378c">score</a> () const noexcept</td></tr>
+<tr class="memdesc:af66611ac4f38d1094e6b016ea47d378c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The first player score.  <a href="classSelfPlayer.html#af66611ac4f38d1094e6b016ea47d378c">More...</a><br /></td></tr>
+<tr class="separator:af66611ac4f38d1094e6b016ea47d378c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9c768de7c438947b7a487c559c46624"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#af9c768de7c438947b7a487c559c46624">mateLength</a> () const noexcept</td></tr>
+<tr class="memdesc:af9c768de7c438947b7a487c559c46624"><td class="mdescLeft">&#160;</td><td class="mdescRight">The length of the longest mating sequence found by a player.  <a href="classSelfPlayer.html#af9c768de7c438947b7a487c559c46624">More...</a><br /></td></tr>
+<tr class="separator:af9c768de7c438947b7a487c559c46624"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a71696f1984a424cee62a611e682b7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a4a71696f1984a424cee62a611e682b7f">writeRequests</a> (float *game_states) const noexcept</td></tr>
+<tr class="memdesc:a4a71696f1984a424cee62a611e682b7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the game states for which evaluations are requested.  <a href="classSelfPlayer.html#a4a71696f1984a424cee62a611e682b7f">More...</a><br /></td></tr>
+<tr class="separator:a4a71696f1984a424cee62a611e682b7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9aa0b9a2285db2785b1e729b94d5e9bd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a9aa0b9a2285db2785b1e729b94d5e9bd">writeSamples</a> (float *game_states, float *eval_samples, float *prob_samples) const noexcept</td></tr>
+<tr class="memdesc:a9aa0b9a2285db2785b1e729b94d5e9bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the training samples.  <a href="classSelfPlayer.html#a9aa0b9a2285db2785b1e729b94d5e9bd">More...</a><br /></td></tr>
+<tr class="separator:a9aa0b9a2285db2785b1e729b94d5e9bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0c870319e63419b551b71b0b2bc228a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ac0c870319e63419b551b71b0b2bc228a">doIteration</a> (float eval[]=nullptr, float probs[]=nullptr)</td></tr>
+<tr class="memdesc:ac0c870319e63419b551b71b0b2bc228a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do an iteration of searches for the current player.  <a href="classSelfPlayer.html#ac0c870319e63419b551b71b0b2bc228a">More...</a><br /></td></tr>
+<tr class="separator:ac0c870319e63419b551b71b0b2bc228a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e05c9c68bdf9ad1d73af31759923c47"><td class="memItemLeft" align="right" valign="top"><a id="a7e05c9c68bdf9ad1d73af31759923c47"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a7e05c9c68bdf9ad1d73af31759923c47">writeEval</a> (<a class="el" href="classNode.html">Node</a> *node) const noexcept</td></tr>
+<tr class="memdesc:a7e05c9c68bdf9ad1d73af31759923c47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the evaluation of the given node. <br /></td></tr>
+<tr class="separator:a7e05c9c68bdf9ad1d73af31759923c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16e69287420ca18b5daece7c41fa7ada"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a16e69287420ca18b5daece7c41fa7ada">writeMoves</a> () const noexcept</td></tr>
+<tr class="memdesc:a16e69287420ca18b5daece7c41fa7ada"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the legal movesof the root.  <a href="classSelfPlayer.html#a16e69287420ca18b5daece7c41fa7ada">More...</a><br /></td></tr>
+<tr class="separator:a16e69287420ca18b5daece7c41fa7ada"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f09d2eecaa26f7ad1e9dd062f76a737"><td class="memItemLeft" align="right" valign="top"><a id="a8f09d2eecaa26f7ad1e9dd062f76a737"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a8f09d2eecaa26f7ad1e9dd062f76a737">writePreMoveLogs</a> () const noexcept</td></tr>
+<tr class="memdesc:a8f09d2eecaa26f7ad1e9dd062f76a737"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logs information immediately before a move is chosen. <br /></td></tr>
+<tr class="separator:a8f09d2eecaa26f7ad1e9dd062f76a737"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab58e30b9eaf2e7eb9ac798332c773c84"><td class="memItemLeft" align="right" valign="top"><a id="ab58e30b9eaf2e7eb9ac798332c773c84"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ab58e30b9eaf2e7eb9ac798332c773c84">writeMoveChoice</a> (int32_t choice) const noexcept</td></tr>
+<tr class="memdesc:ab58e30b9eaf2e7eb9ac798332c773c84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log information about move choice immediately after it is done. <br /></td></tr>
+<tr class="separator:ab58e30b9eaf2e7eb9ac798332c773c84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a15a66ae5a61d311d368219963cac43"><td class="memItemLeft" align="right" valign="top"><a id="a8a15a66ae5a61d311d368219963cac43"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a8a15a66ae5a61d311d368219963cac43">endGame</a> () noexcept</td></tr>
+<tr class="memdesc:a8a15a66ae5a61d311d368219963cac43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up when game is complete. <br /></td></tr>
+<tr class="separator:a8a15a66ae5a61d311d368219963cac43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4">chooseMove</a> ()</td></tr>
+<tr class="memdesc:adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose a move and write the training sample.  <a href="classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4">More...</a><br /></td></tr>
+<tr class="separator:adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcfbfd3cf8b296ef4d9c7ba06b576615"><td class="memItemLeft" align="right" valign="top"><a id="abcfbfd3cf8b296ef4d9c7ba06b576615"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#abcfbfd3cf8b296ef4d9c7ba06b576615">chooseMoveAndContinue</a> ()</td></tr>
+<tr class="memdesc:abcfbfd3cf8b296ef4d9c7ba06b576615"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose a move and then do an iteration of searches. <br /></td></tr>
+<tr class="separator:abcfbfd3cf8b296ef4d9c7ba06b576615"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:afc9e9bc01f81d16a84ec932fe5d91809"><td class="memItemLeft" align="right" valign="top"><a id="afc9e9bc01f81d16a84ec932fe5d91809"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> ()</td></tr>
-<tr class="separator:afc9e9bc01f81d16a84ec932fe5d91809"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
-<tr class="memitem:ad81828d912eaacd502618d08ce893b29"><td class="memItemLeft" align="right" valign="top"><a id="ad81828d912eaacd502618d08ce893b29"></a>
-<a class="el" href="classTrainMC.html">TrainMC</a>&#160;</td><td class="memItemRight" valign="bottom"><b>players</b> [2]</td></tr>
-<tr class="separator:ad81828d912eaacd502618d08ce893b29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aefaaf85118e93ed63d86413e48442efd"><td class="memItemLeft" align="right" valign="top"><a id="aefaaf85118e93ed63d86413e48442efd"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>to_play</b></td></tr>
-<tr class="separator:aefaaf85118e93ed63d86413e48442efd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae66564290b734f61b8ed748cc74e7829"><td class="memItemLeft" align="right" valign="top"><a id="ae66564290b734f61b8ed748cc74e7829"></a>
-std::mt19937 *&#160;</td><td class="memItemRight" valign="bottom"><b>generator</b></td></tr>
-<tr class="separator:ae66564290b734f61b8ed748cc74e7829"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6544b5139f0856fca9a59a6b25911293"><td class="memItemLeft" align="right" valign="top"><a id="a6544b5139f0856fca9a59a6b25911293"></a>
-float *&#160;</td><td class="memItemRight" valign="bottom"><b>to_eval</b></td></tr>
-<tr class="separator:a6544b5139f0856fca9a59a6b25911293"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf3adbe8f29383540a8d72492cb038c6"><td class="memItemLeft" align="right" valign="top"><a id="acf3adbe8f29383540a8d72492cb038c6"></a>
-std::vector&lt; <a class="el" href="structSample.html">Sample</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>samples</b></td></tr>
-<tr class="separator:acf3adbe8f29383540a8d72492cb038c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb6081b0828f1e475afb77bfebfce74e"><td class="memItemLeft" align="right" valign="top"><a id="aeb6081b0828f1e475afb77bfebfce74e"></a>
-uint8s&#160;</td><td class="memItemRight" valign="bottom"><b>result</b></td></tr>
-<tr class="separator:aeb6081b0828f1e475afb77bfebfce74e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a644a6e0a72a5aef170d1eff5dbf81e34"><td class="memItemLeft" align="right" valign="top"><a id="a644a6e0a72a5aef170d1eff5dbf81e34"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>seed</b></td></tr>
-<tr class="separator:a644a6e0a72a5aef170d1eff5dbf81e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeec3d2f0ee3835b985ae2ab24dfd8c8e"><td class="memItemLeft" align="right" valign="top"><a id="aeec3d2f0ee3835b985ae2ab24dfd8c8e"></a>
-std::ofstream *&#160;</td><td class="memItemRight" valign="bottom"><b>logging_file</b></td></tr>
-<tr class="separator:aeec3d2f0ee3835b985ae2ab24dfd8c8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a219f5c21c7e033fab6f9143a52e23fb9"><td class="memItemLeft" align="right" valign="top"><a id="a219f5c21c7e033fab6f9143a52e23fb9"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>mate_turn</b></td></tr>
-<tr class="separator:a219f5c21c7e033fab6f9143a52e23fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:ad38c9566742be31ca860cf8b5d6ae11f"><td class="memItemLeft" align="right" valign="top"><a id="ad38c9566742be31ca860cf8b5d6ae11f"></a>
-class&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b></td></tr>
-<tr class="separator:ad38c9566742be31ca860cf8b5d6ae11f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:ab58ad126ff2bf2584e9f5d4fcd0b5071"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::mt19937 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ab58ad126ff2bf2584e9f5d4fcd0b5071">generator_</a> {}</td></tr>
+<tr class="memdesc:ab58ad126ff2bf2584e9f5d4fcd0b5071"><td class="mdescLeft">&#160;</td><td class="mdescRight">Random generator for all operations.  <a href="classSelfPlayer.html#ab58ad126ff2bf2584e9f5d4fcd0b5071">More...</a><br /></td></tr>
+<tr class="separator:ab58ad126ff2bf2584e9f5d4fcd0b5071"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b7934ea9ffe4746612b22c30d6a5293"><td class="memItemLeft" align="right" valign="top"><a id="a7b7934ea9ffe4746612b22c30d6a5293"></a>
+std::unique_ptr&lt; float[]&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a7b7934ea9ffe4746612b22c30d6a5293">to_eval_</a> {}</td></tr>
+<tr class="memdesc:a7b7934ea9ffe4746612b22c30d6a5293"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions needing evaluation. <br /></td></tr>
+<tr class="separator:a7b7934ea9ffe4746612b22c30d6a5293"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2174b3ceb67c85f30e9ef3c5562a5c8c"><td class="memItemLeft" align="right" valign="top"><a id="a2174b3ceb67c85f30e9ef3c5562a5c8c"></a>
+<a class="el" href="classTrainMC.html">TrainMC</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a2174b3ceb67c85f30e9ef3c5562a5c8c">players_</a> [2]</td></tr>
+<tr class="memdesc:a2174b3ceb67c85f30e9ef3c5562a5c8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Monte Carlo search trees for each player. <br /></td></tr>
+<tr class="separator:a2174b3ceb67c85f30e9ef3c5562a5c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa08c551354d38e2586fb28fbad0eb491"><td class="memItemLeft" align="right" valign="top"><a id="aa08c551354d38e2586fb28fbad0eb491"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#aa08c551354d38e2586fb28fbad0eb491">to_play_</a> {0}</td></tr>
+<tr class="memdesc:aa08c551354d38e2586fb28fbad0eb491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whose turn it is. <br /></td></tr>
+<tr class="separator:aa08c551354d38e2586fb28fbad0eb491"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac65c9dde1c63c09f24ff317bd9f14453"><td class="memItemLeft" align="right" valign="top"><a id="ac65c9dde1c63c09f24ff317bd9f14453"></a>
+std::vector&lt; <a class="el" href="structSample.html">Sample</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ac65c9dde1c63c09f24ff317bd9f14453">samples_</a> {}</td></tr>
+<tr class="memdesc:ac65c9dde1c63c09f24ff317bd9f14453"><td class="mdescLeft">&#160;</td><td class="mdescRight">Training samples. <br /></td></tr>
+<tr class="separator:ac65c9dde1c63c09f24ff317bd9f14453"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad64e0f8018c10d4858b205480768ee44"><td class="memItemLeft" align="right" valign="top"><a id="ad64e0f8018c10d4858b205480768ee44"></a>
+Result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ad64e0f8018c10d4858b205480768ee44">result_</a> {kResultNone}</td></tr>
+<tr class="memdesc:ad64e0f8018c10d4858b205480768ee44"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGame.html" title="Represents a Corintho game state.">Game</a> result for the first player. <br /></td></tr>
+<tr class="separator:ad64e0f8018c10d4858b205480768ee44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a431a070708e0f2366d0cb0456eebead8"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::ofstream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a431a070708e0f2366d0cb0456eebead8">log_file_</a> {}</td></tr>
+<tr class="memdesc:a431a070708e0f2366d0cb0456eebead8"><td class="mdescLeft">&#160;</td><td class="mdescRight">File where all logs are written to.  <a href="classSelfPlayer.html#a431a070708e0f2366d0cb0456eebead8">More...</a><br /></td></tr>
+<tr class="separator:a431a070708e0f2366d0cb0456eebead8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d015ecec035b1482a30c47be381af0c"><td class="memItemLeft" align="right" valign="top"><a id="a2d015ecec035b1482a30c47be381af0c"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a2d015ecec035b1482a30c47be381af0c">mate_turn_</a> {0}</td></tr>
+<tr class="memdesc:a2d015ecec035b1482a30c47be381af0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of the turn at which some player finds a mating sequence (or draw) TODO: Test this, as it is currently very inaccurate. <br /></td></tr>
+<tr class="separator:a2d015ecec035b1482a30c47be381af0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa32a7cc390e71df0c55d0de19a88c985"><td class="memItemLeft" align="right" valign="top"><a id="aa32a7cc390e71df0c55d0de19a88c985"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#aa32a7cc390e71df0c55d0de19a88c985">parity_</a> {0}</td></tr>
+<tr class="memdesc:aa32a7cc390e71df0c55d0de19a88c985"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parity for which model corresponds to which player during testing. <br /></td></tr>
+<tr class="separator:aa32a7cc390e71df0c55d0de19a88c985"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A training match with 2 <a class="el" href="classTrainMC.html" title="Class for Monte Carlo tree search.">TrainMC</a> players. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="adf3b2bbac13e0ddcdd03ea1ad7991dd4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf3b2bbac13e0ddcdd03ea1ad7991dd4">&#9670;&nbsp;</a></span>chooseMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t SelfPlayer::chooseMove </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Choose a move and write the training sample. </p>
+<dl class="section return"><dt>Returns</dt><dd>The ID of the chosen move </dd></dl>
+
+</div>
+</div>
+<a id="ac0c870319e63419b551b71b0b2bc228a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0c870319e63419b551b71b0b2bc228a">&#9670;&nbsp;</a></span>doIteration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SelfPlayer::doIteration </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>eval</em>[] = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>probs</em>[] = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Do an iteration of searches for the current player. </p>
+<dl class="section return"><dt>Returns</dt><dd>If the game is complete </dd></dl>
+
+</div>
+</div>
+<a id="af9c768de7c438947b7a487c559c46624"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9c768de7c438947b7a487c559c46624">&#9670;&nbsp;</a></span>mateLength()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t SelfPlayer::mateLength </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The length of the longest mating sequence found by a player. </p>
+<p>Number of plies in the mating sequence. Also includes drawing sequences in a drawn position. </p>
+
+</div>
+</div>
+<a id="a1ee2084a7185c7bf3d4cf8404e728c12"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ee2084a7185c7bf3d4cf8404e728c12">&#9670;&nbsp;</a></span>numRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t SelfPlayer::numRequests </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return the number of requests for evaluations. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of requests for evaluations </dd></dl>
+
+</div>
+</div>
+<a id="aea901ff793dbb37c21abb3bec043706f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea901ff793dbb37c21abb3bec043706f">&#9670;&nbsp;</a></span>numSamples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t SelfPlayer::numSamples </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return the number of training samples. </p>
+<dl class="section return"><dt>Returns</dt><dd>The number of training samples </dd></dl>
+
+</div>
+</div>
+<a id="af66611ac4f38d1094e6b016ea47d378c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af66611ac4f38d1094e6b016ea47d378c">&#9670;&nbsp;</a></span>score()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float SelfPlayer::score </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The first player score. </p>
+<dl class="section return"><dt>Returns</dt><dd>The first player score</dd></dl>
+<p>1.0 for a win, 0.0 for a loss, and 0.5 for a draw </p>
+
+</div>
+</div>
+<a id="a16e69287420ca18b5daece7c41fa7ada"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16e69287420ca18b5daece7c41fa7ada">&#9670;&nbsp;</a></span>writeMoves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfPlayer::writeMoves </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write the legal movesof the root. </p>
+<p>Also write entire main line and sort other moves by visits </p>
+
+</div>
+</div>
+<a id="a4a71696f1984a424cee62a611e682b7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a71696f1984a424cee62a611e682b7f">&#9670;&nbsp;</a></span>writeRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfPlayer::writeRequests </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write the game states for which evaluations are requested. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">game_states</td><td>The array to write the game states to This is the input to the neural network </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9aa0b9a2285db2785b1e729b94d5e9bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9aa0b9a2285db2785b1e729b94d5e9bd">&#9670;&nbsp;</a></span>writeSamples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfPlayer::writeSamples </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>eval_samples</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>prob_samples</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write the training samples. </p>
+<p>This includes the game state, game outcome, and final move probabilities </p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="ab58ad126ff2bf2584e9f5d4fcd0b5071"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab58ad126ff2bf2584e9f5d4fcd0b5071">&#9670;&nbsp;</a></span>generator_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;std::mt19937&gt; SelfPlayer::generator_ {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Random generator for all operations. </p>
+<p>Shared with the <a class="el" href="classTrainMC.html" title="Class for Monte Carlo tree search.">TrainMC</a> objects </p>
+
+</div>
+</div>
+<a id="a431a070708e0f2366d0cb0456eebead8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a431a070708e0f2366d0cb0456eebead8">&#9670;&nbsp;</a></span>log_file_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;std::ofstream&gt; SelfPlayer::log_file_ {}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>File where all logs are written to. </p>
+<p>We use a pointer so that no memory is allocated if there is no logging file (which is true most of the time). </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="selfplayer_8h_source.html">selfplayer.h</a></li>
 </ul>

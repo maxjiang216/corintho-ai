@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['parent_5f_180',['parent_',['../classNode.html#a7f0448247d19072d5c3fa54acda8dd55',1,'Node']]],
-  ['pieces_5f_181',['pieces_',['../classGame.html#a66c0a35f8ca9c6e691777ad16d80077f',1,'Game']]],
-  ['probability_182',['probability',['../structNode_1_1Edge.html#a48a5822e72f5c15272b748f2a566b880',1,'Node::Edge']]]
+  ['next_5fsibling_5f_207',['next_sibling_',['../classNode.html#a332ff536f055a792652753122f8b86d5',1,'Node']]],
+  ['num_5flegal_5fmoves_5f_208',['num_legal_moves_',['../classNode.html#a46ca9a6d14ad46171351a48088ba50bb',1,'Node']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['writegamestate_93',['writeGameState',['../classGame.html#ad7c12d8e77bd88012278b4f1a3ddf28a',1,'Game']]]
+  ['visits_5f_102',['visits_',['../classNode.html#a895f751af963286ea6439b0d20b8dcf7',1,'Node']]]
 ];

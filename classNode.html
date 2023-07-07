@@ -225,12 +225,12 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>countNodes</b> () 
 <tr class="memitem:a1e4415a1974a0156d085efc9ddf3a4e4"><td class="memItemLeft" align="right" valign="top"><a id="a1e4415a1974a0156d085efc9ddf3a4e4"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>writeGameState</b> (float game_state[kGameStateSize]) const noexcept</td></tr>
 <tr class="separator:a1e4415a1974a0156d085efc9ddf3a4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a302b7fd7ca91481774e2c358a158a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a2a302b7fd7ca91481774e2c358a158a9">printMainLine</a> (std::ostream &amp;logging_file) const</td></tr>
-<tr class="memdesc:a2a302b7fd7ca91481774e2c358a158a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print the main line of the game.  <a href="classNode.html#a2a302b7fd7ca91481774e2c358a158a9">More...</a><br /></td></tr>
-<tr class="separator:a2a302b7fd7ca91481774e2c358a158a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a79cc95674d327cd3100d8d9d3acdd9c8">printKnownLines</a> (std::ostream &amp;logging_file) const</td></tr>
-<tr class="memdesc:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print all lines where the result is deduced.  <a href="classNode.html#a79cc95674d327cd3100d8d9d3acdd9c8">More...</a><br /></td></tr>
-<tr class="separator:a79cc95674d327cd3100d8d9d3acdd9c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46f656335d2dc84e08a5deeff8fcfbf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#a46f656335d2dc84e08a5deeff8fcfbf1">printMainLine</a> (std::ostream *log_file) const</td></tr>
+<tr class="memdesc:a46f656335d2dc84e08a5deeff8fcfbf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print the main line of the game.  <a href="classNode.html#a46f656335d2dc84e08a5deeff8fcfbf1">More...</a><br /></td></tr>
+<tr class="separator:a46f656335d2dc84e08a5deeff8fcfbf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebb85c8f6cee429fdab3f03e6d86e95f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classNode.html#aebb85c8f6cee429fdab3f03e6d86e95f">printKnownLines</a> (std::ostream *log_file) const</td></tr>
+<tr class="memdesc:aebb85c8f6cee429fdab3f03e6d86e95f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print all lines where the result is deduced.  <a href="classNode.html#aebb85c8f6cee429fdab3f03e6d86e95f">More...</a><br /></td></tr>
+<tr class="separator:aebb85c8f6cee429fdab3f03e6d86e95f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -434,8 +434,8 @@ The alignment is set to 64 bytes to reduce cache misses. The size of the class i
 
 </div>
 </div>
-<a id="a79cc95674d327cd3100d8d9d3acdd9c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a79cc95674d327cd3100d8d9d3acdd9c8">&#9670;&nbsp;</a></span>printKnownLines()</h2>
+<a id="aebb85c8f6cee429fdab3f03e6d86e95f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebb85c8f6cee429fdab3f03e6d86e95f">&#9670;&nbsp;</a></span>printKnownLines()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -443,8 +443,8 @@ The alignment is set to 64 bytes to reduce cache misses. The size of the class i
         <tr>
           <td class="memname">void Node::printKnownLines </td>
           <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>logging_file</em></td><td>)</td>
+          <td class="paramtype">std::ostream *&#160;</td>
+          <td class="paramname"><em>log_file</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -460,8 +460,8 @@ The alignment is set to 64 bytes to reduce cache misses. The size of the class i
 
 </div>
 </div>
-<a id="a2a302b7fd7ca91481774e2c358a158a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2a302b7fd7ca91481774e2c358a158a9">&#9670;&nbsp;</a></span>printMainLine()</h2>
+<a id="a46f656335d2dc84e08a5deeff8fcfbf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46f656335d2dc84e08a5deeff8fcfbf1">&#9670;&nbsp;</a></span>printMainLine()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -469,8 +469,8 @@ The alignment is set to 64 bytes to reduce cache misses. The size of the class i
         <tr>
           <td class="memname">void Node::printMainLine </td>
           <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>logging_file</em></td><td>)</td>
+          <td class="paramtype">std::ostream *&#160;</td>
+          <td class="paramname"><em>log_file</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>

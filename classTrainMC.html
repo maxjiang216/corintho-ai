@@ -97,22 +97,34 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a47f02de5028796e31732432110ca10be"><td class="memItemLeft" align="right" valign="top"><a id="a47f02de5028796e31732432110ca10be"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a47f02de5028796e31732432110ca10be">TrainMC</a> (std::mt19937 *generator, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, bool testing=false)</td></tr>
-<tr class="memdesc:a47f02de5028796e31732432110ca10be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
-<tr class="separator:a47f02de5028796e31732432110ca10be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3409ca2aac0db430d7527b762422e76"><td class="memItemLeft" align="right" valign="top"><a id="ab3409ca2aac0db430d7527b762422e76"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ab3409ca2aac0db430d7527b762422e76">TrainMC</a> (std::mt19937 *generator, float *to_eval, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, bool testing=false)</td></tr>
+<tr class="memdesc:ab3409ca2aac0db430d7527b762422e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:ab3409ca2aac0db430d7527b762422e76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83df9b1a6ea7704be5ebee3cdfe6bade"><td class="memItemLeft" align="right" valign="top"><a id="a83df9b1a6ea7704be5ebee3cdfe6bade"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (const <a class="el" href="classTrainMC.html">TrainMC</a> &amp;)=default</td></tr>
+<tr class="separator:a83df9b1a6ea7704be5ebee3cdfe6bade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ee676c6e259bd28f14ba09462604eed"><td class="memItemLeft" align="right" valign="top"><a id="a4ee676c6e259bd28f14ba09462604eed"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
+<tr class="separator:a4ee676c6e259bd28f14ba09462604eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff8fbf5f0ae1b60e98356de2723d26f1"><td class="memItemLeft" align="right" valign="top"><a id="aff8fbf5f0ae1b60e98356de2723d26f1"></a>
+<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classTrainMC.html">TrainMC</a> &amp;)=default</td></tr>
+<tr class="separator:aff8fbf5f0ae1b60e98356de2723d26f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b1f69f4abd51f6973240029657eec7a"><td class="memItemLeft" align="right" valign="top"><a id="a2b1f69f4abd51f6973240029657eec7a"></a>
+<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
+<tr class="separator:a2b1f69f4abd51f6973240029657eec7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memItemLeft" align="right" valign="top"><a id="a5df9fe232181d0d10cf8eae75cbf4cdc"></a>
 <a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a5df9fe232181d0d10cf8eae75cbf4cdc">root</a> () const noexcept</td></tr>
 <tr class="memdesc:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the root node of the Monte Carlo search tree. <br /></td></tr>
 <tr class="separator:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad38b715ac9b70036558147838694bb63"><td class="memItemLeft" align="right" valign="top"><a id="ad38b715ac9b70036558147838694bb63"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ad38b715ac9b70036558147838694bb63">numRequests</a> () const noexcept</td></tr>
+<tr class="memdesc:ad38b715ac9b70036558147838694bb63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations. <br /></td></tr>
+<tr class="separator:ad38b715ac9b70036558147838694bb63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd058a0dc949afe81dd19980f2da0fee"><td class="memItemLeft" align="right" valign="top"><a id="afd058a0dc949afe81dd19980f2da0fee"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#afd058a0dc949afe81dd19980f2da0fee">noEvalsRequested</a> () const noexcept</td></tr>
 <tr class="memdesc:afd058a0dc949afe81dd19980f2da0fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return if there are no evaluations requested. <br /></td></tr>
 <tr class="separator:afd058a0dc949afe81dd19980f2da0fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ff93c98a90863740df6bc122a995670"><td class="memItemLeft" align="right" valign="top"><a id="a7ff93c98a90863740df6bc122a995670"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a7ff93c98a90863740df6bc122a995670">numNodesSearched</a> () const noexcept</td></tr>
-<tr class="memdesc:a7ff93c98a90863740df6bc122a995670"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of nodes searched since the last evaluation. <br /></td></tr>
-<tr class="separator:a7ff93c98a90863740df6bc122a995670"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="memItemLeft" align="right" valign="top"><a id="ab4f00faf0a9aa6f41cf38bd6c03bfea3"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ab4f00faf0a9aa6f41cf38bd6c03bfea3">isUninitialized</a> () const noexcept</td></tr>
 <tr class="memdesc:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return if the tree is uninitialized. <br /></td></tr>
@@ -121,9 +133,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a678e09603e4f929850fa20c836798f6a">numNodes</a> () const noexcept</td></tr>
 <tr class="memdesc:a678e09603e4f929850fa20c836798f6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of nodes in the tree. <br /></td></tr>
 <tr class="separator:a678e09603e4f929850fa20c836798f6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2da56e38e16dec198690e3899309867"><td class="memItemLeft" align="right" valign="top"><a id="af2da56e38e16dec198690e3899309867"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>set_to_eval</b> (float *to_eval) noexcept</td></tr>
-<tr class="separator:af2da56e38e16dec198690e3899309867"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memItemLeft" align="right" valign="top"><a id="a93d75b10ef4bf91444e081b45d33e3b1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a93d75b10ef4bf91444e081b45d33e3b1">null_root</a> () noexcept</td></tr>
 <tr class="memdesc:a93d75b10ef4bf91444e081b45d33e3b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the root node to have the given game and depth. <br /></td></tr>
@@ -182,9 +191,9 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memitem:abecc145117f6b2f56f224e75cea01821"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structTrainMC_1_1ChooseNextOutput.html">ChooseNextOutput</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#abecc145117f6b2f56f224e75cea01821">chooseNext</a> () noexcept</td></tr>
 <tr class="memdesc:abecc145117f6b2f56f224e75cea01821"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose the next node in the Monte Carlo search.  <a href="classTrainMC.html#abecc145117f6b2f56f224e75cea01821">More...</a><br /></td></tr>
 <tr class="separator:abecc145117f6b2f56f224e75cea01821"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac71a6614803fcdd1579008ee715ea6fd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ac71a6614803fcdd1579008ee715ea6fd">search</a> ()</td></tr>
-<tr class="memdesc:ac71a6614803fcdd1579008ee715ea6fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Repeated move down the Monte Carlo search tree until a terminal or unsearched node is reached.  <a href="classTrainMC.html#ac71a6614803fcdd1579008ee715ea6fd">More...</a><br /></td></tr>
-<tr class="separator:ac71a6614803fcdd1579008ee715ea6fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b32bfe59187ae6cc4d41e5c1945a332"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a3b32bfe59187ae6cc4d41e5c1945a332">search</a> ()</td></tr>
+<tr class="memdesc:a3b32bfe59187ae6cc4d41e5c1945a332"><td class="mdescLeft">&#160;</td><td class="mdescRight">Repeated move down the Monte Carlo search tree until a terminal or unsearched node is reached.  <a href="classTrainMC.html#a3b32bfe59187ae6cc4d41e5c1945a332">More...</a><br /></td></tr>
+<tr class="separator:a3b32bfe59187ae6cc4d41e5c1945a332"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -495,8 +504,8 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ac71a6614803fcdd1579008ee715ea6fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac71a6614803fcdd1579008ee715ea6fd">&#9670;&nbsp;</a></span>search()</h2>
+<a id="a3b32bfe59187ae6cc4d41e5c1945a332"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b32bfe59187ae6cc4d41e5c1945a332">&#9670;&nbsp;</a></span>search()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -505,7 +514,7 @@ Static Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool TrainMC::search </td>
+          <td class="memname">void TrainMC::search </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -596,7 +605,7 @@ Static Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The random generator for all operations. </p>
-<p>This is shared between the two players in a <a class="el" href="classSelfPlayer.html">SelfPlayer</a>, since only one player is searching at a time. </p>
+<p>This is shared between the two players in a <a class="el" href="classSelfPlayer.html" title="A training match with 2 TrainMC players.">SelfPlayer</a>, since only one player is searching at a time. </p>
 
 </div>
 </div>
@@ -721,7 +730,7 @@ Static Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>The location to write the game position that needs to be evaluated. </p>
-<p>This is shared between the two players in a <a class="el" href="classSelfPlayer.html">SelfPlayer</a>, since only one player is searching at a time. </p>
+<p>This is shared between the two players in a <a class="el" href="classSelfPlayer.html" title="A training match with 2 TrainMC players.">SelfPlayer</a>, since only one player is searching at a time. </p>
 
 </div>
 </div>

@@ -1,5 +1,5 @@
 <map id="SelfPlayer" name="SelfPlayer">
-<area shape="rect" id="node1" title=" " alt="" coords="43,305,131,332"/>
+<area shape="rect" id="node1" title="A training match with 2 TrainMC players." alt="" coords="43,305,131,332"/>
 <area shape="rect" id="node2" href="$classTrainMC.html" title="Class for Monte Carlo tree search." alt="" coords="49,216,124,243"/>
 <area shape="rect" id="node3" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="59,103,115,130"/>
 <area shape="rect" id="node4" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="5,5,67,32"/>

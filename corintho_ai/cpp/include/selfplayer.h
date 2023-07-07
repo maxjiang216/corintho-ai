@@ -66,6 +66,7 @@ class SelfPlayer {
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
 
  private:
+ public:
   /// @brief Write the evaluation of the given node
   void writeEval(Node *node) const noexcept;
   /// @brief Write the legal movesof the root

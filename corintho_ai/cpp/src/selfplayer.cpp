@@ -15,9 +15,6 @@
 #include "trainer.h"
 #include "util.h"
 
-#include <iostream>
-using namespace std;
-
 SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
@@ -67,8 +64,10 @@ float SelfPlayer::score() const noexcept {
 
 int32_t SelfPlayer::mateLength() const noexcept {
   // No mate found
-  if (mate_turn_ == 0)
+  if (mate_turn_ == 0) {
+    assert(false);
     return 0;
+  }
   return samples_.size() - mate_turn_ + 1;
 }
 
@@ -251,7 +250,7 @@ bool SelfPlayer::chooseMoveAndContinue() {
       writePreMoveLogs();
     }
     // New mate found
-    if (players_[to_play_].root()->known() && mate_turn_ != 0) {
+    if (players_[to_play_].root()->known() && mate_turn_ == 0) {
       mate_turn_ = samples_.size();
     }
     int32_t choice = chooseMove();

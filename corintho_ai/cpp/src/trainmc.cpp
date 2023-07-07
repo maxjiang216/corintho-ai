@@ -14,9 +14,6 @@
 #include "move.h"
 #include "node.h"
 
-#include <iostream>
-using namespace std;
-
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)

@@ -11,9 +11,6 @@
 #include "move.h"
 #include "util.h"
 
-#include <iostream>
-using namespace std;
-
 Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
            int32_t pieces[6]) noexcept
     : to_play_{gsl::narrow_cast<int8_t>(to_play)} {
@@ -57,21 +54,6 @@ void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
   for (int32_t i = 0; i < 6; ++i) {
     game_state[4 * kBoardSize + i] =
         static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
-  }
-  bool flag = false;
-  for (int32_t i = 0; i < kGameStateSize; ++i) {
-    if (!(game_state[i] >= 0.0 && game_state[i] <= 1.0)) {
-      flag = true;
-      break;
-    }
-  }
-  if (flag) {
-    cout << *this << endl;
-    for (int32_t i = 0; i < kGameStateSize; ++i) {
-      cout << game_state[i] << ' ';
-    }
-    cout << endl;
-    assert(false);
   }
 }
 

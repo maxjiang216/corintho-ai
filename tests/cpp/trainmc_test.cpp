@@ -13,9 +13,10 @@
 // Test the training constructor
 TEST(TrainMCTest, TrainingConstructor) {
   std::mt19937 generator;
-  TrainMC trainmc(&generator);
+  float to_eval[kGameStateSize];
+  TrainMC trainmc(&generator, to_eval);
 
-  EXPECT_EQ(trainmc.numNodesSearched(), 0);
+  EXPECT_EQ(trainmc.numRequests(), 0);
   EXPECT_EQ(trainmc.isUninitialized(), true);
   EXPECT_EQ(trainmc.numNodes(), 0);
 }
@@ -23,13 +24,11 @@ TEST(TrainMCTest, TrainingConstructor) {
 // Test doing the first iteration
 TEST(TrainMCTest, FirstIteration) {
   std::mt19937 generator;
-  TrainMC trainmc(&generator);
   float to_eval[kGameStateSize];
-  trainmc.set_to_eval(to_eval);
-
+  TrainMC trainmc(&generator, to_eval);
   EXPECT_EQ(trainmc.doIteration(nullptr, nullptr), false);
   EXPECT_EQ(trainmc.noEvalsRequested(), false);
-  EXPECT_EQ(trainmc.numNodesSearched(), 1);
+  EXPECT_EQ(trainmc.numRequests(), 1);
   EXPECT_EQ(trainmc.isUninitialized(), false);
   EXPECT_EQ(trainmc.numNodes(), 1);
 }
@@ -37,9 +36,8 @@ TEST(TrainMCTest, FirstIteration) {
 // Test receiving the opponent's move
 TEST(TrainMCTest, ReceiveOpponentMove) {
   std::mt19937 generator;
-  TrainMC trainmc(&generator);
   float to_eval[kGameStateSize];
-  trainmc.set_to_eval(to_eval);
+  TrainMC trainmc(&generator, to_eval);
   trainmc.createRoot(Game(), 0);
 
   EXPECT_EQ(trainmc.isUninitialized(), false);
@@ -60,9 +58,8 @@ TEST(TrainMCTest, FewPerMove) {
     for (int32_t searches_per_eval = 1; searches_per_eval <= max_searches;
          ++searches_per_eval) {
       std::mt19937 generator(12345);
-      TrainMC trainmc(&generator, max_searches, searches_per_eval);
       float to_eval[kGameStateSize * searches_per_eval];
-      trainmc.set_to_eval(to_eval);
+      TrainMC trainmc(&generator, to_eval, max_searches, searches_per_eval);
       int32_t depth = 0;
       while (trainmc.isUninitialized() || !trainmc.root()->terminal()) {
         // Generate random evaluations
@@ -83,6 +80,7 @@ TEST(TrainMCTest, FewPerMove) {
           }
         }
         while (!trainmc.doIteration(eval, probs)) {
+          assert(trainmc.numRequests() <= searches_per_eval);
         }
         float game_state[kGameStateSize];
         float prob_sample[kNumMoves];
@@ -101,9 +99,8 @@ TEST(TrainMCTest, FewPerMove) {
 // Test playing out a game with 1600 searches per move
 TEST(TrainMCTest, FullGame) {
   std::mt19937 generator(12345);
-  TrainMC trainmc(&generator, 1600, 16);
   float to_eval[kGameStateSize * 16];
-  trainmc.set_to_eval(to_eval);
+  TrainMC trainmc(&generator, to_eval, 1600, 16);
   int32_t depth = 0;
   while (trainmc.isUninitialized() || !trainmc.root()->terminal()) {
     // Generate random evaluations

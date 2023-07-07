@@ -13,24 +13,26 @@ class Node;
 class TrainMC {
  public:
   /// @brief Constructor
-  TrainMC(std::mt19937 *generator, int32_t max_searches = 1600,
+  TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches = 1600,
           int32_t searches_per_eval = 16, float c_puct = 1.0,
           float epsilon = 0.25, bool testing = false);
+  TrainMC(const TrainMC &) = default;
+  TrainMC(TrainMC &&) = default;
+  TrainMC &operator=(const TrainMC &) = default;
+  TrainMC &operator=(TrainMC &&) = default;
   ~TrainMC();
 
   /// @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;
 
+  /// @brief Return the number of requests for evaluations
+  int32_t numRequests() const noexcept;
   /// @brief Return if there are no evaluations requested
   bool noEvalsRequested() const noexcept;
-  /// @brief Return the number of nodes searched since the last evaluation
-  int32_t numNodesSearched() const noexcept;
   /// @brief Return if the tree is uninitialized
   bool isUninitialized() const noexcept;
   /// @brief Return the number of nodes in the tree
   int32_t numNodes() const noexcept;
-
-  void set_to_eval(float *to_eval) noexcept;
   /// @brief Set the root node to have the given game and depth
   void null_root() noexcept;
   void createRoot(const Game &game, int32_t depth);
@@ -108,7 +110,7 @@ class TrainMC {
   /// node, or if all the possible new nodes have been searched.
   /// @details Uses UCB to search the best edge to take in a Monte Carlo search
   /// tree
-  bool search();
+  void search();
 
   /// @brief The number of initial moves to consider "opening" moves
   /// @details When choosing a move during the opening, temperature is 1

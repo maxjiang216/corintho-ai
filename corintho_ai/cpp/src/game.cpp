@@ -53,7 +53,7 @@ void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
   // Canonize the pieces
   for (int32_t i = 0; i < 6; ++i) {
     game_state[4 * kBoardSize + i] =
-        (float)pieces_[(to_play_ * 3 + i) % 6] * 0.25;
+        static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
   }
 }
 

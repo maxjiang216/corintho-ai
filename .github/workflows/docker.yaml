@@ -44,7 +44,7 @@ jobs:
         tags: gcr.io/corintho-ai/corintho-play:latest
 
     - name: Setup Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@master
+      uses: google-github-actions/setup-gcloud@v1.1.1
       with:
         project_id: corintho-ai
         service_account_key: ${{ secrets.GCR_JSON_KEY }}

@@ -5,16 +5,16 @@
 TEST(TrainerTest, DefaultConstructor) {
   Trainer trainer;
 
-  EXPECT_EQ(trainer.numRequests(), 0);
-  EXPECT_EQ(trainer.numSamples(), 0);
+  EXPECT_EQ(trainer.num_requests(), 0);
+  EXPECT_EQ(trainer.num_samples(), 0);
 }
 
 // Test the constructor
 TEST(TrainerTest, Constructor) {
   Trainer trainer{10, "test", 12345, 1600, 16, 1.0, 0.25, 1, 1, false};
 
-  EXPECT_EQ(trainer.numRequests(), 0);
-  EXPECT_EQ(trainer.numSamples(), 0);
+  EXPECT_EQ(trainer.num_requests(), 0);
+  EXPECT_EQ(trainer.num_samples(), 0);
 }
 
 TEST(TrainerTest, FullGameTraining) {
@@ -34,26 +34,27 @@ TEST(TrainerTest, FullGameTraining) {
           std::uniform_real_distribution<float> prob_dist(0.0, 1.0);
           std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
           while (!trainer.doIteration(eval, probs)) {
-            EXPECT_TRUE(trainer.numRequests() > 0);
-            EXPECT_TRUE(trainer.numRequests() <= num_games * searches_per_eval);
+            EXPECT_TRUE(trainer.num_requests() > 0);
+            EXPECT_TRUE(trainer.num_requests() <=
+                        num_games * searches_per_eval);
             trainer.writeRequests(game_states);
-            for (int32_t i = 0; i < trainer.numRequests(); ++i) {
+            for (int32_t i = 0; i < trainer.num_requests(); ++i) {
               for (int32_t j = 0; j < kNumMoves; ++j) {
                 probs[i * kNumMoves + j] = prob_dist(generator);
               }
               eval[i] = eval_dist(generator);
             }
           }
-          EXPECT_TRUE(trainer.numRequests() == 0);
-          EXPECT_TRUE(trainer.numSamples() > 0);
+          EXPECT_TRUE(trainer.num_requests() == 0);
+          EXPECT_TRUE(trainer.num_samples() > 0);
           // Sanity checks for samples
-          float sample_game_states[kNumSymmetries * trainer.numSamples() *
+          float sample_game_states[kNumSymmetries * trainer.num_samples() *
                                    kGameStateSize] = {0.0};
-          float sample_evals[kNumSymmetries * trainer.numSamples()] = {0.0};
-          float sample_probs[kNumSymmetries * trainer.numSamples() *
+          float sample_evals[kNumSymmetries * trainer.num_samples()] = {0.0};
+          float sample_probs[kNumSymmetries * trainer.num_samples() *
                              kNumMoves] = {0.0};
           trainer.writeSamples(sample_game_states, sample_evals, sample_probs);
-          for (int32_t i = 0; i < trainer.numSamples(); ++i) {
+          for (int32_t i = 0; i < trainer.num_samples(); ++i) {
             for (int32_t j = 0; j < kNumSymmetries; ++j) {
               for (int32_t k = 0; k < kGameStateSize; ++k) {
                 EXPECT_TRUE(
@@ -76,9 +77,9 @@ TEST(TrainerTest, FullGameTraining) {
               EXPECT_TRUE(sum >= 0.99 && sum <= 1.01);
             }
           }
-          float sorted_game_states[trainer.numSamples() * kGameStateSize];
-          float sorted_probs[trainer.numSamples() * kNumMoves];
-          for (int32_t i = 0; i < trainer.numSamples(); ++i) {
+          float sorted_game_states[trainer.num_samples() * kGameStateSize];
+          float sorted_probs[trainer.num_samples() * kNumMoves];
+          for (int32_t i = 0; i < trainer.num_samples(); ++i) {
             for (int32_t j = 0; j < kGameStateSize; ++j) {
               sorted_game_states[i * kGameStateSize + j] =
                   sample_game_states[i * kNumSymmetries * kGameStateSize + j];
@@ -98,7 +99,7 @@ TEST(TrainerTest, FullGameTraining) {
           // Check that the sorted game states and probabilities for the other
           // symmetries are the same
           for (int32_t i = 1; i < kNumSymmetries; ++i) {
-            for (int32_t j = 0; j < trainer.numSamples(); ++j) {
+            for (int32_t j = 0; j < trainer.num_samples(); ++j) {
               float game_state[kGameStateSize];
               float prob_sample[kNumMoves];
               for (int32_t k = 0; k < kGameStateSize; ++k) {
@@ -151,21 +152,21 @@ TEST(TrainerTest, FullGameTesting) {
           std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
           int32_t to_play = 0;
           while (!trainer.doIteration(eval, probs, to_play)) {
-            EXPECT_TRUE(trainer.numRequests(to_play) <=
+            EXPECT_TRUE(trainer.num_requests(to_play) <=
                         num_games * searches_per_eval);
-            if (trainer.numRequests(to_play) == 0) {
+            if (trainer.num_requests(to_play) == 0) {
               to_play = 1 - to_play;
               continue;
             }
             trainer.writeRequests(game_states, to_play);
-            for (int32_t i = 0; i < trainer.numRequests(to_play); ++i) {
+            for (int32_t i = 0; i < trainer.num_requests(to_play); ++i) {
               for (int32_t j = 0; j < kNumMoves; ++j) {
                 probs[i * kNumMoves + j] = prob_dist(generator);
               }
               eval[i] = eval_dist(generator);
             }
           }
-          EXPECT_TRUE(trainer.numSamples() > 0);
+          EXPECT_TRUE(trainer.num_samples() > 0);
         }
       }
     }

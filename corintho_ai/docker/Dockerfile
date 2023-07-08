@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Install build dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc build-essential python3-dev libblas-dev liblapack-dev gfortran && \
+    apt-get install -y --no-install-recommends gcc build-essential python3-dev libblas-dev liblapack-dev gfortran libgsl-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

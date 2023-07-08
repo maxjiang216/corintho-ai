@@ -130,7 +130,8 @@ class alignas(64) Node {
   /// @details The children of a node are stored as a linked list.
   /// This saves us from having to allocate memory for an array of
   /// pointers to children at the cost of having to traverse the list
-  /// to find a child. This is an idea taken from the Leela Zero implementation.
+  /// to find a child. This is an idea taken from the Leela Zero
+  /// implementation.
   Node *next_sibling_{nullptr};
   /// @brief A pointer to the first child node
   /// @note This would more ideally be a std::shared_ptr, but

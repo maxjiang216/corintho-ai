@@ -37,10 +37,10 @@ class SelfPlayer {
   int32_t parity() const noexcept;
   /// @brief Return the number of requests for evaluations
   /// @return The number of requests for evaluations
-  int32_t numRequests() const noexcept;
+  int32_t num_requests() const noexcept;
   /// @brief Return the number of training samples
   /// @return The number of training samples
-  int32_t numSamples() const noexcept;
+  int32_t num_samples() const noexcept;
   /// @brief The first player score
   /// @return The first player score
   /// @details 1.0 for a win, 0.0 for a loss, and 0.5 for a draw
@@ -48,7 +48,7 @@ class SelfPlayer {
   /// @brief The length of the longest mating sequence found by a player
   /// @details Number of plies in the mating sequence. Also includes drawing
   /// sequences in a drawn position.
-  int32_t mateLength() const noexcept;
+  int32_t mate_length() const noexcept;
 
   /// @brief Write the game states for which evaluations are requested
   /// @param game_states The array to write the game states to
@@ -99,8 +99,8 @@ class SelfPlayer {
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).
   std::unique_ptr<std::ofstream> log_file_{};
-  /// @brief Number of the turn at which some player finds a mating sequence (or
-  /// draw)
+  /// @brief Number of the turn at which some player finds a mating sequence
+  /// (or draw)
   /// TODO: Test this, as it is currently very inaccurate.
   int32_t mate_turn_{0};
   /// @brief Parity for which model corresponds to which player during testing

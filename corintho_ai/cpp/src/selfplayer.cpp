@@ -19,9 +19,8 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
                        int32_t parity)
-    : generator_{std::mt19937(random_seed)}, to_eval_{std::make_unique<float[]>(
-                                                 kGameStateSize *
-                                                 max_searches)},
+    : generator_{std::mt19937(random_seed)},
+      to_eval_{std::make_unique<float[]>(kGameStateSize * max_searches)},
       players_{TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing},
                TrainMC{&generator_, to_eval_.get(), max_searches,
@@ -46,11 +45,11 @@ int32_t SelfPlayer::parity() const noexcept {
   return parity_;
 }
 
-int32_t SelfPlayer::numRequests() const noexcept {
-  return players_[to_play_].numRequests();
+int32_t SelfPlayer::num_requests() const noexcept {
+  return players_[to_play_].num_requests();
 }
 
-int32_t SelfPlayer::numSamples() const noexcept {
+int32_t SelfPlayer::num_samples() const noexcept {
   return samples_.size();
 }
 
@@ -63,7 +62,7 @@ float SelfPlayer::score() const noexcept {
   return 0.5;
 }
 
-int32_t SelfPlayer::mateLength() const noexcept {
+int32_t SelfPlayer::mate_length() const noexcept {
   // This can happen if the game is drawn
   if (mate_turn_ == 0)
     return 0;
@@ -72,7 +71,7 @@ int32_t SelfPlayer::mateLength() const noexcept {
 
 void SelfPlayer::writeRequests(float *game_states) const noexcept {
   assert(game_states != nullptr);
-  int32_t count = kGameStateSize * players_[to_play_].numRequests();
+  int32_t count = kGameStateSize * players_[to_play_].num_requests();
   std::copy(to_eval_.get(), to_eval_.get() + count, game_states);
 }
 
@@ -264,7 +263,7 @@ bool SelfPlayer::chooseMoveAndContinue() {
     // Go to next player
     to_play_ = 1 - to_play_;
     // First time iterating the second player
-    if (players_[to_play_].isUninitialized()) {
+    if (players_[to_play_].uninitialized()) {
       players_[to_play_].createRoot(players_[1 - to_play_].root()->game(),
                                     players_[1 - to_play_].root()->depth());
       // This is always false as the root requires an evaluation

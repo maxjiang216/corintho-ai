@@ -16,9 +16,9 @@ TEST(TrainMCTest, TrainingConstructor) {
   float to_eval[kGameStateSize];
   TrainMC trainmc(&generator, to_eval);
 
-  EXPECT_EQ(trainmc.numRequests(), 0);
-  EXPECT_EQ(trainmc.isUninitialized(), true);
-  EXPECT_EQ(trainmc.numNodes(), 0);
+  EXPECT_EQ(trainmc.num_requests(), 0);
+  EXPECT_EQ(trainmc.uninitialized(), true);
+  EXPECT_EQ(trainmc.num_nodes(), 0);
 }
 
 // Test doing the first iteration
@@ -27,10 +27,10 @@ TEST(TrainMCTest, FirstIteration) {
   float to_eval[kGameStateSize];
   TrainMC trainmc(&generator, to_eval);
   EXPECT_EQ(trainmc.doIteration(nullptr, nullptr), false);
-  EXPECT_EQ(trainmc.noEvalsRequested(), false);
-  EXPECT_EQ(trainmc.numRequests(), 1);
-  EXPECT_EQ(trainmc.isUninitialized(), false);
-  EXPECT_EQ(trainmc.numNodes(), 1);
+  EXPECT_EQ(trainmc.no_requests(), false);
+  EXPECT_EQ(trainmc.num_requests(), 1);
+  EXPECT_EQ(trainmc.uninitialized(), false);
+  EXPECT_EQ(trainmc.num_nodes(), 1);
 }
 
 // Test receiving the opponent's move
@@ -40,8 +40,8 @@ TEST(TrainMCTest, ReceiveOpponentMove) {
   TrainMC trainmc(&generator, to_eval);
   trainmc.createRoot(Game(), 0);
 
-  EXPECT_EQ(trainmc.isUninitialized(), false);
-  EXPECT_EQ(trainmc.numNodes(), 1);
+  EXPECT_EQ(trainmc.uninitialized(), false);
+  EXPECT_EQ(trainmc.num_nodes(), 1);
   EXPECT_EQ(trainmc.root()->depth(), 0);
 
   Game game;
@@ -61,7 +61,7 @@ TEST(TrainMCTest, FewPerMove) {
       float to_eval[kGameStateSize * searches_per_eval];
       TrainMC trainmc(&generator, to_eval, max_searches, searches_per_eval);
       int32_t depth = 0;
-      while (trainmc.isUninitialized() || !trainmc.root()->terminal()) {
+      while (trainmc.uninitialized() || !trainmc.root()->terminal()) {
         // Generate random evaluations
         float eval[searches_per_eval];
         float probs[searches_per_eval * kNumMoves];
@@ -80,7 +80,7 @@ TEST(TrainMCTest, FewPerMove) {
           }
         }
         while (!trainmc.doIteration(eval, probs)) {
-          assert(trainmc.numRequests() <= searches_per_eval);
+          assert(trainmc.num_requests() <= searches_per_eval);
         }
         float game_state[kGameStateSize];
         float prob_sample[kNumMoves];
@@ -92,6 +92,7 @@ TEST(TrainMCTest, FewPerMove) {
         ++depth;
         EXPECT_EQ(trainmc.root()->depth(), depth);
       }
+      EXPECT_TRUE(trainmc.done());
     }
   }
 }
@@ -102,7 +103,7 @@ TEST(TrainMCTest, FullGame) {
   float to_eval[kGameStateSize * 16];
   TrainMC trainmc(&generator, to_eval, 1600, 16);
   int32_t depth = 0;
-  while (trainmc.isUninitialized() || !trainmc.root()->terminal()) {
+  while (trainmc.uninitialized() || !trainmc.root()->terminal()) {
     // Generate random evaluations
     float eval[16];
     float probs[16 * kNumMoves];
@@ -145,4 +146,5 @@ TEST(TrainMCTest, FullGame) {
     ++depth;
     EXPECT_EQ(trainmc.root()->depth(), depth);
   }
+  EXPECT_TRUE(trainmc.done());
 }

@@ -24,13 +24,13 @@ class Trainer {
   ~Trainer() = default;
 
   /// @brief Return the number of requests for evaluations
-  int32_t numRequests(int32_t to_play = -1) const noexcept;
+  int32_t num_requests(int32_t to_play = -1) const noexcept;
   /// @brief Return the number of training samples
-  int32_t numSamples() const noexcept;
+  int32_t num_samples() const noexcept;
   /// @brief Average score of first player
   float score() const noexcept;
   /// @brief Return the average mate length
-  float avgMateLen() const noexcept;
+  float avg_mate_length() const noexcept;
 
   /// @brief Write the game states for which evaluations are requested
   /// @param game_states The array to write the game states to
@@ -53,8 +53,9 @@ class Trainer {
  private:
   // Initialize SelfPlayers (factored out of different version of constructor)
   void initialize(int32_t num_games, const std::string &logging_folder,
-                  int32_t max_searches, int32_t searches_per_eval, float c_puct,
-                  float epsilon, int32_t num_logged, bool testing);
+                  int32_t max_searches, int32_t searches_per_eval,
+                  float c_puct, float epsilon, int32_t num_logged,
+                  bool testing);
 
   /// @brief The self-play games
   std::vector<std::unique_ptr<SelfPlayer>> games_{};
@@ -68,8 +69,8 @@ class Trainer {
   /// input and output
   int32_t searches_per_eval_{16};
   /// @brief The number of threads to use
-  /// @details If 0, then use the number of threads available (which OpenMP will
-  /// automatically do)
+  /// @details If 0, then use the number of threads available (which OpenMP
+  /// will automatically do)
   int32_t num_threads_{0};
   /// @brief The number of searches done so far
   /// TODO: Is this searches or evaluations?

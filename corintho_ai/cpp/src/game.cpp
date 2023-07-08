@@ -214,8 +214,9 @@ bool Game::canPlace(const Move &move) const noexcept {
   }
   // Place a capital
   // Check for absence of a base without a column or a capital
-  return !(board(move.space_to(), kCapital) ||
-           (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
+  return !(
+      board(move.space_to(), kCapital) ||
+      (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
 }
 
 bool Game::canMove(const Move &move) const noexcept {

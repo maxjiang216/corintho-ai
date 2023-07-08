@@ -31,26 +31,26 @@ Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
   assert(epsilon >= 0);
   assert(epsilon <= 1);
   assert(num_threads > 0);
-  initialize(num_games, logging_folder, max_searches, searches_per_eval, c_puct,
-             epsilon, num_logged, testing);
+  initialize(num_games, logging_folder, max_searches, searches_per_eval,
+             c_puct, epsilon, num_logged, testing);
 }
 
-int32_t Trainer::numRequests(int32_t to_play) const noexcept {
+int32_t Trainer::num_requests(int32_t to_play) const noexcept {
   int32_t num_requests = 0;
   for (const auto &game : games_) {
     if (!is_done_[&game - &games_[0]] &&
         ((to_play != 0 && to_play != 1) ||
          game->to_play() == (to_play + game->parity()) % 2)) {
-      num_requests += game->numRequests();
+      num_requests += game->num_requests();
     }
   }
   return num_requests;
 }
 
-int32_t Trainer::numSamples() const noexcept {
+int32_t Trainer::num_samples() const noexcept {
   int32_t num_samples = 0;
   for (const auto &game : games_) {
-    num_samples += game->numSamples();
+    num_samples += game->num_samples();
   }
   return num_samples;
 }
@@ -64,11 +64,11 @@ float Trainer::score() const noexcept {
 }
 
 // TODO: Test this thoroughly. Test that the average has a reasonable value
-float Trainer::avgMateLen() const noexcept {
+float Trainer::avg_mate_length() const noexcept {
   int32_t total_length = 0;
   for (const auto &game : games_) {
     assert(is_done_[&game - &games_[0]]);
-    total_length += game->mateLength();
+    total_length += game->mate_length();
   }
   return static_cast<float>(total_length) / games_.size();
 }
@@ -83,7 +83,7 @@ void Trainer::writeRequests(float *game_states,
       if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
           !is_done_[i]) {
         games_[i]->writeRequests(game_states + offset * kGameStateSize);
-        offset += games_[i]->numRequests();
+        offset += games_[i]->num_requests();
       }
     }
     return;
@@ -92,7 +92,7 @@ void Trainer::writeRequests(float *game_states,
   for (int32_t i = 0; i < games_.size(); ++i) {
     if (!is_done_[i]) {
       games_[i]->writeRequests(game_states + offset * kGameStateSize);
-      offset += games_[i]->numRequests();
+      offset += games_[i]->num_requests();
     }
   }
 }
@@ -101,11 +101,11 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
                            float *prob_samples) const noexcept {
   int32_t offset = 0;
   for (int32_t i = 0; i < games_.size(); ++i) {
-    games_[i]->writeSamples(game_states +
-                                offset * kGameStateSize * kNumSymmetries,
-                            eval_samples + offset,
-                            prob_samples + offset * kNumMoves * kNumSymmetries);
-    offset += games_[i]->numSamples();
+    games_[i]->writeSamples(
+        game_states + offset * kGameStateSize * kNumSymmetries,
+        eval_samples + offset,
+        prob_samples + offset * kNumMoves * kNumSymmetries);
+    offset += games_[i]->num_samples();
   }
 }
 
@@ -166,7 +166,7 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     int32_t offset = 0;
     int32_t offsets[games_.size()] = {0};
     for (int32_t i = 1; i < games_.size(); ++i) {
-      offset += games_[i - 1]->numRequests();
+      offset += games_[i - 1]->num_requests();
       offsets[i] = offset;
     }
     omp_set_num_threads(num_threads_);
@@ -206,7 +206,7 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     // Only count games from one player
     if (games_[i - 1]->to_play() == (to_play + games_[i - 1]->parity()) % 2 &&
         !is_done_[i - 1]) {
-      offset += games_[i - 1]->numRequests();
+      offset += games_[i - 1]->num_requests();
     }
     offsets[i] = offset;
   }
@@ -249,7 +249,7 @@ void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
   }
   for (int32_t i = num_logged; i < num_games; ++i) {
     games_.emplace_back(std::make_unique<SelfPlayer>(
-        generator_(), max_searches, searches_per_eval, c_puct, epsilon, nullptr,
-        testing, i % 2));
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon,
+        nullptr, testing, i % 2));
   }
 }

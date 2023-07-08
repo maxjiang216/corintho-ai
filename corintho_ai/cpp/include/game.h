@@ -72,7 +72,8 @@ class Game {
   /// @brief Mutator for the board
   /// @param state Value to set the entry to
   /// @note Default is true to match bitset default
-  void set_board(Space space, PieceType piece_type, bool state = true) noexcept;
+  void set_board(Space space, PieceType piece_type,
+                 bool state = true) noexcept;
   /// @brief Mutator for the frozenness of a space
   /// @param state Value to set the entry to
   /// @note Default is true to match bitset default

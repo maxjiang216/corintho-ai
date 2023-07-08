@@ -1,3 +1,8 @@
+"""
+Module for choosing moves using MCST and a neural network
+for the Corintho web app.
+"""
+
 # distutils: language = c++
 
 import time
@@ -9,49 +14,47 @@ cimport numpy as np
 from libcpp cimport bool
 
 
-cdef extern from "playmc.cpp":
-    cdef cppclass PlayMC:
-        PlayMC(
-            long *board,
-            int to_play,
-            long *pieces,
+cdef extern from "<random>" namespace "std":
+    cdef cppclass mt19937:
+        mt19937() except +
+        mt19937(unsigned int seed) except +
+
+cdef extern from "../cpp/src/trainmc.cpp":
+    cdef cppclass TrainMC:
+        TrainMC(
+            mt19937 *generator,
+            float *to_eval,
+            int max_searches,
             int searches_per_eval,
-            int seed
-        )
-        bool do_iteration(float *evaluations, float *probabilities)
-        int write_requests(float *game_states)
-        int choose_move()
-        void get_legal_moves(long *legal_moves)
-        int get_node_number()
-        float get_evaluation()
-        bool is_done()
-        bool has_drawn()
+            float c_puct,
+            float epsilon,
+            int *board,
+            int to_play,
+            int *pieces,
+        ) except +
+        float eval() except +
+        int num_requests() except +
+        int num_nodes() except +
+        bool done() except +
+        bool drawn() except +
+        void writeRequests(float *game_states) except +
+        void getLegalMoves(int *legal_moves) except +
+        int chooseMove() except +
+        bool doIteration(float *eval, float *probs) except +
 
 # Constants
-cdef int NUM_MOVES = 96
-cdef int GAME_STATE_SIZE = 70
-pieceTypes = ["base", "column", "capital"]
+cdef int _NUM_MOVES = 96
+cdef int _GAME_STATE_SIZE = 70
+_PIECE_TYPES = ["base", "column", "capital"]
 
-def choose_move(
-        game_state,
-        time_limit,
-        searches_per_eval=1,
-        max_nodes=0,
-        interpreter=None,
-    ):
+cdef int extract_game_state(game_state, int[:] board, int[:] pieces):
     """
-    Use MCST and neural network to choose a move.
-    game_state is dictionary of game state
-    time_limit is time limit in seconds
-    max_searches is maximum number of searches per evaluation (0 for no limit)
-    num_threads is number of threads to use (0 for no limit)
-    max_nodes is maximum number of nodes to search (0 for no limit)
-    """
+    Extract game state from game_state dictionary.
+
+    game_state: dictionary of game state
     
-    start_time = time.time()
-
-    # Extract game state
-    cdef long[:] board = np.zeros(64, dtype=long)
+    Returns: tuple of (board, to_play, pieces)
+    """
     for i, row in enumerate(game_state["board"]):
         for j, space in enumerate(row):
             board[(i * 4 + j) * 4] = 1 if space["pieces"]["base"] else 0
@@ -59,89 +62,161 @@ def choose_move(
             board[(i * 4 + j) * 4 + 2] = 1 if space["pieces"]["capital"] else 0
             board[(i * 4 + j) * 4 + 3] = 1 if space["frozen"] else 0
     cdef int to_play = game_state["turn"]
-    cdef long[:] pieces = np.zeros(6, dtype=long)
-    for i, pieceType in enumerate(pieceTypes):
-        pieces[i] = game_state["players"][0]["pieceCounts"][pieceType]
-        pieces[3 + i] = game_state["players"][1]["pieceCounts"][pieceType]
+    for i, piece_type in enumerate(_PIECE_TYPES):
+        pieces[i] = game_state["players"][0]["pieceCounts"][piece_type]
+        pieces[3 + i] = game_state["players"][1]["pieceCounts"][piece_type]
 
+    return to_play
+
+cdef dict get_pre_result(TrainMC* mc):
+    """
+    Get "pre-result" from MCST.
+
+    A "pre-result" means the game is over after the human move (and before the AI move).
+
+    mc: pointer to TrainMC object
+
+    Returns: dictionary of pre-result (or None if no pre-result)
+    """
+    if mc.done():
+        if mc.drawn():
+            return {"pre-result": "draw"}
+        # Human player has won
+        return {"pre-result": "win"}
+    return None
+
+cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
+    """
+    Do a search with the MCST.
+
+    Continues searching until the time limit is reached or the maximum number of searches is reached.
+
+    mc: pointer to TrainMC object
+    model: TFLite model
+    """
+    # Get neural network input and output shapes
+    input_details = model.get_input_details()
+    output_details = model.get_output_details()
+    input_shape = input_details[0]['shape']
+
+    # Arrays for input and output with the neural network
+    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, _GAME_STATE_SIZE), dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=1] eval = np.zeros(searches_per_eval, dtype=np.float32)
+    cdef np.ndarray[np.float32_t, ndim=2] probs = np.zeros((searches_per_eval, _NUM_MOVES), dtype=np.float32)
+
+    evals_done = 0
+    # We continue searching until the time limit is reached or the maximum number of searches is reached.
+    # We do at least 1 search
+    while evals_done < 2 or time.time() - start_time < time_limit:
+        evals_done += 1
+        done = mc.doIteration(&eval[0], &probs[0,0])
+        # The MCST has deduced the game outcome or a maximum number of searches is reached
+        if done:
+            break
+        # Get requests for evaluation
+        num_requests = mc.num_requests()
+        if num_requests == 0:
+            break
+        mc.writeRequests(&game_states[0,0])
+        input_data = game_states[:num_requests].astype(np.float32)
+        # Resize the input tensor depending on the number of requests
+        # This is needed in TFLite models
+        input_shape = list(input_details[0]['shape'])
+        input_shape[0] = num_requests
+        model.resize_tensor_input(input_details[0]['index'], input_shape)
+        model.allocate_tensors()
+        model.set_tensor(input_details[0]['index'], input_data)
+
+        model.invoke()
+        eval = model.get_tensor(output_details[0]['index']).flatten()
+        prob = model.get_tensor(output_details[1]['index'])
+
+cdef list get_legal_moves(TrainMC* mc):
+    """
+    Get list of legal moves from MCST.
+
+    This allows the Javascript in the web app easily check if a move is legal.
+
+    mc: pointer to TrainMC object
+
+    Returns: list of IDs of legal moves
+    """
+    legal_move_lst = []
+    cdef int[:] legal_moves = np.zeros(_NUM_MOVES, dtype=int)
+    mc.getLegalMoves(&legal_moves[0])
+    for i in range(_NUM_MOVES):
+        if legal_moves[i] == 1:
+            legal_move_lst.append(i)
+    return legal_move_lst
+   
+
+def choose_move(
+        game_state,
+        time_limit,
+        model,
+        searches_per_eval=1,
+        max_searches=0,
+    ):
+    """
+    Use the MCST and neural network algorithm to choose a move.
+
+    game_state: dictionary of the game state.
+    time_limit: the time limit for the search in seconds
+    searches_per_eval: number of searches per neural network evaluation
+    max_searches: the maximum number of searches to do (0 for no limit)
+    model: TFLite model
+    """
+    
+    start_time = time.time()
     rng = np.random.default_rng(int(start_time))
 
+    # Extract game state
+    cdef int[:] board = np.zeros(64, dtype=int)
+    cdef int[:] pieces = np.zeros(6, dtype=int)
+    to_play = extract_game_state(game_state, board, pieces)
+
     # Construct a MCST object
-    cdef PlayMC *mcst = new PlayMC(
+    cdef mt19937 *generator = new mt19937(rng.integers(65536))
+    cdef float[:] to_eval = np.zeros(searches_per_eval, dtype=float)
+    if max_searches == 0:
+        max_searches = 1000000  # Use a large number to simulate having no limit
+    cdef TrainMC *mc = new TrainMC(
+        generator,
+        &to_eval[0],
+        max_searches,
+        searches_per_eval,
+        1.0,
+        0.25,
         &board[0],
         to_play,
         &pieces[0],
-        searches_per_eval,
-        rng.integers(65536),
     )
 
-    if mcst.is_done():
-        if mcst.has_drawn():
-            del mcst
-            return {"pre-result": "draw"}
-        else:
-            del mcst
-            # Human player has won
-            return {"pre-result": "win"}
+    pre_result = get_pre_result(mc)
+    if pre_result:
+        del mc
+        return pre_result
 
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    input_shape = input_details[0]['shape']
-
-    cdef np.ndarray[np.float32_t, ndim=1] evaluations = np.zeros(searches_per_eval, dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] probabilities = np.zeros((searches_per_eval, NUM_MOVES), dtype=np.float32)
-    cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, GAME_STATE_SIZE), dtype=np.float32)
-
-    counter = 0
-    # While the game is not done
-    while counter < 2 or (time.time() - start_time < time_limit and (max_nodes == 0 or mcst.get_node_number() <= max_nodes)):
-        counter += 1
-        # Do some iterations of the MCST
-        res = mcst.do_iteration(&evaluations[0], &probabilities[0,0])
-        
-        # This means that the MCST has deduced the game outcome
-        if res:
-            break
-
-        num_requests = mcst.write_requests(&game_states[0,0])
-        if num_requests == 0:
-            break
-
-        input_data = game_states[:num_requests].astype(np.float32)
-        
-        input_shape = list(input_details[0]['shape'])
-        input_shape[0] = num_requests
-        interpreter.resize_tensor_input(input_details[0]['index'], input_shape)
-        interpreter.allocate_tensors()
-
-        interpreter.set_tensor(input_details[0]['index'], input_data)
-        interpreter.invoke()
-        evaluations = interpreter.get_tensor(output_details[0]['index']).flatten()
-        probabilities = interpreter.get_tensor(output_details[1]['index'])
-
-    # Choose the best move
-    nodes_searches = mcst.get_node_number()
-    evaluation = mcst.get_evaluation()
-    move = mcst.choose_move()
-    is_done = mcst.is_done()
+    # Search with the MCST
+    search(mc, model, searches_per_eval, time_limit, start_time);
+    
+    # Choose the best move and get other information
+    move = mc.chooseMove()
+    is_done = mc.done()
     has_won = False
+    legal_moves = []
     if is_done:
-        has_won = not mcst.has_drawn()
-    legal_move_list = []
-    cdef long[:] legal_moves = np.zeros(NUM_MOVES, dtype=long)
-    if not is_done:
-        mcst.get_legal_moves(&legal_moves[0])
-        for i in range(NUM_MOVES):
-            if legal_moves[i] == 1:
-                legal_move_list.append(i)
-
-    del mcst
+        has_won = not mc.drawn()
+        legal_moves = get_legal_moves(mc)
+    nodes_searched = mc.num_nodes()
+    evaluation = mc.eval()
+    del mc
 
     return {
         "move": move,
         "is_done": is_done,
         "has_won": has_won,
-        "legal_moves": legal_move_list,
-        "nodes_searched": nodes_searches,
+        "legal_moves": legal_moves,
+        "nodes_searched": nodes_searched,
         "evaluation": evaluation,
     }

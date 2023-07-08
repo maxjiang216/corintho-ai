@@ -28,8 +28,8 @@ Node::Node(const Game &game, int32_t depth)
 
 Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
            int32_t depth)
-    : game_{game}, parent_{parent},
-      next_sibling_{next_sibling}, child_id_{gsl::narrow_cast<int8_t>(move_id)},
+    : game_{game}, parent_{parent}, next_sibling_{next_sibling},
+      child_id_{gsl::narrow_cast<int8_t>(move_id)},
       depth_{gsl::narrow_cast<int8_t>(depth)} {
   game_.doMove(move_id);
   // initializeEdges can throw an exception from new

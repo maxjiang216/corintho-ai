@@ -417,7 +417,8 @@ TEST(GameTest, TestLongDiags) {
       // Check legal move count (2 breaks if not capital and 1 extend)
       EXPECT_EQ(legal_moves.count(), piece_type == kCapital ? 1 : 3);
       // Check that extending the line is legal
-      EXPECT_TRUE(legal_moves[encodePlace(Space{3, flip ? 0 : 3}, piece_type)]);
+      EXPECT_TRUE(
+          legal_moves[encodePlace(Space{3, flip ? 0 : 3}, piece_type)]);
       game.doMove(encodePlace(Space{3, flip ? 0 : 3}, piece_type));
       has_lines = game.getLegalMoves(legal_moves);
       EXPECT_TRUE(has_lines);  // there is a line

@@ -14,9 +14,9 @@
  * There are two types of moves: place and move.
  * A place move places a piece on the board. It is specified by the piece type,
  * row, and column. A move move moves a piece on the board. It is specified by
- * the starting row and column and the destination row and column. Each move has
- * a unique ID (0-95). We use this to refer to moves in the Monte Carlo Tree
- * Search.
+ * the starting row and column and the destination row and column. Each move
+ * has a unique ID (0-95). We use this to refer to moves in the Monte Carlo
+ * Tree Search.
  */
 class Move {
  public:

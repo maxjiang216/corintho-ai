@@ -1,11 +1,4 @@
 var searchData=
 [
-  ['writeeval_106',['writeEval',['../classSelfPlayer.html#a7e05c9c68bdf9ad1d73af31759923c47',1,'SelfPlayer']]],
-  ['writegamestate_107',['writeGameState',['../classGame.html#ad7c12d8e77bd88012278b4f1a3ddf28a',1,'Game']]],
-  ['writemovechoice_108',['writeMoveChoice',['../classSelfPlayer.html#ab58e30b9eaf2e7eb9ac798332c773c84',1,'SelfPlayer']]],
-  ['writemoves_109',['writeMoves',['../classSelfPlayer.html#a16e69287420ca18b5daece7c41fa7ada',1,'SelfPlayer']]],
-  ['writepremovelogs_110',['writePreMoveLogs',['../classSelfPlayer.html#a8f09d2eecaa26f7ad1e9dd062f76a737',1,'SelfPlayer']]],
-  ['writerequests_111',['writeRequests',['../classSelfPlayer.html#a4a71696f1984a424cee62a611e682b7f',1,'SelfPlayer::writeRequests()'],['../classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d',1,'Trainer::writeRequests()']]],
-  ['writesamples_112',['writeSamples',['../classSelfPlayer.html#a9aa0b9a2285db2785b1e729b94d5e9bd',1,'SelfPlayer::writeSamples()'],['../classTrainer.html#a11f8624a0bcd8a4647cce03f0df45af0',1,'Trainer::writeSamples(float *game_states, float *eval_samples, float *prob_samples) const noexcept']]],
-  ['writescores_113',['writeScores',['../classTrainer.html#a88291425c2339024686c86c852c7d401',1,'Trainer']]]
+  ['visits_5f_109',['visits_',['../classNode.html#a895f751af963286ea6439b0d20b8dcf7',1,'Node']]]
 ];

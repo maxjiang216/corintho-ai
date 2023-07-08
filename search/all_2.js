@@ -4,7 +4,7 @@ var searchData=
   ['canmove_11',['canMove',['../classGame.html#a3e25ac5343005a4608ce9d1983229f8f',1,'Game']]],
   ['canplace_12',['canPlace',['../classGame.html#a5cd765c6a00b00f4641832a03642b9da',1,'Game']]],
   ['child_5fid_5f_13',['child_id_',['../classNode.html#a030b8fb777d027118ff995568c694680',1,'Node']]],
-  ['choosemove_14',['chooseMove',['../classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4',1,'SelfPlayer::chooseMove()'],['../classTrainMC.html#ad8b429b328ba8317889ed82184f63234',1,'TrainMC::chooseMove()']]],
+  ['choosemove_14',['chooseMove',['../classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4',1,'SelfPlayer::chooseMove()'],['../classTrainMC.html#a5a44f78c05766f5b87edcbdf0ba6c3da',1,'TrainMC::chooseMove()']]],
   ['choosemoveandcontinue_15',['chooseMoveAndContinue',['../classSelfPlayer.html#abcfbfd3cf8b296ef4d9c7ba06b576615',1,'SelfPlayer']]],
   ['choosemovelostdrawn_16',['chooseMoveLostDrawn',['../classTrainMC.html#a25e3a3f7fa257dbdaad7c1f8ce4e24a2',1,'TrainMC']]],
   ['choosemovenormal_17',['chooseMoveNormal',['../classTrainMC.html#acfe687dec8174065e2208f2e53cb9bfa',1,'TrainMC']]],
@@ -15,5 +15,6 @@ var searchData=
   ['col_5ffrom_22',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
   ['col_5fto_23',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
   ['corintho_20ai_20documentation_24',['Corintho AI Documentation',['../index.html',1,'']]],
-  ['cur_5f_25',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
+  ['createroot_25',['createRoot',['../classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4',1,'TrainMC']]],
+  ['cur_5f_26',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
 ];

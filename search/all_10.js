@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['visits_5f_105',['visits_',['../classNode.html#a895f751af963286ea6439b0d20b8dcf7',1,'Node']]]
+  ['uninitialized_108',['uninitialized',['../classTrainMC.html#a3d24da060ecb8b943bba697aa41e6cbb',1,'TrainMC']]]
 ];

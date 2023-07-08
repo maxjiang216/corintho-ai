@@ -113,46 +113,62 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2b1f69f4abd51f6973240029657eec7a"><td class="memItemLeft" align="right" valign="top"><a id="a2b1f69f4abd51f6973240029657eec7a"></a>
 <a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
 <tr class="separator:a2b1f69f4abd51f6973240029657eec7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfd95531f6f119983298e63ae75608b3"><td class="memItemLeft" align="right" valign="top"><a id="abfd95531f6f119983298e63ae75608b3"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#abfd95531f6f119983298e63ae75608b3">TrainMC</a> (std::mt19937 *generator, float *to_eval, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, const <a class="el" href="classGame.html">Game</a> &amp;game)</td></tr>
-<tr class="memdesc:abfd95531f6f119983298e63ae75608b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor for web app. Starts at an arbitrary position. <br /></td></tr>
-<tr class="separator:abfd95531f6f119983298e63ae75608b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03fcd9028c81e94af2f98a3a11e669aa"><td class="memItemLeft" align="right" valign="top"><a id="a03fcd9028c81e94af2f98a3a11e669aa"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a03fcd9028c81e94af2f98a3a11e669aa">TrainMC</a> (std::mt19937 *generator, float *to_eval, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, int32_t board[4 *kBoardSize], int32_t to_play, int32_t pieces[6])</td></tr>
+<tr class="memdesc:a03fcd9028c81e94af2f98a3a11e669aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor for web app. Starts at an arbitrary position. <br /></td></tr>
+<tr class="separator:a03fcd9028c81e94af2f98a3a11e669aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memItemLeft" align="right" valign="top"><a id="a5df9fe232181d0d10cf8eae75cbf4cdc"></a>
 <a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a5df9fe232181d0d10cf8eae75cbf4cdc">root</a> () const noexcept</td></tr>
 <tr class="memdesc:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the root node of the Monte Carlo search tree. <br /></td></tr>
 <tr class="separator:a5df9fe232181d0d10cf8eae75cbf4cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad38b715ac9b70036558147838694bb63"><td class="memItemLeft" align="right" valign="top"><a id="ad38b715ac9b70036558147838694bb63"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ad38b715ac9b70036558147838694bb63">numRequests</a> () const noexcept</td></tr>
-<tr class="memdesc:ad38b715ac9b70036558147838694bb63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations. <br /></td></tr>
-<tr class="separator:ad38b715ac9b70036558147838694bb63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd058a0dc949afe81dd19980f2da0fee"><td class="memItemLeft" align="right" valign="top"><a id="afd058a0dc949afe81dd19980f2da0fee"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#afd058a0dc949afe81dd19980f2da0fee">noEvalsRequested</a> () const noexcept</td></tr>
-<tr class="memdesc:afd058a0dc949afe81dd19980f2da0fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return if there are no evaluations requested. <br /></td></tr>
-<tr class="separator:afd058a0dc949afe81dd19980f2da0fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="memItemLeft" align="right" valign="top"><a id="ab4f00faf0a9aa6f41cf38bd6c03bfea3"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ab4f00faf0a9aa6f41cf38bd6c03bfea3">isUninitialized</a> () const noexcept</td></tr>
-<tr class="memdesc:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return if the tree is uninitialized. <br /></td></tr>
-<tr class="separator:ab4f00faf0a9aa6f41cf38bd6c03bfea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a678e09603e4f929850fa20c836798f6a"><td class="memItemLeft" align="right" valign="top"><a id="a678e09603e4f929850fa20c836798f6a"></a>
-int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a678e09603e4f929850fa20c836798f6a">numNodes</a> () const noexcept</td></tr>
-<tr class="memdesc:a678e09603e4f929850fa20c836798f6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of nodes in the tree. <br /></td></tr>
-<tr class="separator:a678e09603e4f929850fa20c836798f6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2c3a86f6feeaa0daf799d50427309ef"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#af2c3a86f6feeaa0daf799d50427309ef">eval</a> () const noexcept</td></tr>
+<tr class="memdesc:af2c3a86f6feeaa0daf799d50427309ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the evaluation of the root node.  <a href="classTrainMC.html#af2c3a86f6feeaa0daf799d50427309ef">More...</a><br /></td></tr>
+<tr class="separator:af2c3a86f6feeaa0daf799d50427309ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3455c5e54b950cbc623825b4f68dd13"><td class="memItemLeft" align="right" valign="top"><a id="ad3455c5e54b950cbc623825b4f68dd13"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ad3455c5e54b950cbc623825b4f68dd13">num_requests</a> () const noexcept</td></tr>
+<tr class="memdesc:ad3455c5e54b950cbc623825b4f68dd13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of requests for evaluations. <br /></td></tr>
+<tr class="separator:ad3455c5e54b950cbc623825b4f68dd13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a562e8f37e0d64e6c7bd98bc02787a222"><td class="memItemLeft" align="right" valign="top"><a id="a562e8f37e0d64e6c7bd98bc02787a222"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a562e8f37e0d64e6c7bd98bc02787a222">no_requests</a> () const noexcept</td></tr>
+<tr class="memdesc:a562e8f37e0d64e6c7bd98bc02787a222"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns if there are no evaluations requested. <br /></td></tr>
+<tr class="separator:a562e8f37e0d64e6c7bd98bc02787a222"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d24da060ecb8b943bba697aa41e6cbb"><td class="memItemLeft" align="right" valign="top"><a id="a3d24da060ecb8b943bba697aa41e6cbb"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a3d24da060ecb8b943bba697aa41e6cbb">uninitialized</a> () const noexcept</td></tr>
+<tr class="memdesc:a3d24da060ecb8b943bba697aa41e6cbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns if the tree is uninitialized. <br /></td></tr>
+<tr class="separator:a3d24da060ecb8b943bba697aa41e6cbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27ab3af859b24b026da482d7cefbbef4"><td class="memItemLeft" align="right" valign="top"><a id="a27ab3af859b24b026da482d7cefbbef4"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a27ab3af859b24b026da482d7cefbbef4">num_nodes</a> () const noexcept</td></tr>
+<tr class="memdesc:a27ab3af859b24b026da482d7cefbbef4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of nodes in the tree. <br /></td></tr>
+<tr class="separator:a27ab3af859b24b026da482d7cefbbef4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb6398737459f4a8e20b4724171049e6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#aeb6398737459f4a8e20b4724171049e6">done</a> () const noexcept</td></tr>
+<tr class="memdesc:aeb6398737459f4a8e20b4724171049e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns if the game is done.  <a href="classTrainMC.html#aeb6398737459f4a8e20b4724171049e6">More...</a><br /></td></tr>
+<tr class="separator:aeb6398737459f4a8e20b4724171049e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a458fbc00551c100e52a8d693d9bd8c69"><td class="memItemLeft" align="right" valign="top"><a id="a458fbc00551c100e52a8d693d9bd8c69"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a458fbc00551c100e52a8d693d9bd8c69">drawn</a> () const noexcept</td></tr>
+<tr class="memdesc:a458fbc00551c100e52a8d693d9bd8c69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns if the game is drawn. This is used in the web app. <br /></td></tr>
+<tr class="separator:a458fbc00551c100e52a8d693d9bd8c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memItemLeft" align="right" valign="top"><a id="a93d75b10ef4bf91444e081b45d33e3b1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a93d75b10ef4bf91444e081b45d33e3b1">null_root</a> () noexcept</td></tr>
 <tr class="memdesc:a93d75b10ef4bf91444e081b45d33e3b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the root node to have the given game and depth. <br /></td></tr>
 <tr class="separator:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a680349df19cb86cb3a50af882aa5c4e4"><td class="memItemLeft" align="right" valign="top"><a id="a680349df19cb86cb3a50af882aa5c4e4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>createRoot</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
-<tr class="separator:a680349df19cb86cb3a50af882aa5c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad8b429b328ba8317889ed82184f63234"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ad8b429b328ba8317889ed82184f63234">chooseMove</a> (float game_state[kGameStateSize], float prob_sample[kNumMoves]) noexcept</td></tr>
-<tr class="memdesc:ad8b429b328ba8317889ed82184f63234"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find best move and move the root node to that node. Writes the game state and probability samples for training.  <a href="classTrainMC.html#ad8b429b328ba8317889ed82184f63234">More...</a><br /></td></tr>
-<tr class="separator:ad8b429b328ba8317889ed82184f63234"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82b86f0869b129e0a5ec7459406a8083"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a82b86f0869b129e0a5ec7459406a8083">doIteration</a> (float eval[]=nullptr, float probs[]=nullptr)</td></tr>
+<tr class="memitem:a1248b05dbd05a74dc47e9fc23f5f4f65"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a1248b05dbd05a74dc47e9fc23f5f4f65">writeRequests</a> (float *game_states) const noexcept</td></tr>
+<tr class="memdesc:a1248b05dbd05a74dc47e9fc23f5f4f65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the game states for the positions we need to evaluate.  <a href="classTrainMC.html#a1248b05dbd05a74dc47e9fc23f5f4f65">More...</a><br /></td></tr>
+<tr class="separator:a1248b05dbd05a74dc47e9fc23f5f4f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae65216e5c333caa927f245d842a3b975"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ae65216e5c333caa927f245d842a3b975">getLegalMoves</a> (int32_t legal_moves[kNumMoves]) const noexcept</td></tr>
+<tr class="memdesc:ae65216e5c333caa927f245d842a3b975"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the legal moves of the root node.  <a href="classTrainMC.html#ae65216e5c333caa927f245d842a3b975">More...</a><br /></td></tr>
+<tr class="separator:ae65216e5c333caa927f245d842a3b975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a44f78c05766f5b87edcbdf0ba6c3da"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a5a44f78c05766f5b87edcbdf0ba6c3da">chooseMove</a> (float game_state[kGameStateSize]=nullptr, float prob_sample[kNumMoves]=nullptr) noexcept</td></tr>
+<tr class="memdesc:a5a44f78c05766f5b87edcbdf0ba6c3da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find best move and move the root node to that node. Writes the game state and probability samples for training.  <a href="classTrainMC.html#a5a44f78c05766f5b87edcbdf0ba6c3da">More...</a><br /></td></tr>
+<tr class="separator:a5a44f78c05766f5b87edcbdf0ba6c3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b86f0869b129e0a5ec7459406a8083"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a82b86f0869b129e0a5ec7459406a8083">doIteration</a> (float <a class="el" href="classTrainMC.html#af2c3a86f6feeaa0daf799d50427309ef">eval</a>[]=nullptr, float probs[]=nullptr)</td></tr>
 <tr class="memdesc:a82b86f0869b129e0a5ec7459406a8083"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do an iteration of searches.  <a href="classTrainMC.html#a82b86f0869b129e0a5ec7459406a8083">More...</a><br /></td></tr>
 <tr class="separator:a82b86f0869b129e0a5ec7459406a8083"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7943d9886dc28720289509b97aa71d13"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a7943d9886dc28720289509b97aa71d13">receiveOpponentMove</a> (int32_t move_choice, const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
 <tr class="memdesc:a7943d9886dc28720289509b97aa71d13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receive the opponent's move and move the root node to that node.  <a href="classTrainMC.html#a7943d9886dc28720289509b97aa71d13">More...</a><br /></td></tr>
 <tr class="separator:a7943d9886dc28720289509b97aa71d13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a680349df19cb86cb3a50af882aa5c4e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4">createRoot</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, int32_t depth)</td></tr>
+<tr class="memdesc:a680349df19cb86cb3a50af882aa5c4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new root node with the given game and depth.  <a href="classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4">More...</a><br /></td></tr>
+<tr class="separator:a680349df19cb86cb3a50af882aa5c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -169,7 +185,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:a1c15a74f6dce448146cffd9f02d7c38f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set integer probabilities to edges, sets denominator of cur_ node. <br /></td></tr>
 <tr class="separator:a1c15a74f6dce448146cffd9f02d7c38f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49728ba45c2457360d1a076449f88fee"><td class="memItemLeft" align="right" valign="top"><a id="a49728ba45c2457360d1a076449f88fee"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a49728ba45c2457360d1a076449f88fee">receiveEval</a> (float eval[], float probs[]) noexcept</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a49728ba45c2457360d1a076449f88fee">receiveEval</a> (float <a class="el" href="classTrainMC.html#af2c3a86f6feeaa0daf799d50427309ef">eval</a>[], float probs[]) noexcept</td></tr>
 <tr class="memdesc:a49728ba45c2457360d1a076449f88fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the neural network outputs into the node. <br /></td></tr>
 <tr class="separator:a49728ba45c2457360d1a076449f88fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f19b4bb1f403460587a2830e1a68c07"><td class="memItemLeft" align="right" valign="top"><a id="a4f19b4bb1f403460587a2830e1a68c07"></a>
@@ -248,8 +264,8 @@ Static Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for Monte Carlo tree search. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ad8b429b328ba8317889ed82184f63234"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad8b429b328ba8317889ed82184f63234">&#9670;&nbsp;</a></span>chooseMove()</h2>
+<a id="a5a44f78c05766f5b87edcbdf0ba6c3da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a44f78c05766f5b87edcbdf0ba6c3da">&#9670;&nbsp;</a></span>chooseMove()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -261,13 +277,13 @@ Static Private Attributes</h2></td></tr>
           <td class="memname">int32_t TrainMC::chooseMove </td>
           <td>(</td>
           <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>game_state</em>[kGameStateSize], </td>
+          <td class="paramname"><em>game_state</em>[kGameStateSize] = <code>nullptr</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">float&#160;</td>
-          <td class="paramname"><em>prob_sample</em>[kNumMoves]&#160;</td>
+          <td class="paramname"><em>prob_sample</em>[kNumMoves] = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -374,6 +390,37 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a680349df19cb86cb3a50af882aa5c4e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a680349df19cb86cb3a50af882aa5c4e4">&#9670;&nbsp;</a></span>createRoot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainMC::createRoot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
+          <td class="paramname"><em>game</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>depth</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a new root node with the given game and depth. </p>
+<p>This is used when the opponent makes an unsearched move. Does not delete the old root (if it exists). </p>
+
+</div>
+</div>
 <a id="a82b86f0869b129e0a5ec7459406a8083"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a82b86f0869b129e0a5ec7459406a8083">&#9670;&nbsp;</a></span>doIteration()</h2>
 
@@ -410,6 +457,91 @@ Static Private Attributes</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Whether the turn is done. This happens when the number of searches equals TrainMC::max_iterations_ Or when the root node's outcome is known.</dd></dl>
 <p>This function will perform searches until the number of positions where an evaluation is requested equals <a class="el" href="classTrainMC.html#a381cc439e28442f88a44a5aec614aecf" title="The number of searches to do per neural network evaluation.">TrainMC::searches_per_eval_</a>, when the root node's outcome is known, or when the root node's children are completely searched. </p>
+
+</div>
+</div>
+<a id="aeb6398737459f4a8e20b4724171049e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb6398737459f4a8e20b4724171049e6">&#9670;&nbsp;</a></span>done()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TrainMC::done </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns if the game is done. </p>
+<p>Returns if the root node is a terminal position. This is used in the web app. </p>
+
+</div>
+</div>
+<a id="af2c3a86f6feeaa0daf799d50427309ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2c3a86f6feeaa0daf799d50427309ef">&#9670;&nbsp;</a></span>eval()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float TrainMC::eval </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the evaluation of the root node. </p>
+<p>This is used in the web app. </p>
+
+</div>
+</div>
+<a id="ae65216e5c333caa927f245d842a3b975"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae65216e5c333caa927f245d842a3b975">&#9670;&nbsp;</a></span>getLegalMoves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainMC::getLegalMoves </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>legal_moves</em>[kNumMoves]</td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the legal moves of the root node. </p>
+<p>This is used for the web app. </p>
 
 </div>
 </div>
@@ -534,6 +666,35 @@ Static Private Attributes</h2></td></tr>
 <p>Repeated move down the Monte Carlo search tree until a terminal or unsearched node is reached. </p>
 <dl class="section return"><dt>Returns</dt><dd>Whether our search is done. This occurs if we have done the maximum number of searches, if we have deduced the result of the root node, or if all the possible new nodes have been searched.</dd></dl>
 <p>Uses UCB to search the best edge to take in a Monte Carlo search tree </p>
+
+</div>
+</div>
+<a id="a1248b05dbd05a74dc47e9fc23f5f4f65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1248b05dbd05a74dc47e9fc23f5f4f65">&#9670;&nbsp;</a></span>writeRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TrainMC::writeRequests </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write the game states for the positions we need to evaluate. </p>
+<p>This is used when playing with the AI. </p>
 
 </div>
 </div>

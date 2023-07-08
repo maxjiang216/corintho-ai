@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include <gsl/gsl>
 #include <omp.h>
 
 #include "node.h"
@@ -20,7 +21,7 @@ Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
                  int32_t num_threads, bool testing)
     : is_done_{std::vector<bool>(num_games, false)},
       max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
-      num_threads_{num_threads}, generator_{seed} {
+      num_threads_{num_threads}, generator_{gsl::narrow_cast<uint32_t>(seed)} {
   assert(num_games > 0);
   assert(num_games % 2 == 0);
   assert(num_logged >= 0);
@@ -109,7 +110,7 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
 }
 
 /// TODO: Try multiprocessing
-float Trainer::writeScores(const std::string &out_file) const {
+void Trainer::writeScores(const std::string &out_file) const {
   float scores[games_.size()];
   for (uintf i = 0; i < games_.size(); i += 2) {
     scores[i] = games_[i]->score();
@@ -158,88 +159,74 @@ float Trainer::writeScores(const std::string &out_file) const {
           << '\n';
 }
 
-bool Trainer::doIteration(float evaluations[], float probabilities[]) {
+bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
+  // Training
+  if (to_play != 0 && to_play != 1) {
+    // Compute offsets for evaluations and probabilities since we use
+    // multiprocessing.
+    int32_t offset = 0;
+    int32_t offsets[games_.size()] = {0};
+    for (uintf i = 1; i < games_.size(); ++i) {
+      offset += games_[i - 1]->numRequests();
+      offsets[i] = offset;
+    }
 
-  uintf offsets[games_.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
+    omp_set_num_threads(num_threads_);
 #pragma omp parallel for
-  for (uintf i = 1; i < games_.size(); ++i) {
-    offsets[i] = games_[i - 1]->numRequests();
-  }
-  for (uintf i = 1; i < games_.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games_.size(); ++i) {
-    if (!is_done_[i]) {
-      // Avoid division by 0 in the rare case than num_games < num_iterations /
-      // 2, which sometimes occurs when testing small runs
-      if (i / std::max((uintf)1, (games_.size() / num_iterations)) <
-          searches_done_) {
-        bool is_completed = games_[i]->doIteration(
-            &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
-        if (is_completed) {
-          is_done_[i] = true;
+    for (int32_t i = 0; i < games_.size(); ++i) {
+      if (!is_done_[i]) {
+        // We offset the start of the games to try to get an even distribution
+        // of the games across the number of searches in a move. This way, the
+        // total number of nodes will be more even. This reduces peak memory
+        // usage. Avoid division by 0 in the rare case that num_games <
+        // num_iterations / 2
+        if (i / std::max(static_cast<int32_t>(games_.size() / max_searches_),
+                         1) <=
+            searches_done_) {
+          // First search does not depend on pointers being null
+          bool done = games_[i]->doIteration(eval + offsets[i],
+                                             probs + kNumMoves * offsets[i]);
+          // Game is done
+          if (done) {
+            is_done_[i] = true;
+          }
         }
-      } else if (i / std::max((uintf)1, (games_.size() / num_iterations)) ==
-                 searches_done_) {
-        games_[i]->doIteration(nullptr, nullptr);
       }
     }
-  }
-  ++searches_done_;
-  for (uintf i = 0; i < games_.size(); ++i) {
-    if (!is_done_[i]) {
-      return false;
+    ++searches_done_;
+    for (int32_t i = 0; i < games_.size(); ++i) {
+      if (!is_done_[i]) {
+        return false;
+      }
     }
+    return true;
   }
-  return true;
-}
-
-bool Trainer::doIteration(float evaluations[], float probabilities[],
-                          uintf to_play) {
-  if (searches_done_ == 0) {
-    omp_set_num_threads(threads);
-#pragma omp parallel for
-    for (uintf i = 0; i < games_.size(); ++i) {
-      games_[i]->doIteration();
-    }
-    searches_done_ = 1;
-    return false;
-  }
-
-  uintf offsets[games_.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games_.size(); ++i) {
+  // Testing
+  int32_t offset = 0;
+  int32_t offsets[games_.size()] = {0};
+  for (int32_t i = 1; i < games_.size(); ++i) {
+    // Only count games from one player
     if (games_[i - 1]->to_play() == (to_play + games_[i - 1]->parity()) % 2 &&
         !is_done_[i - 1]) {
-      offsets[i] = games_[i - 1]->numRequests();
-    } else {
-      offsets[i] = 0;
+      offset += games_[i - 1]->numRequests();
     }
+    offsets[i] = offset;
   }
-  for (uintf i = 1; i < games_.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-
-  omp_set_num_threads(threads);
+  omp_set_num_threads(num_threads_);
 #pragma omp parallel for
-  for (uintf i = 0; i < games_.size(); ++i) {
+  for (int32_t i = 0; i < games_.size(); ++i) {
+    // No offset in game start (there are not enough games for memory usage to
+    // matter).
     if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
         !is_done_[i]) {
-      bool is_completed = games_[i]->doIteration(
-          &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
-      if (is_completed) {
+      bool done = games_[i]->doIteration(eval + offsets[i],
+                                         probs + kNumMoves * offsets[i]);
+      if (done) {
         is_done_[i] = true;
       }
     }
   }
-  for (uintf i = 0; i < games_.size(); ++i) {
+  for (int32_t i = 0; i < games_.size(); ++i) {
     if (!is_done_[i]) {
       return false;
     }
@@ -247,43 +234,24 @@ bool Trainer::doIteration(float evaluations[], float probabilities[],
   return true;
 }
 
-void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
-                         float c_puct, float epsilon, uintf searches_per_eval_,
-                         const string &logging_folder) {
-
-  // Remember to pass down hyperparameters to selfplayer and trainmc
-
+void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
+                         int32_t max_searches, int32_t searches_per_eval,
+                         float c_puct, float epsilon, int32_t num_logged,
+                         bool testing) {
   games_.reserve(num_games);
-
-  if (num_games < num_logged)
-    num_logged = num_games;
-
-  if (testing) {
-    for (uintf i = 0; i < num_logged; ++i) {
-      games_.emplace_back(new SelfPlayer{
-          generator_(), num_iterations, searches_per_eval_, c_puct, epsilon,
-          std::move(std::make_unique<std::ofstream>(
-              logging_folder + "/game_" + std::to_string(i) + ".txt",
-              std::ofstream::out)),
-          i % 2});
-    }
-    for (uintf i = num_logged; i < num_games; ++i) {
-      games_.emplace_back(new SelfPlayer{generator_(), num_iterations,
-                                         searches_per_eval_, c_puct, epsilon,
-                                         nullptr, i % 2});
-    }
-  } else {
-    for (uintf i = 0; i < num_logged; ++i) {
-      games_.emplace_back(new SelfPlayer{
-          generator_(), num_iterations, searches_per_eval_, c_puct, epsilon,
-          std::move(std::make_unique<std::ofstream>(
-              logging_folder + "/game_" + std::to_string(i) + ".txt",
-              std::ofstream::out))});
-    }
-    for (uintf i = num_logged; i < num_games; ++i) {
-      games_.emplace_back(new SelfPlayer{generator_(), num_iterations,
-                                         searches_per_eval_, c_puct, epsilon,
-                                         nullptr});
-    }
+  for (int32_t i = 0; i < num_logged; ++i) {
+    games_.emplace_back(std::make_unique<SelfPlayer>(
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon,
+        std::make_unique<std::ofstream>(logging_folder + "/game_" +
+                                            std::to_string(i) + ".txt",
+                                        std::ofstream::out),
+        testing,
+        i % 2));  // Generate parity for test games (changes who plays first).
+                  // Does not affect training games
+  }
+  for (int32_t i = num_logged; i < num_games; ++i) {
+    games_.emplace_back(std::make_unique<SelfPlayer>(
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon, nullptr,
+        testing, i % 2));
   }
 }

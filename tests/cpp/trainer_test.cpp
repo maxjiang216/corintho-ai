@@ -5,5 +5,5 @@
 TEST(TrainerTest, DefaultConstructor) {
   Trainer trainer;
 
-  EXPECT_EQ(trainer.count_samples(), 0);
+  EXPECT_EQ(trainer.numSamples(), 0);
 }

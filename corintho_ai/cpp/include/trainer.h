@@ -6,9 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "selfplayer.h"
 #include "util.h"
-
-class SelfPlayer;
 
 /// @brief Orchestrates many SelfPlayer objects to generate training samples
 /// from self-play games
@@ -44,7 +43,7 @@ class Trainer {
   /// @param file The name of the file to write to
   /// @return The percentage score of the first player. This is used to
   /// determine if a generation improved
-  float writeScores(const std::string &file) const;
+  void writeScores(const std::string &file) const;
 
   /// @brief This is the main function that runs the self-play games. It is
   /// called by Cython in a loop.

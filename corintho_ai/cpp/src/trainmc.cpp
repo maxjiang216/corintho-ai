@@ -37,6 +37,14 @@ TrainMC::~TrainMC() {
   }
 }
 
+TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+                 int32_t searches_per_eval, float c_puct, float epsilon,
+                 const Game &game)
+    : TrainMC{generator, to_eval, max_searches, searches_per_eval,
+              c_puct,    epsilon, true} {
+  createRoot(game, 0);
+}
+
 Node *TrainMC::root() const noexcept {
   return root_;
 }

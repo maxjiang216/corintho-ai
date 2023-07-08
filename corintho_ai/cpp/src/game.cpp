@@ -20,7 +20,7 @@ Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
     this->board_[i] = board[i] != 0;
   }
   for (int32_t i = 0; i < 6; ++i) {
-    assert(pieces[i] >= 0 && pieces[i] < 4);
+    assert(pieces[i] >= 0 && pieces[i] <= 4);
     this->pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
   }
 }

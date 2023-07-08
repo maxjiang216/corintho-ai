@@ -24,13 +24,13 @@ class Trainer {
   ~Trainer() = default;
 
   /// @brief Return the number of requests for evaluations
-  int32_t numRequests(int32_t to_play = -1) const noexcept;
+  int32_t num_requests(int32_t to_play = -1) const noexcept;
   /// @brief Return the number of training samples
-  int32_t numSamples() const noexcept;
+  int32_t num_samples() const noexcept;
   /// @brief Average score of first player
   float score() const noexcept;
   /// @brief Return the average mate length
-  float avgMateLen() const noexcept;
+  float avg_mate_length() const noexcept;
 
   /// @brief Write the game states for which evaluations are requested
   /// @param game_states The array to write the game states to

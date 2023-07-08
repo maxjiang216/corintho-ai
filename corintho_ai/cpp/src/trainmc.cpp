@@ -39,33 +39,46 @@ TrainMC::~TrainMC() {
 
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
-                 const Game &game)
+                 int32_t board[4 * kBoardSize], int32_t to_play,
+                 int32_t pieces[6])
     : TrainMC{generator, to_eval, max_searches, searches_per_eval,
               c_puct,    epsilon, true} {
-  createRoot(game, 0);
+  createRoot(Game{board, to_play, pieces}, 0);
 }
 
 Node *TrainMC::root() const noexcept {
   return root_;
 }
 
-int32_t TrainMC::numRequests() const noexcept {
+float TrainMC::eval() const noexcept {
+  return root_->evaluation();
+}
+
+int32_t TrainMC::num_requests() const noexcept {
   return searched_.size();
 }
 
-bool TrainMC::noEvalsRequested() const noexcept {
+bool TrainMC::no_requests() const noexcept {
   return searched_.size() == 0;
 }
 
-bool TrainMC::isUninitialized() const noexcept {
+bool TrainMC::uninitialized() const noexcept {
   return root_ == nullptr;
 }
 
-int32_t TrainMC::numNodes() const noexcept {
+int32_t TrainMC::num_nodes() const noexcept {
   if (root_ == nullptr) {
     return 0;
   }
   return root_->countNodes();
+}
+
+bool TrainMC::done() const noexcept {
+  return root_->terminal();
+}
+
+bool TrainMC::drawn() const noexcept {
+  return root_->drawn();
 }
 
 void TrainMC::null_root() noexcept {
@@ -75,17 +88,30 @@ void TrainMC::null_root() noexcept {
   cur_ = nullptr;
 }
 
-void TrainMC::createRoot(const Game &game, int32_t depth) {
-  assert(root_ == nullptr);
-  root_ = new Node(game, depth);
-  cur_ = root_;
+void TrainMC::writeRequests(float *game_states) const noexcept {
+  assert(searched_.size() <= searches_per_eval_);
+  for (int32_t i = 0; i < searched_.size(); ++i) {
+    searched_[i]->writeGameState(game_states + i * kGameStateSize);
+  }
+}
+
+void TrainMC::getLegalMoves(int32_t legal_moves[kNumMoves]) const noexcept {
+  assert(!uninitialized());
+  assert(searched_.size() <= searches_per_eval_);
+  std::bitset<kNumMoves> legal;
+  root_->getLegalMoves(legal);
+  for (int32_t i = 0; i < kNumMoves; ++i) {
+    if (legal[i]) {
+      legal_moves[i] = 1;
+    } else {
+      legal_moves[i] = 0;
+    }
+  }
 }
 
 int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
                             float prob_sample[kNumMoves]) noexcept {
-  assert(game_state != nullptr);
-  assert(prob_sample != nullptr);
-  assert(!isUninitialized());
+  assert(!uninitialized());
   if (!testing_) {  // Write samples if we are not testing
     // Before moving down, read the samples from the root node
     root_->writeGameState(game_state);
@@ -113,7 +139,7 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
 bool TrainMC::doIteration(float eval[], float probs[]) {
   assert(to_eval_ != nullptr);
   // This is the first iteration of a game
-  if (isUninitialized()) {
+  if (uninitialized()) {
     // Initialize the Monte Carlo search tree
     root_ = new Node();
     cur_ = root_;
@@ -174,6 +200,12 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   assert(searched_.size() <= searches_per_eval_);
   searches_done_ = 1;
   return true;
+}
+
+void TrainMC::createRoot(const Game &game, int32_t depth) {
+  assert(root_ == nullptr);
+  root_ = new Node(game, depth);
+  cur_ = root_;
 }
 
 void TrainMC::getFilteredProbs(float probs[kNumMoves],

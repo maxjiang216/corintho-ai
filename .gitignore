@@ -32,3 +32,4 @@ corintho_ai/docker/choose_move.cpp
 html
 latex
 gsl
+corintho-ai-json-key.json

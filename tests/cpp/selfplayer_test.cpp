@@ -8,7 +8,7 @@
 TEST(SelfPlayerTest, TrainingConstructor) {
   SelfPlayer selfplayer{12345};
 
-  EXPECT_EQ(selfplayer.numSamples(), 0);
+  EXPECT_EQ(selfplayer.num_samples(), 0);
 }
 
 // Test do first iteration
@@ -16,7 +16,7 @@ TEST(SelfPlayerTest, DoFirstIteration) {
   SelfPlayer selfplayer{12345};
 
   selfplayer.doIteration();
-  EXPECT_EQ(selfplayer.numRequests(), 1);
+  EXPECT_EQ(selfplayer.num_requests(), 1);
 }
 
 TEST(SelfPlayerTest, FewSearches) {
@@ -32,7 +32,7 @@ TEST(SelfPlayerTest, FewSearches) {
       std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
       while (!selfplayer.doIteration(eval, probs)) {
         // Generate random evaluations
-        int32_t num_requests = selfplayer.numRequests();
+        int32_t num_requests = selfplayer.num_requests();
         EXPECT_TRUE(num_requests > 0);
         EXPECT_TRUE(num_requests <= searches_per_eval);
         // Sanity check for writing out game states
@@ -58,17 +58,17 @@ TEST(SelfPlayerTest, FewSearches) {
           }
         }
       }
-      EXPECT_EQ(selfplayer.numRequests(), 0);
-      EXPECT_TRUE(selfplayer.numSamples() > 0);
+      EXPECT_EQ(selfplayer.num_requests(), 0);
+      EXPECT_TRUE(selfplayer.num_samples() > 0);
       // Maximum number of moves
-      EXPECT_TRUE(selfplayer.numSamples() <= 40);
-      float sample_game_states[kNumSymmetries * selfplayer.numSamples() *
+      EXPECT_TRUE(selfplayer.num_samples() <= 40);
+      float sample_game_states[kNumSymmetries * selfplayer.num_samples() *
                                kGameStateSize] = {0.0};
-      float sample_evals[kNumSymmetries * selfplayer.numSamples()] = {0.0};
-      float sample_probs[kNumSymmetries * selfplayer.numSamples() * kNumMoves] =
-          {0.0};
+      float sample_evals[kNumSymmetries * selfplayer.num_samples()] = {0.0};
+      float sample_probs[kNumSymmetries * selfplayer.num_samples() *
+                         kNumMoves] = {0.0};
       selfplayer.writeSamples(sample_game_states, sample_evals, sample_probs);
-      for (int32_t i = 0; i < selfplayer.numSamples(); ++i) {
+      for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
         for (int32_t j = 0; j < kNumSymmetries; ++j) {
           for (int32_t k = 0; k < kGameStateSize; ++k) {
             EXPECT_TRUE(sample_game_states[i * kNumSymmetries * kGameStateSize +
@@ -90,9 +90,9 @@ TEST(SelfPlayerTest, FewSearches) {
           EXPECT_TRUE(sum >= 0.99 && sum <= 1.01);
         }
       }
-      float sorted_game_states[selfplayer.numSamples() * kGameStateSize];
-      float sorted_probs[selfplayer.numSamples() * kNumMoves];
-      for (int32_t i = 0; i < selfplayer.numSamples(); ++i) {
+      float sorted_game_states[selfplayer.num_samples() * kGameStateSize];
+      float sorted_probs[selfplayer.num_samples() * kNumMoves];
+      for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
         for (int32_t j = 0; j < kGameStateSize; ++j) {
           sorted_game_states[i * kGameStateSize + j] =
               sample_game_states[i * kNumSymmetries * kGameStateSize + j];
@@ -111,7 +111,7 @@ TEST(SelfPlayerTest, FewSearches) {
       // Check that the sorted game states and probabilities for the other
       // symmetries are the same
       for (int32_t i = 1; i < kNumSymmetries; ++i) {
-        for (int32_t j = 0; j < selfplayer.numSamples(); ++j) {
+        for (int32_t j = 0; j < selfplayer.num_samples(); ++j) {
           float game_state[kGameStateSize];
           float prob_sample[kNumMoves];
           for (int32_t k = 0; k < kGameStateSize; ++k) {
@@ -155,7 +155,7 @@ TEST(SelfPlayerTest, FullGame) {
   std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
   while (!selfplayer.doIteration(eval, probs)) {
     // Generate random evaluations
-    int32_t num_requests = selfplayer.numRequests();
+    int32_t num_requests = selfplayer.num_requests();
     EXPECT_TRUE(num_requests <= searches_per_eval);
     if (num_requests > 0) {
       // Sanity check for writing out game states
@@ -182,17 +182,17 @@ TEST(SelfPlayerTest, FullGame) {
       }
     }
   }
-  EXPECT_EQ(selfplayer.numRequests(), 0);
-  EXPECT_TRUE(selfplayer.numSamples() > 0);
+  EXPECT_EQ(selfplayer.num_requests(), 0);
+  EXPECT_TRUE(selfplayer.num_samples() > 0);
   // Maximum number of moves
-  EXPECT_TRUE(selfplayer.numSamples() <= 40);
-  float sample_game_states[kNumSymmetries * selfplayer.numSamples() *
+  EXPECT_TRUE(selfplayer.num_samples() <= 40);
+  float sample_game_states[kNumSymmetries * selfplayer.num_samples() *
                            kGameStateSize] = {0.0};
-  float sample_evals[kNumSymmetries * selfplayer.numSamples()] = {0.0};
-  float sample_probs[kNumSymmetries * selfplayer.numSamples() * kNumMoves] = {
+  float sample_evals[kNumSymmetries * selfplayer.num_samples()] = {0.0};
+  float sample_probs[kNumSymmetries * selfplayer.num_samples() * kNumMoves] = {
       0.0};
   selfplayer.writeSamples(sample_game_states, sample_evals, sample_probs);
-  for (int32_t i = 0; i < selfplayer.numSamples(); ++i) {
+  for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
     for (int32_t j = 0; j < kNumSymmetries; ++j) {
       for (int32_t k = 0; k < kGameStateSize; ++k) {
         EXPECT_TRUE(sample_game_states[i * kNumSymmetries * kGameStateSize +
@@ -214,9 +214,9 @@ TEST(SelfPlayerTest, FullGame) {
       EXPECT_TRUE(sum >= 0.99 && sum <= 1.01);
     }
   }
-  float sorted_game_states[selfplayer.numSamples() * kGameStateSize];
-  float sorted_probs[selfplayer.numSamples() * kNumMoves];
-  for (int32_t i = 0; i < selfplayer.numSamples(); ++i) {
+  float sorted_game_states[selfplayer.num_samples() * kGameStateSize];
+  float sorted_probs[selfplayer.num_samples() * kNumMoves];
+  for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
     for (int32_t j = 0; j < kGameStateSize; ++j) {
       sorted_game_states[i * kGameStateSize + j] =
           sample_game_states[i * kNumSymmetries * kGameStateSize + j];
@@ -235,7 +235,7 @@ TEST(SelfPlayerTest, FullGame) {
   // Check that the sorted game states and probabilities for the other
   // symmetries are the same
   for (int32_t i = 1; i < kNumSymmetries; ++i) {
-    for (int32_t j = 0; j < selfplayer.numSamples(); ++j) {
+    for (int32_t j = 0; j < selfplayer.num_samples(); ++j) {
       float game_state[kGameStateSize];
       float prob_sample[kNumMoves];
       for (int32_t k = 0; k < kGameStateSize; ++k) {

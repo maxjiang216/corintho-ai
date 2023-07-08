@@ -7,9 +7,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the TFLite model
-tflite_model_path = "tflite_model.tflite"
-interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
-interpreter.allocate_tensors()
+_TFLITE_MODEL_PATH = "tflite_model.tflite"
+model = tf.lite.Interpreter(model_path=_TFLITE_MODEL_PATH)
+model.allocate_tensors()
 
 
 @app.route("/choose_move", methods=["POST"])
@@ -19,9 +19,9 @@ def choose_move_route():
         choose_move(
             data["gameState"],
             data["timeLimit"],
+            model,
             data["searchesPerEval"],
             data["maxNodes"],
-            interpreter,
         )
     )
 

@@ -203,7 +203,7 @@ void TrainMC::getFilteredProbs(float probs[kNumMoves],
 void TrainMC::generateDirichlet(float dirichlet[]) const noexcept {
   float sum = 0.0;
   for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
-    dirichlet[i] = gamma_samples[(*generator_)() % GAMMA_BUCKETS];
+    dirichlet[i] = gamma_samples[(*generator_)() % kNumGammaBuckets];
     sum += dirichlet[i];
   }
   float scalar = 1.0 / sum * epsilon_;

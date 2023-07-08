@@ -10,24 +10,11 @@
 #include <string>
 
 using std::bitset;
-using std::string;
 
-// Typedef
-
-// Default ints to use
-// Generally memory is not too critical, prioritize speed
-typedef uint_fast32_t uintf;
-typedef int_fast32_t intf;
-
-// Ints for memory critical parts
-// Generally use in large arrays
-typedef uint_least8_t uint8s;
-typedef uint_least16_t uint16s;
-
-// Define constants used by the pipeline
-// This is for constants used by more than one file
-// Otherwise keep the constants in the file that uses it
-
+typedef int32_t PieceType;
+/// @brief This is 8 byte since node is memory sensitive
+typedef int8_t Result;
+/// @brief A space on the board
 struct Space {
   int32_t row{-1};
   int32_t col{-1};
@@ -47,14 +34,27 @@ struct Space {
   bool notNull() const noexcept { return row != -1 && col != -1; }
 };
 
-// Size of game state sample
-const uintf kGameStateSize = 70;
-// Number of possible legal moves
-const int32_t kNumMoves = 96;
+std::string strResult(Result result);
 
 const float kNegInf = -std::numeric_limits<float>::infinity();
 
-typedef int8_t Result;
+// Size of game state sample
+const int32_t kGameStateSize = 70;
+// Number of possible legal moves
+const int32_t kNumMoves = 96;
+// Number of spaces on the board
+const int32_t kBoardSize = 16;
+// Number of board symmetries (rotations and reflections)
+const int32_t kNumSymmetries = 8;
+
+// Piece types
+const PieceType kBase = 0;
+const PieceType kColumn = 1;
+const PieceType kCapital = 2;
+const PieceType kPieceTypes[3] = {kBase, kColumn, kCapital};
+const int32_t kFrozen = 3;
+
+// Results
 const Result kResultNone = 0;
 const Result kResultLoss = 1;
 const Result kResultDraw = 2;
@@ -63,36 +63,25 @@ const Result kDeducedLoss = 4;
 const Result kDeducedDraw = 5;
 const Result kDeducedWin = 6;
 
-typedef int32_t PieceType;
-const PieceType kBase = 0;
-const PieceType kColumn = 1;
-const PieceType kCapital = 2;
-const PieceType kPieceTypes[3] = {kBase, kColumn, kCapital};
-const int32_t kFrozen = 3;
-
-string strResult(uint8s result);
-
 // Indexing for lines
-const uintf RL = 0;
-const uintf RR = 1;
-const uintf RB = 2;
-const uintf CU = 3;
-const uintf CD = 4;
-const uintf CB = 5;
+const int32_t RL = 0;
+const int32_t RR = 1;
+const int32_t RB = 2;
+const int32_t CU = 3;
+const int32_t CD = 4;
+const int32_t CB = 5;
+const int32_t D0U = 0;
+const int32_t D0D = 1;
+const int32_t D0B = 2;
+const int32_t D1U = 3;
+const int32_t D1D = 4;
+const int32_t D1B = 5;
+const int32_t S0 = 6;
+const int32_t S1 = 7;
+const int32_t S2 = 8;
+const int32_t S3 = 9;
 
-const uintf D0U = 0;
-const uintf D0D = 1;
-const uintf D0B = 2;
-const uintf D1U = 3;
-const uintf D1D = 4;
-const uintf D1B = 5;
-const uintf S0 = 6;
-const uintf S1 = 7;
-const uintf S2 = 8;
-const uintf S3 = 9;
-
-void print_line(uintf line);
-
+// Legal move filter for lines
 inline std::array<bitset<kNumMoves>, 102> line_breakers = {
     bitset<kNumMoves>("00000000000000000000000000000111000000000000100000"
                       "0000000111000000000100000000000000000000000000"),
@@ -300,9 +289,10 @@ inline std::array<bitset<kNumMoves>, 102> line_breakers = {
                       "0000100001010001000000001000010000100010001000"),
 };
 
-const uintf GAMMA_BUCKETS = 1024;
-
-const float gamma_samples[GAMMA_BUCKETS] = {
+// Number of buckets for the gamma distribution approximation
+const int32_t kNumGammaBuckets = 1024;
+// Gamma distribution approximation for Dirichlet noise
+const float gamma_samples[kNumGammaBuckets] = {
     1.4868120409271554e-11, 2.84847563328348e-10,   1.437169715346044e-09,
     4.3049973568822985e-09, 9.847816177857643e-09,  1.912371017958967e-08,
     3.3273452646543274e-08, 5.3509858788543365e-08, 8.111004634501829e-08,
@@ -647,10 +637,7 @@ const float gamma_samples[GAMMA_BUCKETS] = {
     5.539093437027215,
 };
 
-const int32_t kNumSymmetries = 8;
-const int32_t kBoardSize = 16;
-
-// Don't include the identity transformation
+// Space mappings for board symmetries.
 const int32_t space_symmetries[kNumSymmetries][kBoardSize] = {
     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
     {3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12},
@@ -662,6 +649,7 @@ const int32_t space_symmetries[kNumSymmetries][kBoardSize] = {
     {15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0},
 };
 
+// Move mappings for board symmetries.
 const int32_t move_symmetries[kNumSymmetries][kNumMoves] = {
     {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
      16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,

@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt -v
 COPY . .
 
 # Build the Cython module
-RUN python setup.py build_ext --inplace
+RUN python3 setup.py build_ext --inplace
 
 # Expose the Flask application port
 EXPOSE 8080

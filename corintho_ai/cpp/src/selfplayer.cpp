@@ -19,11 +19,12 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
                        int32_t parity)
-    : generator_{std::make_unique<std::mt19937>(random_seed)},
-      to_eval_{std::make_unique<float[]>(kGameStateSize * max_searches)},
-      players_{TrainMC{generator_.get(), to_eval_.get(), max_searches,
+    : generator_{std::mt19937(random_seed)}, to_eval_{std::make_unique<float[]>(
+                                                 kGameStateSize *
+                                                 max_searches)},
+      players_{TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing},
-               TrainMC{generator_.get(), to_eval_.get(), max_searches,
+               TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing}},
 
       log_file_{std::move(log_file)}, parity_{parity} {
@@ -63,11 +64,9 @@ float SelfPlayer::score() const noexcept {
 }
 
 int32_t SelfPlayer::mateLength() const noexcept {
-  // No mate found
-  if (mate_turn_ == 0) {
-    assert(false);
+  // This can happen if the game is drawn
+  if (mate_turn_ == 0)
     return 0;
-  }
   return samples_.size() - mate_turn_ + 1;
 }
 
@@ -117,7 +116,7 @@ bool SelfPlayer::doIteration(float eval[], float probs[]) {
   // If we have completed a turn, we can choose a move
   if (done)
     return chooseMoveAndContinue();
-  // Oterhwise, the turn is not done so the game is not done
+  // Otherwise, the turn is not done so the game is not done
   return false;
 }
 
@@ -153,13 +152,14 @@ void SelfPlayer::writeMoves() const noexcept {
   };
   std::vector<MoveData> moves;
   Node *cur = players_[to_play_].root()->first_child();
-  uintf edge_index = 0;
+  int32_t edge_index = 0;
   while (cur != nullptr) {
     if (cur->child_id() == players_[to_play_].root()->move_id(edge_index)) {
       moves.emplace_back(cur->visits(),
                          cur->evaluation() / (float)cur->visits(),
                          players_[to_play_].root()->probability(edge_index),
                          cur->child_id(), cur);
+      cur = cur->next_sibling();
     }
     ++edge_index;
   }
@@ -226,7 +226,6 @@ void SelfPlayer::endGame() noexcept {
   // and results which will be collected at the end
   players_[0].null_root();
   players_[1].null_root();
-  generator_.reset();
   to_eval_.reset();
   log_file_.reset();
 }

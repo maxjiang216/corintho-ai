@@ -1,67 +1,81 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
-#include "selfplayer.h"
-#include "util.h"
-#include <queue>
+#include <memory>
 #include <random>
 #include <string>
 #include <vector>
 
-// This is the class that should interact with Cython
+#include "selfplayer.h"
+#include "util.h"
 
+/// @brief Orchestrates many SelfPlayer objects to generate training samples
+/// from self-play games
+/// @details This is the class that is used by Cython
 class Trainer {
-
-  // SelfPlayer objects
-  std::vector<SelfPlayer *> games;
-
-  // Number of iterations per move (used to compute offsets)
-  uintf num_iterations, threads = 0, searches_per_eval;
-  // Counter used to keep track of number of iterations done for offsets
-  uintf iterations_done;
-
-  // Track which games are done
-  std::vector<bool> is_done;
-
-  // Random generator for all operations
-  std::mt19937 generator;
-
-  // Initialize SelfPlayers (factored out of different version of constructor)
-  void initialize(bool testing, uintf num_games, uintf num_logged, float c_puct,
-                  float epsilon, uintf searches_per_eval,
-                  const std::string &logging_folder);
-
  public:
-  // Training
+  /// @brief Default constructor
+  /// This is needed for Cython to be able to create a Trainer object
   Trainer() = default;
-  Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,
-          float epsilon, uintf threads, uintf searches_per_eval,
-          const std::string &logging_folder, uintf random_seed);
-  // Testing
-  Trainer(uintf num_games, uintf num_logged, uintf num_iterations, float c_puct,
-          float epsilon, uintf threads, uintf searches_per_eval,
-          const std::string &logging_folder, uintf random_seed, bool);
-  ~Trainer();
+  Trainer(int32_t num_games, const std::string &logging_folder, int32_t seed,
+          int32_t max_searches = 1600, int32_t searches_per_eval = 16,
+          float c_puct = 1.0, float epsilon = 0.25, int32_t num_logged = 10,
+          int32_t num_threads = 1, bool testing = false);
+  ~Trainer() = default;
 
-  // Main function that will be called by Cython
-  // Training version
-  bool do_iteration(float evaluations[], float probabilities[]);
-  // Testing version
-  bool do_iteration(float evaluations[], float probabilities[], uintf to_play);
+  /// @brief Return the number of requests for evaluations
+  int32_t numRequests(int32_t to_play = -1) const noexcept;
+  /// @brief Return the number of training samples
+  int32_t numSamples() const noexcept;
+  /// @brief Average score of first player
+  float score() const noexcept;
+  /// @brief Return the average mate length
+  float avgMateLen() const noexcept;
 
-  // Returns how many positions we want evaluated
-  uintf write_requests(float *game_states) const;
-  uintf write_requests(float *game_states, uintf to_play) const;
+  /// @brief Write the game states for which evaluations are requested
+  /// @param game_states The array to write the game states to
+  /// @return The number of requests for evaluations
+  void writeRequests(float *game_states, int32_t to_play = -1) const noexcept;
+  /// @brief Write the training samples
+  void writeSamples(float *game_states, float *eval_samples,
+                    float *prob_samples) const noexcept;
+  /// @brief Write a summary of the game outcomes to a file
+  /// @param file The name of the file to write to
+  /// @return The percentage score of the first player. This is used to
+  /// determine if a generation improved
+  void writeScores(const std::string &file) const;
 
-  // Counts the number of samples in all the games
-  uintf count_samples() const;
+  /// @brief This is the main function that runs the self-play games. It is
+  /// called by Cython in a loop.
+  /// @return If all games are done
+  bool doIteration(float eval[], float probs[], int32_t to_play = -1);
 
-  void write_samples(float *game_states, float *evaluation_samples,
-                     float *probability_samples) const;
+ private:
+  // Initialize SelfPlayers (factored out of different version of constructor)
+  void initialize(int32_t num_games, const std::string &logging_folder,
+                  int32_t max_searches, int32_t searches_per_eval, float c_puct,
+                  float epsilon, int32_t num_logged, bool testing);
 
-  float get_score(const std::string &out_file) const;
-
-  float get_avg_mate_len() const;
+  /// @brief The self-play games
+  std::vector<std::unique_ptr<SelfPlayer>> games_{};
+  /// @brief Tracks which games are done
+  std::vector<bool> is_done_{};
+  /// @brief Maximum number of searches per turn for the players
+  /// @details This is used to compute offsets for starting the games
+  int32_t max_searches_{1600};
+  /// @brief The maximum number of searches per neural network evaluation
+  /// @details This is used to compute the size of arrays for neural network
+  /// input and output
+  int32_t searches_per_eval_{16};
+  /// @brief The number of threads to use
+  /// @details If 0, then use the number of threads available (which OpenMP will
+  /// automatically do)
+  int32_t num_threads_{0};
+  /// @brief The number of searches done so far
+  /// TODO: Is this searches or evaluations?
+  int32_t searches_done_{0};
+  /// @brief Random number generator
+  std::mt19937 generator_{};
 };
 
 #endif

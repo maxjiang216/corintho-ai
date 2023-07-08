@@ -1,325 +1,255 @@
 #include "trainer.h"
-#include "node.h"
-#include "trainmc.h"
-#include "util.h"
+
 #include <algorithm>
 #include <chrono>
-#include <iostream>
-#include <omp.h>
 #include <queue>
 #include <string>
 #include <vector>
 
-using std::cerr;
-using std::string;
-using std::vector;
+#include <gsl/gsl>
+#include <omp.h>
 
-Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, uintf threads,
-                 uintf searches_per_eval, const string &logging_folder,
-                 uintf random_seed)
-    : num_iterations{std::max(num_iterations, (uintf)2)}, threads{threads},
-      searches_per_eval{searches_per_eval}, iterations_done{0},
-      is_done{vector<bool>(num_games, false)}, generator{random_seed} {
-  initialize(false, num_games, num_logged, c_puct, epsilon, searches_per_eval,
-             logging_folder);
+#include "node.h"
+#include "selfplayer.h"
+#include "trainmc.h"
+#include "util.h"
+
+Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
+                 int32_t seed, int32_t max_searches, int32_t searches_per_eval,
+                 float c_puct, float epsilon, int32_t num_logged,
+                 int32_t num_threads, bool testing)
+    : is_done_{std::vector<bool>(num_games, false)},
+      max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
+      num_threads_{num_threads}, generator_{gsl::narrow_cast<uint32_t>(seed)} {
+  assert(num_games > 0);
+  assert(num_logged >= 0);
+  assert(num_logged <= num_games);
+  assert(max_searches >= 2);
+  assert(searches_per_eval > 0);
+  assert(max_searches >= searches_per_eval);
+  assert(c_puct > 0);
+  assert(epsilon >= 0);
+  assert(epsilon <= 1);
+  assert(num_threads > 0);
+  initialize(num_games, logging_folder, max_searches, searches_per_eval, c_puct,
+             epsilon, num_logged, testing);
 }
 
-Trainer::Trainer(uintf num_games, uintf num_logged, uintf num_iterations,
-                 float c_puct, float epsilon, uintf threads,
-                 uintf searches_per_eval, const string &logging_folder,
-                 uintf random_seed, bool)
-    : num_iterations{std::max(num_iterations, (uintf)2)}, threads{threads},
-      searches_per_eval{searches_per_eval}, iterations_done{0},
-      is_done{vector<bool>(num_games, false)}, generator{random_seed} {
-  initialize(true, num_games, num_logged, c_puct, epsilon, searches_per_eval,
-             logging_folder);
-}
-
-Trainer::~Trainer() {
-  for (uintf i = 0; i < games.size(); ++i) {
-    delete games[i];
-  }
-}
-
-bool Trainer::do_iteration(float evaluations[], float probabilities[]) {
-
-  uintf offsets[games.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->numRequests();
-  }
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    if (!is_done[i]) {
-      // Avoid division by 0 in the rare case than num_games < num_iterations /
-      // 2, which sometimes occurs when testing small runs
-      if (i / std::max((uintf)1, (games.size() / num_iterations)) <
-          iterations_done) {
-        bool is_completed = games[i]->doIteration(
-            &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
-        if (is_completed) {
-          is_done[i] = true;
-        }
-      } else if (i / std::max((uintf)1, (games.size() / num_iterations)) ==
-                 iterations_done) {
-        games[i]->doIteration(nullptr, nullptr);
-      }
+int32_t Trainer::numRequests(int32_t to_play) const noexcept {
+  int32_t num_requests = 0;
+  for (const auto &game : games_) {
+    if (!is_done_[&game - &games_[0]] &&
+        ((to_play != 0 && to_play != 1) ||
+         game->to_play() == (to_play + game->parity()) % 2)) {
+      num_requests += game->numRequests();
     }
-  }
-  ++iterations_done;
-  for (uintf i = 0; i < games.size(); ++i) {
-    if (!is_done[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool Trainer::do_iteration(float evaluations[], float probabilities[],
-                           uintf to_play) {
-  if (iterations_done == 0) {
-    omp_set_num_threads(threads);
-#pragma omp parallel for
-    for (uintf i = 0; i < games.size(); ++i) {
-      games[i]->doIteration();
-    }
-    iterations_done = 1;
-    return false;
-  }
-
-  uintf offsets[games.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); ++i) {
-    if (games[i - 1]->to_play() == (to_play + games[i - 1]->parity()) % 2 &&
-        !is_done[i - 1]) {
-      offsets[i] = games[i - 1]->numRequests();
-    } else {
-      offsets[i] = 0;
-    }
-  }
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    if (games[i]->to_play() == (to_play + games[i]->parity()) % 2 &&
-        !is_done[i]) {
-      bool is_completed = games[i]->doIteration(
-          &evaluations[offsets[i]], &probabilities[kNumMoves * offsets[i]]);
-      if (is_completed) {
-        is_done[i] = true;
-      }
-    }
-  }
-  for (uintf i = 0; i < games.size(); ++i) {
-    if (!is_done[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-void Trainer::initialize(bool testing, uintf num_games, uintf num_logged,
-                         float c_puct, float epsilon, uintf searches_per_eval,
-                         const string &logging_folder) {
-
-  // Remember to pass down hyperparameters to selfplayer and trainmc
-
-  games.reserve(num_games);
-
-  if (num_games < num_logged)
-    num_logged = num_games;
-
-  if (testing) {
-    for (uintf i = 0; i < num_logged; ++i) {
-      games.emplace_back(new SelfPlayer{
-          generator(), num_iterations, searches_per_eval, c_puct, epsilon,
-          std::move(std::make_unique<std::ofstream>(
-              logging_folder + "/game_" + std::to_string(i) + ".txt",
-              std::ofstream::out)),
-          i % 2});
-    }
-    for (uintf i = num_logged; i < num_games; ++i) {
-      games.emplace_back(new SelfPlayer{generator(), num_iterations,
-                                        searches_per_eval, c_puct, epsilon,
-                                        nullptr, i % 2});
-    }
-  } else {
-    for (uintf i = 0; i < num_logged; ++i) {
-      games.emplace_back(new SelfPlayer{
-          generator(), num_iterations, searches_per_eval, c_puct, epsilon,
-          std::move(std::make_unique<std::ofstream>(
-              logging_folder + "/game_" + std::to_string(i) + ".txt",
-              std::ofstream::out))});
-    }
-    for (uintf i = num_logged; i < num_games; ++i) {
-      games.emplace_back(new SelfPlayer{generator(), num_iterations,
-                                        searches_per_eval, c_puct, epsilon,
-                                        nullptr});
-    }
-  }
-}
-
-uintf Trainer::write_requests(float *game_states) const {
-  uintf offsets[games.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->numRequests();
-  }
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    games[i]->writeRequests(game_states + offsets[i] * kGameStateSize);
-  }
-  return offsets[games.size() - 1] + games[games.size() - 1]->numRequests();
-}
-
-uintf Trainer::write_requests(float *game_states, uintf to_play) const {
-  uintf offsets[games.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); ++i) {
-    if (games[i - 1]->to_play() == (to_play + games[i - 1]->parity()) % 2 &&
-        !is_done[i - 1]) {
-      offsets[i] = games[i - 1]->numRequests();
-    } else {
-      offsets[i] = 0;
-    }
-  }
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    if (games[i]->to_play() == (to_play + games[i]->parity()) % 2 &&
-        !is_done[i]) {
-      games[i]->writeRequests(game_states + offsets[i] * kGameStateSize);
-    }
-  }
-  uintf num_requests = offsets[games.size() - 1];
-  if (games[games.size() - 1]->to_play() ==
-          (to_play + games[games.size() - 1]->parity()) % 2 &&
-      !is_done[games.size() - 1]) {
-    num_requests += games[games.size() - 1]->numRequests();
   }
   return num_requests;
 }
 
-uintf Trainer::count_samples() const {
-  uintf counts[games.size()];
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    counts[i] = games[i]->numSamples();
+int32_t Trainer::numSamples() const noexcept {
+  int32_t num_samples = 0;
+  for (const auto &game : games_) {
+    num_samples += game->numSamples();
   }
-  uintf counter = 0;
-  for (uintf i = 0; i < games.size(); ++i) {
-    counter += counts[i];
-  }
-  return counter;
+  return num_samples;
 }
 
-void Trainer::write_samples(float *game_states, float *evaluation_samples,
-                            float *probability_samples) const {
-  uintf offsets[games.size()];
-  offsets[0] = 0;
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] = games[i - 1]->numSamples();
-  }
-  for (uintf i = 1; i < games.size(); ++i) {
-    offsets[i] += offsets[i - 1];
-  }
-  for (uintf i = 0; i < games.size(); ++i) {
-    games[i]->writeSamples(
-        game_states + offsets[i] * kGameStateSize * kNumSymmetries,
-        evaluation_samples + offsets[i] * kNumSymmetries,
-        probability_samples + offsets[i] * kNumMoves * kNumSymmetries);
-  }
-}
-
-float Trainer::get_score(const std::string &out_file) const {
-  float scores[games.size()];
-  omp_set_num_threads(threads);
-#pragma omp parallel for
-  for (uintf i = 0; i < games.size(); i += 2) {
-    scores[i] = games[i]->score();
-  }
-#pragma omp parallel for
-  for (uintf i = 1; i < games.size(); i += 2) {
-    scores[i] = 1.0 - games[i]->score();
-  }
+float Trainer::score() const noexcept {
   float score = 0;
-  uintf wins = 0, draws = 0;
-  auto outfile = new std::ofstream{out_file, std::ofstream::out};
-  for (uintf i = 0; i < games.size(); i += 2) {
-    score += scores[i];
+  for (const auto &game : games_) {
+    score += game->score();
+  }
+  return score / games_.size();
+}
+
+// TODO: Test this thoroughly. Test that the average has a reasonable value
+float Trainer::avgMateLen() const noexcept {
+  int32_t total_length = 0;
+  for (const auto &game : games_) {
+    assert(is_done_[&game - &games_[0]]);
+    total_length += game->mateLength();
+  }
+  return static_cast<float>(total_length) / games_.size();
+}
+
+void Trainer::writeRequests(float *game_states,
+                            int32_t to_play) const noexcept {
+  int32_t offset = 0;
+  // Testing mode
+  // Only count requests from one player
+  if (to_play == 0 || to_play == 1) {
+    for (int32_t i = 0; i < games_.size(); ++i) {
+      if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
+          !is_done_[i]) {
+        games_[i]->writeRequests(game_states + offset * kGameStateSize);
+        offset += games_[i]->numRequests();
+      }
+    }
+    return;
+  }
+  // Training mode
+  for (int32_t i = 0; i < games_.size(); ++i) {
+    if (!is_done_[i]) {
+      games_[i]->writeRequests(game_states + offset * kGameStateSize);
+      offset += games_[i]->numRequests();
+    }
+  }
+}
+
+void Trainer::writeSamples(float *game_states, float *eval_samples,
+                           float *prob_samples) const noexcept {
+  int32_t offset = 0;
+  for (int32_t i = 0; i < games_.size(); ++i) {
+    games_[i]->writeSamples(game_states +
+                                offset * kGameStateSize * kNumSymmetries,
+                            eval_samples + offset,
+                            prob_samples + offset * kNumMoves * kNumSymmetries);
+    offset += games_[i]->numSamples();
+  }
+}
+
+void Trainer::writeScores(const std::string &out_file) const {
+  float scores[games_.size()];
+  for (int32_t i = 0; i < games_.size(); i += 2) {
+    scores[i] = games_[i]->score();
+  }
+  for (int32_t i = 1; i < games_.size(); i += 2) {
+    scores[i] = 1.0 - games_[i]->score();
+  }
+  // First player score
+  int32_t wins = 0;
+  int32_t draws = 0;
+  for (int32_t i = 0; i < games_.size(); i += 2) {
     if (scores[i] == 1.0) {
       ++wins;
     } else if (scores[i] == 0.5) {
       ++draws;
     }
   }
-  *outfile << "First player wins: " << wins << " / " << games.size() / 2
-           << " = " << (float)wins / (games.size() / 2)
-           << "\nFirst player draws: " << draws << " / " << games.size() / 2
-           << " = " << (float)draws / (games.size() / 2)
-           << "\nFirst player losses: " << games.size() / 2 - wins - draws
-           << " / " << games.size() / 2 << " = "
-           << (float)(games.size() / 2 - wins - draws) / (games.size() / 2)
-           << '\n';
+  std::ofstream outfile = std::ofstream{out_file, std::ofstream::out};
+  outfile << "First player wins: " << wins << " / " << games_.size() / 2
+          << " = " << static_cast<float>(wins) / (games_.size() / 2)
+          << "\nFirst player draws: " << draws << " / " << games_.size() / 2
+          << " = " << static_cast<float>(draws) / (games_.size() / 2)
+          << "\nFirst player losses: " << games_.size() / 2 - wins - draws
+          << " / " << games_.size() / 2 << " = "
+          << static_cast<float>(games_.size() / 2 - wins - draws) /
+                 (games_.size() / 2)
+          << '\n';
+  // Second player score
   wins = 0;
   draws = 0;
-  for (uintf i = 1; i < games.size(); i += 2) {
-    score += scores[i];
+  for (int32_t i = 1; i < games_.size(); i += 2) {
     if (scores[i] == 1.0) {
       ++wins;
     } else if (scores[i] == 0.5) {
       ++draws;
     }
   }
-  *outfile << "Second player wins: " << wins << " / " << games.size() / 2
-           << " = " << (float)wins / (games.size() / 2)
-           << "\nSecond player draws: " << draws << " / " << games.size() / 2
-           << " = " << (float)draws / (games.size() / 2)
-           << "\nSecond player losses: " << games.size() / 2 - wins - draws
-           << " / " << games.size() / 2 << " = "
-           << (float)(games.size() / 2 - wins - draws) / (games.size() / 2)
-           << '\n';
-  delete outfile;
-  return score / (float)games.size();
+  outfile << "Second player wins: " << wins << " / " << games_.size() / 2
+          << " = " << static_cast<float>(wins) / (games_.size() / 2)
+          << "\nSecond player draws: " << draws << " / " << games_.size() / 2
+          << " = " << static_cast<float>(draws) / (games_.size() / 2)
+          << "\nSecond player losses: " << games_.size() / 2 - wins - draws
+          << " / " << games_.size() / 2 << " = "
+          << static_cast<float>(games_.size() / 2 - wins - draws) /
+                 (games_.size() / 2)
+          << '\n';
 }
 
-float Trainer::get_avg_mate_len() const {
-  uintf lens[games.size()];
-  omp_set_num_threads(threads);
+bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
+  // Training
+  if (to_play != 0 && to_play != 1) {
+    // Compute offsets for evaluations and probabilities since we use
+    // multiprocessing.
+    int32_t offset = 0;
+    int32_t offsets[games_.size()] = {0};
+    for (int32_t i = 1; i < games_.size(); ++i) {
+      offset += games_[i - 1]->numRequests();
+      offsets[i] = offset;
+    }
+    omp_set_num_threads(num_threads_);
 #pragma omp parallel for
-  for (uintf i = 0; i < games.size(); ++i) {
-    lens[i] = games[i]->mateLength();
+    for (int32_t i = 0; i < games_.size(); ++i) {
+      if (!is_done_[i]) {
+        // We offset the start of the games to try to get an even distribution
+        // of the games across the number of searches in a move. This way, the
+        // total number of nodes will be more even. This reduces peak memory
+        // usage. Avoid division by 0 in the rare case that games_.size() <
+        // max_searches_
+        if (i / std::max(static_cast<int32_t>(games_.size() / max_searches_),
+                         1) <=
+            searches_done_) {
+          // First search does not depend on pointers being null
+          bool done = games_[i]->doIteration(eval + offsets[i],
+                                             probs + kNumMoves * offsets[i]);
+          // Game is done
+          if (done) {
+            is_done_[i] = true;
+          }
+        }
+      }
+    }
+    ++searches_done_;
+    for (int32_t i = 0; i < games_.size(); ++i) {
+      if (!is_done_[i]) {
+        return false;
+      }
+    }
+    return true;
   }
-  uintf total_len = 0;
-  for (uintf i = 0; i < games.size(); ++i) {
-    total_len += lens[i];
+  // Testing
+  int32_t offset = 0;
+  int32_t offsets[games_.size()] = {0};
+  for (int32_t i = 1; i < games_.size(); ++i) {
+    // Only count games from one player
+    if (games_[i - 1]->to_play() == (to_play + games_[i - 1]->parity()) % 2 &&
+        !is_done_[i - 1]) {
+      offset += games_[i - 1]->numRequests();
+    }
+    offsets[i] = offset;
   }
-  return (float)total_len / (float)games.size();
+  omp_set_num_threads(num_threads_);
+#pragma omp parallel for
+  for (int32_t i = 0; i < games_.size(); ++i) {
+    // No offset in game start (there are not enough games for memory usage to
+    // matter).
+    if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
+        !is_done_[i]) {
+      bool done = games_[i]->doIteration(eval + offsets[i],
+                                         probs + kNumMoves * offsets[i]);
+      if (done) {
+        is_done_[i] = true;
+      }
+    }
+  }
+  for (int32_t i = 0; i < games_.size(); ++i) {
+    if (!is_done_[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
+                         int32_t max_searches, int32_t searches_per_eval,
+                         float c_puct, float epsilon, int32_t num_logged,
+                         bool testing) {
+  games_.reserve(num_games);
+  for (int32_t i = 0; i < num_logged; ++i) {
+    games_.emplace_back(std::make_unique<SelfPlayer>(
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon,
+        std::make_unique<std::ofstream>(logging_folder + "/game_" +
+                                            std::to_string(i) + ".txt",
+                                        std::ofstream::out),
+        testing,
+        i % 2));  // Generate parity for test games (changes who plays first).
+                  // Does not affect training games
+  }
+  for (int32_t i = num_logged; i < num_games; ++i) {
+    games_.emplace_back(std::make_unique<SelfPlayer>(
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon, nullptr,
+        testing, i % 2));
+  }
 }

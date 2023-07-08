@@ -39,7 +39,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-        context: ./corintho_ai/docker
+        context: .
         push: true
         tags: gcr.io/corintho-ai/corintho-play:latest
 

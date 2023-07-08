@@ -31,8 +31,8 @@ Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
   assert(epsilon >= 0);
   assert(epsilon <= 1);
   assert(num_threads > 0);
-  initialize(num_games, logging_folder, max_searches, searches_per_eval, c_puct,
-             epsilon, num_logged, testing);
+  initialize(num_games, logging_folder, max_searches, searches_per_eval,
+             c_puct, epsilon, num_logged, testing);
 }
 
 int32_t Trainer::num_requests(int32_t to_play) const noexcept {
@@ -101,10 +101,10 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
                            float *prob_samples) const noexcept {
   int32_t offset = 0;
   for (int32_t i = 0; i < games_.size(); ++i) {
-    games_[i]->writeSamples(game_states +
-                                offset * kGameStateSize * kNumSymmetries,
-                            eval_samples + offset,
-                            prob_samples + offset * kNumMoves * kNumSymmetries);
+    games_[i]->writeSamples(
+        game_states + offset * kGameStateSize * kNumSymmetries,
+        eval_samples + offset,
+        prob_samples + offset * kNumMoves * kNumSymmetries);
     offset += games_[i]->num_samples();
   }
 }
@@ -249,7 +249,7 @@ void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
   }
   for (int32_t i = num_logged; i < num_games; ++i) {
     games_.emplace_back(std::make_unique<SelfPlayer>(
-        generator_(), max_searches, searches_per_eval, c_puct, epsilon, nullptr,
-        testing, i % 2));
+        generator_(), max_searches, searches_per_eval, c_puct, epsilon,
+        nullptr, testing, i % 2));
   }
 }

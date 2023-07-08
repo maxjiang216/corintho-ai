@@ -229,7 +229,9 @@ def main():
             .strip()
         )
         best_generation = int(
-            open(f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8")
+            open(
+                f"{cwd}/{NAME}/metadata/best_generation.txt", encoding="utf-8"
+            )
             .read()
             .strip()
         )

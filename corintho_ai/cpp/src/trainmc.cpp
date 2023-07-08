@@ -123,7 +123,8 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
   if (root_->won()) {
     return chooseMoveWon(prob_sample);
   }
-  // Losing or drawn position. Will choose the best move with the most searches.
+  // Losing or drawn position. Will choose the best move with the most
+  // searches.
   if (root_->lost() || root_->drawn()) {
     return chooseMoveLostDrawn(prob_sample);
   }
@@ -328,10 +329,10 @@ int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
   Node *best_prev = nullptr;
   int32_t choice = 0;
   // For losing and drawn positions, find the move with the most searches
-  // The most searched line is likely the one with the longest and/or hardest to
-  // find win or draw which is practically better.
-  // The logic is the same in both cases except we avoid choosing losing moves
-  // in a drawn position. Temperature is 0 in this case, even in the opening.
+  // The most searched line is likely the one with the longest and/or hardest
+  // to find win or draw which is practically better. The logic is the same in
+  // both cases except we avoid choosing losing moves in a drawn position.
+  // Temperature is 0 in this case, even in the opening.
   while (cur != nullptr) {
     if (cur->visits() > max_visits && (root_->lost() || !cur->won())) {
       choice = cur->child_id();

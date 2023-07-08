@@ -99,8 +99,8 @@ class SelfPlayer {
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).
   std::unique_ptr<std::ofstream> log_file_{};
-  /// @brief Number of the turn at which some player finds a mating sequence (or
-  /// draw)
+  /// @brief Number of the turn at which some player finds a mating sequence
+  /// (or draw)
   /// TODO: Test this, as it is currently very inaccurate.
   int32_t mate_turn_{0};
   /// @brief Parity for which model corresponds to which player during testing

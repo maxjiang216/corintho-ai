@@ -19,9 +19,8 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
                        int32_t parity)
-    : generator_{std::mt19937(random_seed)}, to_eval_{std::make_unique<float[]>(
-                                                 kGameStateSize *
-                                                 max_searches)},
+    : generator_{std::mt19937(random_seed)},
+      to_eval_{std::make_unique<float[]>(kGameStateSize * max_searches)},
       players_{TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing},
                TrainMC{&generator_, to_eval_.get(), max_searches,

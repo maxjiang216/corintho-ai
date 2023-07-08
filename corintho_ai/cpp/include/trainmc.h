@@ -56,32 +56,34 @@ class TrainMC {
   /// @details This is used for the web app.
   void getLegalMoves(int32_t legal_moves[kNumMoves]) const noexcept;
 
-  /// @brief Find best move and move the root node to that node. Writes the game
-  /// state and probability samples for training.
+  /// @brief Find best move and move the root node to that node. Writes the
+  /// game state and probability samples for training.
   /// @return The ID of the best move
   int32_t chooseMove(float game_state[kGameStateSize] = nullptr,
                      float prob_sample[kNumMoves] = nullptr) noexcept;
   /// @brief Do an iteration of searches
   /// @param eval The evaluations for the positions requested.
   /// For the first search, this is nullptr
-  /// @param probs The probabilities for legal moves for the positions requested
-  /// For the first search, this is nullptr
-  /// @return Whether the turn is done. This happens when the number of searches
-  /// equals TrainMC::max_iterations_ Or when the root node's outcome is known.
-  /// @details This function will perform searches until the number of positions
-  /// where an evaluation is requested equals TrainMC::searches_per_eval_, when
-  /// the root node's outcome is known, or when the root node's children are
-  /// completely searched.
+  /// @param probs The probabilities for legal moves for the positions
+  /// requested For the first search, this is nullptr
+  /// @return Whether the turn is done. This happens when the number of
+  /// searches equals TrainMC::max_iterations_ Or when the root node's outcome
+  /// is known.
+  /// @details This function will perform searches until the number of
+  /// positions where an evaluation is requested equals
+  /// TrainMC::searches_per_eval_, when the root node's outcome is known, or
+  /// when the root node's children are completely searched.
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
   /// @brief Receive the opponent's move and move the root node to that node
-  /// @return Whether the move was searched and thus does not need an evaluation
+  /// @return Whether the move was searched and thus does not need an
+  /// evaluation
   /// @details Will copy game and depth from the opponent if the move has not
   /// been searched
   bool receiveOpponentMove(int32_t move_choice, const Game &game,
                            int32_t depth);
   /// @brief Create a new root node with the given game and depth
-  /// @details This is used when the opponent makes an unsearched move. Does not
-  /// delete the old root (if it exists).
+  /// @details This is used when the opponent makes an unsearched move. Does
+  /// not delete the old root (if it exists).
   void createRoot(const Game &game, int32_t depth);
 
  private:

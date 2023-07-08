@@ -71,10 +71,11 @@ TEST(SelfPlayerTest, FewSearches) {
       for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
         for (int32_t j = 0; j < kNumSymmetries; ++j) {
           for (int32_t k = 0; k < kGameStateSize; ++k) {
-            EXPECT_TRUE(sample_game_states[i * kNumSymmetries * kGameStateSize +
-                                           j * kGameStateSize + k] >= 0.0 &&
-                        sample_game_states[i * kNumSymmetries * kGameStateSize +
-                                           j * kGameStateSize + k] <= 1.0);
+            EXPECT_TRUE(
+                sample_game_states[i * kNumSymmetries * kGameStateSize +
+                                   j * kGameStateSize + k] >= 0.0 &&
+                sample_game_states[i * kNumSymmetries * kGameStateSize +
+                                   j * kGameStateSize + k] <= 1.0);
           }
           EXPECT_TRUE(sample_evals[i * kNumSymmetries + j] >= -1.0 &&
                       sample_evals[i * kNumSymmetries + j] <= 1.0);
@@ -84,8 +85,8 @@ TEST(SelfPlayerTest, FewSearches) {
                                      j * kNumMoves + k] >= 0.0 &&
                         sample_probs[i * kNumSymmetries * kNumMoves +
                                      j * kNumMoves + k] <= 1.0);
-            sum += sample_probs[i * kNumSymmetries * kNumMoves + j * kNumMoves +
-                                k];
+            sum += sample_probs[i * kNumSymmetries * kNumMoves +
+                                j * kNumMoves + k];
           }
           EXPECT_TRUE(sum >= 0.99 && sum <= 1.01);
         }
@@ -209,7 +210,8 @@ TEST(SelfPlayerTest, FullGame) {
                 0.0 &&
             sample_probs[i * kNumSymmetries * kNumMoves + j * kNumMoves + k] <=
                 1.0);
-        sum += sample_probs[i * kNumSymmetries * kNumMoves + j * kNumMoves + k];
+        sum +=
+            sample_probs[i * kNumSymmetries * kNumMoves + j * kNumMoves + k];
       }
       EXPECT_TRUE(sum >= 0.99 && sum <= 1.01);
     }
@@ -239,15 +241,17 @@ TEST(SelfPlayerTest, FullGame) {
       float game_state[kGameStateSize];
       float prob_sample[kNumMoves];
       for (int32_t k = 0; k < kGameStateSize; ++k) {
-        game_state[k] = sample_game_states[j * kNumSymmetries * kGameStateSize +
-                                           i * kGameStateSize + k];
+        game_state[k] =
+            sample_game_states[j * kNumSymmetries * kGameStateSize +
+                               i * kGameStateSize + k];
       }
       for (int32_t k = 0; k < kNumMoves; ++k) {
         prob_sample[k] =
             sample_probs[j * kNumSymmetries * kNumMoves + i * kNumMoves + k];
       }
       // Sort
-      std::sort(game_state, game_state + kGameStateSize, std::greater<float>());
+      std::sort(game_state, game_state + kGameStateSize,
+                std::greater<float>());
       std::sort(prob_sample, prob_sample + kNumMoves, std::greater<float>());
       for (int32_t k = 0; k < kGameStateSize; ++k) {
         EXPECT_TRUE(std::abs(game_state[k] -
@@ -255,8 +259,8 @@ TEST(SelfPlayerTest, FullGame) {
                     1e-6);
       }
       for (int32_t k = 0; k < kNumMoves; ++k) {
-        EXPECT_TRUE(std::abs(prob_sample[k] - sorted_probs[j * kNumMoves + k]) <
-                    1e-6);
+        EXPECT_TRUE(
+            std::abs(prob_sample[k] - sorted_probs[j * kNumMoves + k]) < 1e-6);
       }
     }
   }

@@ -1,9 +1,6 @@
 #include "trainer.h"
 #include "gtest/gtest.h"
 
-#include <iostream>
-using namespace std;
-
 // Test the default constructor
 TEST(TrainerTest, DefaultConstructor) {
   Trainer trainer;

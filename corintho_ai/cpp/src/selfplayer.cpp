@@ -15,9 +15,6 @@
 #include "trainer.h"
 #include "util.h"
 
-#include <iostream>
-using namespace std;
-
 SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,

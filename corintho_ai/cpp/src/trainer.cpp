@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <queue>
 #include <string>
 #include <vector>
@@ -14,9 +13,6 @@
 #include "selfplayer.h"
 #include "trainmc.h"
 #include "util.h"
-
-#include <iostream>
-using namespace std;
 
 Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
                  int32_t seed, int32_t max_searches, int32_t searches_per_eval,

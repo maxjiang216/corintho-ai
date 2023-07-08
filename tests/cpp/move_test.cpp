@@ -1,6 +1,6 @@
 #include "move.h"
 
-#include <iostream>
+#include <sstream>
 
 #include "gtest/gtest.h"
 

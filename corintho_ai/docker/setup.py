@@ -12,10 +12,10 @@ setup(
                 "play_corintho",
                 [
                     "choose_move.pyx",
-                    "../cpp/src/node.cpp",
-                    "../cpp/src/game.cpp",
-                    "../cpp/src/move.cpp",
-                    "../cpp/src/util.cpp",
+                    "./cpp/src/node.cpp",
+                    "./cpp/src/game.cpp",
+                    "./cpp/src/move.cpp",
+                    "./cpp/src/util.cpp",
                 ],
                 extra_compile_args=[
                     "-O3",
@@ -25,8 +25,8 @@ setup(
                 language="c++",
                 include_dirs=[
                     numpy.get_include(),
-                    "../cpp/include",
-                    "../../gsl/include",
+                    "./cpp/include",
+                    "./gsl/include",
                 ],
                 extra_link_args=["-fopenmp"],
             )

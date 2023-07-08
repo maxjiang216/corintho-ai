@@ -48,7 +48,6 @@ jobs:
         project_id: corintho-ai
         service_account_key: ${{ secrets.GCR_JSON_KEY }}
         export_default_credentials: true
-How 
     - name: Deploy to Google Cloud Run
       run: |
         gcloud run deploy corintho-play --image gcr.io/corintho-ai/corintho-play:latest --platform managed --region us-central1 --allow-unauthenticated

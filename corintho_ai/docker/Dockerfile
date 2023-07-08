@@ -21,6 +21,16 @@ RUN pip install --no-cache-dir -r requirements.txt -v
 
 # Copy the remaining application files into the container
 COPY . .
+COPY corintho_ai/cpp/src/trainmc.cpp ./cpp/src/
+COPY corintho_ai/cpp/src/node.cpp ./cpp/src/
+COPY corintho_ai/cpp/src/game.cpp ./cpp/src/
+COPY corintho_ai/cpp/src/move.cpp ./cpp/src/
+COPY corintho_ai/cpp/src/util.cpp ./cpp/src/
+COPY corintho_ai/cpp/include/trainmc.h ./cpp/include/
+COPY corintho_ai/cpp/include/node.h ./cpp/include/
+COPY corintho_ai/cpp/include/game.h ./cpp/include/
+COPY corintho_ai/cpp/include/move.h ./cpp/include/
+COPY corintho_ai/cpp/include/util.h ./cpp/include/
 
 # Build the Cython module
 RUN python3 setup.py build_ext --inplace

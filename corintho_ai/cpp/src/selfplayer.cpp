@@ -15,6 +15,9 @@
 #include "trainer.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
@@ -64,11 +67,9 @@ float SelfPlayer::score() const noexcept {
 }
 
 int32_t SelfPlayer::mateLength() const noexcept {
-  // No mate found
-  if (mate_turn_ == 0) {
-    assert(false);
+  // This can happen if the game is drawn
+  if (mate_turn_ == 0)
     return 0;
-  }
   return samples_.size() - mate_turn_ + 1;
 }
 
@@ -118,7 +119,7 @@ bool SelfPlayer::doIteration(float eval[], float probs[]) {
   // If we have completed a turn, we can choose a move
   if (done)
     return chooseMoveAndContinue();
-  // Oterhwise, the turn is not done so the game is not done
+  // Otherwise, the turn is not done so the game is not done
   return false;
 }
 
@@ -154,13 +155,14 @@ void SelfPlayer::writeMoves() const noexcept {
   };
   std::vector<MoveData> moves;
   Node *cur = players_[to_play_].root()->first_child();
-  uintf edge_index = 0;
+  int32_t edge_index = 0;
   while (cur != nullptr) {
     if (cur->child_id() == players_[to_play_].root()->move_id(edge_index)) {
       moves.emplace_back(cur->visits(),
                          cur->evaluation() / (float)cur->visits(),
                          players_[to_play_].root()->probability(edge_index),
                          cur->child_id(), cur);
+      cur = cur->next_sibling();
     }
     ++edge_index;
   }

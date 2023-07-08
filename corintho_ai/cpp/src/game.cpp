@@ -125,11 +125,14 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   }
   os << '\n';
   // Print pieces left
-  for (uintf player = 0; player < 2; ++player) {
+  for (int32_t player = 0; player < 2; ++player) {
     os << "Player " << player + 1 << ": ";
-    os << "B: " << (uintf)game.pieces_[player * 3 + kBase] << ' ';
-    os << "C: " << (uintf)game.pieces_[player * 3 + kColumn] << ' ';
-    os << "A: " << (uintf)game.pieces_[player * 3 + kCapital] << '\n';
+    os << "B: " << static_cast<int32_t>(game.pieces_[player * 3 + kBase])
+       << ' ';
+    os << "C: " << static_cast<int32_t>(game.pieces_[player * 3 + kColumn])
+       << ' ';
+    os << "A: " << static_cast<int32_t>(game.pieces_[player * 3 + kCapital])
+       << '\n';
   }
   os << "Player " << game.to_play_ + 1 << " to play";
   return os;

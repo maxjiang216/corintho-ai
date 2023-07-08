@@ -15,6 +15,9 @@
 #include "trainmc.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
                  int32_t seed, int32_t max_searches, int32_t searches_per_eval,
                  float c_puct, float epsilon, int32_t num_logged,
@@ -23,7 +26,6 @@ Trainer::Trainer(int32_t num_games, const std::string &logging_folder,
       max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
       num_threads_{num_threads}, generator_{gsl::narrow_cast<uint32_t>(seed)} {
   assert(num_games > 0);
-  assert(num_games % 2 == 0);
   assert(num_logged >= 0);
   assert(num_logged <= num_games);
   assert(max_searches >= 2);
@@ -41,7 +43,7 @@ int32_t Trainer::numRequests(int32_t to_play) const noexcept {
   int32_t num_requests = 0;
   for (const auto &game : games_) {
     if (!is_done_[&game - &games_[0]] &&
-        ((game->to_play() != 0 && game->to_play() != 1) ||
+        ((to_play != 0 && to_play != 1) ||
          game->to_play() == (to_play + game->parity()) % 2)) {
       num_requests += game->numRequests();
     }
@@ -66,9 +68,10 @@ float Trainer::score() const noexcept {
 }
 
 // TODO: Test this thoroughly. Test that the average has a reasonable value
-float Trainer::getAvgMateLen() const noexcept {
+float Trainer::avgMateLen() const noexcept {
   int32_t total_length = 0;
   for (const auto &game : games_) {
+    assert(is_done_[&game - &games_[0]]);
     total_length += game->mateLength();
   }
   return static_cast<float>(total_length) / games_.size();
@@ -102,20 +105,20 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
                            float *prob_samples) const noexcept {
   int32_t offset = 0;
   for (int32_t i = 0; i < games_.size(); ++i) {
-    games_[i]->writeSamples(game_states + offset * kGameStateSize,
+    games_[i]->writeSamples(game_states +
+                                offset * kGameStateSize * kNumSymmetries,
                             eval_samples + offset,
-                            prob_samples + offset * kNumMoves);
+                            prob_samples + offset * kNumMoves * kNumSymmetries);
     offset += games_[i]->numSamples();
   }
 }
 
-/// TODO: Try multiprocessing
 void Trainer::writeScores(const std::string &out_file) const {
   float scores[games_.size()];
-  for (uintf i = 0; i < games_.size(); i += 2) {
+  for (int32_t i = 0; i < games_.size(); i += 2) {
     scores[i] = games_[i]->score();
   }
-  for (uintf i = 1; i < games_.size(); i += 2) {
+  for (int32_t i = 1; i < games_.size(); i += 2) {
     scores[i] = 1.0 - games_[i]->score();
   }
   // First player score
@@ -141,7 +144,7 @@ void Trainer::writeScores(const std::string &out_file) const {
   // Second player score
   wins = 0;
   draws = 0;
-  for (uintf i = 1; i < games_.size(); i += 2) {
+  for (int32_t i = 1; i < games_.size(); i += 2) {
     if (scores[i] == 1.0) {
       ++wins;
     } else if (scores[i] == 0.5) {
@@ -166,11 +169,10 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     // multiprocessing.
     int32_t offset = 0;
     int32_t offsets[games_.size()] = {0};
-    for (uintf i = 1; i < games_.size(); ++i) {
+    for (int32_t i = 1; i < games_.size(); ++i) {
       offset += games_[i - 1]->numRequests();
       offsets[i] = offset;
     }
-
     omp_set_num_threads(num_threads_);
 #pragma omp parallel for
     for (int32_t i = 0; i < games_.size(); ++i) {
@@ -178,8 +180,8 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
         // We offset the start of the games to try to get an even distribution
         // of the games across the number of searches in a move. This way, the
         // total number of nodes will be more even. This reduces peak memory
-        // usage. Avoid division by 0 in the rare case that num_games <
-        // num_iterations / 2
+        // usage. Avoid division by 0 in the rare case that games_.size() <
+        // max_searches_
         if (i / std::max(static_cast<int32_t>(games_.size() / max_searches_),
                          1) <=
             searches_done_) {

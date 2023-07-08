@@ -33,29 +33,28 @@ TEST(SelfPlayerTest, FewSearches) {
       while (!selfplayer.doIteration(eval, probs)) {
         // Generate random evaluations
         int32_t num_requests = selfplayer.numRequests();
+        EXPECT_TRUE(num_requests > 0);
         EXPECT_TRUE(num_requests <= searches_per_eval);
-        if (num_requests > 0) {
-          // Sanity check for writing out game states
-          selfplayer.writeRequests(game_states);
-          for (int32_t i = 0; i < num_requests * kGameStateSize; ++i) {
-            EXPECT_TRUE(game_states[i] >= 0.0 && game_states[i] <= 1.0);
+        // Sanity check for writing out game states
+        selfplayer.writeRequests(game_states);
+        for (int32_t i = 0; i < num_requests * kGameStateSize; ++i) {
+          EXPECT_TRUE(game_states[i] >= 0.0 && game_states[i] <= 1.0);
+        }
+        // Generate random evaluations
+        for (int32_t i = 0; i < num_requests; ++i) {
+          eval[i] = eval_dist(generator);
+        }
+        for (int32_t i = 0; i < num_requests * kNumMoves; ++i) {
+          probs[i] = prob_dist(generator);
+        }
+        // Normalize the probabilities
+        for (int32_t i = 0; i < num_requests; ++i) {
+          float sum = 0.0;
+          for (int32_t j = 0; j < kNumMoves; ++j) {
+            sum += probs[i * kNumMoves + j];
           }
-          // Generate random evaluations
-          for (int32_t i = 0; i < num_requests; ++i) {
-            eval[i] = eval_dist(generator);
-          }
-          for (int32_t i = 0; i < num_requests * kNumMoves; ++i) {
-            probs[i] = prob_dist(generator);
-          }
-          // Normalize the probabilities
-          for (int32_t i = 0; i < num_requests; ++i) {
-            float sum = 0.0;
-            for (int32_t j = 0; j < kNumMoves; ++j) {
-              sum += probs[i * kNumMoves + j];
-            }
-            for (int32_t j = 0; j < kNumMoves; ++j) {
-              probs[i * kNumMoves + j] /= sum;
-            }
+          for (int32_t j = 0; j < kNumMoves; ++j) {
+            probs[i * kNumMoves + j] /= sum;
           }
         }
       }
@@ -63,7 +62,6 @@ TEST(SelfPlayerTest, FewSearches) {
       EXPECT_TRUE(selfplayer.numSamples() > 0);
       // Maximum number of moves
       EXPECT_TRUE(selfplayer.numSamples() <= 40);
-      EXPECT_TRUE(selfplayer.mateLength() >= 1);
       float sample_game_states[kNumSymmetries * selfplayer.numSamples() *
                                kGameStateSize] = {0.0};
       float sample_evals[kNumSymmetries * selfplayer.numSamples()] = {0.0};
@@ -188,7 +186,6 @@ TEST(SelfPlayerTest, FullGame) {
   EXPECT_TRUE(selfplayer.numSamples() > 0);
   // Maximum number of moves
   EXPECT_TRUE(selfplayer.numSamples() <= 40);
-  EXPECT_TRUE(selfplayer.mateLength() >= 1);
   float sample_game_states[kNumSymmetries * selfplayer.numSamples() *
                            kGameStateSize] = {0.0};
   float sample_evals[kNumSymmetries * selfplayer.numSamples()] = {0.0};

@@ -30,7 +30,7 @@ class Trainer {
   /// @brief Average score of first player
   float score() const noexcept;
   /// @brief Return the average mate length
-  float getAvgMateLen() const noexcept;
+  float avgMateLen() const noexcept;
 
   /// @brief Write the game states for which evaluations are requested
   /// @param game_states The array to write the game states to

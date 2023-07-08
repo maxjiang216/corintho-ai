@@ -16,6 +16,7 @@ on:
       - corintho/cpp/include/move.h
       - corintho/cpp/include/util.h
       - corintho/docker/*
+      - .github/workflows/docker.yaml
 
 jobs:
   build:

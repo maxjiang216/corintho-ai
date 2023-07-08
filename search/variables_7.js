@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['kmaxprobability_201',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
-  ['knumopeningmoves_202',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]]
+  ['is_5fdone_5f_210',['is_done_',['../classTrainer.html#a3cc2b775f42f14cc01e228d0d5b896bb',1,'Trainer']]]
 ];

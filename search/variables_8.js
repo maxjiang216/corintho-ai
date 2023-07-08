@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['log_5ffile_5f_203',['log_file_',['../classSelfPlayer.html#a431a070708e0f2366d0cb0456eebead8',1,'SelfPlayer']]]
+  ['kmaxprobability_211',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
+  ['knumopeningmoves_212',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]]
 ];

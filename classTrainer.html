@@ -70,70 +70,274 @@ $(function() {
 <div class="title">Trainer Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Orchestrates many <a class="el" href="classSelfPlayer.html" title="A training match with 2 TrainMC players.">SelfPlayer</a> objects to generate training samples from self-play games.  
+ <a href="classTrainer.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="trainer_8h_source.html">trainer.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac697ce7394061e632972251ddaf7ba40"><td class="memItemLeft" align="right" valign="top"><a id="ac697ce7394061e632972251ddaf7ba40"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, uintf threads, uintf searches_per_eval, const std::string &amp;logging_folder, uintf random_seed)</td></tr>
-<tr class="separator:ac697ce7394061e632972251ddaf7ba40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad7ecc7e442cde7e12e6a4b0fe09f864b"><td class="memItemLeft" align="right" valign="top"><a id="ad7ecc7e442cde7e12e6a4b0fe09f864b"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (uintf num_games, uintf num_logged, uintf num_iterations, float c_puct, float epsilon, uintf threads, uintf searches_per_eval, const std::string &amp;logging_folder, uintf random_seed, bool)</td></tr>
-<tr class="separator:ad7ecc7e442cde7e12e6a4b0fe09f864b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e04862c7e25dd834c60414616fbcc5c"><td class="memItemLeft" align="right" valign="top"><a id="a1e04862c7e25dd834c60414616fbcc5c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluations[], float probabilities[])</td></tr>
-<tr class="separator:a1e04862c7e25dd834c60414616fbcc5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7654f644e012557534599152294c43a2"><td class="memItemLeft" align="right" valign="top"><a id="a7654f644e012557534599152294c43a2"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>do_iteration</b> (float evaluations[], float probabilities[], uintf to_play)</td></tr>
-<tr class="separator:a7654f644e012557534599152294c43a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c79b900caa7e8145e6496aa88b770d9"><td class="memItemLeft" align="right" valign="top"><a id="a0c79b900caa7e8145e6496aa88b770d9"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float *game_states) const</td></tr>
-<tr class="separator:a0c79b900caa7e8145e6496aa88b770d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d3bb96bf1698c4dfd0a08e8145d73ef"><td class="memItemLeft" align="right" valign="top"><a id="a7d3bb96bf1698c4dfd0a08e8145d73ef"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>write_requests</b> (float *game_states, uintf to_play) const</td></tr>
-<tr class="separator:a7d3bb96bf1698c4dfd0a08e8145d73ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2eef03f17665e47023d5c6875e7d7014"><td class="memItemLeft" align="right" valign="top"><a id="a2eef03f17665e47023d5c6875e7d7014"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>count_samples</b> () const</td></tr>
-<tr class="separator:a2eef03f17665e47023d5c6875e7d7014"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17abaad1a293c90ae3bb82b9955ebb5c"><td class="memItemLeft" align="right" valign="top"><a id="a17abaad1a293c90ae3bb82b9955ebb5c"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_samples</b> (float *game_states, float *evaluation_samples, float *probability_samples) const</td></tr>
-<tr class="separator:a17abaad1a293c90ae3bb82b9955ebb5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac46692b5f0d336688c22702fd5b72b56"><td class="memItemLeft" align="right" valign="top"><a id="ac46692b5f0d336688c22702fd5b72b56"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_score</b> (const std::string &amp;out_file) const</td></tr>
-<tr class="separator:ac46692b5f0d336688c22702fd5b72b56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2296992e888e638d067decdd450304da"><td class="memItemLeft" align="right" valign="top"><a id="a2296992e888e638d067decdd450304da"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>get_avg_mate_len</b> () const</td></tr>
-<tr class="separator:a2296992e888e638d067decdd450304da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ac740bff57a68e5afcc385082ab96f4"><td class="memItemLeft" align="right" valign="top"><a id="a8ac740bff57a68e5afcc385082ab96f4"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer</a> ()=default</td></tr>
+<tr class="memdesc:a8ac740bff57a68e5afcc385082ab96f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor This is needed for Cython to be able to create a <a class="el" href="classTrainer.html" title="Orchestrates many SelfPlayer objects to generate training samples from self-play games.">Trainer</a> object. <br /></td></tr>
+<tr class="separator:a8ac740bff57a68e5afcc385082ab96f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a802544fa14daed7df2c6d2ca879c23ab"><td class="memItemLeft" align="right" valign="top"><a id="a802544fa14daed7df2c6d2ca879c23ab"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (int32_t num_games, const std::string &amp;logging_folder, int32_t seed, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, int32_t num_logged=10, int32_t num_threads=1, bool testing=false)</td></tr>
+<tr class="separator:a802544fa14daed7df2c6d2ca879c23ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6abe1c59ee34ae7553f4ac8d0a5fd3d"><td class="memItemLeft" align="right" valign="top"><a id="ac6abe1c59ee34ae7553f4ac8d0a5fd3d"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#ac6abe1c59ee34ae7553f4ac8d0a5fd3d">numRequests</a> (int32_t to_play=-1) const noexcept</td></tr>
+<tr class="memdesc:ac6abe1c59ee34ae7553f4ac8d0a5fd3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations. <br /></td></tr>
+<tr class="separator:ac6abe1c59ee34ae7553f4ac8d0a5fd3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d9e09e0ab2d3032b09e2ac016c48527"><td class="memItemLeft" align="right" valign="top"><a id="a9d9e09e0ab2d3032b09e2ac016c48527"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a9d9e09e0ab2d3032b09e2ac016c48527">numSamples</a> () const noexcept</td></tr>
+<tr class="memdesc:a9d9e09e0ab2d3032b09e2ac016c48527"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of training samples. <br /></td></tr>
+<tr class="separator:a9d9e09e0ab2d3032b09e2ac016c48527"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf184a040a7ded72f4bf9ab32efa36e8"><td class="memItemLeft" align="right" valign="top"><a id="acf184a040a7ded72f4bf9ab32efa36e8"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#acf184a040a7ded72f4bf9ab32efa36e8">score</a> () const noexcept</td></tr>
+<tr class="memdesc:acf184a040a7ded72f4bf9ab32efa36e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Average score of first player. <br /></td></tr>
+<tr class="separator:acf184a040a7ded72f4bf9ab32efa36e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0976846f7cef5f2ece22ad925e0b2048"><td class="memItemLeft" align="right" valign="top"><a id="a0976846f7cef5f2ece22ad925e0b2048"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a0976846f7cef5f2ece22ad925e0b2048">avgMateLen</a> () const noexcept</td></tr>
+<tr class="memdesc:a0976846f7cef5f2ece22ad925e0b2048"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the average mate length. <br /></td></tr>
+<tr class="separator:a0976846f7cef5f2ece22ad925e0b2048"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44f24805ab936ebe0aedfd759a1a784d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d">writeRequests</a> (float *game_states, int32_t to_play=-1) const noexcept</td></tr>
+<tr class="memdesc:a44f24805ab936ebe0aedfd759a1a784d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the game states for which evaluations are requested.  <a href="classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d">More...</a><br /></td></tr>
+<tr class="separator:a44f24805ab936ebe0aedfd759a1a784d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11f8624a0bcd8a4647cce03f0df45af0"><td class="memItemLeft" align="right" valign="top"><a id="a11f8624a0bcd8a4647cce03f0df45af0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a11f8624a0bcd8a4647cce03f0df45af0">writeSamples</a> (float *game_states, float *eval_samples, float *prob_samples) const noexcept</td></tr>
+<tr class="memdesc:a11f8624a0bcd8a4647cce03f0df45af0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the training samples. <br /></td></tr>
+<tr class="separator:a11f8624a0bcd8a4647cce03f0df45af0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88291425c2339024686c86c852c7d401"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a88291425c2339024686c86c852c7d401">writeScores</a> (const std::string &amp;file) const</td></tr>
+<tr class="memdesc:a88291425c2339024686c86c852c7d401"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a summary of the game outcomes to a file.  <a href="classTrainer.html#a88291425c2339024686c86c852c7d401">More...</a><br /></td></tr>
+<tr class="separator:a88291425c2339024686c86c852c7d401"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7012e727c7b84b0a41706bc05fea1e7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">doIteration</a> (float eval[], float probs[], int32_t to_play=-1)</td></tr>
+<tr class="memdesc:af7012e727c7b84b0a41706bc05fea1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is the main function that runs the self-play games. It is called by Cython in a loop.  <a href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">More...</a><br /></td></tr>
+<tr class="separator:af7012e727c7b84b0a41706bc05fea1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:aaa78d65a2e1e7917290eb6aea8c8dd23"><td class="memItemLeft" align="right" valign="top"><a id="aaa78d65a2e1e7917290eb6aea8c8dd23"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> (bool testing, uintf num_games, uintf num_logged, float c_puct, float epsilon, uintf searches_per_eval, const std::string &amp;logging_folder)</td></tr>
-<tr class="separator:aaa78d65a2e1e7917290eb6aea8c8dd23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeade42626b90aeb4be089828c6725c32"><td class="memItemLeft" align="right" valign="top"><a id="aeade42626b90aeb4be089828c6725c32"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> (int32_t num_games, const std::string &amp;logging_folder, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, int32_t num_logged, bool testing)</td></tr>
+<tr class="separator:aeade42626b90aeb4be089828c6725c32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:ace5dfffc3fe5c0e07007fc4cc01a338c"><td class="memItemLeft" align="right" valign="top"><a id="ace5dfffc3fe5c0e07007fc4cc01a338c"></a>
-std::vector&lt; <a class="el" href="classSelfPlayer.html">SelfPlayer</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>games</b></td></tr>
-<tr class="separator:ace5dfffc3fe5c0e07007fc4cc01a338c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac182286b13b2bf5469089b01180e8d5b"><td class="memItemLeft" align="right" valign="top"><a id="ac182286b13b2bf5469089b01180e8d5b"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>num_iterations</b></td></tr>
-<tr class="separator:ac182286b13b2bf5469089b01180e8d5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74e1bd89cef2e25f3154911fb31076f4"><td class="memItemLeft" align="right" valign="top"><a id="a74e1bd89cef2e25f3154911fb31076f4"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>threads</b> = 0</td></tr>
-<tr class="separator:a74e1bd89cef2e25f3154911fb31076f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af5b03264797f65bfebb63b9a621bef4d"><td class="memItemLeft" align="right" valign="top"><a id="af5b03264797f65bfebb63b9a621bef4d"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>searches_per_eval</b></td></tr>
-<tr class="separator:af5b03264797f65bfebb63b9a621bef4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf37c5bccea185f4059b1843adfa40f3"><td class="memItemLeft" align="right" valign="top"><a id="acf37c5bccea185f4059b1843adfa40f3"></a>
-uintf&#160;</td><td class="memItemRight" valign="bottom"><b>iterations_done</b></td></tr>
-<tr class="separator:acf37c5bccea185f4059b1843adfa40f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06f013f5c4bdbf1a549d1862ade54bd0"><td class="memItemLeft" align="right" valign="top"><a id="a06f013f5c4bdbf1a549d1862ade54bd0"></a>
-std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>is_done</b></td></tr>
-<tr class="separator:a06f013f5c4bdbf1a549d1862ade54bd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0918b8ec05e66b7fca011df194b6a706"><td class="memItemLeft" align="right" valign="top"><a id="a0918b8ec05e66b7fca011df194b6a706"></a>
-std::mt19937&#160;</td><td class="memItemRight" valign="bottom"><b>generator</b></td></tr>
-<tr class="separator:a0918b8ec05e66b7fca011df194b6a706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab2e13ffac75eec1f7615a3f73e43692"><td class="memItemLeft" align="right" valign="top"><a id="aab2e13ffac75eec1f7615a3f73e43692"></a>
+std::vector&lt; std::unique_ptr&lt; <a class="el" href="classSelfPlayer.html">SelfPlayer</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#aab2e13ffac75eec1f7615a3f73e43692">games_</a> {}</td></tr>
+<tr class="memdesc:aab2e13ffac75eec1f7615a3f73e43692"><td class="mdescLeft">&#160;</td><td class="mdescRight">The self-play games. <br /></td></tr>
+<tr class="separator:aab2e13ffac75eec1f7615a3f73e43692"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cc2b775f42f14cc01e228d0d5b896bb"><td class="memItemLeft" align="right" valign="top"><a id="a3cc2b775f42f14cc01e228d0d5b896bb"></a>
+std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a3cc2b775f42f14cc01e228d0d5b896bb">is_done_</a> {}</td></tr>
+<tr class="memdesc:a3cc2b775f42f14cc01e228d0d5b896bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tracks which games are done. <br /></td></tr>
+<tr class="separator:a3cc2b775f42f14cc01e228d0d5b896bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9154945cf7fc5b872024ac101b8ff4d3"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a9154945cf7fc5b872024ac101b8ff4d3">max_searches_</a> {1600}</td></tr>
+<tr class="memdesc:a9154945cf7fc5b872024ac101b8ff4d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of searches per turn for the players.  <a href="classTrainer.html#a9154945cf7fc5b872024ac101b8ff4d3">More...</a><br /></td></tr>
+<tr class="separator:a9154945cf7fc5b872024ac101b8ff4d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23686c5cc9aba62ab4abc1a6cad0741f"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f">searches_per_eval_</a> {16}</td></tr>
+<tr class="memdesc:a23686c5cc9aba62ab4abc1a6cad0741f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of searches per neural network evaluation.  <a href="classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f">More...</a><br /></td></tr>
+<tr class="separator:a23686c5cc9aba62ab4abc1a6cad0741f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af11defd91b00d737aea9925bd9eabb0b"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#af11defd91b00d737aea9925bd9eabb0b">num_threads_</a> {0}</td></tr>
+<tr class="memdesc:af11defd91b00d737aea9925bd9eabb0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of threads to use.  <a href="classTrainer.html#af11defd91b00d737aea9925bd9eabb0b">More...</a><br /></td></tr>
+<tr class="separator:af11defd91b00d737aea9925bd9eabb0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39f0e3838e5923623410254b402fb1c5"><td class="memItemLeft" align="right" valign="top"><a id="a39f0e3838e5923623410254b402fb1c5"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a39f0e3838e5923623410254b402fb1c5">searches_done_</a> {0}</td></tr>
+<tr class="memdesc:a39f0e3838e5923623410254b402fb1c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of searches done so far TODO: Is this searches or evaluations? <br /></td></tr>
+<tr class="separator:a39f0e3838e5923623410254b402fb1c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7b1cc877c2b4b5edc0022362aec1b40b"><td class="memItemLeft" align="right" valign="top"><a id="a7b1cc877c2b4b5edc0022362aec1b40b"></a>
+std::mt19937&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a7b1cc877c2b4b5edc0022362aec1b40b">generator_</a> {}</td></tr>
+<tr class="memdesc:a7b1cc877c2b4b5edc0022362aec1b40b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Random number generator. <br /></td></tr>
+<tr class="separator:a7b1cc877c2b4b5edc0022362aec1b40b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Orchestrates many <a class="el" href="classSelfPlayer.html" title="A training match with 2 TrainMC players.">SelfPlayer</a> objects to generate training samples from self-play games. </p>
+<p>This is the class that is used by Cython </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="af7012e727c7b84b0a41706bc05fea1e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7012e727c7b84b0a41706bc05fea1e7">&#9670;&nbsp;</a></span>doIteration()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Trainer::doIteration </td>
+          <td>(</td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>eval</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>probs</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>to_play</em> = <code>-1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>This is the main function that runs the self-play games. It is called by Cython in a loop. </p>
+<dl class="section return"><dt>Returns</dt><dd>If all games are done </dd></dl>
+
+</div>
+</div>
+<a id="a44f24805ab936ebe0aedfd759a1a784d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44f24805ab936ebe0aedfd759a1a784d">&#9670;&nbsp;</a></span>writeRequests()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Trainer::writeRequests </td>
+          <td>(</td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>game_states</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>to_play</em> = <code>-1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Write the game states for which evaluations are requested. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">game_states</td><td>The array to write the game states to </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of requests for evaluations </dd></dl>
+
+</div>
+</div>
+<a id="a88291425c2339024686c86c852c7d401"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88291425c2339024686c86c852c7d401">&#9670;&nbsp;</a></span>writeScores()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Trainer::writeScores </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>file</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Write a summary of the game outcomes to a file. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">file</td><td>The name of the file to write to </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The percentage score of the first player. This is used to determine if a generation improved </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9154945cf7fc5b872024ac101b8ff4d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9154945cf7fc5b872024ac101b8ff4d3">&#9670;&nbsp;</a></span>max_searches_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Trainer::max_searches_ {1600}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Maximum number of searches per turn for the players. </p>
+<p>This is used to compute offsets for starting the games </p>
+
+</div>
+</div>
+<a id="af11defd91b00d737aea9925bd9eabb0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af11defd91b00d737aea9925bd9eabb0b">&#9670;&nbsp;</a></span>num_threads_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Trainer::num_threads_ {0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The number of threads to use. </p>
+<p>If 0, then use the number of threads available (which OpenMP will automatically do) </p>
+
+</div>
+</div>
+<a id="a23686c5cc9aba62ab4abc1a6cad0741f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23686c5cc9aba62ab4abc1a6cad0741f">&#9670;&nbsp;</a></span>searches_per_eval_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Trainer::searches_per_eval_ {16}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The maximum number of searches per neural network evaluation. </p>
+<p>This is used to compute the size of arrays for neural network input and output </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="trainer_8h_source.html">trainer.h</a></li>
 </ul>

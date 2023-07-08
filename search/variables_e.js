@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['testing_5f_220',['testing_',['../classTrainMC.html#a036f410bddafcbf51484cab2e53f0468',1,'TrainMC']]],
-  ['to_5feval_5f_221',['to_eval_',['../classSelfPlayer.html#a7b7934ea9ffe4746612b22c30d6a5293',1,'SelfPlayer::to_eval_()'],['../classTrainMC.html#a15a07e62254af9d40da5b32b047fdf8a',1,'TrainMC::to_eval_()']]],
-  ['to_5fplay_5f_222',['to_play_',['../classGame.html#a214707f5e2f6cad01717fd7cab022c43',1,'Game::to_play_()'],['../classSelfPlayer.html#aa08c551354d38e2586fb28fbad0eb491',1,'SelfPlayer::to_play_()']]]
+  ['samples_5f_227',['samples_',['../classSelfPlayer.html#ac65c9dde1c63c09f24ff317bd9f14453',1,'SelfPlayer']]],
+  ['searched_5f_228',['searched_',['../classTrainMC.html#af8e1a8fdc4e9531f4098ca202a224aa0',1,'TrainMC']]],
+  ['searches_5fdone_5f_229',['searches_done_',['../classTrainer.html#a39f0e3838e5923623410254b402fb1c5',1,'Trainer::searches_done_()'],['../classTrainMC.html#a6355c7901073fcb397c44621391d2ab8',1,'TrainMC::searches_done_()']]],
+  ['searches_5fper_5feval_5f_230',['searches_per_eval_',['../classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f',1,'Trainer::searches_per_eval_()'],['../classTrainMC.html#a381cc439e28442f88a44a5aec614aecf',1,'TrainMC::searches_per_eval_()']]]
 ];

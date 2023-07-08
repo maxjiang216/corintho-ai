@@ -72,71 +72,69 @@ $(function() {
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#ifndef TRAINER_H</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#define TRAINER_H</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160; </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;selfplayer.h&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;queue&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160; </div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">// This is the class that should interact with Cython</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160; </div>
-<div class="line"><a name="l00013"></a><span class="lineno"><a class="line" href="classTrainer.html">   13</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTrainer.html">Trainer</a> {</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;  <span class="comment">// SelfPlayer objects</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;  std::vector&lt;SelfPlayer *&gt; games;</div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160; </div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;  <span class="comment">// Number of iterations per move (used to compute offsets)</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;  uintf num_iterations, threads = 0, searches_per_eval;</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <span class="comment">// Counter used to keep track of number of iterations done for offsets</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;  uintf iterations_done;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;  <span class="comment">// Track which games are done</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  std::vector&lt;bool&gt; is_done;</div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;random&gt;</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160; </div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &quot;selfplayer.h&quot;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;util.h&quot;</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160; </div>
+<div class="line"><a name="l00015"></a><span class="lineno"><a class="line" href="classTrainer.html">   15</a></span>&#160;<span class="keyword">class </span><a class="code" href="classTrainer.html">Trainer</a> {</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00019"></a><span class="lineno"><a class="line" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">   19</a></span>&#160;  <a class="code" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;  <a class="code" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer</a>(int32_t num_games, <span class="keyword">const</span> std::string &amp;logging_folder, int32_t seed,</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;          int32_t max_searches = 1600, int32_t searches_per_eval = 16,</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;          <span class="keywordtype">float</span> c_puct = 1.0, <span class="keywordtype">float</span> epsilon = 0.25, int32_t num_logged = 10,</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;          int32_t num_threads = 1, <span class="keywordtype">bool</span> testing = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;  ~<a class="code" href="classTrainer.html">Trainer</a>() = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  <span class="comment">// Random generator for all operations</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  std::mt19937 generator;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="comment">// Initialize SelfPlayers (factored out of different version of constructor)</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;  <span class="keywordtype">void</span> initialize(<span class="keywordtype">bool</span> testing, uintf num_games, uintf num_logged, <span class="keywordtype">float</span> c_puct,</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;                  <span class="keywordtype">float</span> epsilon, uintf searches_per_eval,</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;                  <span class="keyword">const</span> std::string &amp;logging_folder);</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;  <span class="comment">// Training</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <a class="code" href="classTrainer.html">Trainer</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  <a class="code" href="classTrainer.html">Trainer</a>(uintf num_games, uintf num_logged, uintf num_iterations, <span class="keywordtype">float</span> c_puct,</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;          <span class="keywordtype">float</span> epsilon, uintf threads, uintf searches_per_eval,</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;          <span class="keyword">const</span> std::string &amp;logging_folder, uintf random_seed);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  <span class="comment">// Testing</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  <a class="code" href="classTrainer.html">Trainer</a>(uintf num_games, uintf num_logged, uintf num_iterations, <span class="keywordtype">float</span> c_puct,</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;          <span class="keywordtype">float</span> epsilon, uintf threads, uintf searches_per_eval,</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;          <span class="keyword">const</span> std::string &amp;logging_folder, uintf random_seed, <span class="keywordtype">bool</span>);</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  ~<a class="code" href="classTrainer.html">Trainer</a>();</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;  <span class="comment">// Main function that will be called by Cython</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="comment">// Training version</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluations[], <span class="keywordtype">float</span> probabilities[]);</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;  <span class="comment">// Testing version</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;  <span class="keywordtype">bool</span> do_iteration(<span class="keywordtype">float</span> evaluations[], <span class="keywordtype">float</span> probabilities[], uintf to_play);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;  <span class="comment">// Returns how many positions we want evaluated</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;  uintf write_requests(<span class="keywordtype">float</span> *game_states) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  uintf write_requests(<span class="keywordtype">float</span> *game_states, uintf to_play) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;  <span class="comment">// Counts the number of samples in all the games</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  uintf count_samples() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="classTrainer.html#ac6abe1c59ee34ae7553f4ac8d0a5fd3d">   27</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#ac6abe1c59ee34ae7553f4ac8d0a5fd3d">numRequests</a>(int32_t to_play = -1) const noexcept;</div>
+<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="classTrainer.html#a9d9e09e0ab2d3032b09e2ac016c48527">   29</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#a9d9e09e0ab2d3032b09e2ac016c48527">numSamples</a>() const noexcept;</div>
+<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="classTrainer.html#acf184a040a7ded72f4bf9ab32efa36e8">   31</a></span>&#160;  <span class="keywordtype">float</span> <a class="code" href="classTrainer.html#acf184a040a7ded72f4bf9ab32efa36e8">score</a>() const noexcept;</div>
+<div class="line"><a name="l00033"></a><span class="lineno"><a class="line" href="classTrainer.html#a0976846f7cef5f2ece22ad925e0b2048">   33</a></span>&#160;  <span class="keywordtype">float</span> <a class="code" href="classTrainer.html#a0976846f7cef5f2ece22ad925e0b2048">avgMateLen</a>() const noexcept;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; </div>
+<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d">   38</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d">writeRequests</a>(<span class="keywordtype">float</span> *game_states, int32_t to_play = -1) const noexcept;</div>
+<div class="line"><a name="l00040"></a><span class="lineno"><a class="line" href="classTrainer.html#a11f8624a0bcd8a4647cce03f0df45af0">   40</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTrainer.html#a11f8624a0bcd8a4647cce03f0df45af0">writeSamples</a>(<span class="keywordtype">float</span> *game_states, <span class="keywordtype">float</span> *eval_samples,</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;                    <span class="keywordtype">float</span> *prob_samples) const noexcept;</div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="classTrainer.html#a88291425c2339024686c86c852c7d401">   46</a></span>&#160;  <span class="keywordtype">void</span> <a class="code" href="classTrainer.html#a88291425c2339024686c86c852c7d401">writeScores</a>(const std::<span class="keywordtype">string</span> &amp;file) const;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
+<div class="line"><a name="l00051"></a><span class="lineno"><a class="line" href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">   51</a></span>&#160;  <span class="keywordtype">bool</span> <a class="code" href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">doIteration</a>(<span class="keywordtype">float</span> eval[], <span class="keywordtype">float</span> probs[], int32_t to_play = -1);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160; private:</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;  <span class="comment">// Initialize SelfPlayers (factored out of different version of constructor)</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;  <span class="keywordtype">void</span> initialize(int32_t num_games, const std::<span class="keywordtype">string</span> &amp;logging_folder,</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;                  int32_t max_searches, int32_t searches_per_eval, <span class="keywordtype">float</span> c_puct,</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;                  <span class="keywordtype">float</span> epsilon, int32_t num_logged, <span class="keywordtype">bool</span> testing);</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; </div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keywordtype">void</span> write_samples(<span class="keywordtype">float</span> *game_states, <span class="keywordtype">float</span> *evaluation_samples,</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;                     <span class="keywordtype">float</span> *probability_samples) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160; </div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;  <span class="keywordtype">float</span> get_score(<span class="keyword">const</span> std::string &amp;out_file) <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;  <span class="keywordtype">float</span> get_avg_mate_len() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;};</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassTrainer_html"><div class="ttname"><a href="classTrainer.html">Trainer</a></div><div class="ttdef"><b>Definition:</b> trainer.h:13</div></div>
+<div class="line"><a name="l00060"></a><span class="lineno"><a class="line" href="classTrainer.html#aab2e13ffac75eec1f7615a3f73e43692">   60</a></span>&#160;  std::vector&lt;std::unique_ptr&lt;<a class="code" href="classSelfPlayer.html">SelfPlayer</a>&gt;&gt; <a class="code" href="classTrainer.html#aab2e13ffac75eec1f7615a3f73e43692">games_</a>{};</div>
+<div class="line"><a name="l00062"></a><span class="lineno"><a class="line" href="classTrainer.html#a3cc2b775f42f14cc01e228d0d5b896bb">   62</a></span>&#160;  std::vector&lt;bool&gt; <a class="code" href="classTrainer.html#a3cc2b775f42f14cc01e228d0d5b896bb">is_done_</a>{};</div>
+<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classTrainer.html#a9154945cf7fc5b872024ac101b8ff4d3">   65</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#a9154945cf7fc5b872024ac101b8ff4d3">max_searches_</a>{1600};</div>
+<div class="line"><a name="l00069"></a><span class="lineno"><a class="line" href="classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f">   69</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f">searches_per_eval_</a>{16};</div>
+<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="classTrainer.html#af11defd91b00d737aea9925bd9eabb0b">   73</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#af11defd91b00d737aea9925bd9eabb0b">num_threads_</a>{0};</div>
+<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="classTrainer.html#a39f0e3838e5923623410254b402fb1c5">   76</a></span>&#160;  int32_t <a class="code" href="classTrainer.html#a39f0e3838e5923623410254b402fb1c5">searches_done_</a>{0};</div>
+<div class="line"><a name="l00078"></a><span class="lineno"><a class="line" href="classTrainer.html#a7b1cc877c2b4b5edc0022362aec1b40b">   78</a></span>&#160;  std::mt19937 <a class="code" href="classTrainer.html#a7b1cc877c2b4b5edc0022362aec1b40b">generator_</a>{};</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;};</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160; </div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassSelfPlayer_html"><div class="ttname"><a href="classSelfPlayer.html">SelfPlayer</a></div><div class="ttdoc">A training match with 2 TrainMC players.</div><div class="ttdef"><b>Definition:</b> selfplayer.h:26</div></div>
+<div class="ttc" id="aclassTrainer_html"><div class="ttname"><a href="classTrainer.html">Trainer</a></div><div class="ttdoc">Orchestrates many SelfPlayer objects to generate training samples from self-play games.</div><div class="ttdef"><b>Definition:</b> trainer.h:15</div></div>
+<div class="ttc" id="aclassTrainer_html_a0976846f7cef5f2ece22ad925e0b2048"><div class="ttname"><a href="classTrainer.html#a0976846f7cef5f2ece22ad925e0b2048">Trainer::avgMateLen</a></div><div class="ttdeci">float avgMateLen() const noexcept</div><div class="ttdoc">Return the average mate length.</div></div>
+<div class="ttc" id="aclassTrainer_html_a11f8624a0bcd8a4647cce03f0df45af0"><div class="ttname"><a href="classTrainer.html#a11f8624a0bcd8a4647cce03f0df45af0">Trainer::writeSamples</a></div><div class="ttdeci">void writeSamples(float *game_states, float *eval_samples, float *prob_samples) const noexcept</div><div class="ttdoc">Write the training samples.</div></div>
+<div class="ttc" id="aclassTrainer_html_a23686c5cc9aba62ab4abc1a6cad0741f"><div class="ttname"><a href="classTrainer.html#a23686c5cc9aba62ab4abc1a6cad0741f">Trainer::searches_per_eval_</a></div><div class="ttdeci">int32_t searches_per_eval_</div><div class="ttdoc">The maximum number of searches per neural network evaluation.</div><div class="ttdef"><b>Definition:</b> trainer.h:69</div></div>
+<div class="ttc" id="aclassTrainer_html_a39f0e3838e5923623410254b402fb1c5"><div class="ttname"><a href="classTrainer.html#a39f0e3838e5923623410254b402fb1c5">Trainer::searches_done_</a></div><div class="ttdeci">int32_t searches_done_</div><div class="ttdoc">The number of searches done so far TODO: Is this searches or evaluations?</div><div class="ttdef"><b>Definition:</b> trainer.h:76</div></div>
+<div class="ttc" id="aclassTrainer_html_a3cc2b775f42f14cc01e228d0d5b896bb"><div class="ttname"><a href="classTrainer.html#a3cc2b775f42f14cc01e228d0d5b896bb">Trainer::is_done_</a></div><div class="ttdeci">std::vector&lt; bool &gt; is_done_</div><div class="ttdoc">Tracks which games are done.</div><div class="ttdef"><b>Definition:</b> trainer.h:62</div></div>
+<div class="ttc" id="aclassTrainer_html_a44f24805ab936ebe0aedfd759a1a784d"><div class="ttname"><a href="classTrainer.html#a44f24805ab936ebe0aedfd759a1a784d">Trainer::writeRequests</a></div><div class="ttdeci">void writeRequests(float *game_states, int32_t to_play=-1) const noexcept</div><div class="ttdoc">Write the game states for which evaluations are requested.</div></div>
+<div class="ttc" id="aclassTrainer_html_a7b1cc877c2b4b5edc0022362aec1b40b"><div class="ttname"><a href="classTrainer.html#a7b1cc877c2b4b5edc0022362aec1b40b">Trainer::generator_</a></div><div class="ttdeci">std::mt19937 generator_</div><div class="ttdoc">Random number generator.</div><div class="ttdef"><b>Definition:</b> trainer.h:78</div></div>
+<div class="ttc" id="aclassTrainer_html_a88291425c2339024686c86c852c7d401"><div class="ttname"><a href="classTrainer.html#a88291425c2339024686c86c852c7d401">Trainer::writeScores</a></div><div class="ttdeci">void writeScores(const std::string &amp;file) const</div><div class="ttdoc">Write a summary of the game outcomes to a file.</div></div>
+<div class="ttc" id="aclassTrainer_html_a8ac740bff57a68e5afcc385082ab96f4"><div class="ttname"><a href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer::Trainer</a></div><div class="ttdeci">Trainer()=default</div><div class="ttdoc">Default constructor This is needed for Cython to be able to create a Trainer object.</div></div>
+<div class="ttc" id="aclassTrainer_html_a9154945cf7fc5b872024ac101b8ff4d3"><div class="ttname"><a href="classTrainer.html#a9154945cf7fc5b872024ac101b8ff4d3">Trainer::max_searches_</a></div><div class="ttdeci">int32_t max_searches_</div><div class="ttdoc">Maximum number of searches per turn for the players.</div><div class="ttdef"><b>Definition:</b> trainer.h:65</div></div>
+<div class="ttc" id="aclassTrainer_html_a9d9e09e0ab2d3032b09e2ac016c48527"><div class="ttname"><a href="classTrainer.html#a9d9e09e0ab2d3032b09e2ac016c48527">Trainer::numSamples</a></div><div class="ttdeci">int32_t numSamples() const noexcept</div><div class="ttdoc">Return the number of training samples.</div></div>
+<div class="ttc" id="aclassTrainer_html_aab2e13ffac75eec1f7615a3f73e43692"><div class="ttname"><a href="classTrainer.html#aab2e13ffac75eec1f7615a3f73e43692">Trainer::games_</a></div><div class="ttdeci">std::vector&lt; std::unique_ptr&lt; SelfPlayer &gt; &gt; games_</div><div class="ttdoc">The self-play games.</div><div class="ttdef"><b>Definition:</b> trainer.h:60</div></div>
+<div class="ttc" id="aclassTrainer_html_ac6abe1c59ee34ae7553f4ac8d0a5fd3d"><div class="ttname"><a href="classTrainer.html#ac6abe1c59ee34ae7553f4ac8d0a5fd3d">Trainer::numRequests</a></div><div class="ttdeci">int32_t numRequests(int32_t to_play=-1) const noexcept</div><div class="ttdoc">Return the number of requests for evaluations.</div></div>
+<div class="ttc" id="aclassTrainer_html_acf184a040a7ded72f4bf9ab32efa36e8"><div class="ttname"><a href="classTrainer.html#acf184a040a7ded72f4bf9ab32efa36e8">Trainer::score</a></div><div class="ttdeci">float score() const noexcept</div><div class="ttdoc">Average score of first player.</div></div>
+<div class="ttc" id="aclassTrainer_html_af11defd91b00d737aea9925bd9eabb0b"><div class="ttname"><a href="classTrainer.html#af11defd91b00d737aea9925bd9eabb0b">Trainer::num_threads_</a></div><div class="ttdeci">int32_t num_threads_</div><div class="ttdoc">The number of threads to use.</div><div class="ttdef"><b>Definition:</b> trainer.h:73</div></div>
+<div class="ttc" id="aclassTrainer_html_af7012e727c7b84b0a41706bc05fea1e7"><div class="ttname"><a href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">Trainer::doIteration</a></div><div class="ttdeci">bool doIteration(float eval[], float probs[], int32_t to_play=-1)</div><div class="ttdoc">This is the main function that runs the self-play games. It is called by Cython in a loop.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

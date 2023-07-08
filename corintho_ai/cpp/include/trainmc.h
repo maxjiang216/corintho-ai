@@ -21,6 +21,10 @@ class TrainMC {
   TrainMC &operator=(const TrainMC &) = default;
   TrainMC &operator=(TrainMC &&) = default;
   ~TrainMC();
+  /// @brief Constructor for web app. Starts at an arbitrary position
+  TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+          int32_t searches_per_eval, float c_puct, float epsilon,
+          const Game &game);
 
   /// @brief Return the root node of the Monte Carlo search tree
   Node *root() const noexcept;

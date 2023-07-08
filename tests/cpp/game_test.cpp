@@ -25,6 +25,44 @@ TEST(GameTest, DefaultConstructor) {
   }
 }
 
+TEST(GameTest, WebAppConstructor) {
+  // Starting position
+  int32_t board[4 * kBoardSize] = {0};
+  int32_t to_play = 0;
+  int32_t pieces[6] = {4, 4, 4, 4, 4, 4};
+  Game game = Game(board, to_play, pieces);
+  std::bitset<kNumMoves> legal_moves;
+  bool has_lines = game.getLegalMoves(legal_moves);
+  EXPECT_FALSE(has_lines);
+  // All place moves should be legal in the starting position
+  for (int32_t row = 0; row < 4; ++row) {
+    for (int32_t col = 0; col < 4; ++col) {
+      for (PieceType piece_type : kPieceTypes) {
+        int32_t move_id = encodePlace(Space{row, col}, piece_type);
+        EXPECT_TRUE(legal_moves[move_id]);
+      }
+    }
+  }
+  // No move moves should be legal in the starting position
+  for (int32_t id = 0; id < 48; ++id) {
+    EXPECT_FALSE(legal_moves[id]);
+  }
+
+  // Terminal position with a line
+  board[2 * 4 + kCapital] = 1;
+  board[5 * 4 + kCapital] = 1;
+  board[8 * 4 + kCapital] = 1;
+  board[8 * 4 + kFrozen] = 1;
+  to_play = 1;
+  pieces[2] = 2;
+  pieces[5] = 3;
+  game = Game(board, to_play, pieces);
+  has_lines = game.getLegalMoves(legal_moves);
+  EXPECT_TRUE(has_lines);
+  // No legal moves
+  EXPECT_TRUE(legal_moves.none());
+}
+
 TEST(GameTest, PlaceOnEmptyBoard) {
   // Test that placing a piece on an empty board works
   for (int32_t row = 0; row < 4; ++row) {

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['initializeedges_154',['initializeEdges',['../classNode.html#af36a94abf2f8b836b4d499aa8790650a',1,'Node']]],
-  ['islegalmove_155',['isLegalMove',['../classGame.html#aaeab89abce55b4cf91919f5a4de090eb',1,'Game']]],
-  ['isuninitialized_156',['isUninitialized',['../classTrainMC.html#ab4f00faf0a9aa6f41cf38bd6c03bfea3',1,'TrainMC']]]
+  ['initializeedges_152',['initializeEdges',['../classNode.html#af36a94abf2f8b836b4d499aa8790650a',1,'Node']]],
+  ['islegalmove_153',['isLegalMove',['../classGame.html#aaeab89abce55b4cf91919f5a4de090eb',1,'Game']]],
+  ['isuninitialized_154',['isUninitialized',['../classTrainMC.html#ab4f00faf0a9aa6f41cf38bd6c03bfea3',1,'TrainMC']]]
 ];

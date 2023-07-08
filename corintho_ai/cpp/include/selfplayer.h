@@ -5,7 +5,6 @@
 #include <fstream>
 #include <memory>
 #include <random>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -85,7 +84,7 @@ class SelfPlayer {
   bool chooseMoveAndContinue();
   /// @brief Random generator for all operations
   /// @details Shared with the TrainMC objects
-  std::unique_ptr<std::mt19937> generator_{};
+  std::mt19937 generator_{};
   /// @brief Positions needing evaluation
   std::unique_ptr<float[]> to_eval_{};
   /// @brief Monte Carlo search trees for each player

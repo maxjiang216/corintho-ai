@@ -5,17 +5,17 @@ on:
     branches:
       - main
     paths:
-      - corintho/cpp/src/trainmc.cpp
-      - corintho/cpp/src/node.cpp
-      - corintho/cpp/src/game.cpp
-      - corintho/cpp/src/move.cpp
-      - corintho/cpp/src/util.cpp
-      - corintho/cpp/include/trainmc.h
-      - corintho/cpp/include/node.h
-      - corintho/cpp/include/game.h
-      - corintho/cpp/include/move.h
-      - corintho/cpp/include/util.h
-      - corintho/docker/*
+      - corintho_ai/cpp/src/trainmc.cpp
+      - corintho_ai/cpp/src/node.cpp
+      - corintho_ai/cpp/src/game.cpp
+      - corintho_ai/cpp/src/move.cpp
+      - corintho_ai/cpp/src/util.cpp
+      - corintho_ai/cpp/include/trainmc.h
+      - corintho_ai/cpp/include/node.h
+      - corintho_ai/cpp/include/game.h
+      - corintho_ai/cpp/include/move.h
+      - corintho_ai/cpp/include/util.h
+      - corintho_ai/docker/*
       - .github/workflows/docker.yaml
 
 jobs:

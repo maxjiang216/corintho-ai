@@ -14,13 +14,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements.txt file into the container
-COPY requirements.txt .
+COPY corintho_ai/docker/requirements.txt .
 
 # Install the required packages
 RUN pip install --no-cache-dir -r requirements.txt -v
 
 # Copy the remaining application files into the container
-COPY . .
+COPY corintho_ai/docker .
 COPY corintho_ai/cpp/src/trainmc.cpp ./cpp/src/
 COPY corintho_ai/cpp/src/node.cpp ./cpp/src/
 COPY corintho_ai/cpp/src/game.cpp ./cpp/src/
@@ -31,6 +31,7 @@ COPY corintho_ai/cpp/include/node.h ./cpp/include/
 COPY corintho_ai/cpp/include/game.h ./cpp/include/
 COPY corintho_ai/cpp/include/move.h ./cpp/include/
 COPY corintho_ai/cpp/include/util.h ./cpp/include/
+COPY gsl/include/gsl ./gsl/include/gsl
 
 # Build the Cython module
 RUN python3 setup.py build_ext --inplace

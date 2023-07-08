@@ -19,7 +19,7 @@ cdef extern from "<random>" namespace "std":
         mt19937() except +
         mt19937(unsigned int seed) except +
 
-cdef extern from "../cpp/src/trainmc.cpp":
+cdef extern from "./cpp/src/trainmc.cpp":
     cdef cppclass TrainMC:
         TrainMC(
             mt19937 *generator,

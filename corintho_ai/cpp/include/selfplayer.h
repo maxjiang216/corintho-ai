@@ -105,6 +105,9 @@ class SelfPlayer {
   int32_t mate_turn_{0};
   /// @brief Parity for which model corresponds to which player during testing
   int32_t parity_{0};
+  /// @brief If we are testing
+  /// @details If we are testing, we do not write training samples
+  bool testing_{false};
 };
 
 #endif

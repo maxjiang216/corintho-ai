@@ -1,10 +1,13 @@
 """
 Module for choosing moves using MCST and a neural network
 for the Corintho web app.
+
+choose_move: Main Cython function called by the Flask API.
 """
 
 # distutils: language = c++
 
+import sys
 import time
 
 import numpy as np
@@ -19,7 +22,7 @@ cdef extern from "<random>" namespace "std":
         mt19937() except +
         mt19937(unsigned int seed) except +
 
-cdef extern from "./cpp/src/trainmc.cpp":
+cdef extern from "../cpp/src/trainmc.cpp":
     cdef cppclass TrainMC:
         TrainMC(
             mt19937 *generator,
@@ -106,8 +109,8 @@ cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
 
     evals_done = 0
     # We continue searching until the time limit is reached or the maximum number of searches is reached.
-    # We do at least 1 search
-    while evals_done < 2 or time.time() - start_time < time_limit:
+    # We do at least 2 searches
+    while evals_done < 3 or time.time() - start_time < time_limit:
         evals_done += 1
         done = mc.doIteration(&eval[0], &probs[0,0])
         # The MCST has deduced the game outcome or a maximum number of searches is reached
@@ -126,7 +129,6 @@ cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
         model.resize_tensor_input(input_details[0]['index'], input_shape)
         model.allocate_tensors()
         model.set_tensor(input_details[0]['index'], input_data)
-
         model.invoke()
         eval = model.get_tensor(output_details[0]['index']).flatten()
         prob = model.get_tensor(output_details[1]['index'])
@@ -142,7 +144,7 @@ cdef list get_legal_moves(TrainMC* mc):
     Returns: list of IDs of legal moves
     """
     legal_move_lst = []
-    cdef int[:] legal_moves = np.zeros(_NUM_MOVES, dtype=int)
+    cdef int[:] legal_moves = np.zeros(_NUM_MOVES, dtype=np.int32)
     mc.getLegalMoves(&legal_moves[0])
     for i in range(_NUM_MOVES):
         if legal_moves[i] == 1:
@@ -171,15 +173,15 @@ def choose_move(
     rng = np.random.default_rng(int(start_time))
 
     # Extract game state
-    cdef int[:] board = np.zeros(64, dtype=int)
-    cdef int[:] pieces = np.zeros(6, dtype=int)
+    cdef int[:] board = np.zeros(64, dtype=np.int32)
+    cdef int[:] pieces = np.zeros(6, dtype=np.int32)
     to_play = extract_game_state(game_state, board, pieces)
 
     # Construct a MCST object
     cdef mt19937 *generator = new mt19937(rng.integers(65536))
-    cdef float[:] to_eval = np.zeros(searches_per_eval, dtype=float)
+    cdef float[:] to_eval = np.zeros(searches_per_eval, dtype=np.float32)
     if max_searches == 0:
-        max_searches = 1000000  # Use a large number to simulate having no limit
+        max_searches = 32760  # So that visit count fits in a 16-bit signed integer
     cdef TrainMC *mc = new TrainMC(
         generator,
         &to_eval[0],
@@ -210,6 +212,7 @@ def choose_move(
         legal_moves = get_legal_moves(mc)
     nodes_searched = mc.num_nodes()
     evaluation = mc.eval()
+    del generator
     del mc
 
     return {
@@ -218,5 +221,5 @@ def choose_move(
         "has_won": has_won,
         "legal_moves": legal_moves,
         "nodes_searched": nodes_searched,
-        "evaluation": evaluation,
+        "evaluation": evaluation / nodes_searched,
     }

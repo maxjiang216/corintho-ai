@@ -36,6 +36,9 @@ COPY gsl/include/gsl ./gsl/include/gsl
 # Build the Cython module
 RUN python3 ./corintho_ai/docker/setup.py build_ext --inplace
 
+# Set FLASK_APP environment variable
+ENV FLASK_APP=/app/corintho_ai/docker/app.py
+
 # Expose the Flask application port
 EXPOSE 8080
 

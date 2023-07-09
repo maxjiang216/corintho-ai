@@ -34,7 +34,7 @@ COPY corintho_ai/cpp/include/util.h ./corintho_ai/cpp/include/
 COPY gsl/include/gsl ./gsl/include/gsl
 
 # Build the Cython module
-RUN python3 ./corintho_ai/docker/setup.py build_ext --inplace
+RUN cd ./corintho_ai/docker && python3 setup.py build_ext --inplace && cd ../..
 
 # Set FLASK_APP environment variable
 ENV FLASK_APP=/app/corintho_ai/docker/app.py

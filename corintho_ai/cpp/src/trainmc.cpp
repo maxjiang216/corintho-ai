@@ -88,7 +88,7 @@ void TrainMC::null_root() noexcept {
 
 void TrainMC::writeRequests(float *game_states) const noexcept {
   assert(searched_.size() <= searches_per_eval_);
-  for (int32_t i = 0; i < searched_.size(); ++i) {
+  for (size_t i = 0; i < searched_.size(); ++i) {
     searched_[i]->writeGameState(game_states + i * kGameStateSize);
   }
 }
@@ -165,7 +165,7 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   // At the start of a turn, there are no evaluations
   if (searched_.size() > 0)
     receiveEval(eval, probs);
-  while (searched_.size() < searches_per_eval_ &&
+  while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
          searches_done_ < max_searches_ && !root_->known() &&
          !root_->all_visited()) {
     search();
@@ -269,7 +269,7 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
   assert(searched_.size() <= searches_per_eval_);
-  for (int32_t i = 0; i < searched_.size(); ++i) {
+  for (size_t i = 0; i < searched_.size(); ++i) {
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];
     getFilteredProbs(probs + kNumMoves * i, filtered_probs);

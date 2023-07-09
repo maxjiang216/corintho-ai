@@ -182,6 +182,9 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#aa32a7cc390e71df0c55d0de19a88c985">parity_</a> {0}</td></tr>
 <tr class="memdesc:aa32a7cc390e71df0c55d0de19a88c985"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parity for which model corresponds to which player during testing. <br /></td></tr>
 <tr class="separator:aa32a7cc390e71df0c55d0de19a88c985"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2a75fc5f8a6d89321b9d1206c025f12"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ac2a75fc5f8a6d89321b9d1206c025f12">testing_</a> {false}</td></tr>
+<tr class="memdesc:ac2a75fc5f8a6d89321b9d1206c025f12"><td class="mdescLeft">&#160;</td><td class="mdescRight">If we are testing.  <a href="classSelfPlayer.html#ac2a75fc5f8a6d89321b9d1206c025f12">More...</a><br /></td></tr>
+<tr class="separator:ac2a75fc5f8a6d89321b9d1206c025f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A training match with 2 <a class="el" href="classTrainMC.html" title="Class for Monte Carlo tree search.">TrainMC</a> players. </p>
@@ -489,6 +492,23 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 
 <p>File where all logs are written to. </p>
 <p>We use a pointer so that no memory is allocated if there is no logging file (which is true most of the time). </p>
+
+</div>
+</div>
+<a id="ac2a75fc5f8a6d89321b9d1206c025f12"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2a75fc5f8a6d89321b9d1206c025f12">&#9670;&nbsp;</a></span>testing_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SelfPlayer::testing_ {false}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>If we are testing. </p>
+<p>If we are testing, we do not write training samples </p>
 
 </div>
 </div>

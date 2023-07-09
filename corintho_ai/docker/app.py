@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Load the TFLite model
-_TFLITE_MODEL_PATH = "tflite_model.tflite"
+_TFLITE_MODEL_PATH = "corintho_ai/docker/tflite_model.tflite"
 model = tf.lite.Interpreter(model_path=_TFLITE_MODEL_PATH)
 model.allocate_tensors()
 

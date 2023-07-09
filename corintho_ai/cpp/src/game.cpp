@@ -11,17 +11,21 @@
 #include "move.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
            int32_t pieces[6]) noexcept
     : to_play_{gsl::narrow_cast<int8_t>(to_play)} {
   assert(to_play == 0 || to_play == 1);
   for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
     assert(board[i] == 0 || board[i] == 1);
-    this->board_[i] = board[i] != 0;
+    board_[i] = board[i] != 0;
+    cerr << "board_[" << i << "] = " << board_[i] << endl;
   }
   for (int32_t i = 0; i < 6; ++i) {
     assert(pieces[i] >= 0 && pieces[i] <= 4);
-    this->pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
+    pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
   }
 }
 
@@ -43,7 +47,10 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
 }
 
 void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
+  cerr << "Game::writeGameState " << game_state << endl;
+  cerr << "board_ = " << &board_ << endl;
   for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
+    cerr << "board_[" << i << "] = " << board_[i] << endl;
     if (board_[i]) {
       game_state[i] = 1.0;
     } else {
@@ -52,6 +59,7 @@ void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
   }
   // Canonize the pieces
   for (int32_t i = 0; i < 6; ++i) {
+    cerr << "pieces_[" << i << "] = " << pieces_[i] << endl;
     game_state[4 * kBoardSize + i] =
         static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
   }

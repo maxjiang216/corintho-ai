@@ -9,6 +9,9 @@
 #include "move.h"
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 Node::Node() : child_id_{0}, depth_{0} {
   // initializeEdges can throw an exception from new
   initializeEdges();
@@ -24,6 +27,8 @@ Node::Node(const Game &game, int32_t depth)
     : game_{game}, child_id_{0}, depth_{gsl::narrow_cast<int8_t>(depth)} {
   // initializeEdges can throw an exception from new
   initializeEdges();
+  cerr << "Node::Node(const Game &game, int32_t depth)" << endl;
+  cerr << game_ << endl;
 }
 
 Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
@@ -34,6 +39,8 @@ Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
   game_.doMove(move_id);
   // initializeEdges can throw an exception from new
   initializeEdges();
+  cerr << "Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id, int32_t depth)" << endl;
+  cerr << game_ << endl;
 }
 
 Game Node::game() const noexcept {
@@ -189,7 +196,14 @@ bool Node::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
 }
 
 void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
+  cerr << "Node::writeGameState" << endl;
+  cerr << this << endl;
+  cerr << parent_ << ' '  << next_sibling_ << ' ' << first_child_ << ' ' << child_id_ << ' ' << depth_ << endl;
+  cerr << edges_ << ' ' << num_legal_moves_ << ' ' << denominator_ << ' ' << visits_ << ' ' << result_ << ' ' << all_visited_ << endl;
+  cerr << game_ << endl;
   game_.writeGameState(game_state);
+  cerr << this << endl;
+  cerr << "done node::writegame" << endl;
 }
 
 void Node::printMainLine(std::ostream *log_file) const {

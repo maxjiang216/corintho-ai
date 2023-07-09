@@ -102,10 +102,12 @@ cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
     output_details = model.get_output_details()
     input_shape = input_details[0]['shape']
 
+    print("Before allocating numpy arrays")
     # Arrays for input and output with the neural network
     cdef np.ndarray[np.float32_t, ndim=2] game_states = np.zeros((searches_per_eval, _GAME_STATE_SIZE), dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=1] eval = np.zeros(searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probs = np.zeros((searches_per_eval, _NUM_MOVES), dtype=np.float32)
+    print("After allocating numpy arrays")
 
     evals_done = 0
     # We continue searching until the time limit is reached or the maximum number of searches is reached.
@@ -113,25 +115,35 @@ cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
     while evals_done < 3 or time.time() - start_time < time_limit:
         evals_done += 1
         done = mc.doIteration(&eval[0], &probs[0,0])
+        print("After doIteration")
         # The MCST has deduced the game outcome or a maximum number of searches is reached
         if done:
             break
+        print("Before writing requests")
         # Get requests for evaluation
         num_requests = mc.num_requests()
+        print("Number of requests: ", num_requests)
         if num_requests == 0:
             break
         mc.writeRequests(&game_states[0,0])
+        print("After writing requests and before converting to float32")
         input_data = game_states[:num_requests].astype(np.float32)
         # Resize the input tensor depending on the number of requests
         # This is needed in TFLite models
         input_shape = list(input_details[0]['shape'])
         input_shape[0] = num_requests
+        print("Before resizing input tensor")
         model.resize_tensor_input(input_details[0]['index'], input_shape)
+        print("After resizing input tensor and before allocating tensors")
         model.allocate_tensors()
+        print("After allocating tensors and before setting tensor")
         model.set_tensor(input_details[0]['index'], input_data)
+        print("After setting tensor and before invoking model")
         model.invoke()
+        print("After invoking model and before getting tensor")
         eval = model.get_tensor(output_details[0]['index']).flatten()
         prob = model.get_tensor(output_details[1]['index'])
+        print("After getting tensor")
 
 cdef list get_legal_moves(TrainMC* mc):
     """

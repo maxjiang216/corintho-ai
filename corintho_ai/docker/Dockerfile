@@ -39,6 +39,9 @@ RUN cd ./corintho_ai/docker && python3 setup.py build_ext --inplace && cd ../..
 # Set FLASK_APP environment variable
 ENV FLASK_APP=/app/corintho_ai/docker/app.py
 
+# Set FLASK_APP environment variable
+ENV FLASK_APP=/app/corintho_ai/docker/app.py
+
 # Expose the Flask application port
 EXPOSE 8080
 

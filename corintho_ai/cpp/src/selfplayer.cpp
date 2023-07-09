@@ -26,7 +26,7 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing}},
 
-      log_file_{std::move(log_file)}, parity_{parity} {
+      log_file_{std::move(log_file)}, parity_{parity}, testing_{testing} {
   assert(max_searches > 1);
   assert(searches_per_eval > 0);
   assert(c_puct > 0.0);
@@ -80,6 +80,7 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   assert(game_states != nullptr);
   assert(eval_samples != nullptr);
   assert(prob_samples != nullptr);
+  assert(!testing_);
   // The last player to play a move is the winner, except in a draw
   float evaluation = 1.0;
   if (result_ == kResultDraw) {
@@ -230,12 +231,15 @@ void SelfPlayer::endGame() noexcept {
 }
 
 int32_t SelfPlayer::chooseMove() {
-  std::array<float, kGameStateSize> game_state;
-  std::array<float, kNumMoves> prob_sample;
-  int32_t choice =
-      players_[to_play_].chooseMove(game_state.data(), prob_sample.data());
-  samples_.emplace_back(game_state, prob_sample);
-  return choice;
+  if (!testing_) {
+    std::array<float, kGameStateSize> game_state;
+    std::array<float, kNumMoves> prob_sample;
+    int32_t choice =
+        players_[to_play_].chooseMove(game_state.data(), prob_sample.data());
+    samples_.emplace_back(game_state, prob_sample);
+    return choice;
+  }
+  return players_[to_play_].chooseMove();
 }
 
 bool SelfPlayer::chooseMoveAndContinue() {

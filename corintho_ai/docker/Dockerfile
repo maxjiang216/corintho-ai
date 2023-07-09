@@ -20,21 +20,21 @@ COPY corintho_ai/docker/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt -v
 
 # Copy the remaining application files into the container
-COPY corintho_ai/docker .
-COPY corintho_ai/cpp/src/trainmc.cpp ./cpp/src/
-COPY corintho_ai/cpp/src/node.cpp ./cpp/src/
-COPY corintho_ai/cpp/src/game.cpp ./cpp/src/
-COPY corintho_ai/cpp/src/move.cpp ./cpp/src/
-COPY corintho_ai/cpp/src/util.cpp ./cpp/src/
-COPY corintho_ai/cpp/include/trainmc.h ./cpp/include/
-COPY corintho_ai/cpp/include/node.h ./cpp/include/
-COPY corintho_ai/cpp/include/game.h ./cpp/include/
-COPY corintho_ai/cpp/include/move.h ./cpp/include/
-COPY corintho_ai/cpp/include/util.h ./cpp/include/
+COPY corintho_ai/docker ./corintho_ai/docker
+COPY corintho_ai/cpp/src/trainmc.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/src/node.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/src/game.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/src/move.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/src/util.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/include/trainmc.h ./corintho_ai/cpp/include/
+COPY corintho_ai/cpp/include/node.h ./corintho_ai/cpp/include/
+COPY corintho_ai/cpp/include/game.h ./corintho_ai/cpp/include/
+COPY corintho_ai/cpp/include/move.h ./corintho_ai/cpp/include/
+COPY corintho_ai/cpp/include/util.h ./corintho_ai/cpp/include/
 COPY gsl/include/gsl ./gsl/include/gsl
 
 # Build the Cython module
-RUN python3 setup.py build_ext --inplace
+RUN python3 ./corintho_ai/docker/setup.py build_ext --inplace
 
 # Expose the Flask application port
 EXPOSE 8080

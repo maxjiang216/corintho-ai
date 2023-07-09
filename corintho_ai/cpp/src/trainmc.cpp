@@ -32,9 +32,7 @@ TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
 }
 
 TrainMC::~TrainMC() {
-  if (root_ != nullptr) {
-    delete root_;
-  }
+  delete root_;
 }
 
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
@@ -139,6 +137,7 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
 
 bool TrainMC::doIteration(float eval[], float probs[]) {
   assert(to_eval_ != nullptr);
+  assert(searches_done_ <= max_searches_);
   // This is the first iteration of a game
   if (uninitialized()) {
     // Initialize the Monte Carlo search tree
@@ -316,7 +315,8 @@ int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
     cur = cur->next_sibling();
   }
   // Set the probability of the winning move to 1
-  prob_sample[choice] = 1.0;
+  if (prob_sample != nullptr)
+    prob_sample[choice] = 1.0;
   // Move down the tree
   moveDown(best_prev);
   return choice;
@@ -342,7 +342,8 @@ int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
     prev = cur;
     cur = cur->next_sibling();
   }
-  prob_sample[choice] = 1.0;
+  if (prob_sample != nullptr)
+    prob_sample[choice] = 1.0;
   moveDown(best_prev);
   return choice;
 }
@@ -367,14 +368,16 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
   float denominator = 1.0 / static_cast<float>(visits);
   cur = root_->first_child();
   // Write the probability sample
-  while (cur != nullptr) {
-    // Exclude losing moves
-    if (!cur->won()) {
-      prob_sample[cur->child_id()] =
-          static_cast<float>(cur->visits()) * denominator;
+  if (prob_sample != nullptr) {
+    while (cur != nullptr) {
+      // Exclude losing moves
+      if (!cur->won()) {
+        prob_sample[cur->child_id()] =
+            static_cast<float>(cur->visits()) * denominator;
+      }
+      best_prev = cur;
+      cur = cur->next_sibling();
     }
-    best_prev = cur;
-    cur = cur->next_sibling();
   }
   // Choose a random move weighted by the number of visits
   int32_t target = (*generator_)() % visits;
@@ -425,7 +428,8 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
     prev = cur;
     cur = cur->next_sibling();
   }
-  prob_sample[choice] = 1.0;
+  if (prob_sample != nullptr)
+    prob_sample[choice] = 1.0;
   moveDown(best_prev);
   return choice;
 }

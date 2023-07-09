@@ -166,7 +166,7 @@ TEST(TrainerTest, FullGameTesting) {
               eval[i] = eval_dist(generator);
             }
           }
-          EXPECT_TRUE(trainer.num_samples() > 0);
+          EXPECT_TRUE(trainer.num_samples() == 0);
         }
       }
     }

@@ -53,6 +53,12 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCR_JSON_KEY }}
 
+    - name: Activate Service Account
+      run: |
+        echo '${{ secrets.GCR_JSON_KEY }}' > key.json
+        gcloud auth activate-service-account --key-file=key.json
+        rm key.json
+
     - name: Deploy to Google Cloud Run
       run: |
         gcloud config set project corintho-ai

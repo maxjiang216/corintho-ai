@@ -244,11 +244,10 @@ void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
                                             std::to_string(i) + ".txt",
                                         std::ofstream::out),
         testing, i % 2);  // Generate parity for test games (changes who plays
-                           // first). Does not affect training games
+                          // first). Does not affect training games
   }
   for (int32_t i = num_logged; i < num_games; ++i) {
-    games_.emplace_back(generator_(), max_searches,
-                                   searches_per_eval, c_puct, epsilon, nullptr,
-                                   testing, i % 2);
+    games_.emplace_back(generator_(), max_searches, searches_per_eval, c_puct,
+                        epsilon, nullptr, testing, i % 2);
   }
 }

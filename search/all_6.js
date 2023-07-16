@@ -2,7 +2,7 @@ var searchData=
 [
   ['game_43',['Game',['../classGame.html',1,'Game'],['../classGame.html#a917b735bf9d8d7fe84e5a1fb6dc12aaf',1,'Game::Game()']]],
   ['game_5f_44',['game_',['../classNode.html#a093bc8ee1e621c7d4ac3a996db37ab42',1,'Node']]],
-  ['games_5f_45',['games_',['../classTrainer.html#aab2e13ffac75eec1f7615a3f73e43692',1,'Trainer']]],
+  ['games_5f_45',['games_',['../classTrainer.html#aa99a0c1ff977c4f7a9059c25ae780dea',1,'Trainer']]],
   ['generatedirichlet_46',['generateDirichlet',['../classTrainMC.html#a494a10cff55fff2882fa0dc3a9f7b0cf',1,'TrainMC']]],
   ['generator_5f_47',['generator_',['../classSelfPlayer.html#aa31e13454b406bb8dbd56aee95031b7d',1,'SelfPlayer::generator_()'],['../classTrainer.html#a7b1cc877c2b4b5edc0022362aec1b40b',1,'Trainer::generator_()'],['../classTrainMC.html#a2c68c3c397c740ccdc1464adbd45bab3',1,'TrainMC::generator_()']]],
   ['getfilteredprobs_48',['getFilteredProbs',['../classTrainMC.html#a3c2391d09e2966cce0f4acbef32d5856',1,'TrainMC']]],

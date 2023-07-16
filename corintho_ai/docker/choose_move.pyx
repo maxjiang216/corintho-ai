@@ -10,13 +10,13 @@ choose_move: Main Cython function called by the Flask API.
 import time
 
 import numpy as np
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 
 cimport numpy as np
 from libcpp cimport bool
 
 # Load the TFLite model
-model = tf.lite.Interpreter(model_path="corintho_ai/docker/tflite_model.tflite")
+model = tflite.Interpreter(model_path="corintho_ai/docker/tflite_model.tflite")
 model.allocate_tensors()
 
 cdef extern from "../cpp/src/dockermc.cpp":

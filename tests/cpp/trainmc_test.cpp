@@ -99,33 +99,20 @@ TEST(TrainMCTest, FewPerMove) {
 
 // Test playing out a game with 1600 searches per move
 TEST(TrainMCTest, FullGame) {
-  std::mt19937 generator(12345);
-  float to_eval[kGameStateSize * 16];
-  TrainMC trainmc(&generator, to_eval, 1600, 16);
-  int32_t depth = 0;
-  while (trainmc.uninitialized() || !trainmc.root()->terminal()) {
-    // Generate random evaluations
-    float eval[16];
-    float probs[16 * kNumMoves];
-    std::uniform_real_distribution<float> dist(0.0, 1.0);
-    for (int32_t i = 0; i < 16; ++i) {
-      eval[i] = dist(generator);
-    }
-    for (int32_t i = 0; i < 16; ++i) {
-      float sum = 0.0;
-      for (int32_t j = 0; j < kNumMoves; ++j) {
-        probs[i * kNumMoves + j] = dist(generator);
-        sum += probs[i * kNumMoves + j];
-      }
-      for (int32_t j = 0; j < kNumMoves; ++j) {
-        probs[i * kNumMoves + j] /= sum;
-      }
-    }
-    while (!trainmc.doIteration(eval, probs)) {
-      for (int32_t i = 0; i < 16; ++i) {
+  for (auto searches_per_eval : {1, 16}) {
+    std::mt19937 generator(12345);
+    float to_eval[kGameStateSize * searches_per_eval];
+    TrainMC trainmc(&generator, to_eval, 1600, searches_per_eval);
+    int32_t depth = 0;
+    while (trainmc.uninitialized() || !trainmc.root()->terminal()) {
+      // Generate random evaluations
+      float eval[searches_per_eval];
+      float probs[searches_per_eval * kNumMoves];
+      std::uniform_real_distribution<float> dist(0.0, 1.0);
+      for (int32_t i = 0; i < searches_per_eval; ++i) {
         eval[i] = dist(generator);
       }
-      for (int32_t i = 0; i < 16; ++i) {
+      for (int32_t i = 0; i < searches_per_eval; ++i) {
         float sum = 0.0;
         for (int32_t j = 0; j < kNumMoves; ++j) {
           probs[i * kNumMoves + j] = dist(generator);
@@ -135,16 +122,31 @@ TEST(TrainMCTest, FullGame) {
           probs[i * kNumMoves + j] /= sum;
         }
       }
+      while (!trainmc.doIteration(eval, probs)) {
+        for (int32_t i = 0; i < searches_per_eval; ++i) {
+          eval[i] = dist(generator);
+        }
+        for (int32_t i = 0; i < searches_per_eval; ++i) {
+          float sum = 0.0;
+          for (int32_t j = 0; j < kNumMoves; ++j) {
+            probs[i * kNumMoves + j] = dist(generator);
+            sum += probs[i * kNumMoves + j];
+          }
+          for (int32_t j = 0; j < kNumMoves; ++j) {
+            probs[i * kNumMoves + j] /= sum;
+          }
+        }
+      }
+      float game_state[kGameStateSize];
+      float prob_sample[kNumMoves];
+      // Check that the chosen move is legal
+      std::bitset<kNumMoves> legal_moves;
+      trainmc.root()->getLegalMoves(legal_moves);
+      int32_t choice = trainmc.chooseMove(game_state, prob_sample);
+      EXPECT_TRUE(legal_moves[choice]);
+      ++depth;
+      EXPECT_EQ(trainmc.root()->depth(), depth);
     }
-    float game_state[kGameStateSize];
-    float prob_sample[kNumMoves];
-    // Check that the chosen move is legal
-    std::bitset<kNumMoves> legal_moves;
-    trainmc.root()->getLegalMoves(legal_moves);
-    int32_t choice = trainmc.chooseMove(game_state, prob_sample);
-    EXPECT_TRUE(legal_moves[choice]);
-    ++depth;
-    EXPECT_EQ(trainmc.root()->depth(), depth);
+    EXPECT_TRUE(trainmc.done());
   }
-  EXPECT_TRUE(trainmc.done());
 }

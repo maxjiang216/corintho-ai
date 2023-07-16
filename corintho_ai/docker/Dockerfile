@@ -21,11 +21,13 @@ RUN pip install --no-cache-dir -r requirements.txt -v
 
 # Copy the remaining application files into the container
 COPY corintho_ai/docker ./corintho_ai/docker
+COPY corintho_ai/cpp/src/dockermc.cpp ./corintho_ai/cpp/src/
 COPY corintho_ai/cpp/src/trainmc.cpp ./corintho_ai/cpp/src/
 COPY corintho_ai/cpp/src/node.cpp ./corintho_ai/cpp/src/
 COPY corintho_ai/cpp/src/game.cpp ./corintho_ai/cpp/src/
 COPY corintho_ai/cpp/src/move.cpp ./corintho_ai/cpp/src/
 COPY corintho_ai/cpp/src/util.cpp ./corintho_ai/cpp/src/
+COPY corintho_ai/cpp/include/dockermc.h ./corintho_ai/cpp/include/
 COPY corintho_ai/cpp/include/trainmc.h ./corintho_ai/cpp/include/
 COPY corintho_ai/cpp/include/node.h ./corintho_ai/cpp/include/
 COPY corintho_ai/cpp/include/game.h ./corintho_ai/cpp/include/

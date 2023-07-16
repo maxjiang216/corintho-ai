@@ -14,9 +14,6 @@
 #include "move.h"
 #include "node.h"
 
-#include <iostream>
-using namespace std;
-
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -91,18 +88,9 @@ void TrainMC::null_root() noexcept {
 
 void TrainMC::writeRequests(float *game_states) const noexcept {
   assert(searched_.size() <= searches_per_eval_);
-  cerr << "writing requests\n";
-  cerr << this << '\n';
-  cerr << game_states << '\n';
-  cerr << searched_.size() << '\n';
   for (size_t i = 0; i < searched_.size(); ++i) {
-    cerr << searched_[i] << '\n';
-  }
-  for (size_t i = 0; i < searched_.size(); ++i) {
-    cerr << "writing request " << i << '\n';
     searched_[i]->writeGameState(game_states + i * kGameStateSize);
   }
-  cerr << "done writing requests\n";
 }
 
 void TrainMC::getLegalMoves(int32_t legal_moves[kNumMoves]) const noexcept {
@@ -160,34 +148,28 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     // Request an evaluation
     // The result is not deduced at this point
     cur_->writeGameState(to_eval_);
-    cerr << "searched_.push_back(" << cur_ << ") 163 \n";
     searched_.push_back(cur_);
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
   // This occurs when we receive a new root from the opponent
   // We should ignore the all_visited and not increment visit count
-  cerr << "searches done: " << searches_done_ << " root visits: " << root_->visits() << " root all visited: " << root_->all_visited() << "\n";
   if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
     searches_done_ = 1;
     // We need an evaluation
     cur_->writeGameState(to_eval_);
-    cerr << "searched_.push_back(" << cur_ << ") 175\n";
     searched_.push_back(cur_);
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
   // At the start of a turn, there are no evaluations
-  cerr << eval << ' ' << probs << '\n';
   if (searched_.size() > 0)
     receiveEval(eval, probs);
-  cerr << "searches done: " << searches_done_ << " root visits: " << root_->visits() << " root all visited: " << root_->all_visited() << "\n";
   while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
          searches_done_ < max_searches_ && !root_->known() &&
          !root_->all_visited()) {
     search();
   }
-  cerr << "done searching\n";
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
   return (searches_done_ == max_searches_ || root_->known()) &&
@@ -214,7 +196,6 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   createRoot(game, depth);
   // We need an evaluation
   cur_->writeGameState(to_eval_);
-  cerr << "searched_.push_back(" << cur_ << ") 217\n";
   searched_.push_back(cur_);
   assert(searched_.size() <= searches_per_eval_);
   searches_done_ = 1;
@@ -287,23 +268,17 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
-  assert(searched_.size() <= searches_per_eval_);
-  cerr << "searches done: " << searches_done_ << " root visits: " << root_->visits() << " root all visited: " << root_->all_visited() << "\n";
   for (size_t i = 0; i < searched_.size(); ++i) {
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];
-    cerr << "getting filtered probs\n";
     getFilteredProbs(probs + kNumMoves * i, filtered_probs);
-    cerr << "getting dirichlet\n";
     // Generate Dirichlet noise
     float dirichlet[cur_->num_legal_moves()];
     generateDirichlet(dirichlet);
-    cerr << "setting probs\n";
     // Set probabilities
     setProbs(filtered_probs, dirichlet);
     // Propagate the evaluation up the tree
     float cur_eval = eval[i];
-    cerr << "propagating eval\n";
     while (cur_->parent() != nullptr) {
       // Correct default +1 evaluation
       cur_->increase_evaluation(cur_eval - 1.0);
@@ -315,13 +290,7 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
     // Propagate to the root
     cur_->increase_evaluation(cur_eval - 1.0);
   }
-  cerr << "searches done: " << searches_done_ << " root visits: " << root_->visits() << " root all visited: " << root_->all_visited() << "\n";
   root_->set_all_visited(false);
-  cerr << "CLEARING SEARCHED_\n";
-  cerr << searched_.size() << '\n';
-  for (size_t i = 0; i < searched_.size(); ++i) {
-    cerr << searched_[i] << '\n';
-  }
   searched_.clear();
 }
 
@@ -597,13 +566,9 @@ void TrainMC::search() {
   // It's insignificant and too hard to debug
   cur_ = root_;
   ++searches_done_;
-  cerr << "starting search\n";
-  cerr << cur_ << '\n';
   while (!cur_->terminal()) {
     // Choose the next node to move down to
-    cerr << "choosing next\n";
     ChooseNextOutput res = chooseNext();
-    cerr << "done choosing next\n";
     cur_->increment_visits();
     // We use a default evaluation of 1.0 before we have a neural net
     // evaluation This helps diversify the searches. In particular, the second
@@ -639,22 +604,18 @@ void TrainMC::search() {
     }
     // New node at the beginning of the list
     if (res.type == ChooseNextOutput::Type::kNew && res.node == nullptr) {
-      cerr << "new node\n";
       cur_->set_first_child(new Node(cur_->get_game(), cur_,
                                      cur_->first_child(), res.choice,
                                      cur_->depth() + 1));
       cur_ = cur_->first_child();
-      cerr << "done new node\n";
       break;
     }
     // New node somewhere else in the list
     if (res.type == ChooseNextOutput::Type::kNew) {
-      cerr << "new node middle\n";
       res.node->set_next_sibling(new Node(cur_->get_game(), cur_,
                                           res.node->next_sibling(), res.choice,
                                           cur_->depth() + 1));
       cur_ = res.node->next_sibling();
-      cerr << "done new node middle" << cur_ << '\n';
       break;
     }
     // Existing node, continue searching
@@ -664,7 +625,6 @@ void TrainMC::search() {
   // This is usually a new node
   // But may be a drawn node that has been searched before
   if (cur_->terminal()) {
-    cerr << "terminal\n";
     // Propagate the result
     propagateTerminal();
     // In a decisive terminal state, the person to play is always the loser
@@ -683,21 +643,15 @@ void TrainMC::search() {
   }
   // Otherwise, request an evaluation for the new node
   else {
-    cerr << "requesting eval\n";
-    cerr << "cur_ " << cur_ << '\n';
     // Default +1 evaluation for new node
     cur_->set_evaluation(1.0);
     // Write game in correct position
-    cerr << "cur_ " << &cur_ << '\n';
     cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
     // Record the node in searched_
-    cerr << "cur_ " << &cur_ << ' ' << cur_ << '\n';
-    cerr << "searched_.push_back(" << cur_ << ") 692\n";
     searched_.push_back(cur_);
     assert(searched_.size() <= searches_per_eval_);
   }
   // Reset cur for next search
   // Try not doing this?
   cur_ = root_;
-  cerr << "done search\n";
 }

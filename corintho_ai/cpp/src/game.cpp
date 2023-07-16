@@ -17,11 +17,11 @@ Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
   assert(to_play == 0 || to_play == 1);
   for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
     assert(board[i] == 0 || board[i] == 1);
-    this->board_[i] = board[i] != 0;
+    board_[i] = board[i] != 0;
   }
   for (int32_t i = 0; i < 6; ++i) {
     assert(pieces[i] >= 0 && pieces[i] <= 4);
-    this->pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
+    pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
   }
 }
 

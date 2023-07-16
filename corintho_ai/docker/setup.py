@@ -16,6 +16,7 @@ setup(
                 "play_corintho",
                 [
                     os.path.join(current_dir, "choose_move.pyx"),
+                    os.path.join(current_dir, "../cpp/src/trainmc.cpp"),
                     os.path.join(current_dir, "../cpp/src/node.cpp"),
                     os.path.join(current_dir, "../cpp/src/game.cpp"),
                     os.path.join(current_dir, "../cpp/src/move.cpp"),
@@ -25,6 +26,7 @@ setup(
                     "-O3",
                     "-std=c++17",
                     "-fopenmp",
+                    "-DNDEBUG",
                 ],
                 language="c++",
                 include_dirs=[

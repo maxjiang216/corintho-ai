@@ -17,16 +17,9 @@ cimport numpy as np
 from libcpp cimport bool
 
 
-cdef extern from "<random>" namespace "std":
-    cdef cppclass mt19937:
-        mt19937() except +
-        mt19937(unsigned int seed) except +
-
-cdef extern from "../cpp/src/trainmc.cpp":
-    cdef cppclass TrainMC:
-        TrainMC(
-            mt19937 *generator,
-            float *to_eval,
+cdef extern from "../cpp/src/dockermc.cpp":
+    cdef cppclass DockerMC:
+        DockerMC(
             int max_searches,
             int searches_per_eval,
             float c_puct,
@@ -58,26 +51,30 @@ cdef int extract_game_state(game_state, int[:] board, int[:] pieces):
     
     Returns: tuple of (board, to_play, pieces)
     """
-    for i, row in enumerate(game_state["board"]):
-        for j, space in enumerate(row):
+    cdef int i, j
+    for i in range(4):  # Assuming game_state["board"] is a 4x4 list
+        for j in range(4):  # Assuming each row is a list of 4 elements
+            space = game_state["board"][i][j]
             board[(i * 4 + j) * 4] = 1 if space["pieces"]["base"] else 0
             board[(i * 4 + j) * 4 + 1] = 1 if space["pieces"]["column"] else 0
             board[(i * 4 + j) * 4 + 2] = 1 if space["pieces"]["capital"] else 0
             board[(i * 4 + j) * 4 + 3] = 1 if space["frozen"] else 0
+
     cdef int to_play = game_state["turn"]
-    for i, piece_type in enumerate(_PIECE_TYPES):
+    for i in range(3):  # Assuming there are 6 piece types
+        piece_type = _PIECE_TYPES[i]
         pieces[i] = game_state["players"][0]["pieceCounts"][piece_type]
         pieces[3 + i] = game_state["players"][1]["pieceCounts"][piece_type]
 
     return to_play
 
-cdef dict get_pre_result(TrainMC* mc):
+cdef dict get_pre_result(DockerMC* mc):
     """
     Get "pre-result" from MCST.
 
     A "pre-result" means the game is over after the human move (and before the AI move).
 
-    mc: pointer to TrainMC object
+    mc: pointer to DockerMC object
 
     Returns: dictionary of pre-result (or None if no pre-result)
     """
@@ -88,13 +85,13 @@ cdef dict get_pre_result(TrainMC* mc):
         return {"pre-result": "win"}
     return None
 
-cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
+cdef void search(DockerMC* mc, model, searches_per_eval, time_limit, start_time):
     """
     Do a search with the MCST.
 
     Continues searching until the time limit is reached or the maximum number of searches is reached.
 
-    mc: pointer to TrainMC object
+    mc: pointer to DockerMC object
     model: TFLite model
     """
     # Get neural network input and output shapes
@@ -133,19 +130,20 @@ cdef void search(TrainMC* mc, model, searches_per_eval, time_limit, start_time):
         eval = model.get_tensor(output_details[0]['index']).flatten()
         prob = model.get_tensor(output_details[1]['index'])
 
-cdef list get_legal_moves(TrainMC* mc):
+cdef list get_legal_moves(DockerMC* mc):
     """
     Get list of legal moves from MCST.
 
     This allows the Javascript in the web app easily check if a move is legal.
 
-    mc: pointer to TrainMC object
+    mc: pointer to DockerMC object
 
     Returns: list of IDs of legal moves
     """
     legal_move_lst = []
     cdef int[:] legal_moves = np.zeros(_NUM_MOVES, dtype=np.int32)
     mc.getLegalMoves(&legal_moves[0])
+    cdef int i
     for i in range(_NUM_MOVES):
         if legal_moves[i] == 1:
             legal_move_lst.append(i)
@@ -178,13 +176,9 @@ def choose_move(
     to_play = extract_game_state(game_state, board, pieces)
 
     # Construct a MCST object
-    cdef mt19937 *generator = new mt19937(rng.integers(65536))
-    cdef float[:] to_eval = np.zeros(searches_per_eval, dtype=np.float32)
     if max_searches == 0:
         max_searches = 32760  # So that visit count fits in a 16-bit signed integer
-    cdef TrainMC *mc = new TrainMC(
-        generator,
-        &to_eval[0],
+    cdef DockerMC *mc = new DockerMC(
         max_searches,
         searches_per_eval,
         1.0,
@@ -209,10 +203,10 @@ def choose_move(
     legal_moves = []
     if is_done:
         has_won = not mc.drawn()
+    else:
         legal_moves = get_legal_moves(mc)
     nodes_searched = mc.num_nodes()
     evaluation = mc.eval()
-    del generator
     del mc
 
     return {

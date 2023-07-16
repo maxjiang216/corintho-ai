@@ -268,7 +268,6 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
-  assert(searched_.size() <= searches_per_eval_);
   for (size_t i = 0; i < searched_.size(); ++i) {
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];

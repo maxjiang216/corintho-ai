@@ -37,11 +37,13 @@ RUN apt-get update && \
 # Stage 2: Run
 FROM python:3.9-alpine
 
-# Copy from builder stage
 COPY --from=builder /app /app
 
 # Set the working directory
 WORKDIR /app
+
+# Install Flask in the final stage
+RUN pip install Flask Flask-CORS
 
 # Set FLASK_APP environment variable
 ENV FLASK_APP=/app/corintho_ai/docker/app.py
@@ -51,4 +53,3 @@ EXPOSE 8080
 
 # Start the Flask application
 CMD ["flask", "run", "--host=0.0.0.0", "--port=8080"]
-

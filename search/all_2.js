@@ -4,7 +4,7 @@ var searchData=
   ['canmove_11',['canMove',['../classGame.html#a3e25ac5343005a4608ce9d1983229f8f',1,'Game']]],
   ['canplace_12',['canPlace',['../classGame.html#a5cd765c6a00b00f4641832a03642b9da',1,'Game']]],
   ['child_5fid_5f_13',['child_id_',['../classNode.html#a030b8fb777d027118ff995568c694680',1,'Node']]],
-  ['choosemove_14',['chooseMove',['../classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4',1,'SelfPlayer::chooseMove()'],['../classTrainMC.html#a5a44f78c05766f5b87edcbdf0ba6c3da',1,'TrainMC::chooseMove()']]],
+  ['choosemove_14',['chooseMove',['../classDockerMC.html#a3c1b898bba9a8417f4936b0ecd50cd28',1,'DockerMC::chooseMove()'],['../classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4',1,'SelfPlayer::chooseMove()'],['../classTrainMC.html#a5a44f78c05766f5b87edcbdf0ba6c3da',1,'TrainMC::chooseMove()']]],
   ['choosemoveandcontinue_15',['chooseMoveAndContinue',['../classSelfPlayer.html#abcfbfd3cf8b296ef4d9c7ba06b576615',1,'SelfPlayer']]],
   ['choosemovelostdrawn_16',['chooseMoveLostDrawn',['../classTrainMC.html#a25e3a3f7fa257dbdaad7c1f8ce4e24a2',1,'TrainMC']]],
   ['choosemovenormal_17',['chooseMoveNormal',['../classTrainMC.html#acfe687dec8174065e2208f2e53cb9bfa',1,'TrainMC']]],

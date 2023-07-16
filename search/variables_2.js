@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['c_5fpuct_5f_204',['c_puct_',['../classTrainMC.html#ae2da67892e515bb61776a340440f7f88',1,'TrainMC']]],
-  ['child_5fid_5f_205',['child_id_',['../classNode.html#a030b8fb777d027118ff995568c694680',1,'Node']]],
-  ['cur_5f_206',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
+  ['c_5fpuct_5f_207',['c_puct_',['../classTrainMC.html#ae2da67892e515bb61776a340440f7f88',1,'TrainMC']]],
+  ['child_5fid_5f_208',['child_id_',['../classNode.html#a030b8fb777d027118ff995568c694680',1,'Node']]],
+  ['cur_5f_209',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
 ];

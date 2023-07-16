@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['kmaxprobability_217',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
-  ['knumopeningmoves_218',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]]
+  ['kmaxprobability_220',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
+  ['knumopeningmoves_221',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]]
 ];

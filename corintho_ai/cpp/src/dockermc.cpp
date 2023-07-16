@@ -6,10 +6,11 @@
 #include "trainmc.h"
 #include "util.h"
 
-DockerMC::DockerMC(int32_t max_searches, int32_t searches_per_eval,
-                   float c_puct, float epsilon, int32_t board[4 * kBoardSize],
-                   int32_t to_play, int32_t pieces[6])
-    : generator_(std::make_unique<std::mt19937>(std::random_device()())),
+DockerMC::DockerMC(int32_t seed, int32_t max_searches,
+                   int32_t searches_per_eval, float c_puct, float epsilon,
+                   int32_t board[4 * kBoardSize], int32_t to_play,
+                   int32_t pieces[6])
+    : generator_(std::make_unique<std::mt19937>(seed)),
       to_eval_(std::make_unique<float[]>(searches_per_eval * kGameStateSize)),
       trainmc_(generator_.get(), to_eval_.get(), max_searches,
                searches_per_eval, c_puct, epsilon, board, to_play, pieces) {}

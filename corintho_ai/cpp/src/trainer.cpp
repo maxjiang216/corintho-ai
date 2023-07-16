@@ -40,8 +40,8 @@ int32_t Trainer::num_requests(int32_t to_play) const noexcept {
   for (const auto &game : games_) {
     if (!is_done_[&game - &games_[0]] &&
         ((to_play != 0 && to_play != 1) ||
-         game->to_play() == (to_play + game->parity()) % 2)) {
-      num_requests += game->num_requests();
+         game.to_play() == (to_play + game.parity()) % 2)) {
+      num_requests += game.num_requests();
     }
   }
   return num_requests;
@@ -50,7 +50,7 @@ int32_t Trainer::num_requests(int32_t to_play) const noexcept {
 int32_t Trainer::num_samples() const noexcept {
   int32_t num_samples = 0;
   for (const auto &game : games_) {
-    num_samples += game->num_samples();
+    num_samples += game.num_samples();
   }
   return num_samples;
 }
@@ -58,7 +58,7 @@ int32_t Trainer::num_samples() const noexcept {
 float Trainer::score() const noexcept {
   float score = 0;
   for (const auto &game : games_) {
-    score += game->score();
+    score += game.score();
   }
   return score / games_.size();
 }
@@ -68,7 +68,7 @@ float Trainer::avg_mate_length() const noexcept {
   int32_t total_length = 0;
   for (const auto &game : games_) {
     assert(is_done_[&game - &games_[0]]);
-    total_length += game->mate_length();
+    total_length += game.mate_length();
   }
   return static_cast<float>(total_length) / games_.size();
 }
@@ -80,10 +80,10 @@ void Trainer::writeRequests(float *game_states,
   // Only count requests from one player
   if (to_play == 0 || to_play == 1) {
     for (int32_t i = 0; i < games_.size(); ++i) {
-      if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
+      if (games_[i].to_play() == (to_play + games_[i].parity()) % 2 &&
           !is_done_[i]) {
-        games_[i]->writeRequests(game_states + offset * kGameStateSize);
-        offset += games_[i]->num_requests();
+        games_[i].writeRequests(game_states + offset * kGameStateSize);
+        offset += games_[i].num_requests();
       }
     }
     return;
@@ -91,8 +91,8 @@ void Trainer::writeRequests(float *game_states,
   // Training mode
   for (int32_t i = 0; i < games_.size(); ++i) {
     if (!is_done_[i]) {
-      games_[i]->writeRequests(game_states + offset * kGameStateSize);
-      offset += games_[i]->num_requests();
+      games_[i].writeRequests(game_states + offset * kGameStateSize);
+      offset += games_[i].num_requests();
     }
   }
 }
@@ -101,21 +101,21 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
                            float *prob_samples) const noexcept {
   int32_t offset = 0;
   for (int32_t i = 0; i < games_.size(); ++i) {
-    games_[i]->writeSamples(
-        game_states + offset * kGameStateSize * kNumSymmetries,
-        eval_samples + offset,
-        prob_samples + offset * kNumMoves * kNumSymmetries);
-    offset += games_[i]->num_samples();
+    games_[i].writeSamples(game_states +
+                               offset * kGameStateSize * kNumSymmetries,
+                           eval_samples + offset,
+                           prob_samples + offset * kNumMoves * kNumSymmetries);
+    offset += games_[i].num_samples();
   }
 }
 
 void Trainer::writeScores(const std::string &out_file) const {
   float scores[games_.size()];
   for (int32_t i = 0; i < games_.size(); i += 2) {
-    scores[i] = games_[i]->score();
+    scores[i] = games_[i].score();
   }
   for (int32_t i = 1; i < games_.size(); i += 2) {
-    scores[i] = 1.0 - games_[i]->score();
+    scores[i] = 1.0 - games_[i].score();
   }
   // First player score
   int32_t wins = 0;
@@ -166,7 +166,7 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     int32_t offset = 0;
     int32_t offsets[games_.size()] = {0};
     for (int32_t i = 1; i < games_.size(); ++i) {
-      offset += games_[i - 1]->num_requests();
+      offset += games_[i - 1].num_requests();
       offsets[i] = offset;
     }
     omp_set_num_threads(num_threads_);
@@ -182,8 +182,8 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
                          1) <=
             searches_done_) {
           // First search does not depend on pointers being null
-          bool done = games_[i]->doIteration(eval + offsets[i],
-                                             probs + kNumMoves * offsets[i]);
+          bool done = games_[i].doIteration(eval + offsets[i],
+                                            probs + kNumMoves * offsets[i]);
           // Game is done
           if (done) {
             is_done_[i] = true;
@@ -204,9 +204,9 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
   int32_t offsets[games_.size()] = {0};
   for (int32_t i = 1; i < games_.size(); ++i) {
     // Only count games from one player
-    if (games_[i - 1]->to_play() == (to_play + games_[i - 1]->parity()) % 2 &&
+    if (games_[i - 1].to_play() == (to_play + games_[i - 1].parity()) % 2 &&
         !is_done_[i - 1]) {
-      offset += games_[i - 1]->num_requests();
+      offset += games_[i - 1].num_requests();
     }
     offsets[i] = offset;
   }
@@ -215,10 +215,10 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
   for (int32_t i = 0; i < games_.size(); ++i) {
     // No offset in game start (there are not enough games for memory usage to
     // matter).
-    if (games_[i]->to_play() == (to_play + games_[i]->parity()) % 2 &&
+    if (games_[i].to_play() == (to_play + games_[i].parity()) % 2 &&
         !is_done_[i]) {
-      bool done = games_[i]->doIteration(eval + offsets[i],
-                                         probs + kNumMoves * offsets[i]);
+      bool done = games_[i].doIteration(eval + offsets[i],
+                                        probs + kNumMoves * offsets[i]);
       if (done) {
         is_done_[i] = true;
       }
@@ -238,18 +238,17 @@ void Trainer::initialize(int32_t num_games, const std::string &logging_folder,
                          bool testing) {
   games_.reserve(num_games);
   for (int32_t i = 0; i < num_logged; ++i) {
-    games_.emplace_back(std::make_unique<SelfPlayer>(
+    games_.emplace_back(
         generator_(), max_searches, searches_per_eval, c_puct, epsilon,
         std::make_unique<std::ofstream>(logging_folder + "/game_" +
                                             std::to_string(i) + ".txt",
                                         std::ofstream::out),
-        testing,
-        i % 2));  // Generate parity for test games (changes who plays first).
-                  // Does not affect training games
+        testing, i % 2);  // Generate parity for test games (changes who plays
+                           // first). Does not affect training games
   }
   for (int32_t i = num_logged; i < num_games; ++i) {
-    games_.emplace_back(std::make_unique<SelfPlayer>(
-        generator_(), max_searches, searches_per_eval, c_puct, epsilon,
-        nullptr, testing, i % 2));
+    games_.emplace_back(generator_(), max_searches,
+                                   searches_per_eval, c_puct, epsilon, nullptr,
+                                   testing, i % 2);
   }
 }

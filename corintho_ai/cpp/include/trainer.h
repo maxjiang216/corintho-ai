@@ -58,7 +58,7 @@ class Trainer {
                   bool testing);
 
   /// @brief The self-play games
-  std::vector<std::unique_ptr<SelfPlayer>> games_{};
+  std::vector<SelfPlayer> games_{};
   /// @brief Tracks which games are done
   std::vector<bool> is_done_{};
   /// @brief Maximum number of searches per turn for the players

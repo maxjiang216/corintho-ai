@@ -1,5 +1,5 @@
 Flask
 Flask-CORS
 numpy
-tensorflow
+tflite-runtime
 cython

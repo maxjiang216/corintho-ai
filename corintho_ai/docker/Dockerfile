@@ -35,7 +35,7 @@ RUN apt-get update && \
     cd ./corintho_ai/docker && python3 setup.py build_ext --inplace && cd ../..
 
 # Stage 2: Run
-FROM python:3.9-alpine
+FROM python:3.9-slim
 
 COPY --from=builder /app /app
 
@@ -43,7 +43,7 @@ COPY --from=builder /app /app
 WORKDIR /app
 
 # Install Flask in the final stage
-RUN pip install Flask Flask-CORS
+RUN pip install Flask Flask-CORS numpy tflite-runtime
 
 # Set FLASK_APP environment variable
 ENV FLASK_APP=/app/corintho_ai/docker/app.py

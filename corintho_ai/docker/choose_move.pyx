@@ -10,10 +10,14 @@ choose_move: Main Cython function called by the Flask API.
 import time
 
 import numpy as np
+import tensorflow as tf
 
 cimport numpy as np
 from libcpp cimport bool
 
+# Load the TFLite model
+model = tf.lite.Interpreter(model_path="corintho_ai/docker/tflite_model.tflite")
+model.allocate_tensors()
 
 cdef extern from "../cpp/src/dockermc.cpp":
     cdef cppclass DockerMC:
@@ -84,14 +88,13 @@ cdef dict get_pre_result(DockerMC* mc):
         return {"pre-result": "win"}
     return None
 
-cdef void search(DockerMC* mc, model, searches_per_eval, time_limit, start_time):
+cdef void search(DockerMC* mc, searches_per_eval, time_limit, start_time):
     """
     Do a search with the MCST.
 
     Continues searching until the time limit is reached or the maximum number of searches is reached.
 
     mc: pointer to DockerMC object
-    model: TFLite model
     """
     # Get neural network input and output shapes
     input_details = model.get_input_details()
@@ -152,7 +155,6 @@ cdef list get_legal_moves(DockerMC* mc):
 def choose_move(
         game_state,
         time_limit,
-        model,
         searches_per_eval=1,
         max_searches=0,
     ):
@@ -194,7 +196,7 @@ def choose_move(
         return pre_result
 
     # Search with the MCST
-    search(mc, model, searches_per_eval, time_limit, start_time);
+    search(mc, searches_per_eval, time_limit, start_time);
     
     # Choose the best move and get other information
     move = mc.chooseMove()

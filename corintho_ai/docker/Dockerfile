@@ -43,6 +43,9 @@ COPY --from=builder /app /app
 # Set the working directory
 WORKDIR /app
 
+# Install Flask in the final stage
+RUN pip install Flask Flask-CORS
+
 # Set FLASK_APP environment variable
 ENV FLASK_APP=/app/corintho_ai/docker/app.py
 

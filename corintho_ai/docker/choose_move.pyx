@@ -7,11 +7,9 @@ choose_move: Main Cython function called by the Flask API.
 
 # distutils: language = c++
 
-import sys
 import time
 
 import numpy as np
-from keras.api._v2.keras.models import load_model
 
 cimport numpy as np
 from libcpp cimport bool
@@ -20,6 +18,7 @@ from libcpp cimport bool
 cdef extern from "../cpp/src/dockermc.cpp":
     cdef cppclass DockerMC:
         DockerMC(
+            int seed,
             int max_searches,
             int searches_per_eval,
             float c_puct,
@@ -179,6 +178,7 @@ def choose_move(
     if max_searches == 0:
         max_searches = 32760  # So that visit count fits in a 16-bit signed integer
     cdef DockerMC *mc = new DockerMC(
+        rng.integers(65536),
         max_searches,
         searches_per_eval,
         1.0,

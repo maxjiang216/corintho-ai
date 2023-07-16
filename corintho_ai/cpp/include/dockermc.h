@@ -10,9 +10,9 @@
 class DockerMC {
  public:
   /// @brief Constructor for web app
-  DockerMC(int32_t max_searches, int32_t searches_per_eval, float c_puct,
-           float epsilon, int32_t board[4 * kBoardSize], int32_t to_play,
-           int32_t pieces[6]);
+  DockerMC(int32_t seed, int32_t max_searches, int32_t searches_per_eval,
+           float c_puct, float epsilon, int32_t board[4 * kBoardSize],
+           int32_t to_play, int32_t pieces[6]);
   ~DockerMC() = default;
 
   /// @brief Returns the evaluation of the root node

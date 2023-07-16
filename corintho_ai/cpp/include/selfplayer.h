@@ -25,12 +25,12 @@ struct Sample {
 /// @brief A training match with 2 TrainMC players
 class SelfPlayer {
  public:
-  // Training mode
   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,
              std::unique_ptr<std::ofstream> log_file = nullptr,
              bool testing = false, int32_t parity = 0);
+  SelfPlayer(SelfPlayer &&other) = default;
   ~SelfPlayer() = default;
 
   int32_t to_play() const noexcept;

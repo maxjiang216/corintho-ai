@@ -174,7 +174,7 @@ void SelfPlayer::writeMoves() const noexcept {
          return a.move < b.move;
        });
   // The first move is already printed in the main line
-  for (int32_t i = 1; i < moves.size(); ++i) {
+  for (size_t i = 1; i < moves.size(); ++i) {
     *log_file_ << Move{moves[i].move} << " V: " << moves[i].visits << " E: ";
     writeEval(moves[i].node);
     *log_file_ << " P: " << moves[i].probability << '\t';

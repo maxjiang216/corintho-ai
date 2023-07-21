@@ -87,7 +87,7 @@ cdef void log_stats(Trainer *trainer, time_taken, predict_time, play_time, evals
     Log some stats
     """
     num_games = params["num_games"]
-    max_searches = params["iterations"]
+    max_searches = params["max_searches"]
 
     with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:
         f.write(
@@ -106,12 +106,12 @@ cdef void log_stats(Trainer *trainer, time_taken, predict_time, play_time, evals
             f"{format_time(predict_time)} for neural network predictions\n"
             f"{evals_done} evaluations\n"
             f"{format_time(time_taken / evals_done)} per evaluation\n"
-            f"{format_time(play_time)} for self play\n"
-            f"{trainer.avg_mate_length()} average mate length\n"
+            f"{format_time(play_time)} for self play\n"   
         )
         if not testing:
             num_samples = trainer.num_samples()
             f.write(
+                f"{trainer.avg_mate_length()} average mate length\n"
                 f"{num_samples} total turns\n"
                 f"{num_samples / num_games} average turns per game\n"
                 f"{format_time(play_time / num_samples)} per turn\n"
@@ -127,7 +127,7 @@ cdef void play_games(Trainer *trainer, log_folder, params, best_model, new_model
     """
     num_games = params["num_games"]
     searches_per_eval = params["searches_per_eval"]
-    max_searches = params["iterations"]
+    max_searches = params["max_searches"]
 
     cdef np.ndarray[np.float32_t, ndim=1] evals = np.zeros(num_games * searches_per_eval, dtype=np.float32)
     cdef np.ndarray[np.float32_t, ndim=2] probs = np.zeros((num_games * searches_per_eval, _NUM_MOVES), dtype=np.float32)
@@ -140,9 +140,16 @@ cdef void play_games(Trainer *trainer, log_folder, params, best_model, new_model
     last_time = start_time
 
     while True:
+        play_start = time.perf_counter()
+        res = trainer.doIteration(&evals[0], &probs[0,0], to_play)
+        play_time += time.perf_counter() - play_start
+
+        if res:
+            break
+
         num_requests = trainer.num_requests(to_play)
         if num_requests == 0:
-            if new_model is not None:
+            if to_play != -1:
                 to_play = 1 - to_play
                 continue
             # Since during training we keep searching until there is at least one request,
@@ -152,18 +159,12 @@ cdef void play_games(Trainer *trainer, log_folder, params, best_model, new_model
             # This occurs until the game is complete.
             # If all games are complete, the loop should have ended already.
             else:
+                print(f"evals done: {evals_done}")
                 raise Exception("No requests during training")
         
         pred_start = time.perf_counter()
         get_predictions(best_model, new_model, game_states, evals, probs, num_requests, to_play)
         predict_time += time.perf_counter() - pred_start
-
-        play_start = time.perf_counter()
-        res = trainer.doIteration(&evals[0], &probs[0,0], to_play)
-        play_time += time.perf_counter() - play_start
-
-        if res:
-            break
 
         evals_done += 1
 
@@ -182,7 +183,7 @@ cdef void play_games(Trainer *trainer, log_folder, params, best_model, new_model
             last_time = time.perf_counter()
 
     time_taken = time.perf_counter() - start_time
-    log_stats(trainer, time_taken, predict_time, play_time, evals_done, log_folder, params, new_model is None)
+    log_stats(trainer, time_taken, predict_time, play_time, evals_done, log_folder, params, new_model is not None)
 
 cdef get_samples(Trainer *trainer, params):
     """
@@ -279,8 +280,7 @@ cpdef update_rating(new_rating_file, best_gen_rating, score):
         new_rating = best_gen_rating - 400
     with open(new_rating_file, 'w+', encoding='utf-8') as f:
         f.write(f"{new_rating}\n")
-
-#### Eventually, change the parameters to be passed with params dictionary
+        
 def train_generation(params):
     """
     Train a generation
@@ -314,6 +314,7 @@ def train_generation(params):
         params,
         best_model,
     )
+    print(f"Self play complete!")
     # Get training samples
     game_states, evaluation_labels, probability_labels = get_samples(trainer, params)
 
@@ -346,6 +347,7 @@ def train_generation(params):
         best_model,
         new_model,
     )
+    print(f"Testing complete!")
     score = tester.score()
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
     update_rating(
@@ -359,6 +361,6 @@ def train_generation(params):
     keras.backend.clear_session()
 
     # Return whether new model improved
-    if score > params["testing_threshold"]:
+    if score > params["test_threshold"]:
         return True
     return False

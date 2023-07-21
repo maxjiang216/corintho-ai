@@ -227,7 +227,7 @@ void Node::printMainLine(std::ostream *log_file) const {
   }
   if (best_child != nullptr) {
     *log_file << static_cast<int32_t>(best_child->depth_) << ". "
-              << Move{best_child->child_id_} << " v: " << max_visits << " e: ";
+              << Move{best_child->child_id_} << " V: " << max_visits << " E: ";
     if (best_child->result_ != kResultNone) {
       *log_file << strResult(best_child->result_);
     } else {

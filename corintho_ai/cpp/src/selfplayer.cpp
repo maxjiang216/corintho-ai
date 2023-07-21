@@ -156,7 +156,7 @@ void SelfPlayer::writeMoves() const noexcept {
   while (cur != nullptr) {
     if (cur->child_id() == players_[to_play_].root()->move_id(edge_index)) {
       moves.emplace_back(cur->visits(),
-                         cur->evaluation() / (float)cur->visits(),
+                         cur->evaluation() / static_cast<float>(cur->visits()),
                          players_[to_play_].root()->probability(edge_index),
                          cur->child_id(), cur);
       cur = cur->next_sibling();
@@ -253,7 +253,7 @@ bool SelfPlayer::chooseMoveAndContinue() {
     }
     // New mate found
     if (players_[to_play_].root()->known() && mate_turn_ == 0) {
-      mate_turn_ = samples_.size();
+      mate_turn_ = samples_.size() + 1;
     }
     int32_t choice = chooseMove();
     if (log_file_ != nullptr) {

@@ -1,5 +1,5 @@
 [hyperparameters]
-num_games = 2500
+num_games = 25000
 max_searches = 1600
 c_puct = 3.0
 epsilon = 0.25

@@ -110,6 +110,7 @@ void TrainMC::getLegalMoves(int32_t legal_moves[kNumMoves]) const noexcept {
 int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
                             float prob_sample[kNumMoves]) noexcept {
   assert(!uninitialized());
+  assert(searched_.size() == 0);
   if (!testing_) {  // Write samples if we are not testing
     // Before moving down, read the samples from the root node
     root_->writeGameState(game_state);

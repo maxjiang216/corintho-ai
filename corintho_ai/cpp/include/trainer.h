@@ -17,7 +17,7 @@ class Trainer {
   /// @brief Default constructor
   /// This is needed for Cython to be able to create a Trainer object
   Trainer() = default;
-  Trainer(int32_t num_games, const std::string &logging_folder, int32_t seed,
+  Trainer(int32_t num_games, const std::string &log_folder, int32_t seed,
           int32_t max_searches = 1600, int32_t searches_per_eval = 16,
           float c_puct = 1.0, float epsilon = 0.25, int32_t num_logged = 10,
           int32_t num_threads = 1, bool testing = false);
@@ -52,7 +52,7 @@ class Trainer {
 
  private:
   // Initialize SelfPlayers (factored out of different version of constructor)
-  void initialize(int32_t num_games, const std::string &logging_folder,
+  void initialize(int32_t num_games, const std::string &log_folder,
                   int32_t max_searches, int32_t searches_per_eval,
                   float c_puct, float epsilon, int32_t num_logged,
                   bool testing);

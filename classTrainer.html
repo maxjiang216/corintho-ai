@@ -82,9 +82,9 @@ Public Member Functions</h2></td></tr>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a8ac740bff57a68e5afcc385082ab96f4">Trainer</a> ()=default</td></tr>
 <tr class="memdesc:a8ac740bff57a68e5afcc385082ab96f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor This is needed for Cython to be able to create a <a class="el" href="classTrainer.html" title="Orchestrates many SelfPlayer objects to generate training samples from self-play games.">Trainer</a> object. <br /></td></tr>
 <tr class="separator:a8ac740bff57a68e5afcc385082ab96f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a802544fa14daed7df2c6d2ca879c23ab"><td class="memItemLeft" align="right" valign="top"><a id="a802544fa14daed7df2c6d2ca879c23ab"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (int32_t num_games, const std::string &amp;logging_folder, int32_t seed, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, int32_t num_logged=10, int32_t num_threads=1, bool testing=false)</td></tr>
-<tr class="separator:a802544fa14daed7df2c6d2ca879c23ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd12372b7811c0c04c9d3e596d271fe3"><td class="memItemLeft" align="right" valign="top"><a id="acd12372b7811c0c04c9d3e596d271fe3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Trainer</b> (int32_t num_games, const std::string &amp;log_folder, int32_t seed, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, int32_t num_logged=10, int32_t num_threads=1, bool testing=false)</td></tr>
+<tr class="separator:acd12372b7811c0c04c9d3e596d271fe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28a8f11bec77a0d3bcd92be476c6cdd3"><td class="memItemLeft" align="right" valign="top"><a id="a28a8f11bec77a0d3bcd92be476c6cdd3"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a28a8f11bec77a0d3bcd92be476c6cdd3">num_requests</a> (int32_t to_play=-1) const noexcept</td></tr>
 <tr class="memdesc:a28a8f11bec77a0d3bcd92be476c6cdd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations. <br /></td></tr>
@@ -117,9 +117,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:aeade42626b90aeb4be089828c6725c32"><td class="memItemLeft" align="right" valign="top"><a id="aeade42626b90aeb4be089828c6725c32"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> (int32_t num_games, const std::string &amp;logging_folder, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, int32_t num_logged, bool testing)</td></tr>
-<tr class="separator:aeade42626b90aeb4be089828c6725c32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a8f79b335c331a82b09e676c780c250"><td class="memItemLeft" align="right" valign="top"><a id="a6a8f79b335c331a82b09e676c780c250"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>initialize</b> (int32_t num_games, const std::string &amp;log_folder, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, int32_t num_logged, bool testing)</td></tr>
+<tr class="separator:a6a8f79b335c331a82b09e676c780c250"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>

@@ -73,13 +73,13 @@ cpdef get_predictions(best_model, new_model, game_states, evals, probs, num_requ
     """
     if new_model is not None and to_play == 0:
         res = new_model.predict(
-            x=game_states, batch_size=num_requests, verbose=0, steps=1,
+            x=game_states, batch_size=num_requests, verbose=1, steps=1,
         )
     else:
         res = best_model.predict(
-            x=game_states, batch_size=num_requests, verbose=0, steps=1,
+            x=game_states, batch_size=num_requests, verbose=1, steps=1,
         )
-    evals[0:num_requests] = res[0].flatten()
+    evals[:num_requests] = res[0].flatten()
     probs[:num_requests, :] = res[1]
 
 cdef void log_stats(Trainer *trainer, time_taken, predict_time, play_time, evals_done, log_folder, params, testing=False):
@@ -162,6 +162,7 @@ cdef void play_games(Trainer *trainer, log_folder, params, best_model, new_model
                 print(f"evals done: {evals_done}")
                 raise Exception("No requests during training")
         
+        trainer.writeRequests(&game_states[0,0], to_play)
         pred_start = time.perf_counter()
         get_predictions(best_model, new_model, game_states, evals, probs, num_requests, to_play)
         predict_time += time.perf_counter() - pred_start
@@ -314,7 +315,6 @@ def train_generation(params):
         params,
         best_model,
     )
-    print(f"Self play complete!")
     # Get training samples
     game_states, evaluation_labels, probability_labels = get_samples(trainer, params)
 
@@ -347,7 +347,6 @@ def train_generation(params):
         best_model,
         new_model,
     )
-    print(f"Testing complete!")
     score = tester.score()
     open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
     update_rating(

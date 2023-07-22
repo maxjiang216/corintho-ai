@@ -524,7 +524,7 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
         if (cur_child->drawn()) {
           u = cur_->probability(edge_index) * v_sqrt;
         } else {
-          u = -1.0 * cur_->evaluation() /
+          u = -1.0 * cur_child->evaluation() /
                   static_cast<float>(cur_child->visits()) +
               cur_->probability(edge_index) * v_sqrt /
                   (static_cast<float>(cur_child->visits()) + 1.0);

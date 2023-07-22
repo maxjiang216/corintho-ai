@@ -57,8 +57,11 @@ int32_t Trainer::num_samples() const noexcept {
 
 float Trainer::score() const noexcept {
   float score = 0;
-  for (const auto &game : games_) {
-    score += game.score();
+  for (size_t i = 0; i < games_.size(); i += 2) {
+    score += games_[i].score();
+  }
+  for (size_t i = 1; i < games_.size(); i += 2) {
+    score += 1.0 - games_[i].score();
   }
   return score / games_.size();
 }
@@ -103,7 +106,7 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
   for (size_t i = 0; i < games_.size(); ++i) {
     games_[i].writeSamples(game_states +
                                offset * kGameStateSize * kNumSymmetries,
-                           eval_samples + offset,
+                           eval_samples + offset * kNumSymmetries,
                            prob_samples + offset * kNumMoves * kNumSymmetries);
     offset += games_[i].num_samples();
   }

@@ -14,5 +14,5 @@ export PATH="~/.local/bin:$PATH"
 git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai
 dos2unix *
-chmod +x bash/train.sh
-nohup ~/corintho-ai/bash/train.sh &
+chmod +x scripts/bash/train.sh
+nohup ~/corintho-ai/scripts/bash/train.sh &

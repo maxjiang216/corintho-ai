@@ -106,7 +106,7 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
   for (size_t i = 0; i < games_.size(); ++i) {
     games_[i].writeSamples(game_states +
                                offset * kGameStateSize * kNumSymmetries,
-                           eval_samples + offset,
+                           eval_samples + offset * kNumSymmetries,
                            prob_samples + offset * kNumMoves * kNumSymmetries);
     offset += games_[i].num_samples();
   }

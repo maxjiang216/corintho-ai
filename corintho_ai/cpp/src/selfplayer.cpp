@@ -101,7 +101,7 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
         *(game_states + i * kGameStateSize * kNumSymmetries +
           k * kGameStateSize + j) = samples_[i].game_state[j];
       }
-      *(eval_samples + i * kNumSymmetries + (k + 1)) = evaluation;
+      *(eval_samples + i * kNumSymmetries + k) = evaluation;
       for (int32_t j = 0; j < kNumMoves; ++j) {
         *(prob_samples + i * kNumMoves * kNumSymmetries + k * kNumMoves + j) =
             samples_[i].probabilities[move_symmetries[k][j]];

@@ -22,7 +22,7 @@ TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
       generator_{generator} {
   // We cannot have only 1 search as
   // choosing a move requires having visited at least one child
-  assert(max_searches_ > 1);
+  assert(max_searches_ > 0);
   assert(searches_per_eval_ > 0);
   assert(c_puct_ > 0.0);
   assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
@@ -295,6 +295,18 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   searched_.clear();
 }
 
+int32_t TrainMC::chooseHighProbMove() const noexcept {
+  int32_t max_prob = 0;
+  int32_t choice = 0;
+  for (int32_t i = 0; i < root_->num_legal_moves(); ++i) {
+    if (root_->probability(i) > max_prob) {
+      max_prob = root_->probability(i);
+      choice = root_->move_id(i);
+    }
+  }
+  return choice;
+}
+
 int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
   Node *cur = root_->first_child();
   Node *prev = nullptr;
@@ -353,7 +365,7 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
   assert(!testing_);
   assert(!root_->known());
   Node *best_prev = nullptr;
-  int32_t choice = 0;
+  int32_t choice = chooseHighProbMove();
   // Count the number of visits to non-losing moves
   // Which will be the denominator for the probabilities
   int32_t visits = 0;
@@ -378,6 +390,18 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
       best_prev = cur;
       cur = cur->next_sibling();
     }
+  }
+  // 1 search or all losing moves
+  if (visits == 0) {
+    prob_sample[choice] = 1.0;
+    // Reset tree (we likely won't use any of it anyways)
+    Node *new_root =
+        new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+    delete root_;
+    root_ = new_root;
+    cur_ = root_;
+    searches_done_ = 0;
+    return choice;
   }
   // Choose a random move weighted by the number of visits
   int32_t target = (*generator_)() % visits;
@@ -407,7 +431,9 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
   Node *cur = root_->first_child();
   Node *prev = nullptr;
   Node *best_prev = nullptr;
-  int32_t choice = 0;
+  // If there are no children (1 search) or all children are losing moves,
+  // choose based on probabilities
+  int32_t choice = chooseHighProbMove();
   // Choose the move with the most searches.
   // Break ties with evaluation.
   // We never choose losing moves and treat draws as having evaluation 0.
@@ -430,6 +456,18 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
   }
   if (prob_sample != nullptr)
     prob_sample[choice] = 1.0;
+  // 1 search or all losing moves
+  if (max_visits == 0) {
+    // Reset tree (we likely won't use any of it anyways)
+    Node *new_root =
+        new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+    delete root_;
+    root_ = new_root;
+    cur_ = root_;
+    searches_done_ = 0;
+    return choice;
+  }
+
   moveDown(best_prev);
   return choice;
 }

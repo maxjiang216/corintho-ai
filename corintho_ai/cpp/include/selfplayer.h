@@ -15,11 +15,11 @@
 /// @details The evaluation sample is not store as it is computed only when the
 /// game is complete.
 struct Sample {
-  std::array<float, kGameStateSize> game_state;
-  std::array<float, kNumMoves> probabilities;
   Sample(std::array<float, kGameStateSize> game_state,
          std::array<float, kNumMoves> probabilities)
       : game_state{game_state}, probabilities{probabilities} {}
+  std::array<float, kGameStateSize> game_state;
+  std::array<float, kNumMoves> probabilities;
 };
 
 /// @brief A training match with 2 TrainMC players

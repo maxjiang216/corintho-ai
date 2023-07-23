@@ -27,7 +27,7 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        searches_per_eval, c_puct, epsilon, testing}},
 
       log_file_{std::move(log_file)}, parity_{parity}, testing_{testing} {
-  assert(max_searches > 1);
+  assert(max_searches > 0);
   assert(searches_per_eval > 0);
   assert(c_puct > 0.0);
   assert(epsilon >= 0.0 && epsilon <= 1.0);

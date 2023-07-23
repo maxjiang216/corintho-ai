@@ -9,13 +9,26 @@
 #include <vector>
 
 #include "node.h"
+#include "trainmc.h"
 
-Match::Match(std::unique_ptr<TrainMC> player1,
-             std::unique_ptr<TrainMC> player2, int32_t random_seed,
+Match::Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
              std::unique_ptr<std::ofstream> log_file)
-    : generator_(random_seed), players_{std::move(player1),
-                                        std::move(player2)},
-      log_file_(std::move(log_file)) {}
+    : generator_{std::mt19937(random_seed)},
+      to_eval_{std::make_unique<float[]>(
+          kGameStateSize *
+          std::max(player1.max_searches, player2.max_searches))},
+      players_{
+          player1.random ? nullptr
+                         : std::make_unique<TrainMC>(
+                               &generator_, to_eval_.get(),
+                               player1.max_searches, player1.searches_per_eval,
+                               player1.c_puct, player1.epsilon, true),
+          player2.random ? nullptr
+                         : std::make_unique<TrainMC>(
+                               &generator_, to_eval_.get(),
+                               player2.max_searches, player2.searches_per_eval,
+                               player2.c_puct, player2.epsilon, true)},
+      log_file_{std::move(log_file)} {}
 
 int32_t Match::to_play() const noexcept {
   return to_play_;
@@ -158,10 +171,14 @@ void Match::endGame() noexcept {
     }
   }
   // Delete the players
-  // We cannot delete the SelfPlayer yet as it contains training samples
+  // We cannot delete the Match yet as it contains training samples
   // and results which will be collected at the end
-  players_[0]->null_root();
-  players_[1]->null_root();
+  if (players_[0] != nullptr) {
+    players_[0]->null_root();
+  }
+  if (players_[1] != nullptr) {
+    players_[1]->null_root();
+  }
   to_eval_.reset();
   log_file_.reset();
 }
@@ -174,7 +191,8 @@ int32_t Match::chooseMove() {
       moves.push_back(root_->move_id(i));
     }
     std::uniform_int_distribution<int32_t> dist(0, moves.size() - 1);
-    return moves[dist(generator_)];
+    int32_t choice = moves[dist(generator_)];
+    return choice;
   }
   return players_[to_play_]->chooseMove();
 }
@@ -195,7 +213,7 @@ bool Match::chooseMoveAndContinue() {
       writeMoveChoice(choice);
     }
     // Check if the game is over
-    if (players_[to_play_]->root()->terminal()) {
+    if (root_->terminal()) {
       endGame();
       return true;
     }
@@ -207,8 +225,7 @@ bool Match::chooseMoveAndContinue() {
     }
     // First time iterating the second player
     if (players_[to_play_]->uninitialized()) {
-      players_[to_play_]->createRoot(players_[1 - to_play_]->root()->game(),
-                                     players_[1 - to_play_]->root()->depth());
+      players_[to_play_]->createRoot(root_->game(), root_->depth());
       // This is always false as the root requires an evaluation
       return players_[to_play_]->doIteration();
     }

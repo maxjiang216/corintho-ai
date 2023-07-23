@@ -99,10 +99,13 @@ class TrainMC {
   /// @brief Generate Dirichlet noise
   void generateDirichlet(float dirichlet[]) const noexcept;
 
-  /// @brief Set integer probabilities to edges, sets denominator of cur_ node
+  /// @brief Set integer probabilities to edges, sets denominator of cur_ node.
   void setProbs(float filtered_probs[], float dirichlet[]) noexcept;
   /// @brief Write the neural network outputs into the node
   void receiveEval(float eval[], float probs[]) noexcept;
+  /// @brief Choose a move based on the probabilities of the root node.
+  /// @details This is mostly used for one-search strategies.
+  int32_t chooseHighProbMove() const noexcept;
   /// @brief Choose move for when the root node is a winning position
   int32_t chooseMoveWon(float prob_sample[kNumMoves]) noexcept;
   /// @brief Choose move for when the root node is a losing or drawn position

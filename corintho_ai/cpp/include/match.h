@@ -2,17 +2,30 @@
 #define MATCH_H
 
 #include <bitset>
+#include <fstream>
 #include <memory>
 
 #include "game.h"
+#include "node.h"
 #include "trainmc.h"
 #include "util.h"
+
+struct TrainMCParams {
+  TrainMCParams(int32_t max_searches, int32_t searches_per_eval, float c_puct,
+                float epsilon, bool random = false)
+      : max_searches{max_searches}, searches_per_eval{searches_per_eval},
+        c_puct{c_puct}, epsilon{epsilon}, random{random} {}
+  int32_t max_searches;
+  int32_t searches_per_eval;
+  float c_puct;
+  float epsilon;
+  bool random;
+};
 
 /// @brief A tournament match with 2 players
 class Match {
  public:
-  Match(std::unique_ptr<TrainMC> player1, std::unique_ptr<TrainMC> player2,
-        int32_t random_seed,
+  Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
         std::unique_ptr<std::ofstream> log_file = nullptr);
   ~Match() = default;
 
@@ -60,7 +73,7 @@ class Match {
   /// @details A nullptr indicates a random player
   std::unique_ptr<TrainMC> players_[2];
   /// @brief Current game state
-  std::unique_ptr<Node> root_{};
+  std::unique_ptr<Node> root_ = std::make_unique<Node>();
   /// @brief Whose turn it is
   int32_t to_play_{0};
   /// @brief Game result for the first player

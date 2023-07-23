@@ -54,7 +54,7 @@ TEST(TrainMCTest, ReceiveOpponentMove) {
 
 // Test playing out a game with a small number of searches per move
 TEST(TrainMCTest, FewPerMove) {
-  for (int32_t max_searches = 2; max_searches <= 16; ++max_searches) {
+  for (int32_t max_searches = 1; max_searches <= 16; ++max_searches) {
     for (int32_t searches_per_eval = 1; searches_per_eval <= max_searches;
          ++searches_per_eval) {
       std::mt19937 generator(12345);

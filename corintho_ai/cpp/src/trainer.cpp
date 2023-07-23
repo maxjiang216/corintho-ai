@@ -24,12 +24,12 @@ Trainer::Trainer(int32_t num_games, const std::string &log_folder,
   assert(num_games > 0);
   assert(num_logged >= 0);
   assert(num_logged <= num_games);
-  assert(max_searches >= 2);
+  assert(max_searches > 0);
   assert(searches_per_eval > 0);
   assert(max_searches >= searches_per_eval);
-  assert(c_puct > 0);
-  assert(epsilon >= 0);
-  assert(epsilon <= 1);
+  assert(c_puct > 0.0);
+  assert(epsilon >= 0.0);
+  assert(epsilon <= 1.0);
   assert(num_threads > 0);
   initialize(num_games, log_folder, max_searches, searches_per_eval, c_puct,
              epsilon, num_logged, testing);

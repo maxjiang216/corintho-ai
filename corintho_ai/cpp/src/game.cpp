@@ -59,8 +59,8 @@ void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
 
 void Game::doMove(int32_t move_id) noexcept {
   assert(move_id >= 0 && move_id < kNumMoves);
-  // This is not a conclusive check (doesn't factor in lines)
-  // But might be useful for debugging
+  // This is not a conclusive check (doesn't factor in lines) but has some use
+  // for debugging
   assert(isLegalMove(move_id));
   Move move{move_id};
   // Reset the frozen space

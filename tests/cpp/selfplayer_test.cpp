@@ -20,7 +20,7 @@ TEST(SelfPlayerTest, DoFirstIteration) {
 }
 
 TEST(SelfPlayerTest, FewSearches) {
-  for (int32_t max_searches = 2; max_searches <= 16; ++max_searches) {
+  for (int32_t max_searches = 1; max_searches <= 16; ++max_searches) {
     for (int32_t searches_per_eval = 1; searches_per_eval <= max_searches;
          ++searches_per_eval) {
       SelfPlayer selfplayer{12345, max_searches, searches_per_eval};

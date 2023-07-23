@@ -19,7 +19,7 @@ TEST(TrainerTest, Constructor) {
 
 TEST(TrainerTest, FullGameTraining) {
   for (const auto &num_games : {1, 3}) {
-    for (const auto &max_searches : {2, 16, 96, 400}) {
+    for (const auto &max_searches : {1, 2, 16, 96, 400}) {
       for (const auto &searches_per_eval : {1, 16, max_searches}) {
         if (searches_per_eval > max_searches)
           continue;
@@ -136,7 +136,7 @@ TEST(TrainerTest, FullGameTraining) {
 
 TEST(TrainerTest, FullGameTesting) {
   for (const auto &num_games : {1, 3}) {
-    for (const auto &max_searches : {2, 16, 96, 400}) {
+    for (const auto &max_searches : {1, 2, 16, 96, 400}) {
       for (const auto &searches_per_eval : {1, 16, max_searches}) {
         if (searches_per_eval > max_searches)
           continue;

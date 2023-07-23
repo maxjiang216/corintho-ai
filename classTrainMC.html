@@ -188,6 +188,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a49728ba45c2457360d1a076449f88fee">receiveEval</a> (float <a class="el" href="classTrainMC.html#af2c3a86f6feeaa0daf799d50427309ef">eval</a>[], float probs[]) noexcept</td></tr>
 <tr class="memdesc:a49728ba45c2457360d1a076449f88fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the neural network outputs into the node. <br /></td></tr>
 <tr class="separator:a49728ba45c2457360d1a076449f88fee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73c719f7f5be8db81dfad79285892163"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a73c719f7f5be8db81dfad79285892163">chooseHighProbMove</a> () const noexcept</td></tr>
+<tr class="memdesc:a73c719f7f5be8db81dfad79285892163"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose a move based on the probabilities of the root node.  <a href="classTrainMC.html#a73c719f7f5be8db81dfad79285892163">More...</a><br /></td></tr>
+<tr class="separator:a73c719f7f5be8db81dfad79285892163"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f19b4bb1f403460587a2830e1a68c07"><td class="memItemLeft" align="right" valign="top"><a id="a4f19b4bb1f403460587a2830e1a68c07"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a4f19b4bb1f403460587a2830e1a68c07">chooseMoveWon</a> (float prob_sample[kNumMoves]) noexcept</td></tr>
 <tr class="memdesc:a4f19b4bb1f403460587a2830e1a68c07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose move for when the root node is a winning position. <br /></td></tr>
@@ -264,6 +267,34 @@ Static Private Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for Monte Carlo tree search. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a73c719f7f5be8db81dfad79285892163"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73c719f7f5be8db81dfad79285892163">&#9670;&nbsp;</a></span>chooseHighProbMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t TrainMC::chooseHighProbMove </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Choose a move based on the probabilities of the root node. </p>
+<p>This is mostly used for one-search strategies. </p>
+
+</div>
+</div>
 <a id="a5a44f78c05766f5b87edcbdf0ba6c3da"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a44f78c05766f5b87edcbdf0ba6c3da">&#9670;&nbsp;</a></span>chooseMove()</h2>
 

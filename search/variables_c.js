@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['parent_5f_229',['parent_',['../classNode.html#a7f0448247d19072d5c3fa54acda8dd55',1,'Node']]],
-  ['parity_5f_230',['parity_',['../classSelfPlayer.html#aa32a7cc390e71df0c55d0de19a88c985',1,'SelfPlayer']]],
-  ['pieces_5f_231',['pieces_',['../classGame.html#a66c0a35f8ca9c6e691777ad16d80077f',1,'Game']]],
-  ['players_5f_232',['players_',['../classSelfPlayer.html#a2174b3ceb67c85f30e9ef3c5562a5c8c',1,'SelfPlayer']]],
-  ['probability_233',['probability',['../structNode_1_1Edge.html#a48a5822e72f5c15272b748f2a566b880',1,'Node::Edge']]]
+  ['parent_5f_235',['parent_',['../classNode.html#a7f0448247d19072d5c3fa54acda8dd55',1,'Node']]],
+  ['parity_5f_236',['parity_',['../classSelfPlayer.html#aa32a7cc390e71df0c55d0de19a88c985',1,'SelfPlayer']]],
+  ['pieces_5f_237',['pieces_',['../classGame.html#a66c0a35f8ca9c6e691777ad16d80077f',1,'Game']]],
+  ['players_5f_238',['players_',['../classMatch.html#a8173559c7652d3f4375bc43c793187f4',1,'Match::players_()'],['../classSelfPlayer.html#a2174b3ceb67c85f30e9ef3c5562a5c8c',1,'SelfPlayer::players_()']]],
+  ['probability_239',['probability',['../structNode_1_1Edge.html#a48a5822e72f5c15272b748f2a566b880',1,'Node::Edge']]]
 ];

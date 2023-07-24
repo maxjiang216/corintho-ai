@@ -5,22 +5,22 @@
 
 #include <map>
 #include <random>
+#include <string>
 
 #include "match.h"
 
-struct Player {
-  int32_t model_id;
-  TrainMCParams params;
-};
-
 class Tourney {
  public:
-  Tourney() = default;
+  Tourney(int32_t num_threads) : num_threads_{num_threads} {
+    assert(num_threads > 0);
+  }
   ~Tourney() = default;
 
   /// @brief Return the number of requests for evaluations for a given model
   int32_t num_requests(int32_t id) const noexcept;
 
+  /// @brief Write completed game results into a file
+  void writeScores(const std::string &filename) const;
   /// @brief Write the game states for which evaluations are requested for a
   /// given model
   void writeRequests(float *game_states, int32_t id) noexcept;
@@ -35,8 +35,10 @@ class Tourney {
 
  private:
   std::vector<Match> matches_{};
+  std::vector<bool> is_done_{};
   std::map<int32_t, Player> players_{};
   std::mt19937 generator_{};
+  int32_t num_threads_{1};
 };
 
 #endif

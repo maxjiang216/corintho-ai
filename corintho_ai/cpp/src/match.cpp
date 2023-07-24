@@ -1,6 +1,7 @@
 #include "match.h"
 
 #include <cassert>
+#include <cstdint>
 
 #include <fstream>
 #include <iomanip>

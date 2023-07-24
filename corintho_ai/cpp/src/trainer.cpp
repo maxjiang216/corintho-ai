@@ -1,7 +1,8 @@
 #include "trainer.h"
 
+#include <cstdint>
+
 #include <algorithm>
-#include <chrono>
 #include <queue>
 #include <string>
 #include <vector>

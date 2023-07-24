@@ -1,6 +1,7 @@
 #include "selfplayer.h"
 
 #include <cassert>
+#include <cstdint>
 
 #include <algorithm>
 #include <fstream>

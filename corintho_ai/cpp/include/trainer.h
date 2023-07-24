@@ -1,6 +1,8 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
+#include <cstdint>
+
 #include <memory>
 #include <random>
 #include <string>

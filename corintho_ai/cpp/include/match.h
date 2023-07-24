@@ -1,6 +1,8 @@
 #ifndef MATCH_H
 #define MATCH_H
 
+#include <cstdint>
+
 #include <bitset>
 #include <fstream>
 #include <memory>
@@ -71,6 +73,7 @@ class Match {
   std::unique_ptr<float[]> to_eval_{};
   /// @brief Monte Carlo search trees for each player
   /// @details A nullptr indicates a random player
+  /// TODO: Add IDs for players?
   std::unique_ptr<TrainMC> players_[2];
   /// @brief Current game state
   std::unique_ptr<Node> root_ = std::make_unique<Node>();

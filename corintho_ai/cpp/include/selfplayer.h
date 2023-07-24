@@ -1,6 +1,8 @@
 #ifndef SELFPLAYER_H
 #define SELFPLAYER_H
 
+#include <cstdint>
+
 #include <array>
 #include <fstream>
 #include <memory>

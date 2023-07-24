@@ -1,6 +1,8 @@
 #ifndef TRAINMC_H
 #define TRAINMC_H
 
+#include <cstdint>
+
 #include <random>
 #include <vector>
 

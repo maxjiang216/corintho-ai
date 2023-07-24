@@ -31,6 +31,7 @@ Match::Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
                                player2.c_puct, player2.epsilon, true)},
       log_file_{std::move(log_file)} {}
 
+// change to id of to_play
 int32_t Match::to_play() const noexcept {
   return to_play_;
 }

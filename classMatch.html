@@ -78,9 +78,24 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:afaec007990468ddd3db696a03da516cf"><td class="memItemLeft" align="right" valign="top"><a id="afaec007990468ddd3db696a03da516cf"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Match</b> (int32_t random_seed, <a class="el" href="structTrainMCParams.html">TrainMCParams</a> player1, <a class="el" href="structTrainMCParams.html">TrainMCParams</a> player2, std::unique_ptr&lt; std::ofstream &gt; log_file=nullptr)</td></tr>
-<tr class="separator:afaec007990468ddd3db696a03da516cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa92f029e03ad45d015d152b5f387262d"><td class="memItemLeft" align="right" valign="top"><a id="aa92f029e03ad45d015d152b5f387262d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Match</b> (int32_t random_seed, <a class="el" href="structPlayer.html">Player</a> player1, <a class="el" href="structPlayer.html">Player</a> player2, std::unique_ptr&lt; std::ofstream &gt; log_file=nullptr)</td></tr>
+<tr class="separator:aa92f029e03ad45d015d152b5f387262d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6637a96e2fe16839d5df49a05289cf0b"><td class="memItemLeft" align="right" valign="top"><a id="a6637a96e2fe16839d5df49a05289cf0b"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Match</b> (const <a class="el" href="classMatch.html">Match</a> &amp;other)=delete</td></tr>
+<tr class="separator:a6637a96e2fe16839d5df49a05289cf0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a136f419c797ccfae32d1405ff7bd346f"><td class="memItemLeft" align="right" valign="top"><a id="a136f419c797ccfae32d1405ff7bd346f"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Match</b> (<a class="el" href="classMatch.html">Match</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="separator:a136f419c797ccfae32d1405ff7bd346f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f16a6bd57d6ca41a1a52ce634606bbf"><td class="memItemLeft" align="right" valign="top"><a id="a1f16a6bd57d6ca41a1a52ce634606bbf"></a>
+<a class="el" href="classMatch.html">Match</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classMatch.html">Match</a> &amp;other)=delete</td></tr>
+<tr class="separator:a1f16a6bd57d6ca41a1a52ce634606bbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2269d4f0973cc88da61ae5e2ac64b31"><td class="memItemLeft" align="right" valign="top"><a id="ad2269d4f0973cc88da61ae5e2ac64b31"></a>
+<a class="el" href="classMatch.html">Match</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classMatch.html">Match</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="separator:ad2269d4f0973cc88da61ae5e2ac64b31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a587d6942ffecf84a9238e8c8fabfd757"><td class="memItemLeft" align="right" valign="top"><a id="a587d6942ffecf84a9238e8c8fabfd757"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>id</b> (int32_t i) const noexcept</td></tr>
+<tr class="separator:a587d6942ffecf84a9238e8c8fabfd757"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad766c052ff1f31e28d866560a387b1b0"><td class="memItemLeft" align="right" valign="top"><a id="ad766c052ff1f31e28d866560a387b1b0"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>to_play</b> () const noexcept</td></tr>
 <tr class="separator:ad766c052ff1f31e28d866560a387b1b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -138,6 +153,10 @@ std::unique_ptr&lt; float[]&gt;&#160;</td><td class="memItemRight" valign="botto
 <tr class="memitem:a8173559c7652d3f4375bc43c793187f4"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classTrainMC.html">TrainMC</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatch.html#a8173559c7652d3f4375bc43c793187f4">players_</a> [2]</td></tr>
 <tr class="memdesc:a8173559c7652d3f4375bc43c793187f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Monte Carlo search trees for each player.  <a href="classMatch.html#a8173559c7652d3f4375bc43c793187f4">More...</a><br /></td></tr>
 <tr class="separator:a8173559c7652d3f4375bc43c793187f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4c6d4b595220fdb50add928a0da7d01"><td class="memItemLeft" align="right" valign="top"><a id="aa4c6d4b595220fdb50add928a0da7d01"></a>
+std::array&lt; int32_t, 2 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatch.html#aa4c6d4b595220fdb50add928a0da7d01">ids_</a></td></tr>
+<tr class="memdesc:aa4c6d4b595220fdb50add928a0da7d01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Model IDs for the players. <br /></td></tr>
+<tr class="separator:aa4c6d4b595220fdb50add928a0da7d01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af69885a286ee5e3a7f64891ce0a5166a"><td class="memItemLeft" align="right" valign="top"><a id="af69885a286ee5e3a7f64891ce0a5166a"></a>
 std::unique_ptr&lt; <a class="el" href="classNode.html">Node</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMatch.html#af69885a286ee5e3a7f64891ce0a5166a">root_</a> = std::make_unique&lt;<a class="el" href="classNode.html">Node</a>&gt;()</td></tr>
 <tr class="memdesc:af69885a286ee5e3a7f64891ce0a5166a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Current game state. <br /></td></tr>
@@ -407,7 +426,7 @@ Result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 </div><div class="memdoc">
 
 <p>Monte Carlo search trees for each player. </p>
-<p>A nullptr indicates a random player </p>
+<p>A nullptr indicates a random player TODO: Add IDs for players? </p>
 
 </div>
 </div>

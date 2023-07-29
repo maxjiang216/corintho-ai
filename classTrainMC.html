@@ -67,6 +67,7 @@ $(function() {
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#pri-static-attribs">Static Private Attributes</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="classTrainMC-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">TrainMC Class Reference</div>  </div>
@@ -104,15 +105,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a83df9b1a6ea7704be5ebee3cdfe6bade"><td class="memItemLeft" align="right" valign="top"><a id="a83df9b1a6ea7704be5ebee3cdfe6bade"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (const <a class="el" href="classTrainMC.html">TrainMC</a> &amp;)=default</td></tr>
 <tr class="separator:a83df9b1a6ea7704be5ebee3cdfe6bade"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ee676c6e259bd28f14ba09462604eed"><td class="memItemLeft" align="right" valign="top"><a id="a4ee676c6e259bd28f14ba09462604eed"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
-<tr class="separator:a4ee676c6e259bd28f14ba09462604eed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1033716bb625c458e5b4a28166420bf0"><td class="memItemLeft" align="right" valign="top"><a id="a1033716bb625c458e5b4a28166420bf0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="separator:a1033716bb625c458e5b4a28166420bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff8fbf5f0ae1b60e98356de2723d26f1"><td class="memItemLeft" align="right" valign="top"><a id="aff8fbf5f0ae1b60e98356de2723d26f1"></a>
 <a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classTrainMC.html">TrainMC</a> &amp;)=default</td></tr>
 <tr class="separator:aff8fbf5f0ae1b60e98356de2723d26f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b1f69f4abd51f6973240029657eec7a"><td class="memItemLeft" align="right" valign="top"><a id="a2b1f69f4abd51f6973240029657eec7a"></a>
-<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;)=default</td></tr>
-<tr class="separator:a2b1f69f4abd51f6973240029657eec7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa57b34ad4c50e0493e062e64a5c5963a"><td class="memItemLeft" align="right" valign="top"><a id="aa57b34ad4c50e0493e062e64a5c5963a"></a>
+<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classTrainMC.html">TrainMC</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="separator:aa57b34ad4c50e0493e062e64a5c5963a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03fcd9028c81e94af2f98a3a11e669aa"><td class="memItemLeft" align="right" valign="top"><a id="a03fcd9028c81e94af2f98a3a11e669aa"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a03fcd9028c81e94af2f98a3a11e669aa">TrainMC</a> (std::mt19937 *generator, float *to_eval, int32_t max_searches, int32_t searches_per_eval, float c_puct, float epsilon, int32_t board[4 *kBoardSize], int32_t to_play, int32_t pieces[6])</td></tr>
 <tr class="memdesc:a03fcd9028c81e94af2f98a3a11e669aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor for web app. Starts at an arbitrary position. <br /></td></tr>
@@ -147,6 +148,9 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a458fbc00551c100e52a8d693d9bd8c69">drawn</a> () const noexcept</td></tr>
 <tr class="memdesc:a458fbc00551c100e52a8d693d9bd8c69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns if the game is drawn. This is used in the web app. <br /></td></tr>
 <tr class="separator:a458fbc00551c100e52a8d693d9bd8c69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59ad1797c0a0fb043d4e9ae843ebf251"><td class="memItemLeft" align="right" valign="top"><a id="a59ad1797c0a0fb043d4e9ae843ebf251"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_searches</b> () const noexcept</td></tr>
+<tr class="separator:a59ad1797c0a0fb043d4e9ae843ebf251"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93d75b10ef4bf91444e081b45d33e3b1"><td class="memItemLeft" align="right" valign="top"><a id="a93d75b10ef4bf91444e081b45d33e3b1"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a93d75b10ef4bf91444e081b45d33e3b1">null_root</a> () noexcept</td></tr>
 <tr class="memdesc:a93d75b10ef4bf91444e081b45d33e3b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the root node to have the given game and depth. <br /></td></tr>
@@ -263,6 +267,12 @@ Static Private Attributes</h2></td></tr>
 <tr class="memitem:ae628c8118700970988e3c0c68a3c4f21"><td class="memItemLeft" align="right" valign="top">static constexpr int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21">kNumOpeningMoves</a> = 6</td></tr>
 <tr class="memdesc:ae628c8118700970988e3c0c68a3c4f21"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of initial moves to consider "opening" moves.  <a href="classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21">More...</a><br /></td></tr>
 <tr class="separator:ae628c8118700970988e3c0c68a3c4f21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a80bbc92cafa9d727e9c5e125a2d21585"><td class="memItemLeft" align="right" valign="top"><a id="a80bbc92cafa9d727e9c5e125a2d21585"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>Match</b></td></tr>
+<tr class="separator:a80bbc92cafa9d727e9c5e125a2d21585"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for Monte Carlo tree search. </p>

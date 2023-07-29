@@ -12,9 +12,6 @@
 #include "node.h"
 #include "trainmc.h"
 
-#include <iostream>
-using namespace std;
-
 Match::Match(int32_t random_seed, Player player1, Player player2,
              std::unique_ptr<std::ofstream> log_file)
     : generator_{std::mt19937(random_seed)},
@@ -34,7 +31,6 @@ Match::Match(int32_t random_seed, Player player1, Player player2,
                                player2.c_puct, player2.epsilon, true)},
       ids_{player1.model_id, player2.model_id}, log_file_{
                                                     std::move(log_file)} {}
-
 int32_t Match::id(int32_t i) const noexcept {
   assert(i == 0 || i == 1);
   return ids_[i];
@@ -70,8 +66,6 @@ bool Match::doIteration(float eval[], float probs[]) {
   if (players_[to_play_] == nullptr) {
     return chooseMoveAndContinue();
   }
-  cerr << "DOING ITERATION\n";
-  cerr << players_ << ' ' << to_play_ << ' ' << ids_[0] << ' ' << ids_[1] << '\n';
   // There can only be up to 1 random player
   bool done = players_[to_play_]->doIteration(eval, probs);
   // If we have completed a turn, we can choose a move

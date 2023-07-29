@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <map>
+#include <memory>
 #include <random>
 #include <string>
 
@@ -34,7 +35,7 @@ class Tourney {
   void addMatch(int32_t player1, int32_t player2);
 
  private:
-  std::vector<Match> matches_{};
+  std::vector<std::unique_ptr<Match>> matches_{};
   std::vector<bool> is_done_{};
   std::map<int32_t, Player> players_{};
   std::mt19937 generator_{};

@@ -14,9 +14,6 @@
 #include "move.h"
 #include "node.h"
 
-#include <iostream>
-using namespace std;
-
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -32,11 +29,9 @@ TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
   assert(generator_ != nullptr);
   // seached_ will only ever need this many elements
   searched_.reserve(searches_per_eval_);
-  cerr << "TrainMC constructor " << searches_per_eval_ << ' ' << searched_.size() << ' ' << this << ' ' << &searched_ << '\n';
 }
 
 TrainMC::~TrainMC() {
-  cerr << "TrainMC destructor " << this << ' ' << &searched_ << '\n';
   delete root_;
 }
 
@@ -275,8 +270,6 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
   assert(eval != nullptr);
   assert(probs != nullptr);
   for (size_t i = 0; i < searched_.size(); ++i) {
-    cerr << "receiveEval " << i << ' ' << searched_.size() << ' ' << this << ' ' << &searched_ << '\n';
-    cerr << cur_ << ' ' << c_puct_ << ' ' << epsilon_ << ' ' << max_searches_ << ' ' << searches_per_eval_ << ' ' << generator_ << '\n';
     cur_ = searched_[i];
     float filtered_probs[cur_->num_legal_moves()];
     getFilteredProbs(probs + kNumMoves * i, filtered_probs);
@@ -695,7 +688,6 @@ void TrainMC::search() {
     cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
     // Record the node in searched_
     searched_.push_back(cur_);
-    cerr << "searched_.size() " << searched_.size() << ' ' << this << '\n';
     assert(searched_.size() <= searches_per_eval_);
   }
   // Reset cur for next search

@@ -1,6 +1,8 @@
 #ifndef DOCKERMC_H
 #define DOCKERMC_H
 
+#include <cstdint>
+
 #include <memory>
 #include <random>
 

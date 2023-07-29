@@ -1,5 +1,7 @@
 #include "dockermc.h"
 
+#include <cstdint>
+
 #include <memory>
 #include <random>
 

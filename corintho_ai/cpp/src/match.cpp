@@ -1,6 +1,7 @@
 #include "match.h"
 
 #include <cassert>
+#include <cstdint>
 
 #include <fstream>
 #include <iomanip>
@@ -11,7 +12,7 @@
 #include "node.h"
 #include "trainmc.h"
 
-Match::Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
+Match::Match(int32_t random_seed, Player player1, Player player2,
              std::unique_ptr<std::ofstream> log_file)
     : generator_{std::mt19937(random_seed)},
       to_eval_{std::make_unique<float[]>(
@@ -28,15 +29,20 @@ Match::Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
                                &generator_, to_eval_.get(),
                                player2.max_searches, player2.searches_per_eval,
                                player2.c_puct, player2.epsilon, true)},
-      log_file_{std::move(log_file)} {}
+      ids_{player1.model_id, player2.model_id}, log_file_{
+                                                    std::move(log_file)} {}
+int32_t Match::id(int32_t i) const noexcept {
+  assert(i == 0 || i == 1);
+  return ids_[i];
+}
 
 int32_t Match::to_play() const noexcept {
-  return to_play_;
+  return ids_[to_play_];
 }
 
 int32_t Match::num_requests() const noexcept {
-  // Random players should finish their turn without evaluation
-  assert(players_[to_play_] != nullptr);
+  if (players_[to_play_] == nullptr)
+    return 0;
   return players_[to_play_]->num_requests();
 }
 

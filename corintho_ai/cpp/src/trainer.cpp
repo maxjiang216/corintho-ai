@@ -1,7 +1,8 @@
 #include "trainer.h"
 
+#include <cstdint>
+
 #include <algorithm>
-#include <chrono>
 #include <queue>
 #include <string>
 #include <vector>
@@ -66,7 +67,6 @@ float Trainer::score() const noexcept {
   return score / games_.size();
 }
 
-// TODO: Test this thoroughly. Test that the average has a reasonable value
 float Trainer::avg_mate_length() const noexcept {
   int32_t total_length = 0;
   for (const auto &game : games_) {
@@ -112,7 +112,7 @@ void Trainer::writeSamples(float *game_states, float *eval_samples,
   }
 }
 
-void Trainer::writeScores(const std::string &out_file) const {
+void Trainer::writeScores(const std::string &filename) const {
   float scores[games_.size()];
   for (size_t i = 0; i < games_.size(); i += 2) {
     scores[i] = games_[i].score();
@@ -130,16 +130,16 @@ void Trainer::writeScores(const std::string &out_file) const {
       ++draws;
     }
   }
-  std::ofstream outfile = std::ofstream{out_file, std::ofstream::out};
-  outfile << "First player wins: " << wins << " / " << games_.size() / 2
-          << " = " << static_cast<float>(wins) / (games_.size() / 2)
-          << "\nFirst player draws: " << draws << " / " << games_.size() / 2
-          << " = " << static_cast<float>(draws) / (games_.size() / 2)
-          << "\nFirst player losses: " << games_.size() / 2 - wins - draws
-          << " / " << games_.size() / 2 << " = "
-          << static_cast<float>(games_.size() / 2 - wins - draws) /
-                 (games_.size() / 2)
-          << '\n';
+  std::ofstream file = std::ofstream{filename, std::ofstream::out};
+  file << "First player wins: " << wins << " / " << games_.size() / 2 << " = "
+       << static_cast<float>(wins) / (games_.size() / 2)
+       << "\nFirst player draws: " << draws << " / " << games_.size() / 2
+       << " = " << static_cast<float>(draws) / (games_.size() / 2)
+       << "\nFirst player losses: " << games_.size() / 2 - wins - draws
+       << " / " << games_.size() / 2 << " = "
+       << static_cast<float>(games_.size() / 2 - wins - draws) /
+              (games_.size() / 2)
+       << '\n';
   // Second player score
   wins = 0;
   draws = 0;
@@ -150,15 +150,15 @@ void Trainer::writeScores(const std::string &out_file) const {
       ++draws;
     }
   }
-  outfile << "Second player wins: " << wins << " / " << games_.size() / 2
-          << " = " << static_cast<float>(wins) / (games_.size() / 2)
-          << "\nSecond player draws: " << draws << " / " << games_.size() / 2
-          << " = " << static_cast<float>(draws) / (games_.size() / 2)
-          << "\nSecond player losses: " << games_.size() / 2 - wins - draws
-          << " / " << games_.size() / 2 << " = "
-          << static_cast<float>(games_.size() / 2 - wins - draws) /
-                 (games_.size() / 2)
-          << '\n';
+  file << "Second player wins: " << wins << " / " << games_.size() / 2 << " = "
+       << static_cast<float>(wins) / (games_.size() / 2)
+       << "\nSecond player draws: " << draws << " / " << games_.size() / 2
+       << " = " << static_cast<float>(draws) / (games_.size() / 2)
+       << "\nSecond player losses: " << games_.size() / 2 - wins - draws
+       << " / " << games_.size() / 2 << " = "
+       << static_cast<float>(games_.size() / 2 - wins - draws) /
+              (games_.size() / 2)
+       << '\n';
 }
 
 bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {

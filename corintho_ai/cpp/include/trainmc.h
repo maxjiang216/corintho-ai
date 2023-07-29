@@ -1,6 +1,8 @@
 #ifndef TRAINMC_H
 #define TRAINMC_H
 
+#include <cstdint>
+
 #include <random>
 #include <vector>
 
@@ -17,9 +19,9 @@ class TrainMC {
           int32_t searches_per_eval = 16, float c_puct = 1.0,
           float epsilon = 0.25, bool testing = false);
   TrainMC(const TrainMC &) = default;
-  TrainMC(TrainMC &&) = default;
+  TrainMC(TrainMC &&other) noexcept = default;
   TrainMC &operator=(const TrainMC &) = default;
-  TrainMC &operator=(TrainMC &&) = default;
+  TrainMC &operator=(TrainMC &&other) noexcept = default;
   ~TrainMC();
   /// @brief Constructor for web app. Starts at an arbitrary position
   TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
@@ -45,6 +47,7 @@ class TrainMC {
   bool done() const noexcept;
   /// @brief Returns if the game is drawn. This is used in the web app.
   bool drawn() const noexcept;
+  int32_t max_searches() const noexcept { return max_searches_; }
 
   /// @brief Set the root node to have the given game and depth
   void null_root() noexcept;
@@ -183,6 +186,7 @@ class TrainMC {
   /// @details This is shared between the two players in a SelfPlayer,
   /// since only one player is searching at a time.
   std::mt19937 *generator_{nullptr};
+  friend class Match;
 };
 
 #endif

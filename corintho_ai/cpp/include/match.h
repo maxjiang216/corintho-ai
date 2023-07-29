@@ -1,6 +1,8 @@
 #ifndef MATCH_H
 #define MATCH_H
 
+#include <cstdint>
+
 #include <bitset>
 #include <fstream>
 #include <memory>
@@ -10,25 +12,33 @@
 #include "trainmc.h"
 #include "util.h"
 
-struct TrainMCParams {
-  TrainMCParams(int32_t max_searches, int32_t searches_per_eval, float c_puct,
-                float epsilon, bool random = false)
-      : max_searches{max_searches}, searches_per_eval{searches_per_eval},
-        c_puct{c_puct}, epsilon{epsilon}, random{random} {}
-  int32_t max_searches;
-  int32_t searches_per_eval;
-  float c_puct;
-  float epsilon;
-  bool random;
+struct Player {
+  Player() = default;
+  Player(int32_t model_id, int32_t max_searches, int32_t searches_per_eval,
+         float c_puct, float epsilon, bool random = false)
+      : model_id{model_id}, max_searches{max_searches},
+        searches_per_eval{searches_per_eval}, c_puct{c_puct}, epsilon{epsilon},
+        random{random} {}
+  int32_t model_id{};
+  int32_t max_searches{1600};
+  int32_t searches_per_eval{16};
+  float c_puct{1.0};
+  float epsilon{0.25};
+  bool random{false};
 };
 
 /// @brief A tournament match with 2 players
 class Match {
  public:
-  Match(int32_t random_seed, TrainMCParams player1, TrainMCParams player2,
+  Match(int32_t random_seed, Player player1, Player player2,
         std::unique_ptr<std::ofstream> log_file = nullptr);
+  Match(const Match &other) = delete;
+  Match(Match &&other) noexcept = default;
+  Match &operator=(const Match &other) = delete;
+  Match &operator=(Match &&other) noexcept = default;
   ~Match() = default;
 
+  int32_t id(int32_t i) const noexcept;
   int32_t to_play() const noexcept;
   /// @brief Return the number of requests for evaluations
   /// @return The number of requests for evaluations
@@ -71,7 +81,10 @@ class Match {
   std::unique_ptr<float[]> to_eval_{};
   /// @brief Monte Carlo search trees for each player
   /// @details A nullptr indicates a random player
+  /// TODO: Add IDs for players?
   std::unique_ptr<TrainMC> players_[2];
+  /// @brief Model IDs for the players
+  std::array<int32_t, 2> ids_;
   /// @brief Current game state
   std::unique_ptr<Node> root_ = std::make_unique<Node>();
   /// @brief Whose turn it is

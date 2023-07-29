@@ -1,5 +1,7 @@
 #include "node.h"
 
+#include <cstdint>
+
 #include <bitset>
 #include <ostream>
 

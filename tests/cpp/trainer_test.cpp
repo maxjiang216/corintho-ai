@@ -1,4 +1,5 @@
 #include "trainer.h"
+
 #include "gtest/gtest.h"
 
 // Test the default constructor

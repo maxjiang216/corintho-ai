@@ -8,6 +8,10 @@
 
 #include "util.h"
 
+#include <iostream>
+#include <utility>
+using namespace std;
+
 class Game;
 class Node;
 
@@ -19,9 +23,35 @@ class TrainMC {
           int32_t searches_per_eval = 16, float c_puct = 1.0,
           float epsilon = 0.25, bool testing = false);
   TrainMC(const TrainMC &) = default;
-  TrainMC(TrainMC &&) = default;
+  TrainMC(TrainMC &&other) noexcept
+    : root_{other.root_},
+      cur_{other.cur_},
+      searches_done_{other.searches_done_},
+      max_searches_{other.max_searches_},
+      searches_per_eval_{other.searches_per_eval_},
+      c_puct_{other.c_puct_},
+      epsilon_{other.epsilon_},
+      searched_{std::move(other.searched_)},
+      to_eval_{other.to_eval_},
+      testing_{other.testing_},
+      generator_{other.generator_} {
+  std::cerr << "Move constructor called, moving from " << &other << " to " << this << std::endl;
+}
   TrainMC &operator=(const TrainMC &) = default;
-  TrainMC &operator=(TrainMC &&) = default;
+  TrainMC &operator=(TrainMC &&other) noexcept {
+  if (this != &other) {
+    // Call the move assignment operator of each member variable
+    root_ = other.root_;
+    cur_ = other.cur_;
+    searches_done_ = other.searches_done_;
+    searched_ = std::move(other.searched_);
+    to_eval_ = other.to_eval_;
+    testing_ = other.testing_;
+    generator_ = other.generator_;
+    std::cerr << "Move assignment operator called, moving from " << &other << " to " << this << std::endl;
+  }
+  return *this;
+}
   ~TrainMC();
   /// @brief Constructor for web app. Starts at an arbitrary position
   TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,

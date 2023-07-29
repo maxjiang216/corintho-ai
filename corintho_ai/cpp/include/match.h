@@ -13,17 +13,18 @@
 #include "util.h"
 
 struct Player {
+  Player() = default;
   Player(int32_t model_id, int32_t max_searches, int32_t searches_per_eval,
          float c_puct, float epsilon, bool random = false)
       : model_id{model_id}, max_searches{max_searches},
         searches_per_eval{searches_per_eval}, c_puct{c_puct}, epsilon{epsilon},
         random{random} {}
-  int32_t model_id;
-  int32_t max_searches;
-  int32_t searches_per_eval;
-  float c_puct;
-  float epsilon;
-  bool random;
+  int32_t model_id{};
+  int32_t max_searches{1600};
+  int32_t searches_per_eval{16};
+  float c_puct{1.0};
+  float epsilon{0.25};
+  bool random{false};
 };
 
 /// @brief A tournament match with 2 players
@@ -31,6 +32,10 @@ class Match {
  public:
   Match(int32_t random_seed, Player player1, Player player2,
         std::unique_ptr<std::ofstream> log_file = nullptr);
+  Match(const Match &other) = delete;
+  Match(Match &&other) noexcept = default;
+  Match &operator=(const Match &other) = delete;
+  Match &operator=(Match &&other) noexcept = default;
   ~Match() = default;
 
   int32_t id(int32_t i) const noexcept;

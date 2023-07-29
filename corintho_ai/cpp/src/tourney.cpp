@@ -10,6 +10,9 @@
 
 #include "util.h"
 
+#include <iostream>
+using namespace std;
+
 int32_t Tourney::num_requests(int32_t id) const noexcept {
   int32_t count = 0;
   for (size_t i = 0; i < matches_.size(); ++i) {
@@ -69,12 +72,14 @@ bool Tourney::doIteration(float eval[], float probs[], int32_t id) {
 void Tourney::addPlayer(int32_t player_id, int32_t model_id,
                         int32_t max_searches, int32_t searches_per_eval,
                         float c_puct, float epsilon, bool random) {
-  players_[player_id] = {model_id, max_searches, searches_per_eval,
-                         c_puct,   epsilon,      random};
+  players_[player_id] = Player{model_id, max_searches, searches_per_eval,
+                               c_puct,   epsilon,      random};
 }
 
 void Tourney::addMatch(int32_t player1, int32_t player2) {
   assert(matches_.size() == is_done_.size());
+  assert(players_.find(player1) != players_.end());
+  assert(players_.find(player2) != players_.end());
   // make sure the player exists
   matches_.emplace_back(generator_(), players_[player1], players_[player2]);
   is_done_.push_back(false);

@@ -12,21 +12,18 @@
 
 #include "util.h"
 
-#include <iostream>
-using namespace std;
-
 bool Tourney::all_done() const noexcept {
   for (const auto &done : is_done_) {
     if (!done)
       return false;
   }
+
   return true;
 }
 
 int32_t Tourney::num_requests(int32_t id) const noexcept {
   int32_t count = 0;
   for (size_t i = 0; i < matches_.size(); ++i) {
-    cerr << "i: " << i << " is_done: " << is_done_[i] << " to_play: " << matches_[i]->to_play() << " id: " << id << endl;
     if (!is_done_[i] && matches_[i]->to_play() == id) {
       count += matches_[i]->num_requests();
     }
@@ -91,7 +88,7 @@ void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
       gsl::narrow_cast<int32_t>(generator_()), players_[player1],
       players_[player2],
       logging ? std::make_unique<std::ofstream>(
-                    log_folder_ + "match_" + std::to_string(player1) + "_" +
+                    log_folder_ + "/match_" + std::to_string(player1) + "_" +
                     std::to_string(player2) + "_" +
                     std::to_string(matches_.size()) + ".txt")
               : nullptr});

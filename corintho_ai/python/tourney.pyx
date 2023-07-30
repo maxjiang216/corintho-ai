@@ -5,9 +5,9 @@ import time
 import numpy as np
 import tflite_runtime.interpreter as tflite
 
+cimport numpy as np
 from libcpp cimport bool
 from libcpp.string cimport string
-cimport numpy as np
 
 _NUM_MOVES = 96
 _GAME_STATE_SIZE = 70
@@ -125,11 +125,11 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
     while not tourney.all_done():
 
         for id in model_ids:
-            # Dummy model IDs for random players
-            if id < 0:
-                continue
-            num_requests = tourney.num_requests(id)
-            print(f"Model {id} has {num_requests} requests")
+
+            # Dummy model IDs for random players are negative
+            num_requests = 0
+            if id >= 0:
+                num_requests = tourney.num_requests(id)
 
             if num_requests > 0:
             
@@ -159,7 +159,7 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
 
         evals_done += 1
 
-        if time.perf_counter() - last_time > 60:
+        if time.perf_counter() - last_time > 60 or tourney.all_done():
             time_taken = time.perf_counter() - start_time
             with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:
                 f.write(

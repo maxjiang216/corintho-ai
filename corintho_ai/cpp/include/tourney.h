@@ -12,7 +12,8 @@
 
 class Tourney {
  public:
-  Tourney(int32_t num_threads) : num_threads_{num_threads} {
+  Tourney(int32_t num_threads, std::string log_folder)
+      : num_threads_{num_threads}, log_folder_{log_folder} {
     assert(num_threads > 0);
   }
   ~Tourney() = default;
@@ -34,7 +35,7 @@ class Tourney {
                  int32_t max_searches = 1600, int32_t searches_per_eval = 16,
                  float c_puct = 1.0, float epsilon = 0.25,
                  bool random = false);
-  void addMatch(int32_t player1, int32_t player2);
+  void addMatch(int32_t player1, int32_t player2, bool logging = false);
 
  private:
   std::vector<std::unique_ptr<Match>> matches_{};
@@ -42,6 +43,7 @@ class Tourney {
   std::map<int32_t, Player> players_{};
   std::mt19937 generator_{};
   int32_t num_threads_{1};
+  std::string log_folder_{};
 };
 
 #endif

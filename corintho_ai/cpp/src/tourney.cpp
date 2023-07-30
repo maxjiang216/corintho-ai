@@ -5,6 +5,7 @@
 
 #include <fstream>
 #include <random>
+#include <string>
 
 #include <gsl/gsl>
 #include <omp.h>
@@ -25,6 +26,7 @@ bool Tourney::all_done() const noexcept {
 int32_t Tourney::num_requests(int32_t id) const noexcept {
   int32_t count = 0;
   for (size_t i = 0; i < matches_.size(); ++i) {
+    cerr << "i: " << i << " is_done: " << is_done_[i] << " to_play: " << matches_[i]->to_play() << " id: " << id << endl;
     if (!is_done_[i] && matches_[i]->to_play() == id) {
       count += matches_[i]->num_requests();
     }
@@ -80,12 +82,18 @@ void Tourney::addPlayer(int32_t player_id, int32_t model_id,
                                c_puct,   epsilon,      random};
 }
 
-void Tourney::addMatch(int32_t player1, int32_t player2) {
+void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
   assert(matches_.size() == is_done_.size());
   assert(players_.find(player1) != players_.end());
   assert(players_.find(player2) != players_.end());
   // make sure the player exists
-  matches_.emplace_back(new Match{gsl::narrow_cast<int32_t>(generator_()),
-                                  players_[player1], players_[player2]});
+  matches_.emplace_back(new Match{
+      gsl::narrow_cast<int32_t>(generator_()), players_[player1],
+      players_[player2],
+      logging ? std::make_unique<std::ofstream>(
+                    log_folder_ + "match_" + std::to_string(player1) + "_" +
+                    std::to_string(player2) + "_" +
+                    std::to_string(matches_.size()) + ".txt")
+              : nullptr});
   is_done_.push_back(false);
 }

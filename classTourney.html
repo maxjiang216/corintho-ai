@@ -72,9 +72,13 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:acddfa7847daa10918c450058b0e0bb36"><td class="memItemLeft" align="right" valign="top"><a id="acddfa7847daa10918c450058b0e0bb36"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Tourney</b> (int32_t num_threads)</td></tr>
-<tr class="separator:acddfa7847daa10918c450058b0e0bb36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affa160422cda3d761d689a311b1e636e"><td class="memItemLeft" align="right" valign="top"><a id="affa160422cda3d761d689a311b1e636e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Tourney</b> (int32_t num_threads, std::string log_folder)</td></tr>
+<tr class="separator:affa160422cda3d761d689a311b1e636e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af72cdc60be11b8f15227cf37bb60eb33"><td class="memItemLeft" align="right" valign="top"><a id="af72cdc60be11b8f15227cf37bb60eb33"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTourney.html#af72cdc60be11b8f15227cf37bb60eb33">all_done</a> () const noexcept</td></tr>
+<tr class="memdesc:af72cdc60be11b8f15227cf37bb60eb33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return true if all games are done. <br /></td></tr>
+<tr class="separator:af72cdc60be11b8f15227cf37bb60eb33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b3dbe54893daf7f69ef1d3cc9ac17ac"><td class="memItemLeft" align="right" valign="top"><a id="a4b3dbe54893daf7f69ef1d3cc9ac17ac"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTourney.html#a4b3dbe54893daf7f69ef1d3cc9ac17ac">num_requests</a> (int32_t id) const noexcept</td></tr>
 <tr class="memdesc:a4b3dbe54893daf7f69ef1d3cc9ac17ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of requests for evaluations for a given model. <br /></td></tr>
@@ -87,16 +91,16 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTourney.html#a3383e57f449330f9b03beb76d20fbbec">writeRequests</a> (float *game_states, int32_t id) noexcept</td></tr>
 <tr class="memdesc:a3383e57f449330f9b03beb76d20fbbec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the game states for which evaluations are requested for a given model. <br /></td></tr>
 <tr class="separator:a3383e57f449330f9b03beb76d20fbbec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c78ab9c34283d11063e5d9620fcb613"><td class="memItemLeft" align="right" valign="top"><a id="a8c78ab9c34283d11063e5d9620fcb613"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTourney.html#a8c78ab9c34283d11063e5d9620fcb613">doIteration</a> (float eval[], float probs[], int32_t id)</td></tr>
-<tr class="memdesc:a8c78ab9c34283d11063e5d9620fcb613"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate the games until an evaluation is needed. <br /></td></tr>
-<tr class="separator:a8c78ab9c34283d11063e5d9620fcb613"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7993dba14435f9387da7ce51aa36c0af"><td class="memItemLeft" align="right" valign="top"><a id="a7993dba14435f9387da7ce51aa36c0af"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTourney.html#a7993dba14435f9387da7ce51aa36c0af">doIteration</a> (float eval[], float probs[], int32_t id)</td></tr>
+<tr class="memdesc:a7993dba14435f9387da7ce51aa36c0af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Iterate the games until an evaluation is needed. <br /></td></tr>
+<tr class="separator:a7993dba14435f9387da7ce51aa36c0af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a103eb003b69d2d16722ae036be588bc5"><td class="memItemLeft" align="right" valign="top"><a id="a103eb003b69d2d16722ae036be588bc5"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>addPlayer</b> (int32_t player_id, int32_t model_id, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, bool random=false)</td></tr>
 <tr class="separator:a103eb003b69d2d16722ae036be588bc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abdb915d28e1a0e6946f08c6caeccda88"><td class="memItemLeft" align="right" valign="top"><a id="abdb915d28e1a0e6946f08c6caeccda88"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>addMatch</b> (int32_t player1, int32_t player2)</td></tr>
-<tr class="separator:abdb915d28e1a0e6946f08c6caeccda88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40d2dbdd4258b810840af6988f27ff5f"><td class="memItemLeft" align="right" valign="top"><a id="a40d2dbdd4258b810840af6988f27ff5f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>addMatch</b> (int32_t player1, int32_t player2, bool logging=false)</td></tr>
+<tr class="separator:a40d2dbdd4258b810840af6988f27ff5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -115,6 +119,9 @@ std::mt19937&#160;</td><td class="memItemRight" valign="bottom"><b>generator_</b
 <tr class="memitem:a125cdecc2eed0f46810e139455b10fb3"><td class="memItemLeft" align="right" valign="top"><a id="a125cdecc2eed0f46810e139455b10fb3"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_threads_</b> {1}</td></tr>
 <tr class="separator:a125cdecc2eed0f46810e139455b10fb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68b22f35f2f449f3565ca59a315a504c"><td class="memItemLeft" align="right" valign="top"><a id="a68b22f35f2f449f3565ca59a315a504c"></a>
+std::string&#160;</td><td class="memItemRight" valign="bottom"><b>log_folder_</b> {}</td></tr>
+<tr class="separator:a68b22f35f2f449f3565ca59a315a504c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>corintho_ai/cpp/include/<a class="el" href="tourney_8h_source.html">tourney.h</a></li>

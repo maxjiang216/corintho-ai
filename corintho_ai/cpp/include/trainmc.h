@@ -186,7 +186,6 @@ class TrainMC {
   /// @details This is shared between the two players in a SelfPlayer,
   /// since only one player is searching at a time.
   std::mt19937 *generator_{nullptr};
-  friend class Match;
 };
 
 #endif

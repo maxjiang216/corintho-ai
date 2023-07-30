@@ -7,18 +7,18 @@
 #include "util.h"
 
 TEST(TourneyTest, Constructor) {
-  Tourney tourney{1};
+  Tourney tourney{1, ""};
   EXPECT_EQ(tourney.num_requests(0), 0);
 }
 
 TEST(TourneyTest, AddPlayer) {
-  Tourney tourney{1};
+  Tourney tourney{1, ""};
   tourney.addPlayer(0, 0);
   EXPECT_EQ(tourney.num_requests(0), 0);
 }
 
 TEST(TourneyTest, AddMatch) {
-  Tourney tourney{1};
+  Tourney tourney{1, ""};
   tourney.addPlayer(0, 0);
   tourney.addPlayer(1, 0);
   tourney.addMatch(0, 1);
@@ -28,7 +28,7 @@ TEST(TourneyTest, AddMatch) {
 }
 
 TEST(TourneyTest, FewSearches) {
-  Tourney tourney{1};
+  Tourney tourney{1, ""};
   int32_t counter = 1;
   for (const auto max_searches : {2, 3, 4}) {
     for (const auto searches_per_eval : {1, max_searches}) {
@@ -50,9 +50,8 @@ TEST(TourneyTest, FewSearches) {
   std::mt19937 generator(12345);
   std::uniform_real_distribution<float> prob_dist(0.0, 1.0);
   std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
-  while (true) {
+  while (!tourney.all_done()) {
     // Do iterations
-    bool all_done = true;
     for (int32_t i = 0; i < counter; ++i) {
       int32_t num_requests = tourney.num_requests(i);
       if (num_requests > 0) {
@@ -64,15 +63,13 @@ TEST(TourneyTest, FewSearches) {
           eval[j] = eval_dist(generator);
         }
       }
-      all_done &= tourney.doIteration(eval, probs, i);
+      tourney.doIteration(eval, probs, i);
     }
-    if (all_done)
-      break;
   }
 }
 
 TEST(TourneyTest, FullGame) {
-  Tourney tourney{1};
+  Tourney tourney{1, ""};
   int32_t counter = 1;
   for (const auto max_searches : {16, 1600}) {
     for (const auto searches_per_eval : {1, 16}) {
@@ -94,9 +91,8 @@ TEST(TourneyTest, FullGame) {
   std::mt19937 generator(12345);
   std::uniform_real_distribution<float> prob_dist(0.0, 1.0);
   std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
-  while (true) {
+  while (!tourney.all_done()) {
     // Do iterations
-    bool all_done = true;
     for (int32_t i = 0; i < counter; ++i) {
       int32_t num_requests = tourney.num_requests(i);
       if (num_requests > 0) {
@@ -108,15 +104,13 @@ TEST(TourneyTest, FullGame) {
           eval[j] = eval_dist(generator);
         }
       }
-      all_done &= tourney.doIteration(eval, probs, i);
+      tourney.doIteration(eval, probs, i);
     }
-    if (all_done)
-      break;
   }
 }
 
 TEST(TourneyTest, FullGameMultiThreaded) {
-  Tourney tourney{2};
+  Tourney tourney{2, ""};
   int32_t counter = 1;
   for (const auto max_searches : {16, 1600}) {
     for (const auto searches_per_eval : {1, 16}) {
@@ -138,9 +132,8 @@ TEST(TourneyTest, FullGameMultiThreaded) {
   std::mt19937 generator(12345);
   std::uniform_real_distribution<float> prob_dist(0.0, 1.0);
   std::uniform_real_distribution<float> eval_dist(-1.0, 1.0);
-  while (true) {
+  while (!tourney.all_done()) {
     // Do iterations
-    bool all_done = true;
     for (int32_t i = 0; i < counter; ++i) {
       int32_t num_requests = tourney.num_requests(i);
       if (num_requests > 0) {
@@ -152,9 +145,7 @@ TEST(TourneyTest, FullGameMultiThreaded) {
           eval[j] = eval_dist(generator);
         }
       }
-      all_done &= tourney.doIteration(eval, probs, i);
+      tourney.doIteration(eval, probs, i);
     }
-    if (all_done)
-      break;
   }
 }

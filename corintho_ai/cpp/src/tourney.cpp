@@ -14,6 +14,14 @@
 #include <iostream>
 using namespace std;
 
+bool Tourney::all_done() const noexcept {
+  for (const auto &done : is_done_) {
+    if (!done)
+      return false;
+  }
+  return true;
+}
+
 int32_t Tourney::num_requests(int32_t id) const noexcept {
   int32_t count = 0;
   for (size_t i = 0; i < matches_.size(); ++i) {
@@ -44,7 +52,7 @@ void Tourney::writeRequests(float *game_states, int32_t id) noexcept {
   }
 }
 
-bool Tourney::doIteration(float eval[], float probs[], int32_t id) {
+void Tourney::doIteration(float eval[], float probs[], int32_t id) {
   int32_t offset = 0;
   int32_t offsets[matches_.size()] = {0};
   for (size_t i = 1; i < matches_.size(); ++i) {
@@ -63,11 +71,6 @@ bool Tourney::doIteration(float eval[], float probs[], int32_t id) {
         is_done_[i] = true;
     }
   }
-  for (size_t i = 0; i < is_done_.size(); ++i) {
-    if (!is_done_[i])
-      return false;
-  }
-  return true;
 }
 
 void Tourney::addPlayer(int32_t player_id, int32_t model_id,

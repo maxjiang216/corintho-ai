@@ -17,6 +17,8 @@ class Tourney {
   }
   ~Tourney() = default;
 
+  /// @brief Return true if all games are done
+  bool all_done() const noexcept;
   /// @brief Return the number of requests for evaluations for a given model
   int32_t num_requests(int32_t id) const noexcept;
 
@@ -27,7 +29,7 @@ class Tourney {
   void writeRequests(float *game_states, int32_t id) noexcept;
 
   /// @brief Iterate the games until an evaluation is needed
-  bool doIteration(float eval[], float probs[], int32_t id);
+  void doIteration(float eval[], float probs[], int32_t id);
   void addPlayer(int32_t player_id, int32_t model_id,
                  int32_t max_searches = 1600, int32_t searches_per_eval = 16,
                  float c_puct = 1.0, float epsilon = 0.25,

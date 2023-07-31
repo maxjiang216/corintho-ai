@@ -133,7 +133,7 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
             num_requests = 0
             if id >= 0:
                 num_requests = tourney.num_requests(id)
-                total_requests += max(totalrequests, num_requests)
+                total_requests += max(total_requests, num_requests)
 
             if num_requests > 0:
             

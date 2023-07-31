@@ -10,6 +10,7 @@ pip install pytz
 pip install cython # 5MB
 pip install toml
 pip install black
+pip install tflite_runtime
 export PATH="~/.local/bin:$PATH"
 git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai

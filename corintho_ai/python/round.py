@@ -1,9 +1,19 @@
 import argparse
 import heapq
 import os
-from multiprocessing import cpu_count
+from multiprocessing import Pool, cpu_count
 
 from tourney import run
+
+
+def run_helper(args):
+    """
+    Run a single match
+    """
+
+    model_paths, players_file, match_file, log_folder, num_threads = args
+
+    run(model_paths, players_file, match_file, log_folder, num_threads)
 
 
 def get_args():
@@ -67,7 +77,9 @@ def get_variance(n1, m1, n2, m2):
     ) * (m2 + 1) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
 
 
-def write_games(num_players, num_games, folder, match_file, num_logged=10):
+def write_games(
+    num_players, num_games, folder, round_folder, num_logged=10, num_threads=1
+):
     """
     Collects all game results from result_folder
     Chooses num_games matches based on score variance
@@ -165,13 +177,31 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
         )
 
     # Write matches into file
-    with open(match_file, "w") as f:
-        f.write(f"{len(matches)}\n")
-        for match in matches:
-            # Always play a match
-            f.write(f"{match[0]}\t{match[1]}\t0\n")
-            f.write(f"{match[1]}\t{match[0]}\t{1 if num_logged > 0 else 0}\n")
-            num_logged -= 1
+    for i in range(num_threads):
+        match_file = os.path.join(round_folder, f"matches_{i}.txt")
+        with open(match_file, "w+") as f:
+            f.write(f"{len(matches[i::num_threads])}\n")
+            for match in matches[i::num_threads]:
+                # Always play a match
+                f.write(f"{match[0]}\t{match[1]}\t0\n")
+                f.write(
+                    f"{match[1]}\t{match[0]}\t{1 if num_logged > 0 else 0}\n"
+                )
+                num_logged -= 1
+
+
+def combine_results(folder, num_threads):
+    """
+    Combine results from multiple threads
+    """
+
+    results = []
+    for i in range(num_threads):
+        with open(os.path.join(folder, f"logs_{i}", "scores.txt"), "r") as f:
+            results.extend(f.readlines())
+
+    with open(os.path.join(folder, "results.txt"), "w+") as f:
+        f.write("".join(results))
 
 
 def get_performance(score, opponents):
@@ -308,22 +338,45 @@ def main():
         os.path.join(args["folder"], f"round_{current_round}")
     ):
         os.mkdir(os.path.join(args["folder"], f"round_{current_round}"))
-    match_file = os.path.join(
-        args["folder"], f"round_{current_round}", "matches.txt"
-    )
-    open(match_file, "w").close()
+    round_folder = os.path.join(args["folder"], f"round_{current_round}")
+    if not os.path.exists(round_folder):
+        os.mkdir(round_folder)
     write_games(
         num_players,
         args["num_games"],
         args["folder"],
-        match_file,
+        round_folder,
         args["num_logged"],
+        args["num_threads"],
     )
 
-    run(
-        model_paths,
-        os.path.join(args["folder"], "players.txt"),
-        match_file,
+    args_list = []
+    for i in range(args["num_threads"]):
+        if not os.path.exists(os.path.join(round_folder, f"logs_{i}")):
+            os.mkdir(os.path.join(round_folder, f"logs_{i}"))
+        args_list.append(
+            (
+                model_paths,
+                os.path.join(args["folder"], "players.txt"),
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                    f"matches_{i}.txt",
+                ),
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                    f"logs_{i}",
+                ),
+                1,
+            )
+        )
+
+    with Pool(args["num_threads"]) as pool:
+        pool.map(run_helper, args_list)
+
+    # Combine results
+    combine_results(
         os.path.join(args["folder"], f"round_{current_round}"),
         args["num_threads"],
     )

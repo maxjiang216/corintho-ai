@@ -125,12 +125,14 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
 
     while not tourney.all_done():
 
+        max_requests = 0
         for id in model_ids:
 
             # Dummy model IDs for random players are negative
             num_requests = 0
             if id >= 0:
                 num_requests = tourney.num_requests(id)
+                max_requests = max(max_requests, num_requests)
 
             if num_requests > 0:
             
@@ -156,9 +158,15 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
 
             play_start = time.perf_counter()
             tourney.doIteration(&eval[0], &probs[0,0], id)
-            play_time += time.perf_counter() - play_start
+            play_time += time.perf_counter() - play_start   
 
         evals_done += 1
+
+        if max_requests == 0:
+            with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:
+                f.write(
+                    "NO REQUESTS!\n"
+                )
 
         if time.perf_counter() - last_time > 60 or tourney.all_done():
             time_taken = time.perf_counter() - start_time

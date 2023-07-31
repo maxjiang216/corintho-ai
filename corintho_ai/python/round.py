@@ -11,9 +11,20 @@ def run_helper(args):
     Run a single match
     """
 
-    model_paths, players_file, match_file, log_folder, num_threads = args
+    (
+        model_paths,
+        players_file,
+        match_file,
+        log_folder,
+        num_threads,
+        folder,
+        id,
+    ) = args
 
     run(model_paths, players_file, match_file, log_folder, num_threads)
+
+    with open(os.path.join(folder, f"done_{id}.txt"), "r") as f:
+        f.write(match_file)
 
 
 def get_args():
@@ -369,6 +380,11 @@ def main():
                     f"logs_{i}",
                 ),
                 1,
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                ),
+                i,
             )
         )
 

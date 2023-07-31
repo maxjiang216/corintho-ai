@@ -1,6 +1,7 @@
 import argparse
 import heapq
 import os
+from multiprocessing import cpu_count
 
 from tourney import run
 
@@ -36,7 +37,12 @@ def get_args():
         help="Number of threads to use",
     )
 
-    return vars(parser.parse_args())
+    args = vars(parser.parse_args())
+
+    if args["num_threads"] < 1:
+        args["num_threads"] = cpu_count()
+
+    return args
 
 
 def get_models(folder):
@@ -208,7 +214,9 @@ def get_performance_ratings(games, players):
         else:
             opponents = [players[opponent[0]][0] for opponent in games[player]]
             score = sum([game[1] for game in games[player]])
-            if score == 0:
+            if len(opponents) == 0:
+                new_rating = rating[0]
+            elif score == 0:
                 new_rating = 0
             else:
                 if score == len(games[player]):

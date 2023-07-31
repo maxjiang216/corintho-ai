@@ -1,0 +1,5 @@
+[hyperparameters]
+folder = "./tourney"
+num_games = 50000
+num_logged = 10
+num_threads = 0

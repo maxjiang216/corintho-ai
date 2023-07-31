@@ -18,7 +18,7 @@ _NUM_MOVES = 96
 
 
 def get_args():
-    """ """
+    """Parse command line arguments"""
     # Parse flags
     parser = argparse.ArgumentParser()
     parser.add_argument(

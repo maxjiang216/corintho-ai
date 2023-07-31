@@ -1,0 +1,5 @@
+[hyperparameters]
+folder = "./test"
+num_games = 10
+num_logged = 10
+num_threads = 1

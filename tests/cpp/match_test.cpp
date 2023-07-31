@@ -9,8 +9,8 @@
 
 // Test the constructor
 TEST(MatchTest, Constructor) {
-  Player player1{0, 1600, 16, 1.0, 0.25};
-  Player player2{1, 1600, 16, 1.0, 0.25};
+  Player player1{0, 0, 1600, 16, 1.0, 0.25};
+  Player player2{1, 1, 1600, 16, 1.0, 0.25};
   std::unique_ptr<std::ofstream> log_file = nullptr;
   Match match{0, player1, player2, std::move(log_file)};
   EXPECT_EQ(match.to_play(), 0);
@@ -18,8 +18,8 @@ TEST(MatchTest, Constructor) {
 
 // Test the constructor with a random player
 TEST(MatchTest, ConstructorRandom) {
-  Player player1{0, 1600, 16, 1.0, 0.25, true};
-  Player player2{1, 1600, 16, 1.0, 0.25};
+  Player player1{0, 0, 1600, 16, 1.0, 0.25, true};
+  Player player2{1, 1, 1600, 16, 1.0, 0.25};
   std::unique_ptr<std::ofstream> log_file = nullptr;
   Match match{0, player1, player2, std::move(log_file)};
   EXPECT_EQ(match.to_play(), 0);
@@ -30,10 +30,10 @@ TEST(MatchTest, FewSearches) {
     for (int32_t searches_per_eval = 1; searches_per_eval <= max_searches;
          ++searches_per_eval) {
       for (int32_t random_id = 0; random_id < 3; ++random_id) {
-        Player player1{0,   max_searches, searches_per_eval,
-                       1.0, 0.25,         random_id == 0};
-        Player player2{1,   max_searches, searches_per_eval,
-                       1.0, 0.25,         random_id == 1};
+        Player player1{0,   0,    max_searches,  searches_per_eval,
+                       1.0, 0.25, random_id == 0};
+        Player player2{1,   1,    max_searches,  searches_per_eval,
+                       1.0, 0.25, random_id == 1};
         std::unique_ptr<std::ofstream> log_file = nullptr;
         Match match{12345, player1, player2, std::move(log_file)};
         float eval[searches_per_eval];
@@ -79,10 +79,10 @@ TEST(MatchTest, FullGame) {
   int32_t max_searches = 1600;
   int32_t searches_per_eval = 16;
   for (int32_t random_id = 0; random_id < 3; ++random_id) {
-    Player player1{0,   max_searches, searches_per_eval,
-                   1.0, 0.25,         random_id == 0};
-    Player player2{1,   max_searches, searches_per_eval,
-                   1.0, 0.25,         random_id == 1};
+    Player player1{0,   0,    max_searches,  searches_per_eval,
+                   1.0, 0.25, random_id == 0};
+    Player player2{1,   1,    max_searches,  searches_per_eval,
+                   1.0, 0.25, random_id == 1};
     std::unique_ptr<std::ofstream> log_file = nullptr;
     Match match{12345, player1, player2, std::move(log_file)};
     float eval[searches_per_eval];

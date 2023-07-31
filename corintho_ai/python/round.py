@@ -50,7 +50,7 @@ def get_args():
     args = vars(parser.parse_args())
 
     if args["num_threads"] < 1:
-        args["num_threads"] = cpu_count()
+        args["num_threads"] = cpu_count() - 1
 
     return args
 

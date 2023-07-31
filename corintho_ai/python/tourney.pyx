@@ -90,7 +90,7 @@ cdef get_tourney(Tourney *tourney, player_file, match_file):
             player_models[player_id] = int(model_id)
             model_ids.add(int(model_id))
 
-    # Get 
+    # Get matches
     with open(match_file, "r") as f:
         num_matches = int(f.readline())
         for i in range(num_matches):

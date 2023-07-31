@@ -75,8 +75,9 @@ void Tourney::doIteration(float eval[], float probs[], int32_t id) {
 void Tourney::addPlayer(int32_t player_id, int32_t model_id,
                         int32_t max_searches, int32_t searches_per_eval,
                         float c_puct, float epsilon, bool random) {
-  players_[player_id] = Player{model_id, max_searches, searches_per_eval,
-                               c_puct,   epsilon,      random};
+  players_[player_id] =
+      Player{player_id, model_id, max_searches, searches_per_eval,
+             c_puct,    epsilon,  random};
 }
 
 void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {

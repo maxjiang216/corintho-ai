@@ -3,6 +3,7 @@ import os
 
 import toml
 
+
 def main():
     # Parse flags
     parser = argparse.ArgumentParser()
@@ -39,3 +40,7 @@ def main():
 
     for element in commands:
         os.system(element)
+
+
+if __name__ == "__main__":
+    main()

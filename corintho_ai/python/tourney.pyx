@@ -73,9 +73,9 @@ cdef get_tourney(Tourney *tourney, player_file, match_file):
     with open(player_file, "r") as f:
         # Get players
         num_players = int(f.readline())
-        for i in range(num_players):
-            player_id, model_id, max_searches, searches_per_eval, c_puct, epsilon, random = [
-                int(x) if i != 4 and i != 5 else float(x) for i, x in enumerate(f.readline().split())
+        for player_id in range(num_players):
+            model_id, max_searches, searches_per_eval, c_puct, epsilon, random = [
+                int(x) if i != 3 and i != 4 else float(x) for i, x in enumerate(f.readline().split())
             ]
             tourney.addPlayer(
                 player_id,
@@ -86,8 +86,8 @@ cdef get_tourney(Tourney *tourney, player_file, match_file):
                 epsilon,
                 True if random == 1.0 else False,
             )
-            searches_per_evals[int(player_id)] = int(searches_per_eval)
-            player_models[int(player_id)] = int(model_id)
+            searches_per_evals[player_id] = int(searches_per_eval)
+            player_models[player_id] = int(model_id)
             model_ids.add(int(model_id))
 
     # Get 
@@ -173,7 +173,7 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
             last_time = time.perf_counter()
 
             
-def run(model_paths, filename, num_threads, log_folder):
+def run(model_paths, player_file, match_file, log_folder, num_threads):
     """
     models is a list of model paths (TFLite)
     Reads pairings from filename
@@ -184,7 +184,7 @@ def run(model_paths, filename, num_threads, log_folder):
 
     # Create tournament and load pairings
     cdef Tourney *tourney = new Tourney(num_threads, log_folder.encode())
-    model_ids, max_searches = get_tourney(tourney, filename)
+    model_ids, max_searches = get_tourney(tourney, player_file, match_file)
 
     # Play games
     play_games(tourney, models, model_ids, max_searches, log_folder)

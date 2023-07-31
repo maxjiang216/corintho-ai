@@ -29,15 +29,16 @@ Match::Match(int32_t random_seed, Player player1, Player player2,
                                &generator_, to_eval_.get(),
                                player2.max_searches, player2.searches_per_eval,
                                player2.c_puct, player2.epsilon, true)},
-      ids_{player1.model_id, player2.model_id}, log_file_{
-                                                    std::move(log_file)} {}
+      ids_{player1.player_id, player2.player_id},
+      model_ids_{player1.model_id, player2.model_id}, log_file_{std::move(
+                                                          log_file)} {}
 int32_t Match::id(int32_t i) const noexcept {
   assert(i == 0 || i == 1);
   return ids_[i];
 }
 
 int32_t Match::to_play() const noexcept {
-  return ids_[to_play_];
+  return model_ids_[to_play_];
 }
 
 int32_t Match::num_requests() const noexcept {

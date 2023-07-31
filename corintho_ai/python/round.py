@@ -12,28 +12,10 @@ def get_args():
     # Parse flags
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model_file",
-        type=str,
-        default="",
-        help="Path to file containing model paths",
-    )
-    parser.add_argument(
-        "--result_folder",
+        "--folder",
         type=str,
         default="",
         help="Path to folder containing results",
-    )
-    parser.add_argument(
-        "--match_file",
-        type=str,
-        default="",
-        help="Path to file containing matches",
-    )
-    parser.add_argument(
-        "--player_file",
-        type=str,
-        default="",
-        help="Path to file containing player paths",
     )
     parser.add_argument(
         "--num_games",
@@ -53,22 +35,16 @@ def get_args():
         default=1,
         help="Number of threads to use",
     )
-    parser.add_argument(
-        "--log_folder",
-        type=str,
-        default="",
-        help="Path to folder for logging",
-    )
 
     return vars(parser.parse_args())
 
 
-def get_models(model_file):
+def get_models(folder):
     """
     Read model paths from filename
     """
 
-    with open(model_file, "r") as f:
+    with open(os.path.join(folder, "models.txt"), "r") as f:
         model_paths = f.readlines()
         model_paths = [path.strip() for path in model_paths]
 
@@ -85,22 +61,22 @@ def get_variance(n1, m1, n2, m2):
     ) * (m2 + 1) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
 
 
-def write_games(num_games, result_folder, match_file, num_logged=10):
+def write_games(num_players, num_games, folder, match_file, num_logged=10):
     """
     Collects all game results from result_folder
     Chooses num_games matches based on score variance
     """
 
     results = []
-    for item in os.listdir(result_folder):
-        item_path = os.path.join(result_folder, item)
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
         if os.path.isdir(item_path):
             scores_file_path = os.path.join(item_path, "scores.txt")
 
             if os.path.exists(scores_file_path):
                 with open(scores_file_path, "r") as f:
                     scores = f.readlines()
-                    scores = [score.split("\t") for score in scores]
+                    scores = [score.split() for score in scores]
                     scores = [
                         ((int(score[0]), int(score[1])), float(score[2]))
                         for score in scores
@@ -122,22 +98,31 @@ def write_games(num_games, result_folder, match_file, num_logged=10):
 
     variances = {}
 
-    for key in scores:
-        pair = tuple(sorted(key))
-        reverse_pair = tuple(sorted(key, reverse=True))
-        if pair in variances:
-            continue
-        n1 = scores[pair][0]
-        n2 = scores[reverse_pair][0]
-        m1 = scores[pair][1]
-        m2 = scores[reverse_pair][1]
-        variances[pair] = (
-            get_variance(n1, m1, n2, m2),
-            n1,
-            m1,
-            n2,
-            m2,
-        )
+    for player1 in range(num_players):
+        for player2 in range(player1 + 1, num_players):
+            pair = (player1, player2)
+            if pair in variances:
+                continue
+            reverse_pair = (player2, player1)
+            if pair in scores:
+                n1 = scores[pair][0]
+                m1 = scores[pair][1]
+            else:
+                n1 = 0
+                m1 = 0
+            if reverse_pair in scores:
+                n2 = scores[reverse_pair][0]
+                m2 = scores[reverse_pair][1]
+            else:
+                n2 = 0
+                m2 = 0
+            variances[pair] = (
+                get_variance(n1, m1, n2, m2),
+                n1,
+                m1,
+                n2,
+                m2,
+            )
 
     variances = [
         (
@@ -164,46 +149,189 @@ def write_games(num_games, result_folder, match_file, num_logged=10):
         matches.append(item[0])
         n1, m1, n2, m2 = item[1]
         # Assume expected result to decrease variance of chosen pairs
-        n1 += n1 / (n1 + m1)
-        m1 += m1 / (n1 + m1)
-        n2 += n2 / (n2 + m2)
-        m2 += m2 / (n2 + m2)
-        heapq.push(
-            (item[0], (n1, m1, n2, m2)),
-            get_variance(n1, m1, n2, m2),
+        n1 += n1 / (n1 + m1) if n1 + m1 > 0 else 0.5
+        m1 += m1 / (n1 + m1) if n1 + m1 > 0 else 0.5
+        n2 += n2 / (n2 + m2) if n2 + m2 > 0 else 0.5
+        m2 += m2 / (n2 + m2) if n2 + m2 > 0 else 0.5
+        heapq.heappush(
+            variances,
+            (-1 * get_variance(n1, m1, n2, m2), (item[0], (n1, m1, n2, m2))),
         )
 
     # Write matches into file
     with open(match_file, "w") as f:
         f.write(f"{len(matches)}\n")
         for match in matches:
-            f.write(f"{match[0]}\t{match[1]}\t{1 if num_logged > 0 else 0}\n")
+            # Always play a match
+            f.write(f"{match[0]}\t{match[1]}\t0\n")
+            f.write(f"{match[1]}\t{match[0]}\t{1 if num_logged > 0 else 0}\n")
             num_logged -= 1
+
+
+def get_performance(score, opponents):
+    """
+    Use binary search to find performance rating
+    """
+
+    # Find performance rating
+    lower_bound = -100000
+    upper_bound = 100000
+    while upper_bound - lower_bound > 0.00001:
+        mid = (upper_bound + lower_bound) / 2
+        expected_score = sum(
+            [
+                1 / (1 + 10 ** ((opponent - mid) / 400))
+                for opponent in opponents
+            ]
+        ) / len(opponents)
+        if expected_score < score:
+            lower_bound = mid
+        else:
+            upper_bound = mid
+
+    return lower_bound
+
+
+def get_performance_ratings(games, players):
+    """
+    Compute performance ratings
+    """
+
+    new_players = {}
+    delta = 0
+
+    for player, rating in players.items():
+        if rating[1]:
+            new_players[player] = (0, True)
+        elif player not in games:
+            new_players[player] = (rating[0], False)
+        else:
+            opponents = [players[opponent[0]][0] for opponent in games[player]]
+            score = sum([game[1] for game in games[player]])
+            if score == 0:
+                new_rating = 0
+            else:
+                if score == len(games[player]):
+                    score -= 0.25  # Prevent perfect score
+                new_rating = get_performance(score / len(opponents), opponents)
+            new_players[player] = (new_rating, False)
+            delta = max(delta, abs(new_rating - rating[0]))
+
+    return new_players, delta
+
+
+def write_ratings(folder, round_folder):
+    """
+    Compute and write new ratings
+    Iteratively find performance rating
+    Random players are fixed at a rating of 0.
+    """
+
+    # Find seed ratings
+    with open(os.path.join(folder, "ratings.txt"), "r") as f:
+        ratings = f.readlines()
+        ratings = [float(rating.strip()) for rating in ratings]
+    # Find random players
+    with open(os.path.join(folder, "players.txt"), "r") as f:
+        players = f.readlines()
+        players = [player.split() for player in players]
+        randomness = [player[-1] == "1" for player in players]
+    players = {}
+    for i, rating in enumerate(ratings):
+        if randomness[i]:
+            players[i] = (0, True)
+        else:
+            players[i] = (rating, False)
+
+    # Get games
+    games = {}
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
+        if os.path.isdir(item_path):
+            scores_file_path = os.path.join(item_path, "scores.txt")
+
+            if os.path.exists(scores_file_path):
+                with open(scores_file_path, "r") as f:
+                    scores = f.readlines()
+                    scores = [score.split() for score in scores]
+                    scores = [
+                        ((int(score[0]), int(score[1])), float(score[2]))
+                        for score in scores
+                    ]
+                for score in scores:
+                    if score[0][0] not in games:
+                        games[score[0][0]] = []
+                    games[score[0][0]].append((score[0][1], score[1]))
+                    if score[0][1] not in games:
+                        games[score[0][1]] = []
+                    games[score[0][1]].append((score[0][0], 1 - score[1]))
+
+    # Compute performance ratings
+    delta = 999999
+    while delta > 0.0001:
+        players, delta = get_performance_ratings(games, players)
+
+    # Write new ratings
+    out_string = "\n".join([f"{players[player][0]}" for player in players])
+    with open(os.path.join(round_folder, "ratings.txt"), "w+") as f:
+        f.write(out_string)
+
+    with open(
+        os.path.join(folder, "ratings.txt"),
+        "w+",
+    ) as f:
+        f.write(out_string)
 
 
 def main():
     args = get_args()
 
-    model_paths = get_models(args["model_file"])
+    model_paths = get_models(args["folder"])
 
+    current_round = int(
+        open(os.path.join(args["folder"], "current_round.txt"), "r")
+        .read()
+        .strip()
+    )
+
+    with open(os.path.join(args["folder"], "players.txt"), "r") as f:
+        num_players = len(f.readlines()) - 1
+    if not os.path.exists(
+        os.path.join(args["folder"], f"round_{current_round}")
+    ):
+        os.mkdir(os.path.join(args["folder"], f"round_{current_round}"))
+    match_file = os.path.join(
+        args["folder"], f"round_{current_round}", "matches.txt"
+    )
+    open(match_file, "w").close()
     write_games(
+        num_players,
         args["num_games"],
-        args["result_folder"],
-        args["match_file"],
+        args["folder"],
+        match_file,
         args["num_logged"],
     )
 
-    print("Running tourney.py")
     run(
         model_paths,
-        args["player_file"],
-        args["match_file"],
+        os.path.join(args["folder"], f"players.txt"),
+        match_file,
+        os.path.join(args["folder"], f"round_{current_round}"),
         args["num_threads"],
-        args["log_folder"],
     )
-    print("Done running tourney.py")
 
     # Compute new ratings
+    write_ratings(
+        args["folder"],
+        os.path.join(args["folder"], f"round_{current_round}"),
+    )
+
+    # Update current round
+    with open(
+        os.path.join(args["folder"], "current_round.txt"),
+        "w",
+    ) as f:
+        f.write(str(current_round + 1))
 
 
 if __name__ == "__main__":

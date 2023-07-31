@@ -21,6 +21,15 @@ bool Tourney::all_done() const noexcept {
   return true;
 }
 
+int32_t Tourney::num_done() const noexcept {
+  int32_t count = 0;
+  for (const auto &done : is_done_) {
+    if (done)
+      ++count;
+  }
+  return count;
+}
+
 int32_t Tourney::num_requests(int32_t id) const noexcept {
   int32_t count = 0;
   for (size_t i = 0; i < matches_.size(); ++i) {

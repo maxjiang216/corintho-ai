@@ -492,6 +492,8 @@ void TrainMC::moveDown(Node *prev) noexcept {
   cur_ = root_;
   searches_done_ = 0;
   assert(searched_.size() == 0);
+  // Just to be safe
+  searched_.clear();
 }
 
 void TrainMC::propagateTerminal() noexcept {
@@ -691,6 +693,5 @@ void TrainMC::search() {
     assert(searched_.size() <= searches_per_eval_);
   }
   // Reset cur for next search
-  // Try not doing this?
   cur_ = root_;
 }

@@ -16,6 +16,7 @@ cdef extern from "../cpp/src/tourney.cpp":
     cdef cppclass Tourney:
         Tourney(int num_threads, string log_folder) except +
         bool all_done() except +
+        int num_done() except +
         int num_requests(int id) except +
         void writeScores(string filename) except +
         void writeRequests(float *game_states, int id) except +
@@ -162,10 +163,10 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
 
         evals_done += 1
 
-        if max_requests == 0:
+        if max_requests < 16:
             with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:
                 f.write(
-                    "NO REQUESTS!\n"
+                    f"FEW REQUESTS: {max_requests}\n"
                 )
 
         if time.perf_counter() - last_time > 60 or tourney.all_done():
@@ -176,7 +177,8 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
                     f"Predicted time to complete: "
                     f"{format_time(100 * 26.5 * time_taken / evals_done)}\n"
                     f"Neural network prediction time so far: {format_time(predict_time)}\n"
-                    f"Self play time so far: {format_time(play_time)}\n\n"
+                    f"Self play time so far: {format_time(play_time)}\n"
+                    f"Number of games done: {tourney.num_done()}\n\n"
                 )
             last_time = time.perf_counter()
 

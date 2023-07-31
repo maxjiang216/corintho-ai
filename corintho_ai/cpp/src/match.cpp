@@ -234,7 +234,8 @@ bool Match::chooseMoveAndContinue() {
     if (players_[to_play_]->uninitialized()) {
       players_[to_play_]->createRoot(root_->game(), root_->depth());
       // This is always false as the root requires an evaluation
-      return players_[to_play_]->doIteration();
+      players_[to_play_]->doIteration();
+      return false;
     }
     // It's possible that we need an evaluation for this
     // in the case that received move has not been searched

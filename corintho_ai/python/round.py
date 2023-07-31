@@ -314,7 +314,7 @@ def main():
 
     run(
         model_paths,
-        os.path.join(args["folder"], f"players.txt"),
+        os.path.join(args["folder"], "players.txt"),
         match_file,
         os.path.join(args["folder"], f"round_{current_round}"),
         args["num_threads"],

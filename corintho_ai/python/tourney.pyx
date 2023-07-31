@@ -59,7 +59,7 @@ cpdef get_models(model_paths):
 
     return models
 
-cdef get_tourney(Tourney *tourney, filename):
+cdef get_tourney(Tourney *tourney, player_file, match_file):
     """
     Returns a pointer to a Tourney object
     Reads player and match pairings from filename
@@ -70,7 +70,7 @@ cdef get_tourney(Tourney *tourney, filename):
     max_model_searches = {}
     model_ids = set()
 
-    with open(filename, "r") as f:
+    with open(player_file, "r") as f:
         # Get players
         num_players = int(f.readline())
         for i in range(num_players):
@@ -90,7 +90,8 @@ cdef get_tourney(Tourney *tourney, filename):
             player_models[int(player_id)] = int(model_id)
             model_ids.add(int(model_id))
 
-        # Get matches
+    # Get 
+    with open(match_file, "r") as f:
         num_matches = int(f.readline())
         for i in range(num_matches):
             player1, player2, logging = [int(x) for x in f.readline().split()]

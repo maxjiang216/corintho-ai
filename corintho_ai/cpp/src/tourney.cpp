@@ -64,7 +64,7 @@ void Tourney::doIteration(float eval[], float probs[], int32_t id) {
   int32_t offset = 0;
   int32_t offsets[matches_.size()] = {0};
   for (size_t i = 1; i < matches_.size(); ++i) {
-    if (!is_done_[i] && matches_[i]->to_play() == id) {
+    if (!is_done_[i - 1] && matches_[i - 1]->to_play() == id) {
       offset += matches_[i - 1]->num_requests();
     }
     offsets[i] = offset;

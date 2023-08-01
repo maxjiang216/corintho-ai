@@ -14,6 +14,9 @@
 #include "move.h"
 #include "node.h"
 
+#include <iostream>
+using namespace std;
+
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -174,7 +177,7 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
   return (searches_done_ == max_searches_ || root_->known()) &&
-         (searched_.size() == 0 || searches_done_ > max_searches_);
+          searched_.size() == 0;
 }
 
 bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
@@ -641,6 +644,9 @@ void TrainMC::search() {
       cur_->decrement_visits();
       cur_->decrease_evaluation(1.0);
       --searches_done_;
+      cerr << "Set all visits\n" << cur_->game() << '\n';
+      cerr << "searches done " << searches_done_ << '\n';
+      cerr << "searched_.size() " << searched_.size() << '\n';
       return;
     }
     // New node at the beginning of the list

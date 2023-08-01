@@ -173,8 +173,8 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   }
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
-  return (searches_done_ >= max_searches_ || root_->known()) &&
-         searched_.size() == 0;
+  return (searches_done_ == max_searches_ || root_->known()) &&
+         (searched_.size() == 0 || searches_done_ > max_searches_);
 }
 
 bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,

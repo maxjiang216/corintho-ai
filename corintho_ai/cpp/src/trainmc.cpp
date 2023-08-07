@@ -14,9 +14,6 @@
 #include "move.h"
 #include "node.h"
 
-#include <iostream>
-using namespace std;
-
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -644,9 +641,6 @@ void TrainMC::search() {
       cur_->decrement_visits();
       cur_->decrease_evaluation(1.0);
       --searches_done_;
-      cerr << "Set all visits\n" << cur_->game() << '\n';
-      cerr << "searches done " << searches_done_ << '\n';
-      cerr << "searched_.size() " << searched_.size() << '\n';
       return;
     }
     // New node at the beginning of the list

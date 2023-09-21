@@ -165,12 +165,6 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
 
         evals_done += 1
 
-        if max_requests < 16:
-            with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:
-                f.write(
-                    f"FEW REQUESTS: {total_requests}\t{max_requests}\n"
-                )
-
         if time.perf_counter() - last_time > 60 or tourney.all_done():
             time_taken = time.perf_counter() - start_time
             with open(f"{log_folder}/progress.txt", 'a+', encoding='utf-8') as f:

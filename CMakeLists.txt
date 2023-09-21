@@ -11,9 +11,11 @@ set(CPP_PATH "corintho_ai/cpp")
 
 set(TEST_PATH "tests/cpp")
 
+add_subdirectory(external/spdlog)
+
 set(CMAKE_CXX_FLAGS "--coverage -fopenmp -g -pg -O3")
 
-include_directories(${GTEST_PATH}/include ${GSL_PATH}/include ${CPP_PATH}/include)
+include_directories(${GTEST_PATH}/include ${GSL_PATH}/include ${CPP_PATH}/include external/spdlog/include)
 link_directories(googletest/lib)
 
 add_executable(
@@ -25,4 +27,4 @@ add_executable(
     ${CPP_PATH}/src/trainmc.cpp ${CPP_PATH}/src/selfplayer.cpp ${CPP_PATH}/src/trainer.cpp
     ${CPP_PATH}/src/match.cpp ${CPP_PATH}/src/tourney.cpp
 )
-target_link_libraries(CorinthoAI gtest gtest_main pthread)
+target_link_libraries(CorinthoAI gtest gtest_main pthread spdlog::spdlog)

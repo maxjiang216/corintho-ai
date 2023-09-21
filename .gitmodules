@@ -1,0 +1,3 @@
+[submodule "corintho_ai/python/external/spdlog"]
+	path = corintho_ai/python/external/spdlog
+	url = https://github.com/gabime/spdlog.git

@@ -4,8 +4,10 @@
 #include <cstdint>
 
 #include <bitset>
-#include <fstream>
 #include <memory>
+#include <string>
+
+#include <spdlog/spdlog.h>
 
 #include "game.h"
 #include "node.h"
@@ -33,7 +35,7 @@ struct Player {
 class Match {
  public:
   Match(int32_t random_seed, Player player1, Player player2,
-        std::unique_ptr<std::ofstream> log_file = nullptr);
+        const std::string &log_file);
   Match(const Match &other) = delete;
   Match(Match &&other) noexcept = default;
   Match &operator=(const Match &other) = delete;
@@ -58,6 +60,8 @@ class Match {
   /// @brief Do an iteration of searches for the current player
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
+
+  void enableDebugLogging() noexcept;
 
  private:
   /// @brief Write the evaluation of the given node
@@ -98,7 +102,8 @@ class Match {
   /// @brief File where all logs are written to
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).
-  std::unique_ptr<std::ofstream> log_file_{};
+  std::unique_ptr<spdlog::logger> logger_{};
+  std::unique_ptr<spdlog::logger> debug_logger_{};
 };
 
 #endif

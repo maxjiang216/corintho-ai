@@ -7,13 +7,16 @@
 #include <iomanip>
 #include <memory>
 #include <random>
+#include <string>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 #include "node.h"
 #include "trainmc.h"
 
 Match::Match(int32_t random_seed, Player player1, Player player2,
-             std::unique_ptr<std::ofstream> log_file)
+             const std::string &log_file)
     : generator_{std::mt19937(random_seed)},
       to_eval_{std::make_unique<float[]>(
           kGameStateSize *
@@ -30,8 +33,11 @@ Match::Match(int32_t random_seed, Player player1, Player player2,
                                player2.max_searches, player2.searches_per_eval,
                                player2.c_puct, player2.epsilon, true)},
       ids_{player1.player_id, player2.player_id},
-      model_ids_{player1.model_id, player2.model_id}, log_file_{std::move(
-                                                          log_file)} {}
+      model_ids_{player1.model_id, player2.model_id},
+      logger_{log_file.empty() ? nullptr : spdlog::basic_logger_mt(
+                                             log_file, log_file, true)},
+      debug_logger_{nullptr} {}
+      
 int32_t Match::id(int32_t i) const noexcept {
   assert(i == 0 || i == 1);
   return ids_[i];
@@ -78,22 +84,21 @@ bool Match::doIteration(float eval[], float probs[]) {
 
 void Match::writeEval(Node *node) const noexcept {
   assert(node != nullptr);
-  assert(log_file_ != nullptr);
+  assert(logger_ != nullptr);
   // There is a forced sequence
   if (node->result() != kResultNone) {
-    *log_file_ << strResult(node->result());
+    logger_->info(strResult(node->result()));
     return;
   }
-  *log_file_ << std::fixed << std::setprecision(6)
-             << node->evaluation() / node->visits();
+  // Log the evaluation
+  logger_->info("{:.6f}", node->evaluation() / node->visits());
 }
 
 void Match::writeMoves() const noexcept {
-  assert(log_file_ != nullptr);
-  *log_file_ << "LEGAL MOVES:\n";
+  assert(logger_ != nullptr);
+  logger_->info("LEGAL MOVES:");
   // Print main line
-  players_[to_play_]->root()->printMainLine(log_file_.get());
-  *log_file_ << '\n';
+  players_[to_play_]->root()->printMainLine(logger_.get());
   // Get and sort remaining legal moves by visit count and evaluation
   struct MoveData {
     int32_t visits;

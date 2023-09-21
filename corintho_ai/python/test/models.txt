@@ -1,2 +1,0 @@
-tflite_model.tflite
-tflite_model.tflite

@@ -129,7 +129,7 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
     while not tourney.all_done():
 
         # Inject detailed logging for unending games
-        if evals_done > 6 and not added_logs:
+        if evals_done > 6000 and not added_logs:
             tourney.addDetailedLog(f"{log_folder}/detailed_logs".encode())
             added_logs = True
 

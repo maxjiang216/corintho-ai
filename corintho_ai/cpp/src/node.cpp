@@ -3,9 +3,11 @@
 #include <cstdint>
 
 #include <bitset>
+#include <memory>
 #include <ostream>
 
 #include <gsl/gsl>
+#include <spdlog/spdlog.h>
 
 #include "game.h"
 #include "move.h"
@@ -194,7 +196,7 @@ void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
   game_.writeGameState(game_state);
 }
 
-void Node::printMainLine(std::ostream *log_file) const {
+void Node::printMainLine(std::shared_ptr<spdlog::logger> logger) const {
   Node *cur_child = first_child_;
   Node *best_child = nullptr;
   int32_t max_visits = 0;
@@ -228,28 +230,20 @@ void Node::printMainLine(std::ostream *log_file) const {
     ++edge_index;
   }
   if (best_child != nullptr) {
-    *log_file << static_cast<int32_t>(best_child->depth_) << ". "
-              << Move{best_child->child_id_} << " V: " << max_visits << " E: ";
+    // Build the log message using spdlog's formatting
     if (best_child->result_ != kResultNone) {
-      *log_file << strResult(best_child->result_);
+      logger->info("{}. {} V: {} E: {} p: {:.3f}",
+                   static_cast<int32_t>(best_child->depth_),
+                   Move{best_child->child_id_}.to_string(), max_visits,
+                   strResult(best_child->result_), prob);
     } else {
-      *log_file << max_eval / (float)max_visits;
+      logger->info("{}. {} V: {} E: {:.3f} p: {:.3f}",
+                   static_cast<int32_t>(best_child->depth_),
+                   Move{best_child->child_id_}.to_string(), max_visits,
+                   max_eval / static_cast<float>(max_visits), prob);
     }
-    *log_file << " p: " << prob << '\t';
-    best_child->printMainLine(log_file);
-  }
-}
-
-void Node::printKnownLines(std::ostream *log_file) const {
-  if (result_ != kResultNone) {
-    *log_file << static_cast<int32_t>(depth_) << ". " << Move{child_id_} << ' '
-              << strResult(result_) << " ( ";
-    Node *cur_child = first_child_;
-    while (cur_child != nullptr) {
-      cur_child->printKnownLines(log_file);
-      cur_child = cur_child->next_sibling_;
-    }
-    *log_file << " ) ";
+    // Recursively log the main line for the best child
+    best_child->printMainLine(logger);
   }
 }
 

@@ -94,13 +94,12 @@ void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
   assert(players_.find(player1) != players_.end());
   assert(players_.find(player2) != players_.end());
   // make sure the player exists
-  matches_.emplace_back(new Match{
-      gsl::narrow_cast<int32_t>(generator_()), players_[player1],
-      players_[player2],
-      logging ? std::make_unique<std::ofstream>(
-                    log_folder_ + "/match_" + std::to_string(player1) + "_" +
-                    std::to_string(player2) + "_" +
-                    std::to_string(matches_.size()) + ".txt")
-              : nullptr});
+  matches_.emplace_back(
+      new Match{gsl::narrow_cast<int32_t>(generator_()), players_[player1],
+                players_[player2],
+                logging ? log_folder_ + "/match_" + std::to_string(player1) +
+                              "_" + std::to_string(player2) + "_" +
+                              std::to_string(matches_.size()) + ".txt"
+                        : ""});
   is_done_.push_back(false);
 }

@@ -65,7 +65,7 @@ class Match {
 
  private:
   /// @brief Write the evaluation of the given node
-  void writeEval(Node *node) const noexcept;
+  std::string writeEval(Node *node) const noexcept;
   /// @brief Write the legal movesof the root
   /// @details Also write entire main line and sort other moves by visits
   void writeMoves() const noexcept;
@@ -102,8 +102,8 @@ class Match {
   /// @brief File where all logs are written to
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).
-  std::unique_ptr<spdlog::logger> logger_{};
-  std::unique_ptr<spdlog::logger> debug_logger_{};
+  std::shared_ptr<spdlog::logger> logger_{};
+  std::shared_ptr<spdlog::logger> debug_logger_{};
 };
 
 #endif

@@ -4,9 +4,11 @@
 #include <cstdint>
 
 #include <bitset>
+#include <memory>
 #include <ostream>
 
 #include <gsl/gsl>
+#include <spdlog/spdlog.h>
 
 #include "game.h"
 #include "util.h"
@@ -100,10 +102,7 @@ class alignas(64) Node {
   /// @param logging_file File to write line into
   /// @details The main line is the sequence of moves with the
   /// most visits. Chooses moves as the Monte Carlo search tree would.
-  void printMainLine(std::ostream *log_file) const;
-  /// @brief Print all lines where the result is deduced
-  /// @param logging_file File to write lines into
-  void printKnownLines(std::ostream *log_file) const;
+  void printMainLine(std::shared_ptr<spdlog::logger> logger) const;
 
  private:
   struct Edge {

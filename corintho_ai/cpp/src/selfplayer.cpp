@@ -137,7 +137,7 @@ void SelfPlayer::writeMoves() const noexcept {
   assert(log_file_ != nullptr);
   *log_file_ << "LEGAL MOVES:\n";
   // Print main line
-  players_[to_play_].root()->printMainLine(log_file_.get());
+  players_[to_play_].root()->printMainLine(nullptr);
   *log_file_ << '\n';
   // Get and sort remaining legal moves by visit count and evaluation
   struct MoveData {

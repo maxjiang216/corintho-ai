@@ -5,6 +5,7 @@
 
 #include <bitset>
 #include <ostream>
+#include <sstream>
 
 #include <gsl/gsl>
 
@@ -136,6 +137,48 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   }
   os << "Player " << game.to_play_ + 1 << " to play";
   return os;
+}
+
+std::string Game::to_string() const {
+  std::ostringstream os;
+  // Print board
+  for (int32_t row = 0; row < 4; ++row) {
+    for (int32_t col = 0; col < 4; ++col) {
+      if (board(Space{row, col}, kBase))
+        os << 'B';
+      else
+        os << ' ';
+      if (board(Space{row, col}, kColumn))
+        os << 'C';
+      else
+        os << ' ';
+      if (board(Space{row, col}, kCapital))
+        os << 'A';
+      else
+        os << ' ';
+      if (frozen(Space{row, col}))
+        os << '#';
+      else
+        os << ' ';
+      // Print column separator
+      if (col < 3)
+        os << '|';
+    }
+    // Print row separator
+    if (row < 3)
+      os << "\n-------------------\n";
+  }
+  os << '\n';
+  // Print pieces left
+  for (int32_t player = 0; player < 2; ++player) {
+    os << "Player " << player + 1 << ": ";
+    os << "B: " << static_cast<int32_t>(pieces_[player * 3 + kBase]) << ' ';
+    os << "C: " << static_cast<int32_t>(pieces_[player * 3 + kColumn]) << ' ';
+    os << "A: " << static_cast<int32_t>(pieces_[player * 3 + kCapital])
+       << '\n';
+  }
+  os << "Player " << to_play_ + 1 << " to play";
+  return os.str();
 }
 
 bool Game::board(Space space, PieceType piece_type) const noexcept {

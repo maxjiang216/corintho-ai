@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include <ostream>
+#include <sstream>
 #include <stdlib.h>
 
 #include "util.h"
@@ -75,6 +76,31 @@ std::ostream &operator<<(std::ostream &os, const Move &move) {
       os << 'D';
   }
   return os;
+}
+
+std::string Move::to_string() const {
+  std::ostringstream os;
+  if (move_type_ == MoveType::kPlace) {
+    if (piece_type_ == 0) {
+      os << "B";
+    } else if (piece_type_ == 1) {
+      os << "C";
+    } else if (piece_type_ == 2) {
+      os << "A";
+    }
+    os << getColName(space_to_.col) << 4 - space_to_.row;
+  } else {
+    os << getColName(space_from_.col) << 4 - space_from_.row;
+    if (space_to_.col < space_from_.col)
+      os << 'L';
+    else if (space_to_.col > space_from_.col)
+      os << 'R';
+    else if (space_to_.row < space_from_.row)
+      os << 'U';
+    else
+      os << 'D';
+  }
+  return os.str();
 }
 
 int32_t encodePlace(Space space, PieceType piece_type) noexcept {

@@ -133,7 +133,8 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
             tourney.addDetailedLog(f"{log_folder}/detailed_logs".encode())
             added_logs = True
         if evals_done > 6010:
-            break
+            while True:
+                time.sleep(1000)
 
         total_requests = 0
         max_requests = 0

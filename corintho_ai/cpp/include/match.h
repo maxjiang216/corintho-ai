@@ -61,7 +61,7 @@ class Match {
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
 
-  void enableDebugLogging() noexcept;
+  void addDetailedLog(const std::string &filename);
 
  private:
   /// @brief Write the evaluation of the given node

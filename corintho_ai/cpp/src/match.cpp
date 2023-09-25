@@ -79,6 +79,26 @@ bool Match::doIteration(float eval[], float probs[]) {
   if (players_[to_play_] == nullptr) {
     return chooseMoveAndContinue();
   }
+  if (debug_logger_ != nullptr) {
+    SPDLOG_LOGGER_INFO(
+        debug_logger_,
+        "TURN {}: PLAYER {} TO PLAY - VISITS: {} - POSITION EVALUATION: {}",
+        static_cast<int32_t>(players_[to_play_]->root()->depth()),
+        to_play_ + 1,
+        static_cast<int32_t>(players_[to_play_]->root()->visits()),
+        writeEval(players_[to_play_]->root()));
+    SPDLOG_LOGGER_INFO(debug_logger_, "REQUESTS: {} - NODES: {} - DONE: {}",
+                       players_[to_play_]->num_requests(),
+                       players_[to_play_]->num_nodes(),
+                       players_[to_play_]->done());
+    SPDLOG_LOGGER_INFO(debug_logger_,
+                       "LEGAL MOVES: {} - ALL VISITED: {} - KNOWN: {}",
+                       players_[to_play_]->root()->num_legal_moves(),
+                       players_[to_play_]->root()->all_visited(),
+                       players_[to_play_]->root()->known());
+    SPDLOG_LOGGER_INFO(debug_logger_, "POSITION:\n{}\n",
+                       players_[to_play_]->root()->game().to_string());
+  }
   // There can only be up to 1 random player
   bool done = players_[to_play_]->doIteration(eval, probs);
   // If we have completed a turn, we can choose a move
@@ -102,6 +122,9 @@ std::string Match::writeEval(Node *node) const noexcept {
 void Match::writeMoves() const noexcept {
   assert(logger_ != nullptr);
   SPDLOG_LOGGER_INFO(logger_, "LEGAL MOVES:");
+  if (debug_logger_ != nullptr) {
+    SPDLOG_LOGGER_INFO(debug_logger_, "LEGAL MOVES:");
+  }
   // Print main line
   players_[to_play_]->root()->printMainLine(logger_);
   // Get and sort remaining legal moves by visit count and evaluation
@@ -147,6 +170,9 @@ void Match::writeMoves() const noexcept {
         moves[i].visits, writeEval(moves[i].node), moves[i].probability);
   }
   SPDLOG_LOGGER_INFO(logger_, move_string);
+  if (debug_logger_ != nullptr) {
+    SPDLOG_LOGGER_INFO(debug_logger_, move_string);
+  }
 }
 
 void Match::writePreMoveLogs() const noexcept {
@@ -262,4 +288,10 @@ bool Match::chooseMoveAndContinue() {
     }
   }
   return false;
+}
+
+void Match::addDetailedLog(const std::string &filename) {
+  debug_logger_ =
+      spdlog::basic_logger_mt("debug_logger_" + filename, filename, true);
+  debug_logger_->set_pattern("%C-%m-%d %H:%M:%S.%e %g:%!:%# %v");
 }

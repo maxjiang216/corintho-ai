@@ -38,6 +38,8 @@ class Tourney {
                  bool random = false);
   void addMatch(int32_t player1, int32_t player2, bool logging = false);
 
+  void addDetailedLog(const std::string &folder);
+
  private:
   std::vector<std::unique_ptr<Match>> matches_{};
   std::vector<bool> is_done_{};

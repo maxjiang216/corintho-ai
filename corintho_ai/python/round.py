@@ -23,9 +23,6 @@ def run_helper(args):
 
     run(model_paths, players_file, match_file, log_folder, num_threads)
 
-    with open(os.path.join(folder, f"done_{id}.txt"), "w") as f:
-        f.write(match_file)
-
 
 def get_args():
     """

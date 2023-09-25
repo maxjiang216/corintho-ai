@@ -103,3 +103,14 @@ void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
                         : ""});
   is_done_.push_back(false);
 }
+
+void Tourney::addDetailedLog(const std::string &folder) {
+  for (size_t i = 0; i < matches_.size(); ++i) {
+    if (!is_done_[i]) {
+      matches_[i]->addDetailedLog(folder + "/match_" + std::to_string(i) +
+                                  "_" + std::to_string(matches_[i]->id(0)) +
+                                  "_" + std::to_string(matches_[i]->id(1)) +
+                                  ".txt");
+    }
+  }
+}

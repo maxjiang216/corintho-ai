@@ -30,6 +30,7 @@ cdef extern from "../cpp/src/tourney.cpp":
             float epsilon,
             bool random) except +
         void addMatch(int player1, int player2, bool logging) except +
+        void addDetailedLog(string folder) except +
 
 cpdef format_time(t):
     """Format string
@@ -123,8 +124,14 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
     evals_done = 0
     start_time = time.perf_counter()
     last_time = start_time
+    added_logs = False
 
     while not tourney.all_done():
+
+        # Inject detailed logging for unending games
+        if evals_done > 6 and not added_logs:
+            tourney.addDetailedLog(f"{log_folder}/detailed_logs".encode())
+            added_logs = True
 
         total_requests = 0
         max_requests = 0

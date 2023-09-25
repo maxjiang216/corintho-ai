@@ -159,7 +159,7 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   }
   if (logger_)
     SPDLOG_LOGGER_INFO(
-        logger_, "searched_done: {}\troot_visits: {}\troot_->all_visited()",
+        logger_, "searched_done: {}\troot_visits: {}\troot_->all_visited(): {}",
         searches_done_, root_->visits(), root_->all_visited());
   // This occurs when we receive a new root from the opponent
   // We should ignore the all_visited and not increment visit count
@@ -629,8 +629,12 @@ void TrainMC::search() {
   // I feel that this should be the case anyways
   // but it is sometimes not, so we set it here.
   // It's insignificant and too hard to debug
+  if (logger_)
+    SPDLOG_LOGGER_INFO(logger_, "cur_: {}, root_: {}", cur_, root_);
   cur_ = root_;
   ++searches_done_;
+  if (logger_)
+    SPDLOG_LOGGER_INFO(logger_, "cur_->terminal(): {}", cur_->terminal());
   while (!cur_->terminal()) {
     // Choose the next node to move down to
     ChooseNextOutput res = chooseNext();

@@ -319,6 +319,8 @@ def write_ratings(folder, round_folder):
     delta = 999999
     while delta > 0.0001:
         players, delta = get_performance_ratings(games, players)
+        with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+            f.write(f"{players}\n{delta}\n")
 
     # Write new ratings
     out_string = "\n".join([f"{players[player][0]}" for player in players])

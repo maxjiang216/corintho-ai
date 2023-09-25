@@ -256,8 +256,8 @@ void Node::initializeEdges() {
   // Terminal node
   if (num_legal_moves_ == 0) {
     // We have to set visits_ to 0 for terminal nodes
-    // Otherwise, we will overcount by 1
-    visits_ = 0;
+    // Otherwise, we will overcount by 1 (this is causing an issue and I don't get it)
+    //visits_ = 0;
     // Current player has lost if there are lines
     if (is_lines) {
       result_ = kResultLoss;

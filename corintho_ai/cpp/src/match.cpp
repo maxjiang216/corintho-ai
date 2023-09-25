@@ -270,8 +270,9 @@ bool Match::chooseMoveAndContinue() {
     if (logger_ != nullptr) {
       writeMoveChoice(choice);
     }
-    history_ += Move{choice}.to_string() + "\n" +
-              players_[to_play_]->root()->game().to_string() + "\n";
+    if (history_.size() < 10000)
+      {history_ += Move{choice}.to_string() + "\n" +
+              players_[to_play_]->root()->game().to_string() + "\n";}
     // Check if the game is over
     if (root_->terminal()) {
       endGame();

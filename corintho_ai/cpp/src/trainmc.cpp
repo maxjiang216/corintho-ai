@@ -122,11 +122,16 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
   }
   // Winning position. Will choose the first winning move.
   if (root_->won()) {
+    if (logger_)
+      SPDLOG_LOGGER_INFO(logger_, "root_->won(): {}", root_->won());
     return chooseMoveWon(prob_sample);
   }
   // Losing or drawn position. Will choose the best move with the most
   // searches.
   if (root_->lost() || root_->drawn()) {
+    if (logger_)
+      SPDLOG_LOGGER_INFO(logger_, "root_->lost(): {}\troot_->drawn(): {}",
+                         root_->lost(), root_->drawn());
     return chooseMoveLostDrawn(prob_sample);
   }
   // Opening move. Temperature is 1 and avoids choosing losing moves.
@@ -461,7 +466,13 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
   // Choose the move with the most searches.
   // Break ties with evaluation.
   // We never choose losing moves and treat draws as having evaluation 0.
+  if (logger_) {
+    SPDLOG_LOGGER_INFO(logger_, "chooseHighProbMove: {}, num_legal_moves: {}, visits: {}, evaluation: {}",
+                       choice, root_->num_legal_moves(), root_->visits(), root_->evaluation());
+  }
   while (cur != nullptr) {
+    if (logger_) SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}, evaluation: {}",
+                       cur->child_id(), cur->visits(), cur->evaluation());
     if (!cur->won()) {
       float eval = cur->evaluation();
       if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
@@ -491,8 +502,13 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
     searches_done_ = 0;
     return choice;
   }
-
+  if (logger_) {
+    SPDLOG_LOGGER_INFO(logger_, "choice: {}, position:\n{}", choice, root_->game().to_string());
+  }
   moveDown(best_prev);
+  if (logger_) {
+    SPDLOG_LOGGER_INFO(logger_, "choice: {}, position:\n{}", choice, root_->game().to_string());
+  }
   return choice;
 }
 

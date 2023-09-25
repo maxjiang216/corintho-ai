@@ -132,6 +132,8 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
         if evals_done > 6000 and not added_logs:
             tourney.addDetailedLog(f"{log_folder}/detailed_logs".encode())
             added_logs = True
+        if evals_done > 6100:
+            break
 
         total_requests = 0
         max_requests = 0

@@ -630,7 +630,7 @@ void TrainMC::search() {
   // but it is sometimes not, so we set it here.
   // It's insignificant and too hard to debug
   if (logger_)
-    SPDLOG_LOGGER_INFO(logger_, "cur_: {}, root_: {}", cur_, root_);
+    SPDLOG_LOGGER_INFO(logger_, "cur_ == root_: {}", cur_ == root_);
   cur_ = root_;
   ++searches_done_;
   if (logger_)

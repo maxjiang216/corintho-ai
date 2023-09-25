@@ -39,7 +39,10 @@ Match::Match(int32_t random_seed, Player player1, Player player2,
       logger_{log_file.empty() ? nullptr
                                : spdlog::basic_logger_mt("logger_" + log_file,
                                                          log_file, true)},
-      debug_logger_{nullptr} {}
+      debug_logger_{nullptr} {
+  if (logger_)
+    logger_->set_pattern("%C-%m-%d %H:%M:%S.%e %g:%!:%# %v");
+}
 
 int32_t Match::id(int32_t i) const noexcept {
   assert(i == 0 || i == 1);
@@ -98,7 +101,7 @@ std::string Match::writeEval(Node *node) const noexcept {
 
 void Match::writeMoves() const noexcept {
   assert(logger_ != nullptr);
-  logger_->info("LEGAL MOVES:");
+  SPDLOG_LOGGER_INFO(logger_, "LEGAL MOVES:");
   // Print main line
   players_[to_play_]->root()->printMainLine(logger_);
   // Get and sort remaining legal moves by visit count and evaluation
@@ -143,26 +146,28 @@ void Match::writeMoves() const noexcept {
         "{} V: {} E: {} P: {:.3f}\t", Move{moves[i].move}.to_string(),
         moves[i].visits, writeEval(moves[i].node), moves[i].probability);
   }
-  logger_->info(move_string);
+  SPDLOG_LOGGER_INFO(logger_, move_string);
 }
 
 void Match::writePreMoveLogs() const noexcept {
   assert(logger_ != nullptr);
-  logger_->info("TURN {}",
-                static_cast<int32_t>(players_[to_play_]->root()->depth()));
-  logger_->info("PLAYER {} TO PLAY", to_play_ + 1);
-  logger_->info("VISITS: {}",
-                static_cast<int32_t>(players_[to_play_]->root()->visits()));
-  logger_->info("POSITION EVALUATION: {}",
-                writeEval(players_[to_play_]->root()));
+  SPDLOG_LOGGER_INFO(
+      logger_, "TURN {}",
+      static_cast<int32_t>(players_[to_play_]->root()->depth()));
+  SPDLOG_LOGGER_INFO(logger_, "PLAYER {} TO PLAY", to_play_ + 1);
+  SPDLOG_LOGGER_INFO(
+      logger_, "VISITS: {}",
+      static_cast<int32_t>(players_[to_play_]->root()->visits()));
+  SPDLOG_LOGGER_INFO(logger_, "POSITION EVALUATION: {}",
+                     writeEval(players_[to_play_]->root()));
   writeMoves();
 }
 
 void Match::writeMoveChoice(int32_t choice) const noexcept {
   assert(logger_ != nullptr);
-  logger_->info("CHOSE MOVE {}", Move{choice}.to_string());
-  logger_->info("NEW POSITION:\n{}\n",
-                players_[to_play_]->root()->game().to_string());
+  SPDLOG_LOGGER_INFO(logger_, "CHOSE MOVE {}", Move{choice}.to_string());
+  SPDLOG_LOGGER_INFO(logger_, "NEW POSITION:\n{}\n",
+                     players_[to_play_]->root()->game().to_string());
 }
 
 void Match::endGame() noexcept {
@@ -179,9 +184,9 @@ void Match::endGame() noexcept {
   // Log game result
   if (logger_ != nullptr) {
     if (result_ == kResultDraw) {
-      logger_->info("GAME IS DRAWN");
+      SPDLOG_LOGGER_INFO(logger_, "GAME IS DRAWN");
     } else {
-      logger_->info("PLAYER {} WON!", to_play_ + 1);
+      SPDLOG_LOGGER_INFO(logger_, "PLAYER {} WON!", to_play_ + 1);
     }
   }
   // Delete the players

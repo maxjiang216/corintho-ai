@@ -1,6 +1,7 @@
 #include "match.h"
 
 #include <memory>
+#include <string>
 
 #include "gtest/gtest.h"
 

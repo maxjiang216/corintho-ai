@@ -34,7 +34,7 @@ setup(
                     numpy.get_include(),
                     os.path.join(current_dir, "../cpp/include"),
                     os.path.join(current_dir, "../../gsl/include"),
-                    os.path.join(current_dir, "../external/spdlog/include"),
+                    os.path.join(current_dir, "../../external/spdlog/include"),
                 ],
                 extra_link_args=["-fopenmp"],
             )

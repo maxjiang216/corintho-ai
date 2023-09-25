@@ -197,6 +197,8 @@ void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
 }
 
 void Node::printMainLine(std::shared_ptr<spdlog::logger> logger) const {
+  if (logger == nullptr)
+    return;
   Node *cur_child = first_child_;
   Node *best_child = nullptr;
   int32_t max_visits = 0;
@@ -232,15 +234,15 @@ void Node::printMainLine(std::shared_ptr<spdlog::logger> logger) const {
   if (best_child != nullptr) {
     // Build the log message using spdlog's formatting
     if (best_child->result_ != kResultNone) {
-      logger->info("{}. {} V: {} E: {} p: {:.3f}",
-                   static_cast<int32_t>(best_child->depth_),
-                   Move{best_child->child_id_}.to_string(), max_visits,
-                   strResult(best_child->result_), prob);
+      SPDLOG_LOGGER_INFO(logger, "{}. {} V: {} E: {} p: {:.3f}",
+                         static_cast<int32_t>(best_child->depth_),
+                         Move{best_child->child_id_}.to_string(), max_visits,
+                         strResult(best_child->result_), prob);
     } else {
-      logger->info("{}. {} V: {} E: {:.3f} p: {:.3f}",
-                   static_cast<int32_t>(best_child->depth_),
-                   Move{best_child->child_id_}.to_string(), max_visits,
-                   max_eval / static_cast<float>(max_visits), prob);
+      SPDLOG_LOGGER_INFO(logger, "{}. {} V: {} E: {:.3f} p: {:.3f}",
+                         static_cast<int32_t>(best_child->depth_),
+                         Move{best_child->child_id_}.to_string(), max_visits,
+                         max_eval / static_cast<float>(max_visits), prob);
     }
     // Recursively log the main line for the best child
     best_child->printMainLine(logger);

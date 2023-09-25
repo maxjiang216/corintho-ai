@@ -247,6 +247,9 @@ def get_performance_ratings(games, players, round_folder):
     new_players = {}
     delta = 0
 
+    with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+        f.write(f"{players}\n")
+        f.write(f"{games}\n")
     for player, rating in players.items():
         if rating[1]:
             new_players[player] = (0, True)

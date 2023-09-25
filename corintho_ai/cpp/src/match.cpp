@@ -110,9 +110,10 @@ bool Match::doIteration(float eval[], float probs[]) {
   }
   // There can only be up to 1 random player
   bool done = players_[to_play_]->doIteration(eval, probs);
-  if (debug_logger_) SPDLOG_LOGGER_INFO(debug_logger_, "REQUESTS: {} - NODES: {} - DONE: {}",
-                     players_[to_play_]->num_requests(),
-                     players_[to_play_]->num_nodes(), done);
+  if (debug_logger_)
+    SPDLOG_LOGGER_INFO(debug_logger_, "REQUESTS: {} - NODES: {} - DONE: {}",
+                       players_[to_play_]->num_requests(),
+                       players_[to_play_]->num_nodes(), done);
   // If we have completed a turn, we can choose a move
   if (done)
     return chooseMoveAndContinue();
@@ -264,15 +265,18 @@ bool Match::chooseMoveAndContinue() {
       writePreMoveLogs();
     }
     int32_t choice = chooseMove();
-    if (debug_logger_) SPDLOG_LOGGER_INFO(debug_logger_, "CHOSE MOVE {}", Move{choice}.to_string());
+    if (debug_logger_)
+      SPDLOG_LOGGER_INFO(debug_logger_, "CHOSE MOVE {}",
+                         Move{choice}.to_string());
     root_ = std::make_unique<Node>(root_->game(), nullptr, nullptr, choice,
                                    root_->depth() + 1);
+    if (history_.size() < 10000) {
+      history_ +=
+          Move{choice}.to_string() + "\n" + root_->game().to_string() + "\n";
+    }
     if (logger_ != nullptr) {
       writeMoveChoice(choice);
     }
-    if (history_.size() < 10000)
-      {history_ += Move{choice}.to_string() + "\n" +
-              players_[to_play_]->root()->game().to_string() + "\n";}
     // Check if the game is over
     if (root_->terminal()) {
       endGame();

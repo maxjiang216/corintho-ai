@@ -301,11 +301,11 @@ def write_ratings(folder, round_folder):
 
     # Get games
     games = {}
-    with open(os.path.join(round_folder, "get_games.txt"), "w+") as f:
+    with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
         f.write(f"{folder}\n")
-    for item in os.listdir(folder):
-        item_path = os.path.join(folder, item)
-        with open(os.path.join(round_folder, "get_games.txt"), "w+") as f:
+    for item in os.listdir(round_folder):
+        item_path = os.path.join(round_folder, item)
+        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
             f.write(f"{item_path}\n")
         if os.path.isdir(item_path):
             scores_file_path = os.path.join(item_path, "scores.txt")

@@ -303,8 +303,8 @@ def write_ratings(folder, round_folder):
     games = {}
     with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
         f.write(f"{folder}\n")
-    for item in os.listdir(round_folder):
-        item_path = os.path.join(round_folder, item)
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
         with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
             f.write(f"{item_path}\n")
         if os.path.isdir(item_path):
@@ -318,7 +318,7 @@ def write_ratings(folder, round_folder):
                         ((int(score[0]), int(score[1])), float(score[2]))
                         for score in scores
                     ]
-                with open(os.path.join(round_folder, "get_games.txt"), "w+") as f:
+                with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
                     f.write(f"{scores}\n")
                 for score in scores:
                     if score[0][0] not in games:

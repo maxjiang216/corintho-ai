@@ -6,10 +6,12 @@
 #include <cstring>
 
 #include <fstream>
+#include <memory>
 #include <random>
 #include <vector>
 
 #include <gsl/gsl>
+#include <spdlog/spdlog.h>
 
 #include "move.h"
 #include "node.h"
@@ -139,6 +141,8 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
 bool TrainMC::doIteration(float eval[], float probs[]) {
   assert(to_eval_ != nullptr);
   assert(searches_done_ <= max_searches_);
+  if (logger_)
+    SPDLOG_LOGGER_INFO(logger_, "uninitialized: {}", uninitialized());
   // This is the first iteration of a game
   if (uninitialized()) {
     // Initialize the Monte Carlo search tree
@@ -153,6 +157,10 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
+  if (logger_)
+    SPDLOG_LOGGER_INFO(
+        logger_, "searched_done: {}\troot_visits: {}\troot_->all_visited()",
+        searches_done_, root_->visits(), root_->all_visited());
   // This occurs when we receive a new root from the opponent
   // We should ignore the all_visited and not increment visit count
   if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
@@ -163,14 +171,30 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
+  if (logger_)
+    SPDLOG_LOGGER_INFO(logger_, "searched_.size(): {}", searched_.size());
   // At the start of a turn, there are no evaluations
   if (searched_.size() > 0)
     receiveEval(eval, probs);
   while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
          searches_done_ < max_searches_ && !root_->known() &&
          !root_->all_visited()) {
+    if (logger_)
+      SPDLOG_LOGGER_INFO(logger_,
+                         "searched_.size(): {}\tsearches_per_eval_: "
+                         "{}\tsearches_done_: {}\tmax_searches_: "
+                         "{}\troot_->known(): {}\troot_->all_visited(): {}",
+                         searched_.size(), searches_per_eval_, searches_done_,
+                         max_searches_, root_->known(), root_->all_visited());
     search();
   }
+  if (logger_)
+    SPDLOG_LOGGER_INFO(
+        logger_,
+        "searched_.size(): {}\tsearches_per_eval_: {}\tsearches_done_: "
+        "{}\tmax_searches_: {}\troot_->known(): {}\troot_->all_visited(): {}",
+        searched_.size(), searches_per_eval_, searches_done_, max_searches_,
+        root_->known(), root_->all_visited());
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
   return (searches_done_ == max_searches_ || root_->known()) &&
@@ -694,4 +718,8 @@ void TrainMC::search() {
   }
   // Reset cur for next search
   cur_ = root_;
+}
+
+void TrainMC::addDetailedLog(std::shared_ptr<spdlog::logger> logger) {
+  logger_ = logger;
 }

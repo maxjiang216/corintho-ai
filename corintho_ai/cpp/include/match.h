@@ -72,7 +72,7 @@ class Match {
   /// @brief Logs information immediately before a move is chosen
   void writePreMoveLogs() const noexcept;
   /// @brief Log information about move choice immediately after it is done
-  void writeMoveChoice(int32_t choice) const noexcept;
+  void writeMoveChoice(int32_t choice) noexcept;
   /// @brief Clean up when game is complete
   void endGame() noexcept;
   /// @brief Choose a move and write the training sample
@@ -104,6 +104,7 @@ class Match {
   /// logging file (which is true most of the time).
   std::shared_ptr<spdlog::logger> logger_{};
   std::shared_ptr<spdlog::logger> debug_logger_{};
+  std::string history_{};
 };
 
 #endif

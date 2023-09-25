@@ -3,8 +3,11 @@
 
 #include <cstdint>
 
+#include <memory>
 #include <random>
 #include <vector>
+
+#include <spdlog/spdlog.h>
 
 #include "util.h"
 
@@ -88,6 +91,8 @@ class TrainMC {
   /// @details This is used when the opponent makes an unsearched move. Does
   /// not delete the old root (if it exists).
   void createRoot(const Game &game, int32_t depth);
+
+  void addDetailedLog(std::shared_ptr<spdlog::logger> logger);
 
  private:
   /// @brief The output of chooseNext
@@ -186,6 +191,8 @@ class TrainMC {
   /// @details This is shared between the two players in a SelfPlayer,
   /// since only one player is searching at a time.
   std::mt19937 *generator_{nullptr};
+
+  std::shared_ptr<spdlog::logger> logger_{};
 };
 
 #endif

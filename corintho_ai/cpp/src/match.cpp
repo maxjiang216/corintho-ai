@@ -80,6 +80,7 @@ bool Match::doIteration(float eval[], float probs[]) {
     return chooseMoveAndContinue();
   }
   if (debug_logger_ != nullptr) {
+    SPDLOG_LOGGER_INFO(debug_logger_, "HISTORY\n{}", history_);
     SPDLOG_LOGGER_INFO(
         debug_logger_,
         "TURN {}: PLAYER {} TO PLAY - VISITS: {} - POSITION EVALUATION: {}",
@@ -98,6 +99,14 @@ bool Match::doIteration(float eval[], float probs[]) {
                        players_[to_play_]->root()->known());
     SPDLOG_LOGGER_INFO(debug_logger_, "POSITION:\n{}\n",
                        players_[to_play_]->root()->game().to_string());
+    Node *cur = players_[to_play_]->root()->first_child();
+    while (cur != nullptr) {
+      SPDLOG_LOGGER_INFO(debug_logger_,
+                         "MOVE: {}\tVISITS: {}\tEVAL: {}\nPOSITION:\n{}\n",
+                         Move{cur->child_id()}.to_string(), cur->visits(),
+                         writeEval(cur), cur->game().to_string());
+      cur = cur->next_sibling();
+    }
   }
   // There can only be up to 1 random player
   bool done = players_[to_play_]->doIteration(eval, probs);
@@ -189,11 +198,13 @@ void Match::writePreMoveLogs() const noexcept {
   writeMoves();
 }
 
-void Match::writeMoveChoice(int32_t choice) const noexcept {
+void Match::writeMoveChoice(int32_t choice) noexcept {
   assert(logger_ != nullptr);
   SPDLOG_LOGGER_INFO(logger_, "CHOSE MOVE {}", Move{choice}.to_string());
   SPDLOG_LOGGER_INFO(logger_, "NEW POSITION:\n{}\n",
                      players_[to_play_]->root()->game().to_string());
+  history_ += Move{choice}.to_string() + "\n" +
+              players_[to_play_]->root()->game().to_string() + "\n";
 }
 
 void Match::endGame() noexcept {
@@ -294,4 +305,6 @@ void Match::addDetailedLog(const std::string &filename) {
   debug_logger_ =
       spdlog::basic_logger_mt("debug_logger_" + filename, filename, true);
   debug_logger_->set_pattern("%C-%m-%d %H:%M:%S.%e %g:%!:%# %v");
+  players_[0]->addDetailedLog(debug_logger_);
+  players_[1]->addDetailedLog(debug_logger_);
 }

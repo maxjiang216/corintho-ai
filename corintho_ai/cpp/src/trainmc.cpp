@@ -347,6 +347,9 @@ int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
   // the node is not searched again
   // Temperature is 0 in this case, even in the opening.
   while (cur != nullptr) {
+    if (logger_)
+      SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}", cur->child_id(),
+                         cur->visits());
     // Winning moves lead to lost positions
     if (cur->lost()) {
       choice = cur->child_id();
@@ -376,6 +379,9 @@ int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
   // both cases except we avoid choosing losing moves in a drawn position.
   // Temperature is 0 in this case, even in the opening.
   while (cur != nullptr) {
+    if (logger_)
+      SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}", cur->child_id(),
+                         cur->visits());
     if (cur->visits() > max_visits && (root_->lost() || !cur->won())) {
       choice = cur->child_id();
       best_prev = prev;

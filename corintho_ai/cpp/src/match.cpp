@@ -271,8 +271,11 @@ bool Match::chooseMoveAndContinue() {
     root_ = std::make_unique<Node>(root_->game(), nullptr, nullptr, choice,
                                    root_->depth() + 1);
     if (history_.size() < 10000) {
-      history_ +=
-          Move{choice}.to_string() + "\n" + root_->game().to_string() + "\n";
+      history_ += Move{choice}.to_string() + "\n";
+      if (players_[to_play_] != nullptr) {
+        history_ += writeEval(players_[to_play_]->root()) + "\n";
+      }
+      history_ += root_->game().to_string() + "\n";
     }
     if (logger_ != nullptr) {
       writeMoveChoice(choice);

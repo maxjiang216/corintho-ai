@@ -239,7 +239,7 @@ def get_performance(score, opponents):
     return lower_bound
 
 
-def get_performance_ratings(games, players):
+def get_performance_ratings(games, players, round_folder):
     """
     Compute performance ratings
     """
@@ -263,6 +263,10 @@ def get_performance_ratings(games, players):
                 if score == len(games[player]):
                     score -= 0.25  # Prevent perfect score
                 new_rating = get_performance(score / len(opponents), opponents)
+                with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+                    f.write(
+                        f"{player}\t{rating[0]}\t{new_rating}\t{score}\n"
+                    )
             new_players[player] = (new_rating, False)
             delta = max(delta, abs(new_rating - rating[0]))
 
@@ -318,7 +322,7 @@ def write_ratings(folder, round_folder):
     # Compute performance ratings
     delta = 999999
     while delta > 0.0001:
-        players, delta = get_performance_ratings(games, players)
+        players, delta = get_performance_ratings(games, players, round_folder)
         with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
             f.write(f"{players}\n{delta}\n")
 

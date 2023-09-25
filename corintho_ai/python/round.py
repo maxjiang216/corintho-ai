@@ -291,6 +291,8 @@ def write_ratings(folder, round_folder):
     with open(os.path.join(folder, "players.txt"), "r") as f:
         players = f.readlines()
         players = [player.strip().split() for player in players]
+        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
+            f.write(f"{players}\n")
         randomness = [player[-1] == "1" for player in players]
     players = {}
     for i, rating in enumerate(ratings):
@@ -308,7 +310,7 @@ def write_ratings(folder, round_folder):
         with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
             f.write(f"{item_path}\n")
         if os.path.isdir(item_path):
-            scores_file_path = os.path.join(item_path, "scores.txt")
+            scores_file_path = os.path.join(item_path, "results.txt")
 
             if os.path.exists(scores_file_path):
                 with open(scores_file_path, "r") as f:

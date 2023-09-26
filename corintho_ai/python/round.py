@@ -247,9 +247,6 @@ def get_performance_ratings(games, players, round_folder):
     new_players = {}
     delta = 0
 
-    with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
-        f.write(f"{players}\n")
-        f.write(f"{games}\n")
     for player, rating in players.items():
         if rating[1]:
             new_players[player] = (0, True)
@@ -268,7 +265,7 @@ def get_performance_ratings(games, players, round_folder):
                 new_rating = get_performance(score / len(opponents), opponents)
                 with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
                     f.write(
-                        f"{player}\t{rating[0]}\t{new_rating}\t{score}\n"
+                        f"{player}\t{rating[0]}\t{new_rating}\t{score}\t{sum(opponents)/len(opponents)}\n"
                     )
             new_players[player] = (new_rating, False)
             delta = max(delta, abs(new_rating - rating[0]))
@@ -303,12 +300,8 @@ def write_ratings(folder, round_folder):
 
     # Get games
     games = {}
-    with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
-        f.write(f"{folder}\n")
     for item in os.listdir(folder):
         item_path = os.path.join(folder, item)
-        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
-            f.write(f"{item_path}\n")
         if os.path.isdir(item_path):
             scores_file_path = os.path.join(item_path, "results.txt")
 
@@ -320,8 +313,6 @@ def write_ratings(folder, round_folder):
                         ((int(score[0]), int(score[1])), float(score[2]))
                         for score in scores
                     ]
-                with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
-                    f.write(f"{scores}\n")
                 for score in scores:
                     if score[0][0] not in games:
                         games[score[0][0]] = []

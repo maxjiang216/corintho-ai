@@ -221,9 +221,9 @@ def get_performance(score, opponents):
     """
 
     # Find performance rating
-    lower_bound = -100000
-    upper_bound = 100000
-    while upper_bound - lower_bound > 0.00001:
+    lower_bound = -10000
+    upper_bound = 10000
+    while upper_bound - lower_bound > 0.0001:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
             [
@@ -265,7 +265,7 @@ def get_performance_ratings(games, players, round_folder):
                 new_rating = get_performance(score / len(opponents), opponents)
                 with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
                     f.write(
-                        f"{player}\t{rating[0]}\t{new_rating}\t{score}\t{sum(opponents)/len(opponents)}\n"
+                        f"{player}\t{rating[0]}\t{new_rating}\t{score}/{len(opponents)}\t{sum(opponents)/len(opponents)}\n"
                     )
             new_players[player] = (new_rating, False)
             delta = max(delta, abs(new_rating - rating[0]))
@@ -286,11 +286,13 @@ def write_ratings(folder, round_folder):
         ratings = [float(rating.strip()) for rating in ratings]
     # Find random players
     with open(os.path.join(folder, "players.txt"), "r") as f:
-        players = f.readlines()
+        players = f.readlines()[1:]
         players = [player.strip().split() for player in players]
         with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
             f.write(f"{players}\n")
         randomness = [player[-1] == "1" for player in players]
+        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
+            f.write(f"{randomness}\n")
     players = {}
     for i, rating in enumerate(ratings):
         if randomness[i]:

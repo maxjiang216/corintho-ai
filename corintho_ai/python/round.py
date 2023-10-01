@@ -194,7 +194,7 @@ def write_games(
             f.write(f"{len(matches[i::num_threads])}\n")
             for match in matches[i::num_threads]:
                 # Always play a match
-                f.write(f"{match[0]}\t{match[1]}\t0\n")
+                f.write(f"{match[0]}\t{match[1]}\t{1 if num_logged > 0 else 0}\n")
                 f.write(
                     f"{match[1]}\t{match[0]}\t{1 if num_logged > 0 else 0}\n"
                 )

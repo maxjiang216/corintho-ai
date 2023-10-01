@@ -6,6 +6,7 @@
 #include <fstream>
 #include <random>
 #include <string>
+#include <unistd.h>
 
 #include <gsl/gsl>
 #include <omp.h>
@@ -99,7 +100,7 @@ void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
                 players_[player2],
                 logging ? log_folder_ + "/match_" + std::to_string(player1) +
                               "_" + std::to_string(player2) + "_" +
-                              std::to_string(matches_.size()) + ".txt"
+                              std::to_string(matches_.size()) + std::to_string(getpid()) + ".txt"
                         : ""});
   is_done_.push_back(false);
 }

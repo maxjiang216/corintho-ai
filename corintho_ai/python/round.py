@@ -223,7 +223,7 @@ def get_performance(score, opponents):
     # Find performance rating
     lower_bound = -10000
     upper_bound = 10000
-    while upper_bound - lower_bound > 0.0001:
+    while upper_bound - lower_bound > 0.1:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
             [
@@ -325,7 +325,7 @@ def write_ratings(folder, round_folder):
 
     # Compute performance ratings
     delta = 999999
-    while delta > 0.0001:
+    while delta > 1:
         players, delta = get_performance_ratings(games, players, round_folder)
         with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
             f.write(f"{players}\n{delta}\n")

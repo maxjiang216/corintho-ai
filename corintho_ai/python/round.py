@@ -260,7 +260,7 @@ def get_matchups(round_folder, folder):
         for player in matchups:
             for opponent in matchups[player]:
                 f.write(
-                    f"{player}\t{opponent}\t{matchups[player][opponent][0] / matchups[player][opponent][1]}\n"
+                    f"{player}\t{opponent}\t{matchups[player][opponent][0]} / {matchups[player][opponent][1]} = {matchups[player][opponent][0] / matchups[player][opponent][1]}\n"
                 )
 
 def get_performance(score, opponents):

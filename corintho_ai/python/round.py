@@ -214,6 +214,54 @@ def combine_results(folder, num_threads):
     with open(os.path.join(folder, "results.txt"), "w+") as f:
         f.write("".join(results))
 
+def get_games(folder):
+    """
+    Return a list of games and results
+    """
+    games = {}
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
+        if os.path.isdir(item_path):
+            scores_file_path = os.path.join(item_path, "results.txt")
+
+            if os.path.exists(scores_file_path):
+                with open(scores_file_path, "r") as f:
+                    scores = f.readlines()
+                    scores = [score.split() for score in scores]
+                    scores = [
+                        ((int(score[0]), int(score[1])), float(score[2]))
+                        for score in scores
+                    ]
+                for score in scores:
+                    if score[0][0] not in games:
+                        games[score[0][0]] = []
+                    games[score[0][0]].append((score[0][1], score[1]))
+                    if score[0][1] not in games:
+                        games[score[0][1]] = []
+                    games[score[0][1]].append((score[0][0], 1 - score[1]))
+
+    return games
+
+def get_matchups(round_folder, folder):
+    """
+    Get the matchup score for each pairing
+    """
+    games = get_games(folder)
+    matchups = {}
+    for player in games:
+        matchups[player] = {}
+        for game in games[player]:
+            if game[0] not in matchups[player]:
+                matchups[player][game[0]] = [0, 0]
+            matchups[player][game[0]][0] += game[1]
+            matchups[player][game[0]][1] += 1
+
+    with open(os.path.join(round_folder, "matchups.txt"), "w+") as f:
+        for player in matchups:
+            for opponent in matchups[player]:
+                f.write(
+                    f"{player}\t{opponent}\t{matchups[player][opponent][0] / matchups[player][opponent][1]}\n"
+                )
 
 def get_performance(score, opponents):
     """
@@ -222,7 +270,7 @@ def get_performance(score, opponents):
 
     # Find performance rating
     lower_bound = -10000
-    upper_bound = 10000
+    upper_bound = 20000
     while upper_bound - lower_bound > 0.1:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
@@ -301,27 +349,9 @@ def write_ratings(folder, round_folder):
             players[i] = (rating, False)
 
     # Get games
-    games = {}
-    for item in os.listdir(folder):
-        item_path = os.path.join(folder, item)
-        if os.path.isdir(item_path):
-            scores_file_path = os.path.join(item_path, "results.txt")
-
-            if os.path.exists(scores_file_path):
-                with open(scores_file_path, "r") as f:
-                    scores = f.readlines()
-                    scores = [score.split() for score in scores]
-                    scores = [
-                        ((int(score[0]), int(score[1])), float(score[2]))
-                        for score in scores
-                    ]
-                for score in scores:
-                    if score[0][0] not in games:
-                        games[score[0][0]] = []
-                    games[score[0][0]].append((score[0][1], score[1]))
-                    if score[0][1] not in games:
-                        games[score[0][1]] = []
-                    games[score[0][1]].append((score[0][0], 1 - score[1]))
+    games = get_games(folder)
+    # Write matchups
+    get_matchups(round_folder, folder)
 
     # Compute performance ratings
     delta = 999999

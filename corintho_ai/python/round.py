@@ -61,7 +61,7 @@ def get_args():
     args = vars(parser.parse_args())
 
     if args["num_threads"] < 1:
-        args["num_threads"] = max(1, cpu_count() - 7)
+        args["num_threads"] = max(1, cpu_count() - 8)
 
     return args
 

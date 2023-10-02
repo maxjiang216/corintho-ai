@@ -112,6 +112,8 @@ def write_games(
                     ]
                 results.extend(scores)
     with open(os.path.join(round_folder, "results_list.txt"), "w+") as f:
+        f.write(f"{folder}\n")
+        f.write(f"{[item for item in os.listdir(folder)]}\n")
         f.write(f"{results}\n")
 
     scores = {}

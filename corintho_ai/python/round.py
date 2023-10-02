@@ -168,6 +168,9 @@ def write_games(
         )
         for key in variances
     ]
+    with open(os.path.join(round_folder, "variances.txt"), "w+") as f:
+        for variance in variances:
+            f.write(f"{variance}\n")
     # Setup heap
     heapq.heapify(variances)
 

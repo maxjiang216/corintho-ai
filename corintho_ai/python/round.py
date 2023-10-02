@@ -111,6 +111,8 @@ def write_games(
                         for score in scores
                     ]
                 results.extend(scores)
+    with open(os.path.join(round_folder, "results_list.txt"), "w+") as f:
+        f.write(f"{results}\n")
 
     scores = {}
     for result in results:
@@ -124,6 +126,8 @@ def write_games(
             scores[result[0]][1] += 0.5
         else:
             scores[result[0]][0] += 1
+    with open(os.path.join(round_folder, "scores_list.txt"), "w+") as f:
+        f.write(f"{scores}\n")
 
     variances = {}
 
@@ -152,6 +156,8 @@ def write_games(
                 n2,
                 m2,
             )
+    with open(os.path.join(round_folder, "variances_dict.txt"), "w+") as f:
+        f.write(f"{variances}\n")
 
     variances = [
         (

@@ -97,27 +97,20 @@ def write_games(
     """
 
     results = []
-    with open(os.path.join(round_folder, "results_list.txt"), "w+") as f:
-        f.write(f"{folder}\n")
-        for item in os.listdir(folder):
-            f.write(f"{item}\n")
-            item_path = os.path.join(folder, item)
-            f.write(f"{item_path}\n")
-            if os.path.isdir(item_path):
-                f.write(f"{os.listdir(item_path)}\n")
-                scores_file_path = os.path.join(item_path, "results.txt")
-                f.write(f"{scores_file_path}\n")
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
+        if os.path.isdir(item_path):
+            scores_file_path = os.path.join(item_path, "results.txt")
 
-                if os.path.exists(scores_file_path):
-                    with open(scores_file_path, "r") as f:
-                        scores = f.readlines()
-                        scores = [score.split() for score in scores]
-                        scores = [
-                            ((int(score[0]), int(score[1])), float(score[2]))
-                            for score in scores
-                        ]
-                    results.extend(scores)
-        f.write(f"{results}\n")
+            if os.path.exists(scores_file_path):
+                with open(scores_file_path, "r") as f:
+                    scores = f.readlines()
+                    scores = [score.split() for score in scores]
+                    scores = [
+                        ((int(score[0]), int(score[1])), float(score[2]))
+                        for score in scores
+                    ]
+                results.extend(scores)
 
     scores = {}
     for result in results:

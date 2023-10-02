@@ -105,7 +105,7 @@ def write_games(
             f.write(f"{item_path}\n")
             if os.path.isdir(item_path):
                 f.write(f"{os.listdir(item_path)}\n")
-                scores_file_path = os.path.join(item_path, "scores.txt")
+                scores_file_path = os.path.join(item_path, "results.txt")
                 f.write(f"{scores_file_path}\n")
 
                 if os.path.exists(scores_file_path):

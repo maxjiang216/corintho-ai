@@ -202,9 +202,9 @@ def write_games(
             f.write(f"{len(matches[i::num_threads])}\n")
             for match in matches[i::num_threads]:
                 # Always play a match
-                f.write(f"{match[0]}\t{match[1]}\t{1 if (match[0], match[1]) in logged_games else 0}\n")
+                f.write(f"{match[0]}\t{match[1]}\t{0 if (match[0], match[1]) in logged_games else 1}\n")
                 f.write(
-                    f"{match[1]}\t{match[0]}\t{1 if (match[1], match[0]) in logged_games else 0}\n"
+                    f"{match[1]}\t{match[0]}\t{0 if (match[1], match[0]) in logged_games else 1}\n"
                 )
                 logged_games.add((match[0], match[1]))
                 logged_games.add((match[1], match[0]))

@@ -47,6 +47,8 @@ jobs:
         file: ./corintho_ai/docker/Dockerfile
         push: true
         tags: gcr.io/corintho-ai/corintho-play:latest
+        build-args: 
+          GCR_PASSWORD=${{ secrets.GCR_PASSWORD }}
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1.1.1

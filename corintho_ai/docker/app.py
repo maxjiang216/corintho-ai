@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from play_corintho import choose_move
@@ -9,6 +11,8 @@ CORS(app)
 @app.route("/choose_move", methods=["POST"])
 def choose_move_route():
     data = request.get_json()
+    if data["password"] != os.environ.get("GCR_PASSWORD"):
+        return jsonify({"status": 401})
     return jsonify(
         choose_move(
             data["gameState"],

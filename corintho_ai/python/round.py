@@ -195,19 +195,16 @@ def write_games(
         )
 
     # Write matches into file
-    logged_games = set()
     for i in range(num_threads):
         match_file = os.path.join(round_folder, f"matches_{i}.txt")
         with open(match_file, "w+") as f:
             f.write(f"{len(matches[i::num_threads])}\n")
             for match in matches[i::num_threads]:
                 # Always play a match
-                f.write(f"{match[0]}\t{match[1]}\t{0 if (match[0], match[1]) in logged_games else 1}\n")
+                f.write(f"{match[0]}\t{match[1]}\t0\n")
                 f.write(
-                    f"{match[1]}\t{match[0]}\t{0 if (match[1], match[0]) in logged_games else 1}\n"
+                    f"{match[1]}\t{match[0]}\t0\n"
                 )
-                logged_games.add((match[0], match[1]))
-                logged_games.add((match[1], match[0]))
 
 
 def combine_results(folder, num_threads):

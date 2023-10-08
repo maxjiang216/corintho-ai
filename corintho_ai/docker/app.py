@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from play_corintho import choose_move

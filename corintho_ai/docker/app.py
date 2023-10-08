@@ -12,7 +12,7 @@ CORS(app)
 def choose_move_route():
     data = request.get_json()
     if data["password"] != os.environ.get("GCR_PASSWORD"):
-        return jsonify({"status": 401})
+        return jsonify({"status": 401, "password": data["password"], "env": os.environ.get("GCR_PASSWORD")})
     return jsonify(
         choose_move(
             data["gameState"],

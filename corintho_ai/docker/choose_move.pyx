@@ -129,8 +129,8 @@ cdef void search(DockerMC* mc, searches_per_eval, time_limit, start_time):
         model.allocate_tensors()
         model.set_tensor(input_details[0]['index'], input_data)
         model.invoke()
-        eval = model.get_tensor(output_details[0]['index']).flatten()
-        prob = model.get_tensor(output_details[1]['index'])
+        eval = model.get_tensor(output_details[1]['index']).flatten()
+        probs = model.get_tensor(output_details[0]['index'])
 
 cdef list get_legal_moves(DockerMC* mc):
     """

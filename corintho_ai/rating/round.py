@@ -220,6 +220,7 @@ def combine_results(folder, num_threads):
     with open(os.path.join(folder, "results.txt"), "w+") as f:
         f.write("".join(results))
 
+
 def get_games(folder):
     """
     Return a list of games and results
@@ -248,6 +249,7 @@ def get_games(folder):
 
     return games
 
+
 def get_matchups(round_folder, folder):
     """
     Get the matchup score for each pairing
@@ -271,6 +273,7 @@ def get_matchups(round_folder, folder):
                     f"/ {matchup[1]} = "
                     f"{matchup[0] / matchup[1]}\n"
                 )
+
 
 def get_performance(score, opponents):
     """
@@ -310,7 +313,9 @@ def get_performance_ratings(games, players, round_folder):
         elif player not in games:
             new_players[player] = (rating[0], False)
         else:
-            opponents = [players[opponent[0]][0] for opponent in games[player]]
+            opponents = [
+                players[opponent[0]][0] for opponent in games[player]
+            ]
             score = sum([game[1] for game in games[player]])
             if len(opponents) == 0:
                 new_rating = rating[0]
@@ -319,10 +324,15 @@ def get_performance_ratings(games, players, round_folder):
             else:
                 if score == len(games[player]):
                     score -= 0.25  # Prevent perfect score
-                new_rating = get_performance(score / len(opponents), opponents)
-                with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+                new_rating = get_performance(
+                    score / len(opponents), opponents
+                )
+                with open(os.path.join(round_folder, "performance.txt"),
+                          "a+") as f:
                     f.write(
-                        f"{player}\t{rating[0]}\t{new_rating}\t{score}/{len(opponents)}\t{sum(opponents)/len(opponents)}\n"
+                        f"{player}\t{rating[0]}\t{new_rating}\t"
+                        f"{score}/{len(opponents)}\t"
+                        f"{sum(opponents)/len(opponents)}\n"
                     )
             new_players[player] = (new_rating, False)
             delta = max(delta, abs(new_rating - rating[0]))
@@ -365,7 +375,9 @@ def write_ratings(folder, round_folder):
     # Compute performance ratings
     delta = 999999
     while delta > 1:
-        players, delta = get_performance_ratings(games, players, round_folder)
+        players, delta = get_performance_ratings(
+            games, players, round_folder
+        )
         with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
             f.write(f"{players}\n{delta}\n")
 

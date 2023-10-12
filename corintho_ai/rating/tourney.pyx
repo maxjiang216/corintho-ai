@@ -150,8 +150,8 @@ cdef play_games(Tourney *tourney, models, model_ids, max_searches, log_folder):
                 model.allocate_tensors()
                 model.set_tensor(input_details[0]['index'], input_data)
                 model.invoke()
-                eval = model.get_tensor(output_details[0]['index']).flatten()
-                probs = model.get_tensor(output_details[1]['index'])
+                eval = model.get_tensor(output_details[1]['index']).flatten()
+                probs = model.get_tensor(output_details[0]['index'])
                 predict_time += time.perf_counter() - pred_start
 
             play_start = time.perf_counter()

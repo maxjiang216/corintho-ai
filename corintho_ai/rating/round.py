@@ -1,8 +1,30 @@
 import argparse
 import heapq
 import os
+from multiprocessing import Pool, cpu_count
 
 from tourney import run
+
+
+def run_helper(args):
+    """
+    Run a single match
+    """
+
+    (
+        model_paths,
+        players_file,
+        match_file,
+        log_folder,
+        num_threads,
+        folder,
+        id,
+    ) = args
+
+    run(model_paths, players_file, match_file, log_folder, num_threads)
+
+    with open(os.path.join(folder, f"done_{id}.txt"), "w") as f:
+        f.write(match_file)
 
 
 def get_args():
@@ -36,7 +58,12 @@ def get_args():
         help="Number of threads to use",
     )
 
-    return vars(parser.parse_args())
+    args = vars(parser.parse_args())
+
+    if args["num_threads"] < 1:
+        args["num_threads"] = max(1, cpu_count() - 8)
+
+    return args
 
 
 def get_models(folder):
@@ -61,7 +88,9 @@ def get_variance(n1, m1, n2, m2):
     ) * (m2 + 1) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
 
 
-def write_games(num_players, num_games, folder, match_file, num_logged=10):
+def write_games(
+    num_players, num_games, folder, round_folder, num_logged=10, num_threads=1
+):
     """
     Collects all game results from result_folder
     Chooses num_games matches based on score variance
@@ -71,7 +100,7 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
     for item in os.listdir(folder):
         item_path = os.path.join(folder, item)
         if os.path.isdir(item_path):
-            scores_file_path = os.path.join(item_path, "scores.txt")
+            scores_file_path = os.path.join(item_path, "results.txt")
 
             if os.path.exists(scores_file_path):
                 with open(scores_file_path, "r") as f:
@@ -95,6 +124,8 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
             scores[result[0]][1] += 0.5
         else:
             scores[result[0]][0] += 1
+    with open(os.path.join(round_folder, "scores_list.txt"), "w+") as f:
+        f.write(f"{scores}\n")
 
     variances = {}
 
@@ -123,6 +154,8 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
                 n2,
                 m2,
             )
+    with open(os.path.join(round_folder, "variances_dict.txt"), "w+") as f:
+        f.write(f"{variances}\n")
 
     variances = [
         (
@@ -139,6 +172,9 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
         )
         for key in variances
     ]
+    with open(os.path.join(round_folder, "variances.txt"), "w+") as f:
+        for variance in variances:
+            f.write(f"{variance}\n")
     # Setup heap
     heapq.heapify(variances)
 
@@ -159,14 +195,79 @@ def write_games(num_players, num_games, folder, match_file, num_logged=10):
         )
 
     # Write matches into file
-    with open(match_file, "w") as f:
-        f.write(f"{len(matches)}\n")
-        for match in matches:
-            # Always play a match
-            f.write(f"{match[0]}\t{match[1]}\t0\n")
-            f.write(f"{match[1]}\t{match[0]}\t{1 if num_logged > 0 else 0}\n")
-            num_logged -= 1
+    for i in range(num_threads):
+        match_file = os.path.join(round_folder, f"matches_{i}.txt")
+        with open(match_file, "w+") as f:
+            f.write(f"{len(matches[i::num_threads])}\n")
+            for match in matches[i::num_threads]:
+                # Always play a match
+                f.write(f"{match[0]}\t{match[1]}\t0\n")
+                f.write(
+                    f"{match[1]}\t{match[0]}\t0\n"
+                )
 
+
+def combine_results(folder, num_threads):
+    """
+    Combine results from multiple threads
+    """
+
+    results = []
+    for i in range(num_threads):
+        with open(os.path.join(folder, f"logs_{i}", "scores.txt"), "r") as f:
+            results.extend(f.readlines())
+
+    with open(os.path.join(folder, "results.txt"), "w+") as f:
+        f.write("".join(results))
+
+def get_games(folder):
+    """
+    Return a list of games and results
+    """
+    games = {}
+    for item in os.listdir(folder):
+        item_path = os.path.join(folder, item)
+        if os.path.isdir(item_path):
+            scores_file_path = os.path.join(item_path, "results.txt")
+
+            if os.path.exists(scores_file_path):
+                with open(scores_file_path, "r") as f:
+                    scores = f.readlines()
+                    scores = [score.split() for score in scores]
+                    scores = [
+                        ((int(score[0]), int(score[1])), float(score[2]))
+                        for score in scores
+                    ]
+                for score in scores:
+                    if score[0][0] not in games:
+                        games[score[0][0]] = []
+                    games[score[0][0]].append((score[0][1], score[1]))
+                    if score[0][1] not in games:
+                        games[score[0][1]] = []
+                    games[score[0][1]].append((score[0][0], 1 - score[1]))
+
+    return games
+
+def get_matchups(round_folder, folder):
+    """
+    Get the matchup score for each pairing
+    """
+    games = get_games(folder)
+    matchups = {}
+    for player in games:
+        matchups[player] = {}
+        for game in games[player]:
+            if game[0] not in matchups[player]:
+                matchups[player][game[0]] = [0, 0]
+            matchups[player][game[0]][0] += game[1]
+            matchups[player][game[0]][1] += 1
+
+    with open(os.path.join(round_folder, "matchups.txt"), "w+") as f:
+        for player in matchups:
+            for opponent in matchups[player]:
+                f.write(
+                    f"{player}\t{opponent}\t{matchups[player][opponent][0]} / {matchups[player][opponent][1]} = {matchups[player][opponent][0] / matchups[player][opponent][1]}\n"
+                )
 
 def get_performance(score, opponents):
     """
@@ -174,9 +275,9 @@ def get_performance(score, opponents):
     """
 
     # Find performance rating
-    lower_bound = -100000
-    upper_bound = 100000
-    while upper_bound - lower_bound > 0.00001:
+    lower_bound = -10000
+    upper_bound = 20000
+    while upper_bound - lower_bound > 0.1:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
             [
@@ -192,7 +293,7 @@ def get_performance(score, opponents):
     return lower_bound
 
 
-def get_performance_ratings(games, players):
+def get_performance_ratings(games, players, round_folder):
     """
     Compute performance ratings
     """
@@ -208,12 +309,18 @@ def get_performance_ratings(games, players):
         else:
             opponents = [players[opponent[0]][0] for opponent in games[player]]
             score = sum([game[1] for game in games[player]])
-            if score == 0:
+            if len(opponents) == 0:
+                new_rating = rating[0]
+            elif score == 0:
                 new_rating = 0
             else:
                 if score == len(games[player]):
                     score -= 0.25  # Prevent perfect score
                 new_rating = get_performance(score / len(opponents), opponents)
+                with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+                    f.write(
+                        f"{player}\t{rating[0]}\t{new_rating}\t{score}/{len(opponents)}\t{sum(opponents)/len(opponents)}\n"
+                    )
             new_players[player] = (new_rating, False)
             delta = max(delta, abs(new_rating - rating[0]))
 
@@ -233,9 +340,13 @@ def write_ratings(folder, round_folder):
         ratings = [float(rating.strip()) for rating in ratings]
     # Find random players
     with open(os.path.join(folder, "players.txt"), "r") as f:
-        players = f.readlines()
-        players = [player.split() for player in players]
+        players = f.readlines()[1:]
+        players = [player.strip().split() for player in players]
+        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
+            f.write(f"{players}\n")
         randomness = [player[-1] == "1" for player in players]
+        with open(os.path.join(round_folder, "get_games.txt"), "a+") as f:
+            f.write(f"{randomness}\n")
     players = {}
     for i, rating in enumerate(ratings):
         if randomness[i]:
@@ -244,32 +355,16 @@ def write_ratings(folder, round_folder):
             players[i] = (rating, False)
 
     # Get games
-    games = {}
-    for item in os.listdir(folder):
-        item_path = os.path.join(folder, item)
-        if os.path.isdir(item_path):
-            scores_file_path = os.path.join(item_path, "scores.txt")
-
-            if os.path.exists(scores_file_path):
-                with open(scores_file_path, "r") as f:
-                    scores = f.readlines()
-                    scores = [score.split() for score in scores]
-                    scores = [
-                        ((int(score[0]), int(score[1])), float(score[2]))
-                        for score in scores
-                    ]
-                for score in scores:
-                    if score[0][0] not in games:
-                        games[score[0][0]] = []
-                    games[score[0][0]].append((score[0][1], score[1]))
-                    if score[0][1] not in games:
-                        games[score[0][1]] = []
-                    games[score[0][1]].append((score[0][0], 1 - score[1]))
+    games = get_games(folder)
+    # Write matchups
+    get_matchups(round_folder, folder)
 
     # Compute performance ratings
     delta = 999999
-    while delta > 0.0001:
-        players, delta = get_performance_ratings(games, players)
+    while delta > 1:
+        players, delta = get_performance_ratings(games, players, round_folder)
+        with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+            f.write(f"{players}\n{delta}\n")
 
     # Write new ratings
     out_string = "\n".join([f"{players[player][0]}" for player in players])
@@ -300,22 +395,50 @@ def main():
         os.path.join(args["folder"], f"round_{current_round}")
     ):
         os.mkdir(os.path.join(args["folder"], f"round_{current_round}"))
-    match_file = os.path.join(
-        args["folder"], f"round_{current_round}", "matches.txt"
-    )
-    open(match_file, "w").close()
+    round_folder = os.path.join(args["folder"], f"round_{current_round}")
+    if not os.path.exists(round_folder):
+        os.mkdir(round_folder)
     write_games(
         num_players,
         args["num_games"],
         args["folder"],
-        match_file,
+        round_folder,
         args["num_logged"],
+        args["num_threads"],
     )
 
-    run(
-        model_paths,
-        os.path.join(args["folder"], "players.txt"),
-        match_file,
+    args_list = []
+    for i in range(args["num_threads"]):
+        if not os.path.exists(os.path.join(round_folder, f"logs_{i}")):
+            os.mkdir(os.path.join(round_folder, f"logs_{i}"))
+        args_list.append(
+            (
+                model_paths,
+                os.path.join(args["folder"], "players.txt"),
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                    f"matches_{i}.txt",
+                ),
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                    f"logs_{i}",
+                ),
+                1,
+                os.path.join(
+                    args["folder"],
+                    f"round_{current_round}",
+                ),
+                i,
+            )
+        )
+
+    with Pool(args["num_threads"]) as pool:
+        pool.map(run_helper, args_list)
+
+    # Combine results
+    combine_results(
         os.path.join(args["folder"], f"round_{current_round}"),
         args["num_threads"],
     )

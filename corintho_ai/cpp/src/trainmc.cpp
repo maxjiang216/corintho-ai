@@ -6,12 +6,10 @@
 #include <cstring>
 
 #include <fstream>
-#include <memory>
 #include <random>
 #include <vector>
 
 #include <gsl/gsl>
-#include <spdlog/spdlog.h>
 
 #include "move.h"
 #include "node.h"
@@ -122,16 +120,11 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
   }
   // Winning position. Will choose the first winning move.
   if (root_->won()) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_, "root_->won(): {}", root_->won());
     return chooseMoveWon(prob_sample);
   }
   // Losing or drawn position. Will choose the best move with the most
   // searches.
   if (root_->lost() || root_->drawn()) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_, "root_->lost(): {}\troot_->drawn(): {}",
-                         root_->lost(), root_->drawn());
     return chooseMoveLostDrawn(prob_sample);
   }
   // Opening move. Temperature is 1 and avoids choosing losing moves.
@@ -146,8 +139,6 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
 bool TrainMC::doIteration(float eval[], float probs[]) {
   assert(to_eval_ != nullptr);
   assert(searches_done_ <= max_searches_);
-  if (logger_)
-    SPDLOG_LOGGER_INFO(logger_, "uninitialized: {}", uninitialized());
   // This is the first iteration of a game
   if (uninitialized()) {
     // Initialize the Monte Carlo search tree
@@ -162,11 +153,6 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
-  if (logger_)
-    SPDLOG_LOGGER_INFO(
-        logger_,
-        "searched_done: {}\troot_visits: {}\troot_->all_visited(): {}",
-        searches_done_, root_->visits(), root_->all_visited());
   // This occurs when we receive a new root from the opponent
   // We should ignore the all_visited and not increment visit count
   if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
@@ -177,30 +163,14 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
     assert(searched_.size() <= searches_per_eval_);
     return false;
   }
-  if (logger_)
-    SPDLOG_LOGGER_INFO(logger_, "searched_.size(): {}", searched_.size());
   // At the start of a turn, there are no evaluations
   if (searched_.size() > 0)
     receiveEval(eval, probs);
   while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
          searches_done_ < max_searches_ && !root_->known() &&
          !root_->all_visited()) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_,
-                         "searched_.size(): {}\tsearches_per_eval_: "
-                         "{}\tsearches_done_: {}\tmax_searches_: "
-                         "{}\troot_->known(): {}\troot_->all_visited(): {}",
-                         searched_.size(), searches_per_eval_, searches_done_,
-                         max_searches_, root_->known(), root_->all_visited());
     search();
   }
-  if (logger_)
-    SPDLOG_LOGGER_INFO(
-        logger_,
-        "searched_.size(): {}\tsearches_per_eval_: {}\tsearches_done_: "
-        "{}\tmax_searches_: {}\troot_->known(): {}\troot_->all_visited(): {}",
-        searched_.size(), searches_per_eval_, searches_done_, max_searches_,
-        root_->known(), root_->all_visited());
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
   return (searches_done_ == max_searches_ || root_->known()) &&
@@ -347,9 +317,6 @@ int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
   // the node is not searched again
   // Temperature is 0 in this case, even in the opening.
   while (cur != nullptr) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}", cur->child_id(),
-                         cur->visits());
     // Winning moves lead to lost positions
     if (cur->lost()) {
       choice = cur->child_id();
@@ -379,9 +346,6 @@ int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
   // both cases except we avoid choosing losing moves in a drawn position.
   // Temperature is 0 in this case, even in the opening.
   while (cur != nullptr) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}", cur->child_id(),
-                         cur->visits());
     if (cur->visits() > max_visits && (root_->lost() || !cur->won())) {
       choice = cur->child_id();
       best_prev = prev;
@@ -473,17 +437,7 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
   // Choose the move with the most searches.
   // Break ties with evaluation.
   // We never choose losing moves and treat draws as having evaluation 0.
-  if (logger_) {
-    SPDLOG_LOGGER_INFO(logger_,
-                       "chooseHighProbMove: {}, num_legal_moves: {}, visits: "
-                       "{}, evaluation: {}",
-                       choice, root_->num_legal_moves(), root_->visits(),
-                       root_->evaluation());
-  }
   while (cur != nullptr) {
-    if (logger_)
-      SPDLOG_LOGGER_INFO(logger_, "child_id: {}, visits: {}, evaluation: {}",
-                         cur->child_id(), cur->visits(), cur->evaluation());
     if (!cur->won()) {
       float eval = cur->evaluation();
       if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
@@ -513,15 +467,8 @@ int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
     searches_done_ = 0;
     return choice;
   }
-  if (logger_) {
-    SPDLOG_LOGGER_INFO(logger_, "choice: {}, position:\n{}", choice,
-                       root_->game().to_string());
-  }
+
   moveDown(best_prev);
-  if (logger_) {
-    SPDLOG_LOGGER_INFO(logger_, "choice: {}, position:\n{}", choice,
-                       root_->game().to_string());
-  }
   return choice;
 }
 
@@ -545,8 +492,6 @@ void TrainMC::moveDown(Node *prev) noexcept {
   cur_ = root_;
   searches_done_ = 0;
   assert(searched_.size() == 0);
-  // Just to be safe
-  searched_.clear();
 }
 
 void TrainMC::propagateTerminal() noexcept {
@@ -658,12 +603,8 @@ void TrainMC::search() {
   // I feel that this should be the case anyways
   // but it is sometimes not, so we set it here.
   // It's insignificant and too hard to debug
-  if (logger_)
-    SPDLOG_LOGGER_INFO(logger_, "cur_ == root_: {}", cur_ == root_);
   cur_ = root_;
   ++searches_done_;
-  if (logger_)
-    SPDLOG_LOGGER_INFO(logger_, "cur_->terminal(): {}", cur_->terminal());
   while (!cur_->terminal()) {
     // Choose the next node to move down to
     ChooseNextOutput res = chooseNext();
@@ -750,9 +691,6 @@ void TrainMC::search() {
     assert(searched_.size() <= searches_per_eval_);
   }
   // Reset cur for next search
+  // Try not doing this?
   cur_ = root_;
-}
-
-void TrainMC::addDetailedLog(std::shared_ptr<spdlog::logger> logger) {
-  logger_ = logger;
 }

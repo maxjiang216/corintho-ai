@@ -6,7 +6,6 @@
 #include <fstream>
 #include <random>
 #include <string>
-#include <unistd.h>
 
 #include <gsl/gsl>
 #include <omp.h>
@@ -20,15 +19,6 @@ bool Tourney::all_done() const noexcept {
   }
 
   return true;
-}
-
-int32_t Tourney::num_done() const noexcept {
-  int32_t count = 0;
-  for (const auto &done : is_done_) {
-    if (done)
-      ++count;
-  }
-  return count;
 }
 
 int32_t Tourney::num_requests(int32_t id) const noexcept {
@@ -65,7 +55,7 @@ void Tourney::doIteration(float eval[], float probs[], int32_t id) {
   int32_t offset = 0;
   int32_t offsets[matches_.size()] = {0};
   for (size_t i = 1; i < matches_.size(); ++i) {
-    if (!is_done_[i - 1] && matches_[i - 1]->to_play() == id) {
+    if (!is_done_[i] && matches_[i]->to_play() == id) {
       offset += matches_[i - 1]->num_requests();
     }
     offsets[i] = offset;
@@ -95,23 +85,13 @@ void Tourney::addMatch(int32_t player1, int32_t player2, bool logging) {
   assert(players_.find(player1) != players_.end());
   assert(players_.find(player2) != players_.end());
   // make sure the player exists
-  matches_.emplace_back(
-      new Match{gsl::narrow_cast<int32_t>(generator_()), players_[player1],
-                players_[player2],
-                logging ? log_folder_ + "/match_" + std::to_string(player1) +
-                              "_" + std::to_string(player2) + "_" +
-                              std::to_string(matches_.size()) + std::to_string(getpid()) + ".txt"
-                        : ""});
+  matches_.emplace_back(new Match{
+      gsl::narrow_cast<int32_t>(generator_()), players_[player1],
+      players_[player2],
+      logging ? std::make_unique<std::ofstream>(
+                    log_folder_ + "/match_" + std::to_string(player1) + "_" +
+                    std::to_string(player2) + "_" +
+                    std::to_string(matches_.size()) + ".txt")
+              : nullptr});
   is_done_.push_back(false);
-}
-
-void Tourney::addDetailedLog(const std::string &folder) {
-  for (size_t i = 0; i < matches_.size(); ++i) {
-    if (!is_done_[i]) {
-      matches_[i]->addDetailedLog(folder + "/match_" + std::to_string(i) +
-                                  "_" + std::to_string(matches_[i]->id(0)) +
-                                  "_" + std::to_string(matches_[i]->id(1)) +
-                                  ".txt");
-    }
-  }
 }

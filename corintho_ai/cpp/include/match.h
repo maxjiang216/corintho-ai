@@ -4,10 +4,8 @@
 #include <cstdint>
 
 #include <bitset>
+#include <fstream>
 #include <memory>
-#include <string>
-
-#include <spdlog/spdlog.h>
 
 #include "game.h"
 #include "node.h"
@@ -35,7 +33,7 @@ struct Player {
 class Match {
  public:
   Match(int32_t random_seed, Player player1, Player player2,
-        const std::string &log_file);
+        std::unique_ptr<std::ofstream> log_file = nullptr);
   Match(const Match &other) = delete;
   Match(Match &&other) noexcept = default;
   Match &operator=(const Match &other) = delete;
@@ -61,18 +59,16 @@ class Match {
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
 
-  void addDetailedLog(const std::string &filename);
-
  private:
   /// @brief Write the evaluation of the given node
-  std::string writeEval(Node *node) const noexcept;
+  void writeEval(Node *node) const noexcept;
   /// @brief Write the legal movesof the root
   /// @details Also write entire main line and sort other moves by visits
   void writeMoves() const noexcept;
   /// @brief Logs information immediately before a move is chosen
   void writePreMoveLogs() const noexcept;
   /// @brief Log information about move choice immediately after it is done
-  void writeMoveChoice(int32_t choice) noexcept;
+  void writeMoveChoice(int32_t choice) const noexcept;
   /// @brief Clean up when game is complete
   void endGame() noexcept;
   /// @brief Choose a move and write the training sample
@@ -102,9 +98,7 @@ class Match {
   /// @brief File where all logs are written to
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).
-  std::shared_ptr<spdlog::logger> logger_{};
-  std::shared_ptr<spdlog::logger> debug_logger_{};
-  std::string history_{};
+  std::unique_ptr<std::ofstream> log_file_{};
 };
 
 #endif

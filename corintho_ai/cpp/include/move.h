@@ -4,7 +4,6 @@
 #include <cstdint>
 
 #include <ostream>
-#include <string>
 
 #include "util.h"
 
@@ -50,9 +49,7 @@ class Move {
   int32_t col_to() const noexcept { return space_to_.col; }
   /// @brief The space being moved to or placed on
   Space space_to() const noexcept { return space_to_; }
-
-  std::string to_string() const;
-
+  
   friend std::ostream &operator<<(std::ostream &os, const Move &move);
 
  private:

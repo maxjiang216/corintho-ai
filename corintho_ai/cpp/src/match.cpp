@@ -7,18 +7,13 @@
 #include <iomanip>
 #include <memory>
 #include <random>
-#include <string>
 #include <vector>
-
-#include "spdlog/sinks/basic_file_sink.h"
-#include <spdlog/fmt/fmt.h>
-#include <spdlog/spdlog.h>
 
 #include "node.h"
 #include "trainmc.h"
 
 Match::Match(int32_t random_seed, Player player1, Player player2,
-             const std::string &log_file)
+             std::unique_ptr<std::ofstream> log_file)
     : generator_{std::mt19937(random_seed)},
       to_eval_{std::make_unique<float[]>(
           kGameStateSize *
@@ -34,16 +29,9 @@ Match::Match(int32_t random_seed, Player player1, Player player2,
                                &generator_, to_eval_.get(),
                                player2.max_searches, player2.searches_per_eval,
                                player2.c_puct, player2.epsilon, true)},
-      ids_{player1.player_id, player2.player_id}, model_ids_{player1.model_id,
-                                                             player2.model_id},
-      logger_{log_file.empty() ? nullptr
-                               : spdlog::basic_logger_mt("logger_" + log_file,
-                                                         log_file, true)},
-      debug_logger_{nullptr} {
-  if (logger_)
-    logger_->set_pattern("%C-%m-%d %H:%M:%S.%e %g:%!:%# %v");
-}
-
+      ids_{player1.player_id, player2.player_id},
+      model_ids_{player1.model_id, player2.model_id}, log_file_{std::move(
+                                                          log_file)} {}
 int32_t Match::id(int32_t i) const noexcept {
   assert(i == 0 || i == 1);
   return ids_[i];
@@ -79,41 +67,8 @@ bool Match::doIteration(float eval[], float probs[]) {
   if (players_[to_play_] == nullptr) {
     return chooseMoveAndContinue();
   }
-  if (debug_logger_ != nullptr) {
-    SPDLOG_LOGGER_INFO(debug_logger_, "HISTORY\n{}", history_);
-    SPDLOG_LOGGER_INFO(
-        debug_logger_,
-        "TURN {}: PLAYER {} TO PLAY - VISITS: {} - POSITION EVALUATION: {}",
-        static_cast<int32_t>(players_[to_play_]->root()->depth()),
-        to_play_ + 1,
-        static_cast<int32_t>(players_[to_play_]->root()->visits()),
-        writeEval(players_[to_play_]->root()));
-    SPDLOG_LOGGER_INFO(debug_logger_, "REQUESTS: {} - NODES: {} - DONE: {}",
-                       players_[to_play_]->num_requests(),
-                       players_[to_play_]->num_nodes(),
-                       players_[to_play_]->done());
-    SPDLOG_LOGGER_INFO(debug_logger_,
-                       "LEGAL MOVES: {} - ALL VISITED: {} - KNOWN: {}",
-                       players_[to_play_]->root()->num_legal_moves(),
-                       players_[to_play_]->root()->all_visited(),
-                       players_[to_play_]->root()->known());
-    SPDLOG_LOGGER_INFO(debug_logger_, "POSITION:\n{}\n",
-                       players_[to_play_]->root()->game().to_string());
-    Node *cur = players_[to_play_]->root()->first_child();
-    while (cur != nullptr) {
-      SPDLOG_LOGGER_INFO(debug_logger_,
-                         "MOVE: {}\tVISITS: {}\tEVAL: {}\nPOSITION:\n{}\n",
-                         Move{cur->child_id()}.to_string(), cur->visits(),
-                         writeEval(cur), cur->game().to_string());
-      cur = cur->next_sibling();
-    }
-  }
   // There can only be up to 1 random player
   bool done = players_[to_play_]->doIteration(eval, probs);
-  if (debug_logger_)
-    SPDLOG_LOGGER_INFO(debug_logger_, "REQUESTS: {} - NODES: {} - DONE: {}",
-                       players_[to_play_]->num_requests(),
-                       players_[to_play_]->num_nodes(), done);
   // If we have completed a turn, we can choose a move
   if (done)
     return chooseMoveAndContinue();
@@ -121,25 +76,24 @@ bool Match::doIteration(float eval[], float probs[]) {
   return false;
 }
 
-std::string Match::writeEval(Node *node) const noexcept {
+void Match::writeEval(Node *node) const noexcept {
   assert(node != nullptr);
-  assert(logger_ != nullptr);
+  assert(log_file_ != nullptr);
   // There is a forced sequence
   if (node->result() != kResultNone) {
-    return strResult(node->result());
+    *log_file_ << strResult(node->result());
+    return;
   }
-  // Log the evaluation
-  return fmt::format("{:.3f}", node->evaluation() / node->visits());
+  *log_file_ << std::fixed << std::setprecision(6)
+             << node->evaluation() / node->visits();
 }
 
 void Match::writeMoves() const noexcept {
-  assert(logger_ != nullptr);
-  SPDLOG_LOGGER_INFO(logger_, "LEGAL MOVES:");
-  if (debug_logger_ != nullptr) {
-    SPDLOG_LOGGER_INFO(debug_logger_, "LEGAL MOVES:");
-  }
+  assert(log_file_ != nullptr);
+  *log_file_ << "LEGAL MOVES:\n";
   // Print main line
-  players_[to_play_]->root()->printMainLine(logger_);
+  players_[to_play_]->root()->printMainLine(log_file_.get());
+  *log_file_ << '\n';
   // Get and sort remaining legal moves by visit count and evaluation
   struct MoveData {
     int32_t visits;
@@ -175,38 +129,33 @@ void Match::writeMoves() const noexcept {
            return a.probability > b.probability;
          return a.move < b.move;
        });
-  std::string move_string = "";
   // The first move is already printed in the main line
   for (size_t i = 1; i < moves.size(); ++i) {
-    move_string += fmt::format(
-        "{} V: {} E: {} P: {:.3f}\t", Move{moves[i].move}.to_string(),
-        moves[i].visits, writeEval(moves[i].node), moves[i].probability);
+    *log_file_ << Move{moves[i].move} << " V: " << moves[i].visits << " E: ";
+    writeEval(moves[i].node);
+    *log_file_ << " P: " << moves[i].probability << '\t';
   }
-  SPDLOG_LOGGER_INFO(logger_, move_string);
-  if (debug_logger_ != nullptr) {
-    SPDLOG_LOGGER_INFO(debug_logger_, move_string);
-  }
+  *log_file_ << '\n';
 }
 
 void Match::writePreMoveLogs() const noexcept {
-  assert(logger_ != nullptr);
-  SPDLOG_LOGGER_INFO(
-      logger_, "TURN {}",
-      static_cast<int32_t>(players_[to_play_]->root()->depth()));
-  SPDLOG_LOGGER_INFO(logger_, "PLAYER {} TO PLAY", to_play_ + 1);
-  SPDLOG_LOGGER_INFO(
-      logger_, "VISITS: {}",
-      static_cast<int32_t>(players_[to_play_]->root()->visits()));
-  SPDLOG_LOGGER_INFO(logger_, "POSITION EVALUATION: {}",
-                     writeEval(players_[to_play_]->root()));
+  assert(log_file_ != nullptr);
+  *log_file_ << "TURN "
+             << static_cast<int32_t>(players_[to_play_]->root()->depth())
+             << "\nPLAYER " << static_cast<int32_t>(to_play_ + 1)
+             << " TO PLAY\nVISITS: "
+             << static_cast<int32_t>(players_[to_play_]->root()->visits())
+             << '\n';
+  *log_file_ << "POSITION EVALUATION: ";
+  writeEval(players_[to_play_]->root());
+  *log_file_ << '\n';
   writeMoves();
 }
 
-void Match::writeMoveChoice(int32_t choice) noexcept {
-  assert(logger_ != nullptr);
-  SPDLOG_LOGGER_INFO(logger_, "CHOSE MOVE {}", Move{choice}.to_string());
-  SPDLOG_LOGGER_INFO(logger_, "NEW POSITION:\n{}\n",
-                     players_[to_play_]->root()->game().to_string());
+void Match::writeMoveChoice(int32_t choice) const noexcept {
+  assert(log_file_ != nullptr);
+  *log_file_ << "CHOSE MOVE " << Move{choice} << "\nNEW POSITION:\n"
+             << root_->game() << "\n\n";
 }
 
 void Match::endGame() noexcept {
@@ -221,11 +170,11 @@ void Match::endGame() noexcept {
     result_ = kResultWin;
   }
   // Log game result
-  if (logger_ != nullptr) {
+  if (log_file_ != nullptr) {
     if (result_ == kResultDraw) {
-      SPDLOG_LOGGER_INFO(logger_, "GAME IS DRAWN");
+      *log_file_ << "GAME IS DRAWN.\n";
     } else {
-      SPDLOG_LOGGER_INFO(logger_, "PLAYER {} WON!", to_play_ + 1);
+      *log_file_ << "PLAYER " << to_play_ + 1 << " WON!\n";
     }
   }
   // Delete the players
@@ -238,7 +187,7 @@ void Match::endGame() noexcept {
     players_[1]->null_root();
   }
   to_eval_.reset();
-  logger_.reset();
+  log_file_.reset();
 }
 
 int32_t Match::chooseMove() {
@@ -261,23 +210,13 @@ bool Match::chooseMoveAndContinue() {
   // We could play many turns, for example when mating sequences are found by
   // both players
   while (!need_eval) {
-    if (logger_ != nullptr && players_[to_play_] != nullptr) {
+    if (log_file_ != nullptr && players_[to_play_] != nullptr) {
       writePreMoveLogs();
     }
     int32_t choice = chooseMove();
-    if (debug_logger_)
-      SPDLOG_LOGGER_INFO(debug_logger_, "CHOSE MOVE {}",
-                         Move{choice}.to_string());
     root_ = std::make_unique<Node>(root_->game(), nullptr, nullptr, choice,
                                    root_->depth() + 1);
-    if (history_.size() < 10000) {
-      history_ += Move{choice}.to_string() + "\n";
-      if (players_[to_play_] != nullptr) {
-        history_ += writeEval(players_[to_play_]->root()) + "\n";
-      }
-      history_ += root_->game().to_string() + "\n";
-    }
-    if (logger_ != nullptr) {
+    if (log_file_ != nullptr) {
       writeMoveChoice(choice);
     }
     // Check if the game is over
@@ -295,8 +234,7 @@ bool Match::chooseMoveAndContinue() {
     if (players_[to_play_]->uninitialized()) {
       players_[to_play_]->createRoot(root_->game(), root_->depth());
       // This is always false as the root requires an evaluation
-      players_[to_play_]->doIteration();
-      return false;
+      return players_[to_play_]->doIteration();
     }
     // It's possible that we need an evaluation for this
     // in the case that received move has not been searched
@@ -311,12 +249,4 @@ bool Match::chooseMoveAndContinue() {
     }
   }
   return false;
-}
-
-void Match::addDetailedLog(const std::string &filename) {
-  debug_logger_ =
-      spdlog::basic_logger_mt("debug_logger_" + filename, filename, true);
-  debug_logger_->set_pattern("%C-%m-%d %H:%M:%S.%e %g:%!:%# %v");
-  players_[0]->addDetailedLog(debug_logger_);
-  players_[1]->addDetailedLog(debug_logger_);
 }

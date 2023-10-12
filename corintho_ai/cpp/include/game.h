@@ -5,7 +5,6 @@
 
 #include <bitset>
 #include <ostream>
-#include <string>
 
 #include "move.h"
 #include "util.h"
@@ -43,8 +42,6 @@ class Game {
   /// @warning Does not check if the move is legal
   /// @param move_id The ID of the move to apply
   void doMove(int32_t move_id) noexcept;
-
-  std::string to_string() const;
 
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
 

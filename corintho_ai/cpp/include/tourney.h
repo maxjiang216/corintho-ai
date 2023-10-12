@@ -20,7 +20,6 @@ class Tourney {
 
   /// @brief Return true if all games are done
   bool all_done() const noexcept;
-  int32_t num_done() const noexcept;
   /// @brief Return the number of requests for evaluations for a given model
   int32_t num_requests(int32_t id) const noexcept;
 
@@ -37,8 +36,6 @@ class Tourney {
                  float c_puct = 1.0, float epsilon = 0.25,
                  bool random = false);
   void addMatch(int32_t player1, int32_t player2, bool logging = false);
-
-  void addDetailedLog(const std::string &folder);
 
  private:
   std::vector<std::unique_ptr<Match>> matches_{};

@@ -265,8 +265,11 @@ def get_matchups(round_folder, folder):
     with open(os.path.join(round_folder, "matchups.txt"), "w+") as f:
         for player in matchups:
             for opponent in matchups[player]:
+                matchup = matchups[player][opponent]
                 f.write(
-                    f"{player}\t{opponent}\t{matchups[player][opponent][0]} / {matchups[player][opponent][1]} = {matchups[player][opponent][0] / matchups[player][opponent][1]}\n"
+                    f"{player}\t{opponent}\t{matchup[0]} "
+                    f"/ {matchup[1]} = "
+                    f"{matchup[0] / matchup[1]}\n"
                 )
 
 def get_performance(score, opponents):

@@ -10,9 +10,13 @@ pip install pytz
 pip install cython # 5MB
 pip install toml
 pip install black
+pip install tflite_runtime
 export PATH="~/.local/bin:$PATH"
 git clone https://github.com/maxjiang216/corintho-ai.git
 cd corintho-ai
+git clone https://github.com/microsoft/GSL.git gsl
+git submodule add https://github.com/gabime/spdlog.git external/spdlog
+git submodule update --init --recursive
 dos2unix *
 chmod +x scripts/bash/train.sh
 nohup ~/corintho-ai/scripts/bash/train.sh &

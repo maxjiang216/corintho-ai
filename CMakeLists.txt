@@ -11,8 +11,6 @@ set(CPP_PATH "corintho_ai/cpp")
 
 set(TEST_PATH "tests/cpp")
 
-add_subdirectory(external/spdlog)
-
 set(CMAKE_CXX_FLAGS "--coverage -fopenmp -g -pg -O3")
 
 include_directories(${GTEST_PATH}/include ${GSL_PATH}/include ${CPP_PATH}/include)

@@ -83,9 +83,9 @@ def get_variance(n1, m1, n2, m2):
     Calculate variance of score distribution
     """
 
-    return (n1 + 1) * (m1 + 1) / ((n1 + m1 + 2) ** 2 * (n1 + m1 + 3)) + (
-        n2 + 1
-    ) * (m2 + 1) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
+    return (n1 + 1) * (m1 + 1) / ((n1 + m1 + 2) ** 2 * (n1 + m1 + 3)) + (n2 + 1) * (
+        m2 + 1
+    ) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
 
 
 def write_games(
@@ -202,9 +202,7 @@ def write_games(
             for match in matches[i::num_threads]:
                 # Always play a match
                 f.write(f"{match[0]}\t{match[1]}\t0\n")
-                f.write(
-                    f"{match[1]}\t{match[0]}\t0\n"
-                )
+                f.write(f"{match[1]}\t{match[0]}\t0\n")
 
 
 def combine_results(folder, num_threads):
@@ -286,10 +284,7 @@ def get_performance(score, opponents):
     while upper_bound - lower_bound > 0.1:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
-            [
-                1 / (1 + 10 ** ((opponent - mid) / 400))
-                for opponent in opponents
-            ]
+            [1 / (1 + 10 ** ((opponent - mid) / 400)) for opponent in opponents]
         ) / len(opponents)
         if expected_score < score:
             lower_bound = mid
@@ -313,9 +308,7 @@ def get_performance_ratings(games, players, round_folder):
         elif player not in games:
             new_players[player] = (rating[0], False)
         else:
-            opponents = [
-                players[opponent[0]][0] for opponent in games[player]
-            ]
+            opponents = [players[opponent[0]][0] for opponent in games[player]]
             score = sum([game[1] for game in games[player]])
             if len(opponents) == 0:
                 new_rating = rating[0]
@@ -324,11 +317,8 @@ def get_performance_ratings(games, players, round_folder):
             else:
                 if score == len(games[player]):
                     score -= 0.25  # Prevent perfect score
-                new_rating = get_performance(
-                    score / len(opponents), opponents
-                )
-                with open(os.path.join(round_folder, "performance.txt"),
-                          "a+") as f:
+                new_rating = get_performance(score / len(opponents), opponents)
+                with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
                     f.write(
                         f"{player}\t{rating[0]}\t{new_rating}\t"
                         f"{score}/{len(opponents)}\t"
@@ -375,9 +365,7 @@ def write_ratings(folder, round_folder):
     # Compute performance ratings
     delta = 999999
     while delta > 1:
-        players, delta = get_performance_ratings(
-            games, players, round_folder
-        )
+        players, delta = get_performance_ratings(games, players, round_folder)
         with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
             f.write(f"{players}\n{delta}\n")
 
@@ -399,16 +387,12 @@ def main():
     model_paths = get_models(args["folder"])
 
     current_round = int(
-        open(os.path.join(args["folder"], "current_round.txt"), "r")
-        .read()
-        .strip()
+        open(os.path.join(args["folder"], "current_round.txt"), "r").read().strip()
     )
 
     with open(os.path.join(args["folder"], "players.txt"), "r") as f:
         num_players = len(f.readlines()) - 1
-    if not os.path.exists(
-        os.path.join(args["folder"], f"round_{current_round}")
-    ):
+    if not os.path.exists(os.path.join(args["folder"], f"round_{current_round}")):
         os.mkdir(os.path.join(args["folder"], f"round_{current_round}"))
     round_folder = os.path.join(args["folder"], f"round_{current_round}")
     if not os.path.exists(round_folder):

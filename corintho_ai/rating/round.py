@@ -83,9 +83,9 @@ def get_variance(n1, m1, n2, m2):
     Calculate variance of score distribution
     """
 
-    return (n1 + 1) * (m1 + 1) / ((n1 + m1 + 2) ** 2 * (n1 + m1 + 3)) + (n2 + 1) * (
-        m2 + 1
-    ) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
+    return (n1 + 1) * (m1 + 1) / ((n1 + m1 + 2) ** 2 * (n1 + m1 + 3)) + (
+        n2 + 1
+    ) * (m2 + 1) / ((n2 + m2 + 2) ** 2 * (n2 + m2 + 3))
 
 
 def write_games(
@@ -284,7 +284,10 @@ def get_performance(score, opponents):
     while upper_bound - lower_bound > 0.1:
         mid = (upper_bound + lower_bound) / 2
         expected_score = sum(
-            [1 / (1 + 10 ** ((opponent - mid) / 400)) for opponent in opponents]
+            [
+                1 / (1 + 10 ** ((opponent - mid) / 400))
+                for opponent in opponents
+            ]
         ) / len(opponents)
         if expected_score < score:
             lower_bound = mid
@@ -318,7 +321,9 @@ def get_performance_ratings(games, players, round_folder):
                 if score == len(games[player]):
                     score -= 0.25  # Prevent perfect score
                 new_rating = get_performance(score / len(opponents), opponents)
-                with open(os.path.join(round_folder, "performance.txt"), "a+") as f:
+                with open(
+                    os.path.join(round_folder, "performance.txt"), "a+"
+                ) as f:
                     f.write(
                         f"{player}\t{rating[0]}\t{new_rating}\t"
                         f"{score}/{len(opponents)}\t"
@@ -387,12 +392,16 @@ def main():
     model_paths = get_models(args["folder"])
 
     current_round = int(
-        open(os.path.join(args["folder"], "current_round.txt"), "r").read().strip()
+        open(os.path.join(args["folder"], "current_round.txt"), "r")
+        .read()
+        .strip()
     )
 
     with open(os.path.join(args["folder"], "players.txt"), "r") as f:
         num_players = len(f.readlines()) - 1
-    if not os.path.exists(os.path.join(args["folder"], f"round_{current_round}")):
+    if not os.path.exists(
+        os.path.join(args["folder"], f"round_{current_round}")
+    ):
         os.mkdir(os.path.join(args["folder"], f"round_{current_round}"))
     round_folder = os.path.join(args["folder"], f"round_{current_round}")
     if not os.path.exists(round_folder):

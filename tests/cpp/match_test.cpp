@@ -1,7 +1,6 @@
 #include "match.h"
 
 #include <memory>
-#include <string>
 
 #include "gtest/gtest.h"
 
@@ -12,7 +11,8 @@
 TEST(MatchTest, Constructor) {
   Player player1{0, 0, 1600, 16, 1.0, 0.25};
   Player player2{1, 1, 1600, 16, 1.0, 0.25};
-  Match match{0, player1, player2, ""};
+  std::unique_ptr<std::ofstream> log_file = nullptr;
+  Match match{0, player1, player2, std::move(log_file)};
   EXPECT_EQ(match.to_play(), 0);
 }
 
@@ -20,7 +20,8 @@ TEST(MatchTest, Constructor) {
 TEST(MatchTest, ConstructorRandom) {
   Player player1{0, 0, 1600, 16, 1.0, 0.25, true};
   Player player2{1, 1, 1600, 16, 1.0, 0.25};
-  Match match{0, player1, player2, ""};
+  std::unique_ptr<std::ofstream> log_file = nullptr;
+  Match match{0, player1, player2, std::move(log_file)};
   EXPECT_EQ(match.to_play(), 0);
 }
 
@@ -33,7 +34,8 @@ TEST(MatchTest, FewSearches) {
                        1.0, 0.25, random_id == 0};
         Player player2{1,   1,    max_searches,  searches_per_eval,
                        1.0, 0.25, random_id == 1};
-        Match match{12345, player1, player2, ""};
+        std::unique_ptr<std::ofstream> log_file = nullptr;
+        Match match{12345, player1, player2, std::move(log_file)};
         float eval[searches_per_eval];
         float probs[searches_per_eval * kNumMoves];
         float game_states[searches_per_eval * kGameStateSize];
@@ -81,7 +83,8 @@ TEST(MatchTest, FullGame) {
                    1.0, 0.25, random_id == 0};
     Player player2{1,   1,    max_searches,  searches_per_eval,
                    1.0, 0.25, random_id == 1};
-    Match match{12345, player1, player2, ""};
+    std::unique_ptr<std::ofstream> log_file = nullptr;
+    Match match{12345, player1, player2, std::move(log_file)};
     float eval[searches_per_eval];
     float probs[searches_per_eval * kNumMoves];
     float game_states[searches_per_eval * kGameStateSize];

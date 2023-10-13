@@ -17,11 +17,11 @@ Trained on Google Cloud Platform for about 80 hours.
 
 This project makes use of the following third-party libraries:
 
-- [toml](https://github.com/uiri/toml) - Licensed under the MIT License
-- [pytz](https://github.com/stub42/pytz) - Licensed under the MIT License
-- [keras](https://github.com/keras-team/keras) - Licensed under the MIT License
-- [setuptools](https://github.com/pypa/setuptools) - Licensed under the MIT License
-- [numpy](https://github.com/numpy/numpy) - Licensed under the BSD License
 - [Cython](https://github.com/cython/cython) - Licensed under the Apache License 2.0
+- [keras](https://github.com/keras-team/keras) - Licensed under the MIT License
+- [Microsoft GSL](https://github.com/microsoft/GSL) - Licensed under the MIT License
+- [numpy](https://github.com/numpy/numpy) - Licensed under the BSD License
+- [setuptools](https://github.com/pypa/setuptools) - Licensed under the MIT License
+- [toml](https://github.com/uiri/toml) - Licensed under the MIT License
 
 Please refer to each library's linked repository for the full license text.

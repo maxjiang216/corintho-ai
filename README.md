@@ -22,6 +22,5 @@ This project makes use of the following third-party libraries:
 - [Microsoft GSL](https://github.com/microsoft/GSL) - Licensed under the MIT License
 - [numpy](https://github.com/numpy/numpy) - Licensed under the BSD License
 - [setuptools](https://github.com/pypa/setuptools) - Licensed under the MIT License
-- [toml](https://github.com/uiri/toml) - Licensed under the MIT License
 
 Please refer to each library's linked repository for the full license text.

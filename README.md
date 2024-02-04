@@ -24,3 +24,7 @@ This project makes use of the following third-party libraries:
 - [setuptools](https://github.com/pypa/setuptools) - Licensed under the MIT License
 
 Please refer to each library's linked repository for the full license text.
+
+# Contact
+
+If you need help using or understanding any part of this project, please send an email to maxjiang216@gmail.com and I will try my best to help you. An API may be developed at some point for Python, but unfortunately I will be quite busy for the foreseeable future. If you are interested in contributing to this project in any way, you can also send me an email.

@@ -24,5 +24,7 @@ add_executable(
     ${CPP_PATH}/src/util.cpp ${CPP_PATH}/src/move.cpp ${CPP_PATH}/src/game.cpp ${CPP_PATH}/src/node.cpp
     ${CPP_PATH}/src/trainmc.cpp ${CPP_PATH}/src/selfplayer.cpp ${CPP_PATH}/src/trainer.cpp
     ${CPP_PATH}/src/match.cpp ${CPP_PATH}/src/tourney.cpp
+    ${CPP_PATH}/src/alphabeta/main.cpp ${CPP_PATH}/src/alphabeta/node.cpp
+    ${CPP_PATH}/src/alphabeta/dtypes.cpp
 )
 target_link_libraries(CorinthoAI gtest gtest_main pthread)

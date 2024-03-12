@@ -37,23 +37,27 @@ void Node::createChildren() {
 }
 
 Value Node::evaluate() {
-  return Value(0);
+  this->createChildren();
+  return children.size();
 }
 
 Value Node::search(int depth, Value alpha, Value beta) {
+  this->createChildren();
   if (depth == 0 || children.empty()) {
     return evaluate();
   }
-
+  Value searchValue = AlphaBeta::Value(AlphaBeta::Value::ValueType::NEGATIVE_INFINITY);
   for (Node &child : children) {
-    Value score = -child.search(depth - 1, -beta, -alpha);
-    if (score >= beta) {
+    searchValue = std::max(searchValue,-child.search(depth - 1, -beta, -alpha));
+    if (searchValue >= beta) {
+      score = beta;
       return beta;
     }
-    if (score > alpha) {
-      alpha = score;
+    if (searchValue > alpha) {
+      alpha = searchValue;
     }
   }
+  score = alpha;
   return alpha;
 }
 

@@ -45,6 +45,7 @@ add_executable(
     ${CPP_PATH}/src/alphabeta/main.cpp 
     ${CPP_PATH}/src/alphabeta/node.cpp
     ${CPP_PATH}/src/alphabeta/dtypes.cpp 
+    ${CPP_PATH}/src/alphabeta/searcher.cpp
     ${CPP_PATH}/src/util.cpp 
     ${CPP_PATH}/src/move.cpp 
     ${CPP_PATH}/src/game.cpp

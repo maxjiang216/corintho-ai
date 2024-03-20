@@ -1,6 +1,10 @@
 #include "alphabeta/node.h"
 #include "game.h"
 #include <vector>
+#include <algorithm>
+#include <iostream>
+#include <random>
+#include <chrono>
 
 namespace AlphaBeta {
 
@@ -33,18 +37,33 @@ void Node::createChildren() {
             children.push_back(child);
         }
     }
+    // std::cout << "Game State:\n" << gameState << std::endl;
+    // std::cout << "Number of Children Created: " << children.size() << std::endl;
   initialized = true;
 }
 
 Value Node::evaluate() {
-  this->createChildren();
-  return children.size();
+  static std::random_device rd; 
+  static std::mt19937 gen(rd());
+  std::uniform_real_distribution<> dis(-0.01, 0.01);
+  double randomComponent = dis(gen);
+  if (initialized) {
+    return Value(children.size()+randomComponent);
+  }
+  std::bitset<kNumMoves> legal_moves;
+  gameState.getLegalMoves(legal_moves);
+  return Value(legal_moves.count()+randomComponent);
 }
 
 Value Node::search(int depth, Value alpha, Value beta) {
   this->createChildren();
   if (depth == 0 || children.empty()) {
-    return evaluate();
+    Value value = Value(evaluate());
+    // std::cout << "Depth: " << depth << std::endl;
+    // std::cout << "Value: " << value << std::endl;
+    // std::cout << "Game State:\n" << gameState << std::endl;
+    score = value;
+    return value;
   }
   Value searchValue = AlphaBeta::Value(AlphaBeta::Value::ValueType::NEGATIVE_INFINITY);
   for (Node &child : children) {
@@ -58,7 +77,33 @@ Value Node::search(int depth, Value alpha, Value beta) {
     }
   }
   score = alpha;
+  // std::cout << "Depth: " << depth << std::endl;
+  // std::cout << "Score: " << score << std::endl;
+  // std::cout << "Game State:\n" << gameState << std::endl;
   return alpha;
+}
+
+Value Node::getScore() const {
+  return score;
+}
+
+std::vector<Node>& Node::getChildren() {
+  return children;
+}
+
+const Game& Node::getGameState() const {
+  return gameState;
+}
+
+void Node::sortChildrenRecursively() {
+  std::stable_sort(children.begin(), children.end(), [](const Node& a, const Node& b) {
+    return a.getScore() > b.getScore();
+  });
+
+  // Recursively sort the children of each child
+  for (Node& child : children) {
+    child.sortChildrenRecursively();
+  }
 }
 
 }  // namespace AlphaBeta

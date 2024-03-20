@@ -11,7 +11,17 @@ class Node {
  public:
   Node();
   ~Node();
+  void createChildren();
+  Value evaluate();
+  Value search(int depth, Value alpha, Value beta);
 
+  Value getScore() const;
+  std::vector<Node>& getChildren();
+  const Game& getGameState() const;
+  void sortChildrenRecursively();
+  
+
+ private:
   Value score;
   Value previousScore;
   Value alpha;
@@ -19,12 +29,6 @@ class Node {
   std::vector<Node> children;
   Game gameState;
   bool initialized;
-
- private:
- public:
-  void createChildren();
-  Value evaluate();
-  Value search(int depth, Value alpha, Value beta);
 };
 
 }  // namespace AlphaBeta

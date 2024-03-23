@@ -9,12 +9,8 @@ void Searcher::searchUpToDepth(int maxDepth) {
     Value alpha(Value::ValueType::NEGATIVE_INFINITY);
     Value beta(Value::ValueType::POSITIVE_INFINITY);
     for (int depth = 1; depth <= maxDepth; ++depth) {
-        std::cout << "Depth: " << depth << std::endl;
         rootNode.search(depth, alpha, beta);
         rootNode.sortChildrenRecursively();
-        for (const auto& child : rootNode.getChildren()) {
-            std::cout << "Child:\n" << child.getGameState() << ", Score: " << child.getScore() << std::endl;
-        }
     }
 }
 

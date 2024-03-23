@@ -3,7 +3,9 @@
 
 #include "alphabeta/dtypes.h"
 #include "game.h"
+#include "move.h"
 #include <vector>
+#include <optional>
 
 namespace AlphaBeta {
 
@@ -16,9 +18,11 @@ class Node {
   Value search(int depth, Value alpha, Value beta);
 
   Value getScore() const;
-  std::vector<Node>& getChildren();
+  const std::vector<Node>& getChildren() const;
   const Game& getGameState() const;
+  std::optional<int> getMove() const;
   void sortChildrenRecursively();
+  std::optional<Move> getBestMove() const;
   
 
  private:
@@ -26,6 +30,7 @@ class Node {
   Value previousScore;
   Value alpha;
   Value beta;
+  std::optional<int> move;
   std::vector<Node> children;
   Game gameState;
   bool initialized;

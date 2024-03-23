@@ -9,12 +9,14 @@
 namespace AlphaBeta {
 
 Node::Node() {
+
   score = Value();
   previousScore = Value();
   alpha = Value(Value::ValueType::NEGATIVE_INFINITY);
   beta = Value(Value::ValueType::POSITIVE_INFINITY);
   children = std::vector<Node>();
   gameState = Game();
+  move = std::nullopt;
   initialized = false;
 }
 
@@ -33,16 +35,23 @@ void Node::createChildren() {
         if (legal_moves[i]) {
             Node child = Node();
             child.gameState = gameState;
+            child.move = i;
             child.gameState.doMove(i);
             children.push_back(child);
         }
     }
-    // std::cout << "Game State:\n" << gameState << std::endl;
-    // std::cout << "Number of Children Created: " << children.size() << std::endl;
   initialized = true;
 }
 
 Value Node::evaluate() {
+  std::bitset<kNumMoves> legal_moves;
+  bool is_lines = gameState.getLegalMoves(legal_moves);
+  if (legal_moves.count() == 0) {
+    if (is_lines) {
+      return Value(-300);
+    }
+    return Value(0);
+  }
   static std::random_device rd; 
   static std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(-0.01, 0.01);
@@ -50,8 +59,6 @@ Value Node::evaluate() {
   if (initialized) {
     return Value(children.size()+randomComponent);
   }
-  std::bitset<kNumMoves> legal_moves;
-  gameState.getLegalMoves(legal_moves);
   return Value(legal_moves.count()+randomComponent);
 }
 
@@ -59,9 +66,6 @@ Value Node::search(int depth, Value alpha, Value beta) {
   this->createChildren();
   if (depth == 0 || children.empty()) {
     Value value = Value(evaluate());
-    // std::cout << "Depth: " << depth << std::endl;
-    // std::cout << "Value: " << value << std::endl;
-    // std::cout << "Game State:\n" << gameState << std::endl;
     score = value;
     return value;
   }
@@ -77,9 +81,6 @@ Value Node::search(int depth, Value alpha, Value beta) {
     }
   }
   score = alpha;
-  // std::cout << "Depth: " << depth << std::endl;
-  // std::cout << "Score: " << score << std::endl;
-  // std::cout << "Game State:\n" << gameState << std::endl;
   return alpha;
 }
 
@@ -87,7 +88,7 @@ Value Node::getScore() const {
   return score;
 }
 
-std::vector<Node>& Node::getChildren() {
+const std::vector<Node>& Node::getChildren() const {
   return children;
 }
 
@@ -95,15 +96,29 @@ const Game& Node::getGameState() const {
   return gameState;
 }
 
+std::optional<int> Node::getMove() const {
+  return move;
+}
+
 void Node::sortChildrenRecursively() {
   std::stable_sort(children.begin(), children.end(), [](const Node& a, const Node& b) {
-    return a.getScore() > b.getScore();
+    return a.getScore() < b.getScore();
   });
 
   // Recursively sort the children of each child
   for (Node& child : children) {
     child.sortChildrenRecursively();
   }
+}
+
+std::optional<Move> Node::getBestMove() const {
+  if (children.empty()) {
+    return std::nullopt;
+  }
+  if (children[0].getMove().has_value()) {
+    return Move(children[0].getMove().value());
+  }
+  return std::nullopt;
 }
 
 }  // namespace AlphaBeta

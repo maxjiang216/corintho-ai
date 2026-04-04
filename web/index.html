@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corintho - The Sculpted Monolith</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("corintho-theme");
+          if (t === "light") {
+            document.documentElement.classList.remove("dark");
+          } else {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "rgb(var(--color-secondary-fixed) / <alpha-value>)",
+              primary: "rgb(var(--color-primary) / <alpha-value>)",
+              "on-tertiary-fixed": "rgb(var(--color-on-tertiary-fixed) / <alpha-value>)",
+              "surface-variant": "rgb(var(--color-surface-variant) / <alpha-value>)",
+              "inverse-primary": "rgb(var(--color-inverse-primary) / <alpha-value>)",
+              secondary: "rgb(var(--color-secondary) / <alpha-value>)",
+              "primary-container": "rgb(var(--color-primary-container) / <alpha-value>)",
+              surface: "rgb(var(--color-surface) / <alpha-value>)",
+              "inverse-surface": "rgb(var(--color-inverse-surface) / <alpha-value>)",
+              "on-surface": "rgb(var(--color-on-surface) / <alpha-value>)",
+              "on-primary": "rgb(var(--color-on-primary) / <alpha-value>)",
+              background: "rgb(var(--color-background) / <alpha-value>)",
+              "primary-fixed-dim": "rgb(var(--color-primary-fixed-dim) / <alpha-value>)",
+              tertiary: "rgb(var(--color-tertiary) / <alpha-value>)",
+              error: "rgb(var(--color-error) / <alpha-value>)",
+              "surface-container-lowest": "rgb(var(--color-surface-container-lowest) / <alpha-value>)",
+              "on-background": "rgb(var(--color-on-background) / <alpha-value>)",
+              "on-tertiary-container": "rgb(var(--color-on-tertiary-container) / <alpha-value>)",
+              "on-primary-container": "rgb(var(--color-on-primary-container) / <alpha-value>)",
+              "primary-fixed": "rgb(var(--color-primary-fixed) / <alpha-value>)",
+              "on-tertiary": "rgb(var(--color-on-tertiary) / <alpha-value>)",
+              "on-surface-variant": "rgb(var(--color-on-surface-variant) / <alpha-value>)",
+              "on-error": "rgb(var(--color-on-error) / <alpha-value>)",
+              "tertiary-fixed": "rgb(var(--color-tertiary-fixed) / <alpha-value>)",
+              outline: "rgb(var(--color-outline) / <alpha-value>)",
+              "on-primary-fixed-variant": "rgb(var(--color-on-primary-fixed-variant) / <alpha-value>)",
+              "surface-container-low": "rgb(var(--color-surface-container-low) / <alpha-value>)",
+              "secondary-fixed-dim": "rgb(var(--color-secondary-fixed-dim) / <alpha-value>)",
+              "on-secondary-fixed": "rgb(var(--color-on-secondary-fixed) / <alpha-value>)",
+              "outline-variant": "rgb(var(--color-outline-variant) / <alpha-value>)",
+              "on-tertiary-fixed-variant": "rgb(var(--color-on-tertiary-fixed-variant) / <alpha-value>)",
+              "surface-container-highest": "rgb(var(--color-surface-container-highest) / <alpha-value>)",
+              "on-error-container": "rgb(var(--color-on-error-container) / <alpha-value>)",
+              "surface-container": "rgb(var(--color-surface-container) / <alpha-value>)",
+              "secondary-container": "rgb(var(--color-secondary-container) / <alpha-value>)",
+              "error-container": "rgb(var(--color-error-container) / <alpha-value>)",
+              "surface-bright": "rgb(var(--color-surface-bright) / <alpha-value>)",
+              "surface-container-high": "rgb(var(--color-surface-container-high) / <alpha-value>)",
+              "tertiary-fixed-dim": "rgb(var(--color-tertiary-fixed-dim) / <alpha-value>)",
+              "on-secondary-fixed-variant": "rgb(var(--color-on-secondary-fixed-variant) / <alpha-value>)",
+              "surface-dim": "rgb(var(--color-surface-dim) / <alpha-value>)",
+              "on-secondary-container": "rgb(var(--color-on-secondary-container) / <alpha-value>)",
+              "surface-tint": "rgb(var(--color-surface-tint) / <alpha-value>)",
+              "on-primary-fixed": "rgb(var(--color-on-primary-fixed) / <alpha-value>)",
+              "on-secondary": "rgb(var(--color-on-secondary) / <alpha-value>)",
+              "inverse-on-surface": "rgb(var(--color-inverse-on-surface) / <alpha-value>)",
+              "tertiary-container": "rgb(var(--color-tertiary-container) / <alpha-value>)",
+            },
+            fontFamily: {
+              headline: ["Noto Serif", "serif"],
+              body: ["Manrope", "sans-serif"],
+              label: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.125rem",
+              lg: "0.25rem",
+              xl: "0.5rem",
+              full: "0.75rem",
+            },
+            animation: {
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              shimmer: "shimmer 2s linear infinite",
+            },
+            keyframes: {
+              shimmer: {
+                "0%": { transform: "translateX(-100%)" },
+                "100%": { transform: "translateX(100%)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body
+    class="font-body selection:bg-primary-fixed selection:text-on-primary-fixed dark:selection:bg-primary-fixed dark:selection:text-on-primary-fixed"
+  >
+    <!-- TopAppBar -->
+    <nav
+      class="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-8 h-20 bg-background border-b border-surface-container-high/80"
+    >
+      <div class="flex items-center gap-6 md:gap-8">
+        <span
+          class="text-xl md:text-2xl font-bold text-primary uppercase tracking-widest font-headline"
+          >Corintho</span
+        >
+        <div
+          class="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 text-sm sm:text-base tracking-tight"
+        >
+          <button
+            type="button"
+            id="theme-toggle"
+            class="theme-toggle-btn flex items-center gap-2 rounded-full pl-2.5 pr-3.5 py-2 transition-colors duration-200 font-label text-[10px] font-bold uppercase tracking-widest"
+            aria-label="Toggle light and dark theme"
+            title="Switch theme"
+          >
+            <span
+              class="theme-toggle-icon theme-toggle-icon--moon material-symbols-outlined shrink-0"
+              aria-hidden="true"
+              >dark_mode</span
+            >
+            <span
+              class="theme-toggle-icon theme-toggle-icon--sun material-symbols-outlined shrink-0"
+              aria-hidden="true"
+              >light_mode</span
+            >
+            <span class="theme-toggle-label hidden sm:inline">Theme</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-4">
+        <a
+          class="text-primary hover:bg-surface-container-low p-2 rounded-lg transition-colors duration-300"
+          href="https://github.com/maxjiang216/corintho-ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Corintho AI repository"
+        >
+          <span class="material-symbols-outlined">terminal</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Mobile panel switcher (sidebar items) -->
+    <div
+      class="md:hidden fixed top-20 left-0 right-0 z-40 flex items-stretch justify-center gap-1 px-3 py-2 bg-background/95 backdrop-blur border-b border-surface-container-high/80"
+      id="mobile-panel-nav"
+      role="tablist"
+      aria-label="Section"
+    >
+      <button
+        type="button"
+        class="sidebar-nav-btn sidebar-nav-btn--active flex-1 py-2 rounded-lg font-label text-[10px] font-bold uppercase tracking-widest"
+        data-panel="board"
+        role="tab"
+        aria-selected="true"
+      >
+        Board
+      </button>
+      <button
+        type="button"
+        class="sidebar-nav-btn flex-1 py-2 rounded-lg font-label text-[10px] font-bold uppercase tracking-widest"
+        data-panel="history"
+        role="tab"
+        aria-selected="false"
+      >
+        History
+      </button>
+    </div>
+
+    <!-- SideNavBar -->
+    <aside
+      class="corintho-sidebar fixed left-0 top-20 h-[calc(100vh-5rem)] flex-col p-6 space-y-6 bg-background shadow-[12px_0_32px_rgba(0,0,0,0.05)] w-64 z-40 border-r border-surface-container-high/60"
+      aria-label="Site section"
+    >
+      <nav class="space-y-2 flex-1" role="tablist" aria-label="Main sections">
+        <button
+          type="button"
+          class="sidebar-nav-btn sidebar-nav-btn--active w-full flex items-center gap-3 text-left rounded-lg p-3 font-label text-xs font-medium uppercase tracking-widest transition-colors"
+          data-panel="board"
+          role="tab"
+          aria-selected="true"
+        >
+          <span class="material-symbols-outlined sidebar-nav-icon shrink-0">grid_4x4</span>
+          <span>Board</span>
+        </button>
+        <button
+          type="button"
+          class="sidebar-nav-btn w-full flex items-center gap-3 text-left rounded-lg p-3 font-label text-xs font-medium uppercase tracking-widest transition-colors"
+          data-panel="history"
+          role="tab"
+          aria-selected="false"
+        >
+          <span class="material-symbols-outlined sidebar-nav-icon shrink-0">history</span>
+          <span>History</span>
+        </button>
+      </nav>
+      <button
+        type="button"
+        class="rules-btn sidebar-nav-btn w-full flex items-center gap-3 text-left rounded-lg p-3 font-label text-xs font-medium uppercase tracking-widest transition-colors border-0 cursor-pointer"
+        aria-label="Open game rules"
+      >
+        <span class="material-symbols-outlined sidebar-nav-icon shrink-0">menu_book</span>
+        <span>Rules</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-nav-btn w-full flex items-center gap-3 text-left rounded-lg p-3 font-label text-xs font-medium uppercase tracking-widest transition-colors"
+        data-panel="about"
+        role="tab"
+        aria-selected="false"
+      >
+        <span class="material-symbols-outlined sidebar-nav-icon shrink-0">smart_toy</span>
+        <span>About the AI</span>
+      </button>
+      <div class="mt-auto pt-2">
+        <button
+          type="button"
+          id="new-game-btn"
+          class="w-full bg-primary text-on-primary py-4 rounded-full font-label font-bold uppercase tracking-widest text-[10px] hover:opacity-90 transition-opacity"
+        >
+          New Game
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+      class="pt-28 md:pt-22 pb-24 md:pb-14 md:pl-72 px-4 sm:px-6 bg-surface"
+    >
+      <!-- Board / game panel -->
+      <div id="panel-board" class="corintho-panel" data-panel="board">
+      <div
+        class="corintho-board-layout w-full flex flex-col xl:flex-row xl:items-start gap-6 xl:gap-5"
+      >
+        <!-- Game info -->
+        <div class="w-full xl:w-[20rem] xl:max-w-[20rem] xl:shrink-0 space-y-5" id="reserves-section">
+          <header>
+            <div class="mb-2 flex flex-wrap items-center gap-3">
+              <span
+                class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold uppercase tracking-widest rounded-sm"
+                >Live Engine</span
+              >
+              <span
+                class="text-stone-400 dark:text-stone-500 text-[10px] font-bold uppercase tracking-widest"
+                >Local Browser Runtime</span
+              >
+            </div>
+
+            <div class="turn-area mb-3" id="turn-area">
+              <h1
+                id="turn-counter"
+                class="turn-counter-text font-headline text-3xl sm:text-4xl md:text-4xl xl:text-[2.5rem] font-extrabold text-primary leading-tight tracking-tighter"
+              >
+                It's your turn!
+              </h1>
+              <div id="cpu-thinking" class="cpu-thinking hidden mt-4" aria-hidden="true">
+                <div class="cpu-thinking__label">CPU is thinking…</div>
+                <div
+                  class="cpu-thinking__track"
+                  role="progressbar"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  aria-valuenow="0"
+                  id="cpu-thinking-track"
+                >
+                  <div class="cpu-thinking__fill" id="cpu-thinking-fill"></div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div class="grid grid-cols-2 gap-5">
+            <!-- Player reserves -->
+            <section class="space-y-4">
+              <h3
+                class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500"
+              >
+                Your Reserves
+              </h3>
+              <div id="piece-bank-player" class="space-y-3">
+                <button
+                  type="button"
+                  class="piece-container piece piece--reserve piece--base"
+                  id="base"
+                  aria-label="Select base from reserves"
+                >
+                  <span class="piece-glyph"
+                    ><span class="material-symbols-outlined">layers</span></span
+                  >
+                  <span class="counter" id="counter-base">4</span>
+                </button>
+                <button
+                  type="button"
+                  class="piece-container piece piece--reserve piece--column"
+                  id="column"
+                  aria-label="Select column from reserves"
+                >
+                  <span class="piece-glyph"
+                    ><span class="material-symbols-outlined">view_column</span></span
+                  >
+                  <span class="counter" id="counter-column">4</span>
+                </button>
+                <button
+                  type="button"
+                  class="piece-container piece piece--reserve piece--capital"
+                  id="capital"
+                  aria-label="Select capital from reserves"
+                >
+                  <span class="piece-glyph"
+                    ><span class="material-symbols-outlined">crown</span></span
+                  >
+                  <span class="counter" id="counter-capital">4</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- CPU reserves -->
+            <section class="space-y-4">
+              <h3
+                class="font-label text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500"
+              >
+                Opponent
+              </h3>
+              <div id="piece-bank-cpu" class="space-y-3 opacity-90">
+                <div class="piece-container">
+                  <div class="piece-cpu piece-cpu-glyph piece-cpu-glyph--base" id="base-cpu" aria-hidden="true">
+                    <span class="material-symbols-outlined">layers</span>
+                  </div>
+                  <div class="counter" id="counter-base-cpu">4</div>
+                </div>
+                <div class="piece-container">
+                  <div class="piece-cpu piece-cpu-glyph piece-cpu-glyph--column" id="column-cpu" aria-hidden="true">
+                    <span class="material-symbols-outlined">view_column</span>
+                  </div>
+                  <div class="counter" id="counter-column-cpu">4</div>
+                </div>
+                <div class="piece-container">
+                  <div class="piece-cpu piece-cpu-glyph piece-cpu-glyph--capital" id="capital-cpu" aria-hidden="true">
+                    <span class="material-symbols-outlined">crown</span>
+                  </div>
+                  <div class="counter" id="counter-capital-cpu">4</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="pt-1 flex flex-col gap-2.5">
+            <a
+              class="flex items-center justify-between px-6 py-3 bg-surface-container-highest rounded-full text-on-surface font-label text-[10px] font-bold uppercase tracking-widest hover:bg-surface-variant transition-colors group"
+              href="/fun"
+            >
+              <span>Back to Fun Section</span>
+              <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform"
+                >arrow_back</span
+              >
+            </a>
+            <a
+              class="corintho-github-link flex items-center justify-between px-6 py-3 border border-outline-variant/30 rounded-full text-stone-500 dark:text-stone-400 font-label text-[10px] font-bold uppercase tracking-widest transition-all duration-200"
+              href="https://github.com/maxjiang216/corintho-ai"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>GitHub Repository</span>
+              <span class="material-symbols-outlined text-sm">code</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Board: fills column right of reserves; centered; bottom padding clears fixed quote (left) + Edge (right) -->
+        <div
+          class="corintho-board-column w-full min-w-0 flex-1 flex justify-center items-start py-2 xl:py-3 pb-16 md:pb-20 xl:pb-22"
+        >
+          <div
+            class="relative w-full max-w-full rounded-[2.5rem] sculpted-shadow corintho-board-frame bg-surface-container-low"
+          >
+            <div class="absolute inset-0 opacity-[0.04] pointer-events-none rounded-[2.5rem] corintho-board-texture"></div>
+            <div class="corintho-board-wrap relative z-10 w-full">
+              <div class="board-row-labels" aria-hidden="true" title="Ranks (corintho-ai notation: 4 = top row)">
+                <span>4</span><span>3</span><span>2</span><span>1</span>
+              </div>
+              <div id="board" class="corintho-board-grid"></div>
+              <div class="board-corner" aria-hidden="true"></div>
+              <div class="board-col-labels" aria-hidden="true">
+                <span>a</span><span>b</span><span>c</span><span>d</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- About the AI -->
+      <div id="panel-about" class="corintho-panel hidden max-w-2xl mx-auto py-6 space-y-6" data-panel="about">
+        <h1 class="font-headline text-3xl font-bold text-primary">About the AI</h1>
+        <div class="font-body text-on-surface-variant space-y-4 text-sm leading-relaxed">
+          <p>
+            This opponent uses the same approach as
+            <a
+              class="text-primary font-semibold underline-offset-2 hover:underline"
+              href="https://github.com/maxjiang216/corintho-ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              >corintho-ai</a
+            >: <strong>Monte Carlo tree search</strong> with a <strong>neural policy and value</strong> network trained in the AlphaZero style.
+          </p>
+          <p>
+            Inference runs in your browser with <strong>ONNX Runtime</strong> inside a <strong>Web Worker</strong>, so the UI stays responsive. If the model fails to load, the game falls back to random legal moves.
+          </p>
+          <p class="text-xs text-stone-500 dark:text-stone-400">
+            Move notation in <strong>History</strong> matches the C++ reference in corintho-ai (<code class="text-primary">Move::operator&lt;&lt;</code> in
+            <code class="text-xs">move.cpp</code>): places are <code class="font-mono">B|C|A</code> + file + rank (rank <strong>4</strong> is the top row); moves are
+            <code class="font-mono">[file][rank][L|R|U|D]</code> for the source square and direction.
+          </p>
+        </div>
+      </div>
+
+      <!-- Move history -->
+      <div id="panel-history" class="corintho-panel hidden max-w-2xl mx-auto py-6" data-panel="history">
+        <h1 class="font-headline text-3xl font-bold text-primary mb-2">Move history</h1>
+        <p class="font-body text-sm text-stone-500 dark:text-stone-400 mb-6">
+          Notation follows
+          <a
+            class="text-primary font-medium hover:underline"
+            href="https://github.com/maxjiang216/corintho-ai/blob/main/corintho_ai/cpp/src/move.cpp"
+            target="_blank"
+            rel="noopener noreferrer"
+            >corintho-ai <code>move.cpp</code></a
+          >.
+        </p>
+        <ol
+          id="move-history-list"
+          class="move-history-list font-mono text-sm text-on-surface border border-outline-variant/40 rounded-xl bg-surface-container-low/50 p-4 min-h-[12rem] list-decimal list-inside space-y-1.5"
+        ></ol>
+        <p id="move-history-empty" class="font-body text-sm text-stone-400 dark:text-stone-500 italic mt-4">
+          No moves yet. Start a game on <strong>Board</strong>.
+        </p>
+      </div>
+    </main>
+
+    <!-- Mobile bottom nav -->
+    <nav
+      class="md:hidden fixed bottom-0 left-0 w-full z-50 flex flex-wrap justify-center gap-x-2 gap-y-1 items-center px-3 pb-5 pt-3 bg-background/90 backdrop-blur-xl shadow-[0_-8px_24px_rgba(0,0,0,0.06)] rounded-t-3xl border-t border-surface-container-high/80"
+    >
+      <a
+        href="/fun"
+        class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-secondary transition-colors py-1"
+      >
+        <span class="material-symbols-outlined text-xl">home</span>
+        <span class="font-body text-[10px] tracking-[0.05rem] uppercase">Fun</span>
+      </a>
+      <button
+        type="button"
+        class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full w-12 h-12 -mt-2 shadow-md"
+        onclick="document.getElementById('reserves-section')?.scrollIntoView({ behavior: 'smooth' })"
+        aria-label="Scroll to reserves"
+      >
+        <span class="material-symbols-outlined">person</span>
+      </button>
+      <button
+        type="button"
+        class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-secondary transition-colors py-1 min-w-[3.25rem]"
+        onclick="document.getElementById('board')?.scrollIntoView({ behavior: 'smooth' })"
+      >
+        <span class="material-symbols-outlined text-xl">grid_4x4</span>
+        <span class="font-body text-[10px] tracking-[0.05rem] uppercase">Board</span>
+      </button>
+      <button
+        type="button"
+        class="sidebar-nav-btn flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-secondary transition-colors py-1 min-w-[3.25rem]"
+        data-panel="about"
+        role="tab"
+        aria-selected="false"
+      >
+        <span class="material-symbols-outlined text-xl">smart_toy</span>
+        <span class="font-body text-[9px] tracking-[0.05rem] uppercase text-center leading-tight">About</span>
+      </button>
+      <button
+        type="button"
+        class="rules-btn flex flex-col items-center justify-center text-stone-400 dark:text-stone-500 hover:text-secondary transition-colors py-1 min-w-[3.25rem]"
+        aria-label="Open game rules"
+      >
+        <span class="material-symbols-outlined text-xl">menu_book</span>
+        <span class="font-body text-[10px] tracking-[0.05rem] uppercase">Rules</span>
+      </button>
+    </nav>
+
+    <!-- Quotes: fixed bottom-left (clears sidebar on md+) -->
+    <div
+      id="corintho-quote-stack"
+      class="fixed z-40 flex flex-col items-start gap-3 max-w-sm pointer-events-none bottom-20 left-4 md:bottom-10 md:left-[calc(18rem+1rem)]"
+    >
+      <div
+        id="corintho-quote-panel"
+        class="corintho-quote-panel pointer-events-auto w-full bg-surface-container-lowest/95 backdrop-blur-sm rounded-2xl sculpted-shadow border border-outline-variant/15"
+        role="region"
+        aria-label="Rotating quotes"
+      >
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span
+            class="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant"
+            >Monolith musings</span
+          >
+          <button
+            type="button"
+            id="corintho-quote-hide"
+            class="corintho-quote-icon-btn text-on-surface-variant hover:text-primary p-1 rounded-lg transition-colors border-0 bg-transparent cursor-pointer"
+            aria-label="Hide quote widget"
+            title="Hide"
+          >
+            <span class="material-symbols-outlined text-lg">visibility_off</span>
+          </button>
+        </div>
+        <div
+          id="corintho-quote-text"
+          class="corintho-quote-textwrap transition-opacity duration-500 ease-in-out opacity-100"
+          aria-live="polite"
+        >
+          <p
+            id="corintho-quote-body"
+            class="corintho-quote-body font-body text-sm text-on-surface leading-snug italic m-0"
+          ></p>
+          <p
+            id="corintho-quote-attribution"
+            class="corintho-quote-attribution font-body text-on-surface-variant leading-snug not-italic m-0 border-t border-outline-variant/25"
+          ></p>
+        </div>
+      </div>
+      <button
+        type="button"
+        id="corintho-quote-show"
+        class="corintho-quote-restore pointer-events-auto hidden items-center justify-center w-11 h-11 rounded-full bg-surface-container-highest border border-outline-variant/20 text-on-surface-variant hover:text-primary sculpted-shadow transition-colors"
+        aria-label="Show quote widget"
+        title="Show quotes"
+      >
+        <span class="material-symbols-outlined text-xl">format_quote</span>
+      </button>
+    </div>
+
+    <!-- Edge Intelligence: fixed bottom-right -->
+    <div
+      class="fixed z-40 pointer-events-none bottom-24 right-4 md:bottom-12 md:right-12 max-w-sm w-[min(100vw-2rem,20rem)] hidden md:block"
+    >
+      <div
+        class="corintho-edge-badge relative pointer-events-auto w-full bg-surface-container-lowest p-6 rounded-2xl sculpted-shadow border border-outline-variant/10 group overflow-hidden"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-transparent via-secondary/5 to-transparent -translate-x-full animate-shimmer pointer-events-none"
+        ></div>
+        <div class="flex items-center gap-3 mb-3 relative">
+          <div class="relative">
+            <span
+              class="material-symbols-outlined text-secondary animate-pulse-slow"
+              style="font-variation-settings: 'FILL' 1"
+              >bolt</span
+            >
+            <span class="absolute -top-1 -right-1 w-2 h-2 bg-secondary rounded-full animate-ping"></span>
+          </div>
+          <h4 class="font-label text-xs font-bold uppercase tracking-widest text-on-surface">
+            Edge Intelligence
+          </h4>
+        </div>
+        <p class="font-body text-[11px] text-on-surface-variant leading-relaxed mb-4 relative">
+          Our neural model runs on your CPU using WebAssembly. No data leaves this device. Private,
+          local, architectural reasoning.
+        </p>
+        <div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden relative">
+          <div class="h-full bg-secondary w-2/3 relative">
+            <div class="absolute inset-0 bg-white/30 animate-[shimmer_1.5s_infinite]"></div>
+          </div>
+        </div>
+        <div class="flex justify-between mt-2 relative">
+          <span class="text-[9px] font-bold text-stone-400 dark:text-stone-500 uppercase">Analysis Confidence</span>
+          <span class="text-[9px] font-bold text-secondary uppercase">88%</span>
+        </div>
+        <div class="mt-4 flex items-center gap-2 relative">
+          <div class="flex space-x-1">
+            <div class="w-1 h-1 bg-secondary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div class="w-1 h-1 bg-secondary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div class="w-1 h-1 bg-secondary rounded-full animate-bounce"></div>
+          </div>
+          <span class="text-[9px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest"
+            >AI is thinking...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rules overlay -->
+    <div id="overlay" class="hidden" aria-hidden="true">
+      <div id="overlay-backdrop"></div>
+      <div id="overlay-content" role="dialog" aria-labelledby="rules-dialog-title"></div>
+    </div>
+
+    <script type="module" src="corintho.js"></script>
+  </body>
+</html>

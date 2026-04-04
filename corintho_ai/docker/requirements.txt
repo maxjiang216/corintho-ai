@@ -1,5 +1,0 @@
-Flask
-Flask-CORS
-numpy
-tflite-runtime
-cython

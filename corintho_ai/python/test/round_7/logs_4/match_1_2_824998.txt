@@ -1,0 +1,138 @@
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:193 TURN 0
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:196 PLAYER 1 TO PLAY
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:197 VISITS: 1600
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:200 POSITION EVALUATION: -0.498
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:137 LEGAL MOVES:
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 1. Bc4 V: 193 E: 0.474 p: 0.080
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 2. Cc3 V: 163 E: -0.534 p: 0.504
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 3. Bb3 V: 44 E: 0.501 p: 0.239
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 4. c3U V: 42 E: -0.523 p: 0.721
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 5. Ab4 V: 7 E: 0.483 p: 0.234
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 6. Ac4 V: 4 E: -0.565 p: 0.201
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 7. Cc3 V: 2 E: 0.608 p: 0.430
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 8. Ca4 V: 1 E: -0.583 p: 0.520
+23-10-01 20:32:37.490 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:185 Bd2 V: 150 E: 0.472 P: 0.059	Bd3 V: 121 E: 0.477 P: 0.052	Ba3 V: 108 E: 0.480 P: 0.054	Bb4 V: 103 E: 0.495 P: 0.060	Bb1 V: 93 E: 0.493 P: 0.053	Bc1 V: 92 E: 0.490 P: 0.057	Ba2 V: 82 E: 0.501 P: 0.051	Bb3 V: 70 E: 0.498 P: 0.047	Ac1 V: 55 E: 0.452 P: 0.012	Bb2 V: 47 E: 0.517 P: 0.037	Bc3 V: 43 E: 0.530 P: 0.038	Bc2 V: 42 E: 0.514 P: 0.031	Aa3 V: 30 E: 0.485 P: 0.013	Ad2 V: 29 E: 0.466 P: 0.012	Ba4 V: 27 E: 0.539 P: 0.026	Aa2 V: 22 E: 0.484 P: 0.013	Ac4 V: 21 E: 0.494 P: 0.012	Ab1 V: 19 E: 0.492 P: 0.011	Ac2 V: 18 E: 0.569 P: 0.021	Ad3 V: 18 E: 0.500 P: 0.011	Bd1 V: 17 E: 0.525 P: 0.015	Ab4 V: 16 E: 0.514 P: 0.012	Cc4 V: 15 E: 0.629 P: 0.025	Aa1 V: 13 E: 0.553 P: 0.015	Aa4 V: 13 E: 0.545 P: 0.013	Ab3 V: 13 E: 0.521 P: 0.009	Cb2 V: 12 E: 0.592 P: 0.016	Ab2 V: 12 E: 0.517 P: 0.009	Ac3 V: 12 E: 0.516 P: 0.010	Cc3 V: 10 E: 0.586 P: 0.014	Cc1 V: 9 E: 0.624 P: 0.014	Ca2 V: 8 E: 0.597 P: 0.012	Cb3 V: 8 E: 0.549 P: 0.009	Ad4 V: 8 E: 0.518 P: 0.005	Ca4 V: 6 E: 0.572 P: 0.008	Cc2 V: 6 E: 0.544 P: 0.005	Cd2 V: 5 E: 0.631 P: 0.010	Bd4 V: 5 E: 0.590 P: 0.008	Ba1 V: 5 E: 0.579 P: 0.007	Cd1 V: 5 E: 0.526 P: 0.005	Ca1 V: 4 E: 0.573 P: 0.006	Ad1 V: 4 E: 0.549 P: 0.005	Cd4 V: 3 E: 0.583 P: 0.004	Cb4 V: 2 E: 0.641 P: 0.004	Ca3 V: 2 E: 0.625 P: 0.003	Cb1 V: 2 E: 0.598 P: 0.003	Cd3 V: 1 E: 0.568 P: 0.002	
+23-10-01 20:32:37.491 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:207 CHOSE MOVE Bc4
+23-10-01 20:32:37.491 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:208 NEW POSITION:
+    |    |B  #|    
+-------------------
+    |    |    |    
+-------------------
+    |    |    |    
+-------------------
+    |    |    |    
+Player 1: B: 3 C: 4 A: 4
+Player 2: B: 4 C: 4 A: 4
+Player 2 to play
+
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:193 TURN 1
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:196 PLAYER 2 TO PLAY
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:197 VISITS: 1600
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:200 POSITION EVALUATION: 0.501
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:137 LEGAL MOVES:
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 2. Cc3 V: 1394 E: -0.531 p: 0.489
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 3. Bb3 V: 510 E: 0.508 p: 0.255
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 4. c3U V: 499 E: -0.528 p: 0.721
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 5. Ab4 V: 165 E: 0.488 p: 0.234
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 6. Ac4 V: 80 E: -0.583 p: 0.200
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 7. Cc3 V: 23 E: 0.508 p: 0.432
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 8. Ca4 V: 18 E: -0.543 p: 0.583
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 9. c3L V: 11 E: 0.508 p: 0.706
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 10. b4L V: 10 E: -0.498 p: 0.738
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 11. Ba3 V: 4 E: 0.506 p: 0.394
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 12. Ac1 V: 2 E: -0.603 p: 0.274
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 13. Bb4 V: 1 E: 0.628 p: 0.257
+23-10-01 20:32:37.970 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:185 Cd4 V: 90 E: -0.485 P: 0.054	Cb2 V: 28 E: 0.195 P: 0.182	Ba1 V: 20 E: -0.478 P: 0.013	Bd4 V: 19 E: -0.455 P: 0.014	Ad3 V: 9 E: 0.031 P: 0.045	Ba3 V: 8 E: -0.364 P: 0.014	Bc3 V: 6 E: -0.446 P: 0.006	Cb3 V: 5 E: 0.103 P: 0.032	Ca4 V: 5 E: 0.061 P: 0.031	Ac1 V: 5 E: -0.193 P: 0.018	Cd3 V: 3 E: -0.105 P: 0.014	Cd2 V: 2 E: 0.071 P: 0.014	Ca2 V: 2 E: 0.056 P: 0.011	Ca1 V: 1 E: 0.233 P: 0.010	Cc1 V: 1 E: 0.028 P: 0.006	Ad4 V: 1 E: -0.086 P: 0.007	
+23-10-01 20:32:37.971 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:207 CHOSE MOVE Cc3
+23-10-01 20:32:37.971 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:208 NEW POSITION:
+    |    |B   |    
+-------------------
+    |    | C #|    
+-------------------
+    |    |    |    
+-------------------
+    |    |    |    
+Player 1: B: 3 C: 4 A: 4
+Player 2: B: 4 C: 3 A: 4
+Player 1 to play
+
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:193 TURN 2
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:196 PLAYER 1 TO PLAY
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:197 VISITS: 1763
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:200 POSITION EVALUATION: -0.523
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:137 LEGAL MOVES:
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 3. Bb3 V: 647 E: 0.495 p: 0.239
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 4. c3U V: 634 E: -0.514 p: 0.721
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 5. Ab4 V: 209 E: 0.477 p: 0.234
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 6. Ac4 V: 105 E: -0.573 p: 0.201
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 7. Cc3 V: 38 E: 0.499 p: 0.430
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 8. Ca4 V: 30 E: -0.552 p: 0.520
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 9. c3L V: 17 E: 0.486 p: 0.674
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 10. b4L V: 16 E: -0.478 p: 0.728
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 11. Ba3 V: 6 E: 0.391 p: 0.381
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 12. Ac1 V: 3 E: -0.445 p: 0.275
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 13. Bb4 V: 1 E: 0.628 p: 0.238
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:185 Bc2 V: 503 E: 0.499 P: 0.181	Cc4 V: 72 E: 0.588 P: 0.076	Bb4 V: 61 E: 0.507 P: 0.025	Ba3 V: 51 E: 0.521 P: 0.027	Ba2 V: 29 E: 0.538 P: 0.019	Bc1 V: 27 E: 0.536 P: 0.017	Bd2 V: 27 E: 0.536 P: 0.017	Bb2 V: 25 E: 0.532 P: 0.016	Cb1 V: 24 E: 0.699 P: 0.047	Ab1 V: 23 E: 0.605 P: 0.027	Ba4 V: 23 E: 0.583 P: 0.023	Ab3 V: 22 E: 0.617 P: 0.028	Ca1 V: 21 E: 0.643 P: 0.031	Bd1 V: 20 E: 0.538 P: 0.013	Cb2 V: 19 E: 0.603 P: 0.022	Ba1 V: 19 E: 0.590 P: 0.021	Aa1 V: 18 E: 0.605 P: 0.021	Bd3 V: 16 E: 0.548 P: 0.012	Cb3 V: 12 E: 0.622 P: 0.016	Ad2 V: 11 E: 0.578 P: 0.010	Bb1 V: 11 E: 0.528 P: 0.006	Bd4 V: 10 E: 0.569 P: 0.009	Ca3 V: 7 E: 0.643 P: 0.011	Cd4 V: 7 E: 0.603 P: 0.009	Aa2 V: 7 E: 0.582 P: 0.007	Cc1 V: 6 E: 0.635 P: 0.009	Ca2 V: 6 E: 0.615 P: 0.007	Aa3 V: 6 E: 0.567 P: 0.006	Ad4 V: 4 E: 0.620 P: 0.005	Cd3 V: 4 E: 0.614 P: 0.005	Ad3 V: 4 E: 0.609 P: 0.006	Ab4 V: 3 E: 0.621 P: 0.003	Cb4 V: 3 E: 0.606 P: 0.004	Aa4 V: 3 E: 0.599 P: 0.003	Cd1 V: 2 E: 0.609 P: 0.003	Ac2 V: 2 E: 0.600 P: 0.003	Ac1 V: 2 E: 0.579 P: 0.002	Ab2 V: 1 E: 0.642 P: 0.001	Cd2 V: 1 E: 0.631 P: 0.001	Cc2 V: 1 E: 0.627 P: 0.002	Ca4 V: 1 E: 0.608 P: 0.002	Ad1 V: 1 E: 0.590 P: 0.002	
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:207 CHOSE MOVE Bb3
+23-10-01 20:32:38.442 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:208 NEW POSITION:
+    |    |B   |    
+-------------------
+    |B  #| C  |    
+-------------------
+    |    |    |    
+-------------------
+    |    |    |    
+Player 1: B: 2 C: 4 A: 4
+Player 2: B: 4 C: 3 A: 4
+Player 2 to play
+
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:193 TURN 3
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:196 PLAYER 2 TO PLAY
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:197 VISITS: 2110
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:200 POSITION EVALUATION: 0.499
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:137 LEGAL MOVES:
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 4. c3U V: 2078 E: -0.514 p: 0.721
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 5. Ab4 V: 1059 E: 0.476 p: 0.234
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 6. Ac4 V: 496 E: -0.521 p: 0.200
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 7. Cc3 V: 273 E: 0.482 p: 0.432
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 8. Ca4 V: 210 E: -0.503 p: 0.583
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 9. c3L V: 151 E: 0.478 p: 0.706
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 10. b4L V: 146 E: -0.499 p: 0.738
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 11. Ba3 V: 68 E: 0.376 p: 0.394
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 12. Ac1 V: 30 E: -0.446 p: 0.274
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 13. Bb4 V: 7 E: 0.361 p: 0.257
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 14. Bd1 V: 3 E: -0.148 p: 0.125
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 15. a4R V: 2 E: -0.060 p: 0.368
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 16. Cd1 V: 1 E: 0.415 p: 0.137
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:185 Bd1 V: 5 E: 0.506 P: 0.044	Bd4 V: 5 E: 0.497 P: 0.041	Ab2 V: 3 E: 0.581 P: 0.030	Ac3 V: 3 E: -0.269 P: 0.004	Aa4 V: 2 E: 0.558 P: 0.018	Bb2 V: 2 E: 0.409 P: 0.013	Ac1 V: 1 E: 0.632 P: 0.006	Cb1 V: 1 E: 0.578 P: 0.008	Ad1 V: 1 E: 0.572 P: 0.014	Ca4 V: 1 E: 0.566 P: 0.011	Cd2 V: 1 E: 0.558 P: 0.008	Ca3 V: 1 E: 0.552 P: 0.007	Ab1 V: 1 E: 0.544 P: 0.004	Cc2 V: 1 E: 0.515 P: 0.004	Ad3 V: 1 E: 0.511 P: 0.008	Ba4 V: 1 E: 0.487 P: 0.010	Bb1 V: 1 E: 0.453 P: 0.007	
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:207 CHOSE MOVE c3U
+23-10-01 20:32:38.921 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoveChoice:208 NEW POSITION:
+    |    |BC #|    
+-------------------
+    |B   |    |    
+-------------------
+    |    |    |    
+-------------------
+    |    |    |    
+Player 1: B: 2 C: 4 A: 4
+Player 2: B: 4 C: 3 A: 4
+Player 1 to play
+
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:193 TURN 4
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:196 PLAYER 1 TO PLAY
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:197 VISITS: 2234
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writePreMoveLogs:200 POSITION EVALUATION: -0.504
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:137 LEGAL MOVES:
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 5. Ab4 V: 1168 E: 0.468 p: 0.234
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 6. Ac4 V: 457 E: -0.504 p: 0.201
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 7. Cc3 V: 255 E: 0.458 p: 0.430
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 8. Ca4 V: 191 E: -0.491 p: 0.520
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 9. c3L V: 122 E: 0.476 p: 0.674
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 10. b4L V: 117 E: -0.505 p: 0.728
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 11. Ba3 V: 48 E: 0.355 p: 0.381
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 12. Ac1 V: 19 E: -0.406 p: 0.275
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 13. Bb4 V: 4 E: 0.268 p: 0.238
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 14. Bd1 V: 3 E: -0.148 p: 0.126
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 15. a4R V: 2 E: -0.060 p: 0.368
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/node.cpp:printMainLine:242 16. Cd1 V: 1 E: 0.415 p: 0.144
+23-10-01 20:32:39.407 /home/max/corintho-ai/corintho_ai/python/../cpp/src/match.cpp:writeMoves:185 Ac1 V: 233 E: 0.577 P: 0.219	Ad4 V: 179 E: 0.462 P: 0.032	Ac3 V: 163 E: 0.507 P: 0.075	Ab2 V: 59 E: 0.588 P: 0.060	Aa3 V: 56 E: 0.537 P: 0.037	Cb4 V: 53 E: 0.510 P: 0.023	Bc1 V: 49 E: 0.577 P: 0.046	Ad2 V: 36 E: 0.505 P: 0.016	Aa1 V: 32 E: 0.591 P: 0.033	Cb2 V: 26 E: 0.558 P: 0.021	Cd3 V: 25 E: 0.641 P: 0.

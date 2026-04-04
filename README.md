@@ -4,6 +4,18 @@
 
 An AI that plays the board game [Corintho](http://www.di.fc.ul.pt/~jpn/gv/corintho.htm). Uses the AlphaZero Monte Carlo tree search and neural network evaluation method based on [this paper](https://www.nature.com/articles/nature24270.epdf?author_access_token=VJXbVjaSHxFoctQQ4p2k4tRgN0jAjWel9jnR3ZoTv0PVW4gB86EEpGqTRDtpIz-2rmo8-KG06gqVobU5NSCFeHILHcVFUeMsbvwS-lxjqQGg98faovwjxeTUgZAUMnRQ). We assess the AI to play at a 3780 [Elo rating](https://en.wikipedia.org/wiki/Elo_rating_system). You can play against the AI [here](https://maxjiang216.github.io/html/corintho/corintho.html)!
 
+## Playable web app (`web/`)
+
+The `web/` directory contains a fully self-contained static web app — HTML, JS, CSS, and a compiled ONNX model — that runs the game and MCTS AI entirely in the browser via ONNX Runtime Web (WebAssembly).
+
+**Deploying to Vercel:** connect this repo as a Vercel project and set **Root Directory = `web`** in the Vercel project settings. Every push to the production branch auto-deploys.
+
+**Regenerating `model.onnx`** after training a new model:
+```bash
+pip install tf2onnx
+bash scripts/bash/convert_model.sh
+```
+
 # Technologies Used
  - C++ (Monte Carlo search tree & game logic)
  - Keras/Tensorflow (neural network architecture & training)

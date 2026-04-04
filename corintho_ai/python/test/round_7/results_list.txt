@@ -1,0 +1,5 @@
+./test
+round_1
+./test/round_1
+['done_11.txt', 'done_4.txt', 'done_7.txt', 'matches_9.txt', 'logs_10', 'done_9.txt', 'get_games.txt', 'logs_5', 'logs_9', 'matches_2.txt', 'matches_3.txt', 'done_0.txt', 'logs_3', 'logs_0', 'matches_0.txt', 'done_1.txt', 'results.txt', 'matches_7.txt', 'done_6.txt', 'matches_8.txt', 'done_10.txt', 'matches_1.txt', 'matches_4.txt', 'logs_6', 'done_8.txt', 'matches_10.txt', 'done_3.txt', 'logs_1', 'matches_5.txt', 'logs_2', 'logs_7', 'matches_6.txt', 'done_2.txt', 'logs_4', 'matches_11.txt', 'logs_11', 'logs_8', 'performance.txt', 'ratings.txt', 'done_5.txt']
+./test/round_1/results.txt

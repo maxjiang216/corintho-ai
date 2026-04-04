@@ -1,6 +1,0 @@
-2520 evaluations completed in 11.90s
-Predicted time to complete: 12.52s
-Neural network prediction time so far: 6.40s
-Self play time so far: 5.45s
-Number of games done: 16
-

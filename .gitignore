@@ -33,3 +33,10 @@ html
 latex
 gsl
 corintho-ai-json-key.json
+
+# Runtime logs and tournament state
+corintho_ai/python/test/
+corintho_ai/python/test_games.txt
+corintho_ai/rating/tourney/
+corintho_ai/rating/tourney_res/
+corintho_ai/rating/*.txt

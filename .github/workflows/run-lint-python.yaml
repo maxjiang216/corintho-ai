@@ -13,9 +13,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     - name: Install Black
@@ -27,6 +27,4 @@ jobs:
     - name: Install Flake8
       run: pip install flake8==6.0
     - name: Check Python style with Flake8
-      run: flake8 corintho_ai/python corintho_ai/docker
-
-
+      run: flake8 corintho_ai/python

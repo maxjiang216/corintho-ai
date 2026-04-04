@@ -1,5 +1,7 @@
-import numpy as np
 import random
+
+import numpy as np
+
 
 class Rating:
     """
@@ -25,9 +27,7 @@ class Rating:
 
         for p1 in self.matchups:
             for p2 in self.matchups[p1]:
-                ll += self.compute_contribution(
-                    p1, p2, self.matchups[p1][p2]
-                )
+                ll += self.compute_contribution(p1, p2, self.matchups[p1][p2])
 
         return ll
 
@@ -40,7 +40,9 @@ class Rating:
 
         l = self.compute_linear(p1, p2)
 
-        return (matchup[0] + matchup[1] / 2) * l - sum(matchup) * np.log(1 + np.exp(l))
+        return (matchup[0] + matchup[1] / 2) * l - sum(matchup) * np.log(
+            1 + np.exp(l)
+        )
 
     def compute_linear(self, p1, p2):
         """
@@ -48,10 +50,7 @@ class Rating:
         (r_1-r_2)+b+m(r_1+r_2)
         """
 
-        return (
-            (self.ratings[p1] - self.ratings[p2])
-            + self.b
-        )
+        return (self.ratings[p1] - self.ratings[p2]) + self.b
 
     def compute_gradient_r(self, k):
         """
@@ -61,14 +60,18 @@ class Rating:
         grad = 0
 
         for opp in self.matchups[k]:
-            grad += self.compute_gradient_r_matchup(k, opp, self.matchups[k][opp])
+            grad += self.compute_gradient_r_matchup(
+                k, opp, self.matchups[k][opp]
+            )
 
         for opp in self.matchups:
             if opp != k:
-                grad += self.compute_gradient_r_matchup(opp, k, self.matchups[opp][k], True)
+                grad += self.compute_gradient_r_matchup(
+                    opp, k, self.matchups[opp][k], True
+                )
 
         return grad
-    
+
     def compute_gradient_r_matchup(self, p1, p2, matchup, reverse=False):
         """
         Computes the gcontributions of a single matchup to the gradient of player k's rating
@@ -91,10 +94,12 @@ class Rating:
 
         for p1 in self.matchups:
             for p2 in self.matchups[p1]:
-                grad += self.compute_gradient_b_matchup(p1, p2, self.matchups[p1][p2])
+                grad += self.compute_gradient_b_matchup(
+                    p1, p2, self.matchups[p1][p2]
+                )
 
         return grad
-    
+
     def compute_gradient_b_matchup(self, p1, p2, matchup):
         """
         Computes the contribution of a single matchup to the gradient of b
@@ -105,7 +110,7 @@ class Rating:
         n = sum(matchup)
 
         return s - n * np.exp(L) / (1 + np.exp(L))
-    
+
     def update(self):
         """
         Updates the ratings
@@ -114,7 +119,9 @@ class Rating:
         r_gradient = [self.compute_gradient_r(k) for k in range(self.n - 1)]
         b_gradient = self.compute_gradient_b()
 
-        self.ratings = [r + self.lr * g for r, g in zip(self.ratings, r_gradient)]
+        self.ratings = [
+            r + self.lr * g for r, g in zip(self.ratings, r_gradient)
+        ]
         self.ratings += [0]
         self.b += self.lr * b_gradient
 
@@ -124,7 +131,7 @@ class Rating:
         if self.updates_since_improvement > 20:
             self.lr *= 0.8
             self.updates_since_improvement = 0
-        
+
         self.last_ll = ll
 
         print(ll)
@@ -138,13 +145,14 @@ class Rating:
         print((matchup[0] + matchup[1] / 2) / sum(matchup))
         print(self.ratings[p1] - self.ratings[p2] + self.b)
         print(1 / (1 + np.exp(self.ratings[p1] - self.ratings[p2] + self.b)))
-    
+
+
 def learn(file):
     """
     Learns ratings from a file
     """
 
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         lines = f.readlines()
     lines = [line.strip().split() for line in lines]
     lines = [line for line in lines if len(line) == 5]
@@ -162,12 +170,10 @@ def learn(file):
     for i in range(10000):
         ratings.update()
 
+
 def main():
+    learn("results.txt")
 
-    learn('results.txt')
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
-
-

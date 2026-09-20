@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Interleaved A/B comparison of two builds.
 #
-#   ./ab.sh <labelA> "<flagsA>" <labelB> "<flagsB>" [reps]
+#   ./ab.sh <labelA> "<flagsA>" <labelB> "<flagsB>" [reps] [threads]
+#   AB_GAMES=200 ./ab.sh ... 7 14        # larger, multi-threaded
 #
 # run_suite.sh records one build at a time, which is fine when the machine is
 # steady. It is not fine here: an identical build measured 77% slower forty
@@ -23,8 +24,8 @@ FLAGS_A="${2:?}"
 LABEL_B="${3:?}"
 FLAGS_B="${4:?}"
 REPS="${5:-7}"
-
-GAMES=50
+THREADS="${6:-1}"
+GAMES="${AB_GAMES:-50}"
 SEARCHES=1600
 PER_EVAL=16
 SEED=12345
@@ -37,13 +38,13 @@ make -s all BUILD=build-b CXXFLAGS="$FLAGS_B" LDFLAGS="$FLAGS_B" > /dev/null
 echo "machine: ac=$(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -1)" \
      "governor=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null)" \
      "load=$(cut -d' ' -f1 /proc/loadavg)"
-echo "interleaving ${REPS} reps per arm, single-threaded..."
+echo "interleaving ${REPS} reps per arm, ${GAMES} games, ${THREADS} thread(s)..."
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 for _ in $(seq "$REPS"); do
-  ./build-a/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+  ./build-a/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
     | awk '/#METRIC engine_seconds/{print $3}' >> "$TMP/a"
-  ./build-b/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+  ./build-b/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
     | awk '/#METRIC engine_seconds/{print $3}' >> "$TMP/b"
   printf "."
 done

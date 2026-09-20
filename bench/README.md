@@ -50,6 +50,56 @@ identical values — so this harness can also be used to measure position sharin
 from production (observed ~18 turns/game here vs 28.4 in the real run). Use this
 for *relative* engine measurements, never as a prediction of generation time.
 
+## Measurement doctrine: decide on single thread, watch multi
+
+**Measure and decide on single-threaded. Record multi-threaded as a guardrail
+and as the production number.**
+
+Single thread is the precise instrument. On a quiet machine on AC,
+`st_engine_seconds` reproduces to the fourth decimal (3.9141 – 3.9174, a 0.08%
+spread), and interleaved A/B arms come in at 0.4 – 1.8%. That resolves a 2%
+change. Multi-threaded cannot approach it: it adds scheduling order, load
+imbalance across workers, and this CPU's P-core/E-core asymmetry on top of
+whatever is being measured.
+
+Nearly everything on the optimization roadmap — bitboard move generation, the
+`Node` accessors, `getFilteredProbs`, `lround` — is per-thread algorithmic work
+with no mechanism to behave differently under threading. Measuring it there only
+adds variance.
+
+**But keep multi-threaded running**, because it catches one failure mode single
+thread is blind to by construction: a change that is neutral or better per
+thread while being worse under contention — extra memory traffic that only
+saturates when 14 cores demand it at once, added allocator pressure, false
+sharing on a new field. Parallel efficiency here is only 55%, and the ST and MT
+profiles are nearly identical with no libgomp or futex hotspot, which points at
+memory bandwidth as the limiter. A change trading instructions for memory
+traffic would look like a win in ST and a loss in production. MT also costs
+almost nothing: 0.53 s against ST's 3.9 s for the same work.
+
+### The single-thread number overstates the production win
+
+Measured on the LTO change, interleaved, on AC:
+
+| Configuration | no-LTO | with-LTO | Delta |
+|---|---|---|---|
+| 1 thread, 50 games | 5.169s | 3.973s | **−23.2%** |
+| 14 threads, 200 games | 2.758s | 2.240s | **−18.8%** |
+
+**Multi-threaded captured 81% of the single-threaded win.** The parallel run is
+closer to memory-bandwidth-bound, so removing compute pays less there. Expect a
+similar discount on any change that removes instructions rather than memory
+traffic, and quote the MT figure when claiming what a training run will see.
+
+### Rules
+
+- **Quote and decide on ST.** It is the number whose error bars mean something.
+- **Watch MT for divergence.** ST improving while MT does not is a finding;
+  investigate before committing.
+- **Profile MT only** when the hypothesis is about threading — the arena
+  allocator, the OpenMP schedule, the `vector<bool>` race.
+- **Discount for production.** Training runs multi-threaded.
+
 ## Machine state invalidates cross-session comparisons
 
 An identical build measured **77% slower** forty minutes after its baseline

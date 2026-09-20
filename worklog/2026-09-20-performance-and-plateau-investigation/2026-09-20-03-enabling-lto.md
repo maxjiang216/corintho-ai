@@ -6,8 +6,9 @@ Branch: `perf/training-overhaul`. First actual optimization on this branch.
 
 - **`-flto` added to `corintho_ai/python/setup.py`.** One line, no source
   changes, digests unchanged. Measured **−23.3%** and **−24.6%** on two
-  interleaved runs — but both on battery with a browser playing video, which
-  inflates it. **Best estimate on AC is −18% to −20%.**
+  interleaved runs on battery, and **−23.2%** re-measured on AC. Power state
+  changes precision, not the ratio. At 14 threads it is **−18.8%**, since the
+  parallel run is more memory-bound.
 - **Instructions fell 32.7% but time fell only 23%** — the removed work was
   call/return overhead, the cheapest instructions in the program. Branch
   mispredicts even rose 2.2%.
@@ -50,7 +51,39 @@ Interleaved A/B via the new `bench/ab.sh`, 7 reps per arm, single-threaded,
   Delta exceeds the worst arm spread (7.9%), so it is real.
 ```
 
-### Measurement caveat: taken on battery, with a browser playing video
+### Correction: the battery hypothesis was wrong
+
+An earlier version of this entry claimed the battery measurement was inflated,
+reasoning that a lower clock makes memory stalls a smaller share of time and so
+exaggerates the benefit of removing compute. **That was wrong.** Re-measured on
+AC with the browser closed:
+
+| Condition | Threads | no-LTO | with-LTO | Delta | Worst spread |
+|---|---|---|---|---|---|
+| Battery, browser playing video | 1 | 9.941s | 7.628s | −23.3% | 7.9% |
+| Battery, browser playing video | 1 | 9.812s | 7.401s | −24.6% | 10.9% |
+| **AC, quiet** | **1** | **5.169s** | **3.973s** | **−23.2%** | **1.8%** |
+| **AC, quiet** | **14** | **2.758s** | **2.240s** | **−18.8%** | **2.6%** |
+
+**Power state does not change the ratio.** It changes *precision*: spreads fell
+from 8–11% to 0.4–2.6%, and the re-recorded baseline now reproduces
+`st_engine_seconds` to the fourth decimal. Plugging in does not buy a different
+answer, it buys a *resolvable* one.
+
+**Thread count is what explains the discrepancy.** The earlier ad-hoc −18.1%
+that prompted the wrong hypothesis was a 200-game, 14-thread run, compared
+against `ab.sh`'s 50-game single-threaded default. It matches the −18.8%
+measured properly at 14 threads. The number was right; the attribution was not.
+
+The real finding: **multi-threaded captures 81% of the single-threaded win.**
+The parallel run is closer to memory-bandwidth-bound, so removing compute pays
+less there. Both numbers are worth recording — ST because it is the precise
+instrument, MT because training runs multi-threaded.
+
+**Headline figures for this change: −23.2% single-threaded, −18.8% at 14
+threads.**
+
+### Original caveat, retained: taken on battery, with a browser playing video
 
 Both A/B runs were made with the laptop **on battery** (`ac=0`, `powersave`
 governor) and Brave playing Netflix. Max confirmed this after the fact.

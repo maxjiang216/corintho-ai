@@ -1,50 +1,51 @@
 # gprofng, 14 threads, 400 games x 1600 searches
 # label:    baseline
-# commit:   c70cae2
+# commit:   88abeae
 # dirty:    yes
 # cxxflags: -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
-# date:     2026-09-20T14:28:24-07:00
+# date:     2026-09-20T14:37:24-07:00
+
+# Compare against -st.txt: anything prominent here but not there
+# (libgomp, malloc internals, futex) is parallel overhead, not work.
 
 Functions sorted by metric: Exclusive Total CPU Time
 
 Excl. Total    Incl. Total     Name
 CPU            CPU
   sec.      %    sec.      %
-40.008 100.00  40.008 100.00   <Total>
-20.825  52.05  27.379  68.43   TrainMC::doIteration(float*, float*)
-10.888  27.21  13.650  34.12   Node::initializeEdges()
- 1.851   4.63   3.142   7.85   <static>@0xaab1b (<libc.so.6>)
- 1.481   3.70   1.481   3.70   Game::applyRowColLines(std::bitset<96ul>&, bool) const
- 1.251   3.13   1.251   3.13   <static>@0xa8e24 (<libc.so.6>)
- 0.580   1.45   1.001   2.50   free
- 0.510   1.28   0.510   1.28   lround
- 0.460   1.15   0.460   1.15   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
- 0.430   1.08   0.430   1.08   <static>@0x2542b (<libgomp.so.1.0.0>)
- 0.390   0.98   1.351   3.38   Node::~Node()
- 0.330   0.83   2.011   5.03   <static>@0xada6c (<libc.so.6>)
- 0.300   0.75   0.590   1.48   main
- 0.220   0.55   1.281   3.20   malloc
- 0.080   0.20   2.121   5.30   operator new(unsigned long, std::align_val_t)
- 0.070   0.18   0.070   0.18   <static>@0x2270 (<selfplay_bench>)
- 0.070   0.18   0.080   0.20   Game::doMove(int)
- 0.050   0.13  28.410  71.01   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
- 0.040   0.10   0.040   0.10   mprotect
- 0.040   0.10   2.051   5.13   posix_memalign
- 0.030   0.08   0.030   0.08   omp_get_num_threads
- 0.030   0.08   1.321   3.30   operator new(unsigned long)
+41.589 100.00  41.589 100.00   <Total>
+22.196  53.37  28.570  68.70   TrainMC::doIteration(float*, float*)
+11.438  27.50  14.340  34.48   Node::initializeEdges()
+ 1.691   4.07   2.722   6.54   <static>@0xaab1b (<libc.so.6>)
+ 1.671   4.02   1.671   4.02   Game::applyRowColLines(std::bitset<96ul>&, bool) const
+ 0.951   2.29   0.951   2.29   <static>@0xa8e24 (<libc.so.6>)
+ 0.610   1.47   0.881   2.12   free
+ 0.520   1.25   0.520   1.25   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+ 0.440   1.06   0.440   1.06   <static>@0x2542b (<libgomp.so.1.0.0>)
+ 0.440   1.06   0.440   1.06   lround
+ 0.320   0.77   1.181   2.84   Node::~Node()
+ 0.320   0.77   0.560   1.35   main
+ 0.250   0.60   1.711   4.11   <static>@0xada6c (<libc.so.6>)
+ 0.200   0.48   1.221   2.94   malloc
+ 0.110   0.26   0.110   0.26   <static>@0x2270 (<selfplay_bench>)
+ 0.080   0.19   0.110   0.26   Game::doMove(int)
+ 0.080   0.19   0.080   0.19   mprotect
+ 0.070   0.17  29.511  70.96   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+ 0.040   0.10   1.751   4.21   posix_memalign
+ 0.030   0.07   0.030   0.07   Move::Move(int)
+ 0.030   0.07   1.031   2.48   TrainMC::chooseMove(float*, float*)
+ 0.030   0.07   0.030   0.07   munmap
  0.020   0.05   0.020   0.05   <static>@0x188341 (<libc.so.6>)
- 0.020   0.05   0.020   0.05   munmap
- 0.010   0.03   0.010   0.03   <static>@0xa1220 (<libstdc++.so.6.0.33>)
- 0.010   0.03   0.010   0.03   Move::Move(int)
- 0.010   0.03   1.101   2.75   TrainMC::chooseMove(float*, float*)
- 0.010   0.03   0.010   0.03   operator new[](unsigned long)
- 0.      0.    28.580  71.44   <static>@0x225ae (<libgomp.so.1.0.0>)
- 0.      0.     0.590   1.48   <static>@0x2a145 (<libc.so.6>)
- 0.      0.    28.570  71.41   <static>@0x5115c (<libgp-collector.so>)
- 0.      0.    28.570  71.41   <static>@0x9c526 (<libc.so.6>)
- 0.      0.     0.270   0.68   GOMP_parallel
- 0.      0.     1.111   2.78   SelfPlayer::chooseMove() [clone .part.0]
- 0.      0.     1.501   3.75   SelfPlayer::chooseMoveAndContinue()
- 0.      0.     1.091   2.73   TrainMC::moveDown(Node*)
- 0.      0.     0.590   1.48   __libc_start_main
+ 0.020   0.05   1.381   3.32   SelfPlayer::chooseMoveAndContinue()
+ 0.010   0.02   1.041   2.50   SelfPlayer::chooseMove() [clone .part.0]
+ 0.010   0.02   1.231   2.96   operator new(unsigned long)
+ 0.010   0.02   0.010   0.02   operator new[](unsigned long)
+ 0.      0.    29.731  71.49   <static>@0x225ae (<libgomp.so.1.0.0>)
+ 0.      0.     0.560   1.35   <static>@0x2a145 (<libc.so.6>)
+ 0.      0.    29.731  71.49   <static>@0x5115c (<libgp-collector.so>)
+ 0.      0.    29.731  71.49   <static>@0x9c526 (<libc.so.6>)
+ 0.      0.     0.220   0.53   GOMP_parallel
+ 0.      0.     1.001   2.41   TrainMC::moveDown(Node*)
+ 0.      0.     0.560   1.35   __libc_start_main
+ 0.      0.     1.741   4.19   operator new(unsigned long, std::align_val_t)
 

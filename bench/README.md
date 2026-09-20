@@ -104,43 +104,60 @@ which blocks user-space sampling. Lowering it to `1` needs root and widens what
 unprivileged processes can observe, so it is a deliberate decision, not a
 default. Everything below works without it.
 
-### gprofng — the primary profiler
-
-Ships with binutils and is already installed. It does **not** use
-`perf_event_open`, so it works as-is, and unlike callgrind it samples the real
-multi-threaded run at full speed, reporting wall-clock CPU time.
-
 ```
-gprofng collect app -o prof.er -p on ./build/selfplay_bench 100 1600 16 14
-gprofng display text -functions -limit 20 prof.er
+./profile.sh <label> [quick|deep|heap|all] [threads]
 ```
 
-Use this for "where does the time actually go". Note that with `-flto` many
-functions are inlined into their callers, so `Node::initializeEdges` shows the
-cost of `getLegalMoves`, and `TrainMC::doIteration` absorbs `search` and
-`chooseNext`. Build without LTO when attribution matters more than realism.
+| Tier | Tools | Run size | Cost | Answers |
+|---|---|---|---|---|
+| `quick` | gprofng, 1 and 14 threads | 300–400 games | ~90 s | Where does wall-clock time actually go |
+| `deep` | callgrind, cachegrind | 3 games | ~15 s | Exact instructions; branch and cache behaviour |
+| `heap` | dhat | 2 games | ~5 s | Allocation counts and peak heap |
 
-### callgrind — exact attribution
+### Why tiers, and what transfers between them
 
-```
-make callgrind
-```
+Heavyweight tools run 20–100× slower, so they get tiny runs; sampling tools cost
+nothing, so they get large realistic runs. The question is whether the tiny run
+measures the same thing as the big one. Measured:
 
-Counts **instructions, not cycles**, runs single-threaded, and is ~50x slower.
-It therefore under-represents allocator contention, cache misses and false
-sharing, all of which are multi-threaded effects. Its advantage is being exact
-and perfectly repeatable, which makes it the right tool for confirming that a
-change removed the instructions it was meant to remove.
+| Config | requests/turn |
+|---|---|
+| games=3, searches=400 | 341.7 |
+| games=10, searches=400 | 341.8 |
+| games=40, searches=1600 | 1280.6 |
+| games=300, searches=1600 | 1271.9 |
 
-### cachegrind / massif / dhat — for specific questions
+**Tree shape is governed by search count, not game count.** Changing games by
+100× moves requests/turn by under 1%; changing searches by 4× moves it by 3.7×.
 
-All installed as part of valgrind.
+Hence the rule every tier follows: **fix the search count at 1600, vary only the
+game count.** A tier that changed the search count would be measuring a
+different workload, not the same workload more precisely.
 
-- `--tool=cachegrind` models cache behaviour. The right instrument for the
-  bitboard rewrite (`PLAN.md` §13) and for settling whether the arena allocator
-  is worth it, since locality is exactly what callgrind cannot see.
-- `--tool=massif` or `--tool=dhat` for heap profiling — directly relevant to the
-  `to_eval_` oversizing (`PLAN.md` §10.2) and to sizing the node arena.
+**Transfers across run sizes:** instruction counts and attribution, branch
+prediction behaviour, allocation counts and sizes.
+
+**Does not transfer:** cache miss rates, especially last-level. These depend on
+the size of the live search tree, which scales with games × threads. The 3-game
+single-threaded run has a working set that fits in L2, so cachegrind reports
+near-zero LL misses regardless of how bad real locality is. **Treat cachegrind's
+D1/DL numbers as a lower bound.**
+
+### Reading each tool
+
+- **gprofng** — the only tool that sees the real threaded run. Undersamples short
+  runs badly (a 3-second run gave ~35 samples and percentages that swung 10
+  points), hence the large game counts. Its absolute seconds capture roughly a
+  tenth of true CPU time, so **read only the percentages**. With `-flto` many
+  functions inline into their callers: `Node::initializeEdges` carries
+  `getLegalMoves`, and `TrainMC::doIteration` absorbs `search` and `chooseNext`.
+- **callgrind** — exact and perfectly repeatable. The right tool for confirming a
+  change removed the instructions it was meant to remove.
+- **cachegrind** — needs `--cache-sim=yes --branch-sim=yes`; both default to off
+  and without them it reports instruction counts only. `Bcm` is the interesting
+  column for move generation, `D1mr` for the search.
+- **dhat** — allocation counts. Relevant to the node arena and to the `to_eval_`
+  oversizing (`PLAN.md` §10.2).
 
 ### Considered and rejected
 
@@ -156,12 +173,6 @@ All installed as part of valgrind.
   end-to-end throughput rather than merely attributing time. Also built on
   `perf_event_open`.
 - **heaptrack** — nicer UI than massif, but massif and dhat are already here.
-
-### Recommended pairing
-
-`gprofng` for wall-clock reality on the threaded run, `callgrind` to verify the
-instruction delta of a specific change, `cachegrind` when the change is about
-memory layout. That covers everything in `PLAN.md` without needing root.
 
 ---
 
@@ -241,17 +252,51 @@ most of this without relying on LTO.
 500 games, 1600 searches, 16 per eval, 14 threads: 7.6 s engine time,
 9,095 turns, 11.5M stub evaluations, 1.52M requests/engine-second.
 
-## Revised C++ priority order
+## What the profilers say, and the resulting priority order
 
-Evidence-based, replacing the ordering in `PLAN.md` §7.2:
+The three tools disagree in a way that turns out to be informative rather than
+contradictory.
 
-1. **Bitboard move generation** (§13) — ~34% of instructions, ~90% of node cost.
-2. **Inline the `Node` accessors into the header**, and/or ship `-flto` — ~13%,
-   measured at 18% end-to-end.
-3. **`getFilteredProbs` O(96) → O(legal)** — 6.1%, trivial fix.
-4. **Root-only Dirichlet noise** (§5.1) — 3.9%, and it is a strength fix too.
-5. **Replace `lround`** (a libm double call in `setProbs`) with `lrintf` — 2.6%.
-6. **`writeGameState` nibble LUT** — 2.2%.
-7. **Arena allocator** — only 2.5% single-threaded. Downgraded from its original
-   top ranking, but callgrind cannot see the multi-threaded contention that
-   motivated it, so re-measure at 14+ threads before dismissing it.
+**callgrind** (instructions) ranks move generation above search. **gprofng**
+(time) ranks search above move generation. **cachegrind** explains why:
+
+| Function | Branch mispredicts | Rate | L1 data read misses |
+|---|---|---|---|
+| `Node::initializeEdges` (move gen) | **6,455,211** (54.8%) | 14.8% | 1,723 |
+| `TrainMC::doIteration` (search) | 3,948,907 (33.5%) | 7.9% | **1,180,440** (47%) |
+| `Game::applyRowColLines` | 613,581 (5.2%) | 14.7% | 4,975 |
+
+Program-wide branch misprediction rate is **9.2%** (11.8M of 127.5M branches).
+
+**These are two different problems needing two different fixes:**
+
+- **Move generation is branch-bound.** It accounts for 60% of all mispredicts at
+  a ~15% rate — unsurprising for a 96-iteration loop of data-dependent branches
+  that constructs a `Move` per ID and early-returns out of `canPlace`/`canMove`.
+  At roughly 17 cycles per mispredict this is on the order of a quarter of all
+  cycles. **Branchless bitmask code (`PLAN.md` §13) should eliminate nearly all
+  of it**, which is a far stronger argument for the rewrite than instruction
+  count alone.
+- **Search is cache-bound.** It owns 47% of L1 data read misses but only 8%
+  branch mispredicts — pointer-chasing over a linked tree. **This rescues the
+  arena allocator**, which callgrind's 2.5% instruction share had demoted:
+  locality is exactly what callgrind cannot see, and these numbers are a lower
+  bound because the 3-game working set fits in L2.
+
+dhat: **87,010 allocations for 2 games** (9.2 MB churn, 1.5 MB peak in 6,390
+blocks — about 1,600 nodes × 2 allocations, matching `max_searches`).
+Extrapolated to 25,000 games that is roughly **1.1 billion allocations per
+generation**.
+
+### Priority order
+
+1. **Bitboard move generation** (`PLAN.md` §13) — ~34% of instructions, ~25-27%
+   of time, ~90% of node construction cost, and 60% of all branch mispredicts.
+2. **Inline the `Node` accessors into the header**, and/or ship `-flto` — ~13%
+   of instructions, measured at 18% end-to-end.
+3. **Arena allocator** — promoted back up on the cachegrind evidence. Confirm
+   with cachegrind at a larger working set before committing to it.
+4. **`getFilteredProbs` O(96) → O(legal)** — 6.1%, trivial fix.
+5. **Root-only Dirichlet noise** (`PLAN.md` §5.1) — 3.9%, and a strength fix too.
+6. **Replace `lround`** (a libm double call in `setProbs`) with `lrintf` — 2.6%.
+7. **`writeGameState` nibble LUT** — 2.2%.

@@ -34,7 +34,7 @@ they are settled, and record who or what settled them.
 
 ---
 
-## OPEN — 1. The engine counts diagonal lines; the rules describe rows and columns
+## SETTLED — 1. Diagonal lines DO count. The engine is correct.
 
 **Engine behaviour.** `Game::applyLines` (`corintho_ai/cpp/src/game.cpp:397-403`)
 calls four detectors: `applyRowColLines` for rows, again for columns,
@@ -64,12 +64,15 @@ game, and 95 generations were trained on it. Engine and web app agree with each
 other, so the AI is self-consistent and internally valid for *its* game — but that
 game may not be Corintho.
 
-**To resolve:** check the physical rulebook or a more authoritative source than a
-summary page. Failing that, Max's recollection of playing it.
+**Resolved 2026-09-20 by Max: diagonals do count. The engine is correct and the
+written summaries are incomplete.**
+
+The engine, `web/engine.js`, and the `line_breakers` table all stand as-is. No code
+change. The 95 generations of training were on the right game.
 
 ---
 
-## OPEN — 2. The engine allows any piece on an empty cell; the rules allow only a base
+## SETTLED — 2. Any piece MAY be placed on an empty cell. The engine is correct.
 
 **Engine behaviour.** `Game::canPlace` (`corintho_ai/cpp/src/game.cpp:181-205`)
 checks piece availability, then returns `true` immediately if the target space is
@@ -111,10 +114,44 @@ the engine has ever built.
 rule is wrong, fix the rule first and re-derive, or the rewrite will faithfully
 preserve a bug and the digests will make it look correct.
 
-**To resolve:** same as item 1.
+**Resolved 2026-09-20 by Max: any piece may be placed on an empty cell. The engine
+is correct and the written summaries are incomplete.**
+
+`canPlace` stands as-is, and the opening genuinely has 48 legal placements. The
+bitboard derivation in `PLAN.md` §13.2 — `placeable_base = empty`,
+`placeable_col = ~f & ~c & ~a`, `placeable_cap = ~f & ~a & (~b | c)` — is therefore
+**correct as written**, and Stage 2 is unblocked.
 
 ---
 
-## Settled
+## OPEN — 3. The web app's rules overlay is inaccurate
 
-*(nothing yet)*
+Not an engine bug; a documentation bug, and the reason items 1 and 2 looked like
+discrepancies in the first place.
+
+`getRulesPages()` in `web/corintho.js` tells players:
+
+- *"a stable line of three stacks in a row (orthogonal)"* — but diagonals count
+  (item 1), and `web/engine.js` in the same app detects them.
+- *"A column or capital may sit only on a base or another base or column"* — but any
+  piece may be dropped on an empty cell (item 2).
+
+So a player reading the in-app rules will be surprised by legal moves the engine
+allows and by losses to lines they did not know existed. The overlay already hedges
+with *"when in doubt, trust the game over message"*, which is a symptom rather than
+a fix.
+
+**Low priority, user-facing, entirely separate from the optimization work.** Fixing
+it is two sentences in `getRulesPages()`.
+
+## How these were found
+
+Worth recording as method, since it generalized. The discrepancies surfaced while
+asking a different question — whether the written rules could replace the reference
+implementation as a test oracle for the bitboard refactor. They could not, but
+reading them closely enough to decide that turned up two places where engine and
+prose disagreed.
+
+Both turned out to favour the engine. The value was not in finding bugs; it was in
+converting two silent assumptions into confirmed facts, before a rewrite baked them
+in where `digest_game` would have certified them as correct.

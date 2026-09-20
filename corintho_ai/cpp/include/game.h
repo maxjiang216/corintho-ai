@@ -55,6 +55,27 @@ class Game {
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
 
  private:
+  /// @brief Per-space state, computed once per legal-move generation
+  /// @details top(), bottom(), empty() and frozen() were each recomputed from
+  /// the bitset on every query, and legal move generation queries them roughly
+  /// 150 times per call: once per space in each of the four line detectors, and
+  /// again inside canPlace/canMove for each of the 96 candidate moves.
+  /// The board cannot change during a single generation, so the answers are
+  /// computed once up front and read from here instead.
+  struct SpaceInfo {
+    /// @brief Index of the top piece of each stack, or -1 if empty
+    int8_t top[kBoardSize];
+    /// @brief Index of the bottom piece of each stack, or 3 if empty
+    int8_t bottom[kBoardSize];
+    /// @brief Bit per space, set when the space holds no pieces
+    uint16_t empty;
+    /// @brief Bit per space, set when the space is frozen
+    uint16_t frozen;
+  };
+
+  /// @brief Fill a SpaceInfo from the current board
+  void computeSpaceInfo(SpaceInfo &info) const noexcept;
+
   /// @brief Private accessor for the board
   /// @details Finds the correct index in the bitset
   /// for a given row, column, and piece type
@@ -91,14 +112,16 @@ class Game {
   /// @brief Checks if a piece can be placed on the space
   /// @param piece_type The type of piece to place
   /// @return Whether the piece can be placed
-  bool canPlace(const Move &move) const noexcept;
+  bool canPlace(const Move &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a tower can be moved
   /// @return Whether the tower can be moved
-  bool canMove(const Move &move) const noexcept;
+  bool canMove(const Move &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a move is legal according to basic rules
   /// @warning Does not check if the move is legal according to line breaking
   /// @param move_id The ID of the move to check
   /// @return Whether the move is legal
+  bool isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept;
+  /// @brief Overload that computes its own SpaceInfo, for the doMove assert
   bool isLegalMove(int32_t move_id) const noexcept;
   /// @brief Applies the line breakers of a given line
   /// to a bitset of legal moves
@@ -113,14 +136,16 @@ class Game {
   /// All the rows/columns are checked together
   /// as there can only be up to 1 of each type, so we can return early
   /// @return Whether there were any lines
-  bool applyRowColLines(std::bitset<kNumMoves> &legal_moves,
-                        bool isCol) const noexcept;
+  bool applyRowColLines(std::bitset<kNumMoves> &legal_moves, bool isCol,
+                        const SpaceInfo &info) const noexcept;
   /// @brief Applies the long diagonal lines to a bitset of legal moves
   /// @details We can combine the code for the 2 long diagonals
   /// There is also only at most one long diagonal line, so we can return early
-  bool applyLongDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  bool applyLongDiagLines(std::bitset<kNumMoves> &legal_moves,
+                          const SpaceInfo &info) const noexcept;
   /// @brief Applies the short diagonal lines to a bitset of legal moves
-  bool applyShortDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  bool applyShortDiagLines(std::bitset<kNumMoves> &legal_moves,
+                           const SpaceInfo &info) const noexcept;
   /// @brief Finds lines and moves that break all lines.
   /// @details legal_moves is a bitset indicating which moves are legal
   /// based on basic rules See getLegalMoves for more details legal_moves
@@ -128,7 +153,8 @@ class Game {
   /// breaking moves
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there were any lines
-  bool applyLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  bool applyLines(std::bitset<kNumMoves> &legal_moves,
+                  const SpaceInfo &info) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

@@ -50,6 +50,35 @@ identical values — so this harness can also be used to measure position sharin
 from production (observed ~18 turns/game here vs 28.4 in the real run). Use this
 for *relative* engine measurements, never as a prediction of generation time.
 
+## Machine state invalidates cross-session comparisons
+
+An identical build measured **77% slower** forty minutes after its baseline
+(`st_engine_seconds` 4.08 → 7.22). Nothing in the code or the flags had changed:
+the laptop had moved from AC to battery, where `intel_pstate` on `powersave`
+caps turbo hard, and a browser was taking most of a core.
+
+Consequences, which apply to every number in this directory:
+
+- **Records are only comparable when `#ac_power`, `#governor` and `#loadavg`
+  match**, and even then only loosely. `run_suite.sh` records all three.
+- **Absolute timings are not portable across sessions.** Treat
+  `bench/results/*.tsv` timings as valid within their own session and compare
+  counters, which are simulated and unaffected by clock speed, across sessions.
+- **For any A/B where the delta might be under ~20%, use `ab.sh`.**
+
+```
+./ab.sh <labelA> "<flagsA>" <labelB> "<flagsB>" [reps]
+```
+
+It builds both arms once into separate directories and then **alternates runs**
+A,B,A,B,…, so slow drift lands on both arms equally instead of entirely on the
+comparison. It reports each arm's median and spread, and refuses to endorse a
+delta smaller than the worst arm's own spread.
+
+`run_suite.sh` remains the right tool for recording a labelled point in time and
+for the exact counters. `ab.sh` is the right tool for deciding whether one build
+is faster than another.
+
 ## The optimization workflow
 
 Every optimization follows the same loop, so that each commit carries its own

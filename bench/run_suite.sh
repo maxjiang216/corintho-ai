@@ -76,9 +76,27 @@ trap 'rm -rf "$TMP"' EXIT
 COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 if git diff --quiet 2>/dev/null; then DIRTY=no; else DIRTY=yes; fi
 CXXFLAGS_USED="$(grep -m1 '^CXXFLAGS' Makefile | cut -d= -f2- | xargs)"
+# Machine state. A laptop on battery clocks far below the same laptop on AC --
+# measured at 77% slower for an identical build -- and a busy browser steals
+# cores. Neither is visible in the numbers, so both are recorded. Records taken
+# under different conditions here must not be compared; use ab.sh instead.
+AC_ONLINE="$(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -1 || echo unknown)"
+GOVERNOR="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo unknown)"
+LOADAVG="$(cut -d' ' -f1-3 /proc/loadavg)"
+
+# Optional flag override, for A/B testing build flags themselves.
+#   BENCH_CXXFLAGS="-std=c++17 -O3 -fopenmp -DNDEBUG" ./run_suite.sh before-lto
+# When set it is recorded in the header, so the record says what was built.
+if [ -n "${BENCH_CXXFLAGS:-}" ]; then
+  CXXFLAGS_USED="$BENCH_CXXFLAGS (override)"
+  MAKEARGS=(CXXFLAGS="$BENCH_CXXFLAGS" LDFLAGS="-fopenmp")
+else
+  MAKEARGS=()
+fi
 
 echo "building..."
-make -s all
+make -s clean > /dev/null
+make -s all "${MAKEARGS[@]}"
 
 {
   echo -e "#label\t${LABEL}"
@@ -87,6 +105,9 @@ make -s all
   echo -e "#commit\t${COMMIT}"
   echo -e "#dirty\t${DIRTY}"
   echo -e "#cxxflags\t${CXXFLAGS_USED}"
+  echo -e "#ac_power\t${AC_ONLINE}"
+  echo -e "#governor\t${GOVERNOR}"
+  echo -e "#loadavg\t${LOADAVG}"
   echo -e "#config\tpair_games=${PAIR_GAMES} big_games=${BIG_GAMES} searches=${SEARCHES} per_eval=${PER_EVAL} threads=${THREADS} seed=${SEED} corpus=${CORPUS} reps=${REPS}"
 } > "$OUT"
 

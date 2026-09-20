@@ -4,8 +4,26 @@
 #   ./run_suite.sh <label> [suite] [reps]
 #
 #   label   name for the record, e.g. "before-bitboard"
-#   suite   game | engine | all      (default: all)
-#   reps    timed repetitions        (default: 5)
+#   suite   game | engine | counters | all   (default: all)
+#   reps    timed repetitions                (default: 5)
+#
+# Records two kinds of number, which serve different purposes:
+#
+#   TIMED    wall clock from unprofiled runs. This is the only thing that says
+#            whether a change actually made the program faster. It is also
+#            noisy, so it is repeated and reduced to a median, and any delta
+#            inside the run-to-run spread must not be claimed as a result.
+#
+#   EXACT    deterministic counters from simulation: instructions retired,
+#            branch mispredicts, cache misses, allocation counts. These do not
+#            say whether anything got faster -- they say whether the work you
+#            intended to remove actually went away, and by exactly how much.
+#            They have zero variance, so a 2% change is unambiguous where the
+#            same 2% would be invisible in the timings.
+#
+# A good optimization moves both. When they disagree -- fewer instructions but
+# no speedup, or a speedup with no counter change -- that disagreement is the
+# finding, and it belongs in the commit message.
 #
 # Writes results/<label>.tsv. Timed metrics are reported as the median across
 # reps, with min and max, because single runs on this machine vary by a few
@@ -41,6 +59,11 @@ SEED=12345
 # Microbenchmark parameters.
 CORPUS=20000
 MICRO_REPS=50
+
+# Exact-counter parameters. Tiny, because the simulators are 20-100x slower.
+# Same search count as everything else, per the note in profile.sh.
+COUNTER_GAMES=3
+COUNTER_DHAT_GAMES=2
 
 mkdir -p results
 OUT="results/${LABEL}.tsv"
@@ -149,6 +172,36 @@ if st and mt:
     eff = speedup / threads * 100.0
     print(f"parallel_efficiency_pct\t{eff:.4f}\t{eff:.4f}\t{eff:.4f}")
 PY
+fi
+
+if [ "$SUITE" = "counters" ] || [ "$SUITE" = "all" ]; then
+  echo "exact counters (simulated, ~25 s)..."
+
+  valgrind --tool=cachegrind --cache-sim=yes --branch-sim=yes \
+    --cachegrind-out-file="$TMP/c.out" \
+    ./build/selfplay_bench "$COUNTER_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>&1
+  # PROGRAM TOTALS column order, after stripping percentages and commas:
+  #   1=Ir 2=I1mr 3=ILmr 4=Dr 5=D1mr 6=DLmr 7=Dw 8=D1mw 9=DLmw
+  #   10=Bc 11=Bcm 12=Bi 13=Bim
+  cg_annotate --auto=no "$TMP/c.out" 2>/dev/null | grep "PROGRAM TOTALS" \
+    | sed 's/([^)]*)//g' | tr -s ' ' | tr -d ',' \
+    | awk '{
+        printf "exact_instructions\t%s\t%s\t%s\n", $1, $1, $1;
+        printf "exact_d1_read_miss\t%s\t%s\t%s\n", $5, $5, $5;
+        printf "exact_d1_write_miss\t%s\t%s\t%s\n", $8, $8, $8;
+        printf "exact_branches\t%s\t%s\t%s\n", $10, $10, $10;
+        printf "exact_branch_mispredicts\t%s\t%s\t%s\n", $11, $11, $11;
+      }' >> "$OUT"
+
+  valgrind --tool=dhat --dhat-out-file="$TMP/d.out" \
+    ./build/selfplay_bench "$COUNTER_DHAT_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>"$TMP/d.log"
+  grep -Ei "^==[0-9]+== Total:" "$TMP/d.log" | tr -d ',' \
+    | awk '{
+        printf "exact_alloc_bytes\t%s\t%s\t%s\n", $3, $3, $3;
+        printf "exact_alloc_blocks\t%s\t%s\t%s\n", $6, $6, $6;
+      }' >> "$OUT"
 fi
 
 echo "wrote $OUT"

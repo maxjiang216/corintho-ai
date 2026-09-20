@@ -36,6 +36,13 @@ OUT="results/${LABEL}.tsv"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+# Capture provenance BEFORE touching the output file. Re-recording over an
+# existing tracked record would otherwise dirty the tree and make this field
+# permanently report "yes", which would defeat the point of recording it.
+COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+if git diff --quiet 2>/dev/null; then DIRTY=no; else DIRTY=yes; fi
+CXXFLAGS_USED="$(grep -m1 '^CXXFLAGS' Makefile | cut -d= -f2- | xargs)"
+
 echo "building..."
 make -s all
 
@@ -43,9 +50,9 @@ make -s all
   echo -e "#label\t${LABEL}"
   echo -e "#suite\t${SUITE}"
   echo -e "#date\t$(date -Iseconds)"
-  echo -e "#commit\t$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-  echo -e "#dirty\t$(git diff --quiet 2>/dev/null && echo no || echo yes)"
-  echo -e "#cxxflags\t$(grep -m1 '^CXXFLAGS' Makefile | cut -d= -f2- | xargs)"
+  echo -e "#commit\t${COMMIT}"
+  echo -e "#dirty\t${DIRTY}"
+  echo -e "#cxxflags\t${CXXFLAGS_USED}"
   echo -e "#config\tgames=${GAMES} searches=${SEARCHES} per_eval=${PER_EVAL} threads=${THREADS} seed=${SEED} corpus=${CORPUS} reps=${REPS}"
 } > "$OUT"
 

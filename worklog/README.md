@@ -63,6 +63,21 @@ within one date would mean nothing.
   why. Rejections matter as much as adoptions: without them the same tool gets
   re-evaluated every few months.
 
+## `RULES-CHECKLIST.md`
+
+One file at the top of `worklog/`, not inside an epic, because it outlives them. It
+collects every place where the engine's behaviour and the written rules do not
+obviously agree, or where the rules are silent and the engine had to pick something.
+
+The benchmark harness tests the engine against **itself** — `digest_game` and
+`getLegalMovesReference` both ask "does the new code match the old code". That is
+the right question for a refactor and the only one that can be automated. But a
+reference implementation is descriptive, not normative. When a differential test
+fires, the written rules decide which side is wrong, and that decision belongs in
+`RULES-CHECKLIST.md`.
+
+Add to it whenever a behaviour rests on an inference rather than a quotation.
+
 ## Measurements and data
 
 Small artefacts live in the repo and are committed with the change that produced them:

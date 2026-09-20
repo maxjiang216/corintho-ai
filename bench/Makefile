@@ -7,6 +7,7 @@
 #   make micro      game-layer microbenchmarks
 #   make selfplay   end-to-end engine benchmark (stub evaluator)
 #   make golden     behavioural digests (see golden.cpp)
+#   make verify     differential test against the frozen reference
 #   make run        build and run everything at default sizes
 #   make callgrind  instruction-level attribution
 #
@@ -22,14 +23,18 @@ LDFLAGS  := -fopenmp -flto -O3 -march=native
 BUILD := build
 CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
          $(BUILD)/trainmc.o $(BUILD)/selfplayer.o $(BUILD)/trainer.o
+# Built here only; not listed in corintho_ai/python/setup.py, so it never
+# ships in the training module.
+CORE  += $(BUILD)/game_reference.o
 
-.PHONY: all micro selfplay golden run callgrind clean
+.PHONY: all micro selfplay golden verify run callgrind clean
 
-all: micro selfplay golden
+all: micro selfplay golden verify_bin
 
 micro: $(BUILD)/micro_bench
 selfplay: $(BUILD)/selfplay_bench
 golden: $(BUILD)/golden
+verify_bin: $(BUILD)/verify
 
 $(BUILD):
 	@mkdir -p $(BUILD)
@@ -46,6 +51,9 @@ $(BUILD)/selfplay.o: selfplay.cpp bench_util.h | $(BUILD)
 $(BUILD)/golden.o: golden.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
+$(BUILD)/verify.o: verify.cpp bench_util.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+
 $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
@@ -53,6 +61,9 @@ $(BUILD)/selfplay_bench: $(BUILD)/selfplay.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/golden: $(BUILD)/golden.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILD)/verify: $(BUILD)/verify.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 run: all
@@ -67,5 +78,9 @@ callgrind: selfplay
 	  ./$(BUILD)/selfplay_bench 3 400 16 1 > /dev/null 2>&1
 	callgrind_annotate --auto=no cg.out | head -40
 
+# Gate for every optimization: must pass before a stage is committed.
+verify: $(BUILD)/verify
+	@./$(BUILD)/verify
+
 clean:
-	rm -rf $(BUILD) perf.data cg.out
+	rm -rf $(BUILD) build-lines build-a build-b perf.data cg.out

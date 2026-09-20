@@ -34,6 +34,15 @@ class Game {
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there are any "lines" in the current position
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  /// @brief Reference implementation of getLegalMoves, for differential testing
+  /// @details A verbatim copy of the pre-bitboard implementation, with its own
+  /// private copies of every helper so that a bug in a shared helper cannot
+  /// corrupt both sides and hide itself. Defined in game_reference.cpp, which
+  /// is built only by bench/Makefile and does not ship in the training module.
+  /// Delete once the bitboard stages are complete and verified.
+  bool getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const
+      noexcept;
+
   /// @brief Write a representation of the game state to a float array
   /// @param game_state A float array of size kGameStateSize, used for input to
   /// the neural network

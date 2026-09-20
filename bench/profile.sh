@@ -3,10 +3,12 @@
 #
 #   ./profile.sh <label> [tier] [threads]
 #
-#   quick   gprofng, sampling, ~zero overhead, LARGE runs      ~90 s
-#   deep    callgrind + cachegrind, exact, TINY runs           ~15 s
-#   heap    dhat, allocation behaviour, TINY run               ~5 s
-#   all     everything (default)                               ~2 min
+#   quick   gprofng, SINGLE thread, large run     ~35 s   <- default attribution
+#   deep    callgrind + cachegrind, tiny run       ~15 s   exact, function level
+#   lines   callgrind + cachegrind, no LTO         ~20 s   line by line
+#   heap    dhat, tiny run                          ~5 s   allocations
+#   mt      gprofng, many threads, large run       ~30 s   CONTENTION ONLY
+#   all     quick + deep + heap (not mt, not lines)
 #
 # Writes results/profiles/<label>-*.txt
 #
@@ -44,10 +46,30 @@
 #     report near-zero LL misses no matter how bad the real locality is.
 #     Treat cachegrind's D1/DL numbers as a LOWER BOUND on the real problem.
 
+# ---------------------------------------------------------------------------
+# Single thread is the default; multi-thread is opt-in
+# ---------------------------------------------------------------------------
+#
+# Profiling under threads buys nothing for most changes and costs clarity:
+# samples scatter across workers, the scheduler adds noise, and attribution
+# blurs. Almost everything on the roadmap -- move generation, the Node
+# accessors, getFilteredProbs, lround -- is per-thread algorithmic work whose
+# cost is identical on one thread and on fourteen.
+#
+# Profile multi-threaded only when the hypothesis is *about* threading:
+# allocator contention, false sharing, load imbalance, memory bandwidth
+# saturation. In practice that means the arena allocator, the OpenMP schedule,
+# and the vector<bool> race.
+#
+# This is separate from BENCHMARKING, which always measures both. A change can
+# be neutral single-threaded and harmful at fourteen -- extra memory traffic
+# that only saturates under load, for instance. run_suite.sh therefore records
+# st, mt and big every time, regardless of what was profiled.
+
 set -euo pipefail
 cd "$(dirname "$0")"
 
-LABEL="${1:?usage: ./profile.sh <label> [quick|deep|heap|all] [threads]}"
+LABEL="${1:?usage: ./profile.sh <label> [quick|deep|lines|heap|mt|all] [threads]}"
 TIER="${2:-all}"
 THREADS="${3:-14}"
 
@@ -97,6 +119,9 @@ run_quick() {
     gprofng display text -functions -limit 30 "$TMP/st.er" 2>/dev/null
   } > "$OUTDIR/${LABEL}-st.txt"
 
+}
+
+run_mt() {
   echo "gprofng, ${THREADS} threads, ${GAMES_MT} games..."
   rm -rf "$TMP/mt.er"
   gprofng collect app -o "$TMP/mt.er" -p on \
@@ -109,6 +134,44 @@ run_quick() {
     echo
     gprofng display text -functions -limit 30 "$TMP/mt.er" 2>/dev/null
   } > "$OUTDIR/${LABEL}-mt.txt"
+}
+
+# Line-by-line attribution needs a build WITHOUT -flto: LTO collapses the line
+# tables, so cg_annotate can only reach function granularity. Built into a
+# separate directory so the default build is left alone.
+run_lines() {
+  local bdir="build-lines"
+  echo "building ${bdir} (no LTO, -O2, -g)..."
+  make -s all BUILD="$bdir" \
+    CXXFLAGS="-std=c++17 -O2 -DNDEBUG -g -fopenmp -Wall" LDFLAGS="-fopenmp"
+
+  echo "cachegrind line-by-line, ${GAMES_HEAVY} games..."
+  valgrind --tool=cachegrind --cache-sim=yes --branch-sim=yes \
+    --cachegrind-out-file="$TMP/lines.out" \
+    "./$bdir/selfplay_bench" "$GAMES_HEAVY" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>&1
+  {
+    header "cachegrind line-by-line, -O2 without LTO, ${GAMES_HEAVY} games"
+    echo "# Built WITHOUT -flto, which collapses line tables. Inlining therefore"
+    echo "# differs from the production build: use this to find which SOURCE"
+    echo "# LINES are hot, not to measure how fast anything is."
+    echo
+    echo "== branch mispredicts by line =="
+    cg_annotate --auto=yes --show=Bcm "$TMP/lines.out" 2>/dev/null \
+      | awk '/^-- Annotated source file:/ { keep = ($0 ~ /corintho_ai\/cpp\/src\//) } keep'
+  } > "$OUTDIR/${LABEL}-lines.txt"
+
+  echo "callgrind line-by-line, ${GAMES_HEAVY} games..."
+  valgrind --tool=callgrind --callgrind-out-file="$TMP/lines-cg.out" \
+    "./$bdir/selfplay_bench" "$GAMES_HEAVY" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>&1
+  {
+    header "callgrind line-by-line, -O2 without LTO, ${GAMES_HEAVY} games"
+    echo "# Instruction counts per source line."
+    echo
+    callgrind_annotate --auto=yes "$TMP/lines-cg.out" 2>/dev/null \
+      | awk '/^-- Auto-annotated source:/ { keep = ($0 ~ /corintho_ai\/cpp\/src\//) } keep'
+  } > "$OUTDIR/${LABEL}-lines-ir.txt"
 }
 
 run_deep() {
@@ -168,7 +231,9 @@ run_heap() {
 case "$TIER" in
   quick) run_quick ;;
   deep)  run_deep ;;
+  lines) run_lines ;;
   heap)  run_heap ;;
+  mt)    run_mt ;;
   all)   run_quick; run_deep; run_heap ;;
   *)     echo "unknown tier: $TIER" >&2; exit 1 ;;
 esac

@@ -1,0 +1,1610 @@
+# callgrind line-by-line, -O2 without LTO, 3 games
+# label:    baseline
+# commit:   7fbf3e2
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T14:54:42-07:00
+
+# Instruction counts per source line.
+
+-- Auto-annotated source: ../corintho_ai/cpp/src/node.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 6 ----------------------------------------
+         .           #include <ostream>
+         .           
+         .           #include <gsl/gsl>
+         .           
+         .           #include "game.h"
+         .           #include "move.h"
+         .           #include "util.h"
+         .           
+        36 ( 0.00%)  Node::Node() : child_id_{0}, depth_{0} {
+         .             // initializeEdges can throw an exception from new
+         3 ( 0.00%)    initializeEdges();
+    30,306 ( 0.00%)  => ../corintho_ai/cpp/src/node.cpp:Node::initializeEdges() (3x)
+         .           }
+         .           
+   267,260 ( 0.02%)  Node::~Node() {
+   212,178 ( 0.01%)    delete[] edges_;
+     9,601 ( 0.00%)  => ???:0x000000000010a550 (75x)
+   373,818 ( 0.02%)    delete next_sibling_;
+359,220,253 (22.71%)  => ../corintho_ai/cpp/src/node.cpp:Node::~Node()'2 (35,577x)
+ 4,162,153 ( 0.26%)  => ???:0x000000000010a3c0 (35,577x)
+   267,138 ( 0.02%)    delete first_child_;
+13,542,458 ( 0.86%)  => ../corintho_ai/cpp/src/node.cpp:Node::~Node()'2 (73x)
+     8,541 ( 0.00%)  => ???:0x000000000010a3c0 (73x)
+   196,011 ( 0.01%)  }
+         .           
+         9 ( 0.00%)  Node::Node(const Game &game, int32_t depth)
+        81 ( 0.00%)      : game_{game}, child_id_{0}, depth_{gsl::narrow_cast<int8_t>(depth)} {
+         .             // initializeEdges can throw an exception from new
+         9 ( 0.00%)    initializeEdges();
+    86,476 ( 0.01%)  => ../corintho_ai/cpp/src/node.cpp:Node::initializeEdges() (9x)
+         .           }
+         .           
+   267,200 ( 0.02%)  Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
+         .                      int32_t depth)
+   213,760 ( 0.01%)      : game_{game}, parent_{parent}, next_sibling_{next_sibling},
+         .                 child_id_{gsl::narrow_cast<int8_t>(move_id)},
+   427,520 ( 0.03%)        depth_{gsl::narrow_cast<int8_t>(depth)} {
+    53,440 ( 0.00%)    game_.doMove(move_id);
+12,989,810 ( 0.82%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/game.cpp:Game::doMove(int) (53,440x)
+         .             // initializeEdges can throw an exception from new
+   106,880 ( 0.01%)    initializeEdges();
+558,189,827 (35.28%)  => ../corintho_ai/cpp/src/node.cpp:Node::initializeEdges() (53,440x)
+    53,440 ( 0.00%)  }
+         .           
+         6 ( 0.00%)  Game Node::game() const noexcept {
+        12 ( 0.00%)    return game_;
+        15 ( 0.00%)  }
+         .           
+   407,332 ( 0.03%)  Node *Node::parent() const noexcept {
+   407,332 ( 0.03%)    return parent_;
+   407,332 ( 0.03%)  }
+         .           
+ 2,947,941 ( 0.19%)  Node *Node::next_sibling() const noexcept {
+ 2,947,941 ( 0.19%)    return next_sibling_;
+ 2,947,941 ( 0.19%)  }
+         .           
+   229,613 ( 0.01%)  Node *Node::first_child() const noexcept {
+   229,613 ( 0.01%)    return first_child_;
+   229,613 ( 0.01%)  }
+         .           
+ 2,662,153 ( 0.17%)  float Node::evaluation() const noexcept {
+ 2,662,153 ( 0.17%)    return evaluation_;
+ 2,662,153 ( 0.17%)  }
+         .           
+ 5,501,356 ( 0.35%)  int32_t Node::visits() const noexcept {
+ 5,501,356 ( 0.35%)    return visits_;
+ 5,501,356 ( 0.35%)  }
+         .           
+       525 ( 0.00%)  Result Node::result() const noexcept {
+       525 ( 0.00%)    return result_;
+       525 ( 0.00%)  }
+         .           
+ 4,171,961 ( 0.26%)  int32_t Node::child_id() const noexcept {
+ 4,171,961 ( 0.26%)    return child_id_;
+ 4,171,961 ( 0.26%)  }
+         .           
+14,410,756 ( 0.91%)  int32_t Node::num_legal_moves() const noexcept {
+14,410,756 ( 0.91%)    return num_legal_moves_;
+14,410,756 ( 0.91%)  }
+         .           
+    53,508 ( 0.00%)  int32_t Node::depth() const noexcept {
+    53,508 ( 0.00%)    return depth_;
+    53,508 ( 0.00%)  }
+         .           
+ 2,729,057 ( 0.17%)  bool Node::all_visited() const noexcept {
+ 2,729,057 ( 0.17%)    return all_visited_;
+ 2,729,057 ( 0.17%)  }
+         .           
+ 9,491,891 ( 0.60%)  int32_t Node::move_id(int32_t i) const noexcept {
+         .             assert(i < num_legal_moves_);
+37,967,564 ( 2.40%)    return edges_[i].move_id;
+ 9,491,891 ( 0.60%)  }
+         .           
+ 4,595,672 ( 0.29%)  float Node::probability(int32_t i) const noexcept {
+         .             assert(i < num_legal_moves_);
+         .             assert(denominator_ > 0.0);
+36,765,376 ( 2.32%)    return static_cast<float>(edges_[i].probability) * denominator_;
+ 4,595,672 ( 0.29%)  }
+         .           
+   228,753 ( 0.01%)  bool Node::terminal() const noexcept {
+   915,012 ( 0.06%)    return result_ == kResultLoss || result_ == kResultDraw;
+   228,753 ( 0.01%)  }
+         .           
+ 2,948,719 ( 0.19%)  bool Node::known() const noexcept {
+ 5,897,438 ( 0.37%)    return result_ != kResultNone;
+ 2,948,719 ( 0.19%)  }
+         .           
+     2,112 ( 0.00%)  bool Node::won() const noexcept {
+         .             // A terminal position can never be winning for the current player
+     4,224 ( 0.00%)    return result_ == kDeducedWin;
+     2,112 ( 0.00%)  }
+         .           
+     3,426 ( 0.00%)  bool Node::lost() const noexcept {
+    20,556 ( 0.00%)    return result_ == kResultLoss || result_ == kDeducedLoss;
+     3,426 ( 0.00%)  }
+         .           
+ 2,879,024 ( 0.18%)  bool Node::drawn() const noexcept {
+17,274,144 ( 1.09%)    return result_ == kResultDraw || result_ == kDeducedDraw;
+ 2,879,024 ( 0.18%)  }
+         .           
+   106,946 ( 0.01%)  const Game &Node::get_game() const noexcept {
+         .             return game_;
+    53,473 ( 0.00%)  }
+         .           
+    27,220 ( 0.00%)  void Node::set_next_sibling(Node *next_sibling) noexcept {
+    27,220 ( 0.00%)    next_sibling_ = next_sibling;
+    27,220 ( 0.00%)  }
+         .           
+    26,286 ( 0.00%)  void Node::set_first_child(Node *first_child) noexcept {
+    26,286 ( 0.00%)    first_child_ = first_child;
+    26,286 ( 0.00%)  }
+         .           
+    53,440 ( 0.00%)  void Node::set_evaluation(float evaluation) noexcept {
+    53,440 ( 0.00%)    evaluation_ = evaluation;
+    53,440 ( 0.00%)  }
+         .           
+    51,822 ( 0.00%)  void Node::set_denominator(float denominator) noexcept {
+         .             assert(denominator > 0.0);
+    51,822 ( 0.00%)    denominator_ = denominator;
+    51,822 ( 0.00%)  }
+         .           
+         .           void Node::set_visits(int32_t visits) noexcept {
+         .             visits_ = gsl::narrow_cast<int16_t>(visits);
+         .           }
+         .           
+     1,708 ( 0.00%)  void Node::set_result(Result result) noexcept {
+     1,708 ( 0.00%)    result_ = result;
+     1,708 ( 0.00%)  }
+         .           
+   170,696 ( 0.01%)  void Node::set_all_visited(bool all_visited) noexcept {
+   170,696 ( 0.01%)    all_visited_ = all_visited;
+   170,696 ( 0.01%)  }
+         .           
+ 1,364,065 ( 0.09%)  void Node::set_probability(int32_t i, int32_t probability) noexcept {
+         .             assert(i < num_legal_moves_);
+10,912,520 ( 0.69%)    edges_[i].probability = gsl::narrow_cast<uint16_t>(probability);
+ 1,364,065 ( 0.09%)  }
+         .           
+   175,274 ( 0.01%)  void Node::increment_visits() noexcept {
+   175,274 ( 0.01%)    ++visits_;
+   175,274 ( 0.01%)  }
+         .           
+         1 ( 0.00%)  void Node::decrement_visits() noexcept {
+         1 ( 0.00%)    --visits_;
+         1 ( 0.00%)  }
+         .           
+   402,369 ( 0.03%)  void Node::increase_evaluation(float d) noexcept {
+   804,738 ( 0.05%)    evaluation_ += d;
+   402,369 ( 0.03%)  }
+         .           
+         2 ( 0.00%)  void Node::decrease_evaluation(float d) noexcept {
+         3 ( 0.00%)    evaluation_ -= d;
+         1 ( 0.00%)  }
+         .           
+        66 ( 0.00%)  void Node::null_parent() noexcept {
+        66 ( 0.00%)    parent_ = nullptr;
+        66 ( 0.00%)  }
+         .           
+        66 ( 0.00%)  void Node::null_next_sibling() noexcept {
+        66 ( 0.00%)    next_sibling_ = nullptr;
+        66 ( 0.00%)  }
+         .           
+         .           int32_t Node::countNodes() const noexcept {
+         .             int32_t counter = 1;
+         .             Node *cur_child = first_child_;
+         .             while (cur_child != nullptr) {
+         .               counter += cur_child->countNodes();
+         .               cur_child = cur_child->next_sibling_;
+         .             }
+         .             return counter;
+         .           }
+         .           
+         .           bool Node::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+         .             return game_.getLegalMoves(legal_moves);
+         .           }
+         .           
+    51,861 ( 0.00%)  void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
+    51,861 ( 0.00%)    game_.writeGameState(game_state);
+39,259,104 ( 2.48%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/game.cpp:Game::writeGameState(float*) const (51,861x)
+         .           }
+         .           
+         .           void Node::printMainLine(std::ostream *log_file) const {
+         .             Node *cur_child = first_child_;
+         .             Node *best_child = nullptr;
+         .             int32_t max_visits = 0;
+         .             int32_t edge_index = 0;
+         .             float max_eval = 0.0;
+-- line 202 ----------------------------------------
+-- line 248 ----------------------------------------
+         .               while (cur_child != nullptr) {
+         .                 cur_child->printKnownLines(log_file);
+         .                 cur_child = cur_child->next_sibling_;
+         .               }
+         .               *log_file << " ) ";
+         .             }
+         .           }
+         .           
+   481,068 ( 0.03%)  void Node::initializeEdges() {
+   106,904 ( 0.01%)    std::bitset<kNumMoves> legal_moves;
+   160,356 ( 0.01%)    bool is_lines = game_.getLegalMoves(legal_moves);
+478,164,338 (30.23%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/game.cpp:Game::getLegalMoves(std::bitset<96ul>&) const (53,452x)
+    53,452 ( 0.00%)    num_legal_moves_ = legal_moves.count();
+         .             // Terminal node
+   106,904 ( 0.01%)    if (num_legal_moves_ == 0) {
+         .               // Don't set visits to 0. Not sure why we added this.
+         .               // Current player has lost if there are lines
+     4,890 ( 0.00%)      if (is_lines) {
+         .                 result_ = kResultLoss;
+         .                 return;
+         .               }
+         .               // If there are no lines and no legal moves, the game is a draw
+         .               result_ = kResultDraw;
+         .               return;
+         .             }
+         .             // Otherwise, allocate edges for the legal moves
+   414,576 ( 0.03%)    edges_ = new Edge[num_legal_moves_];
+16,476,582 ( 1.04%)  => ???:0x000000000010a390 (51,822x)
+    51,822 ( 0.00%)    int32_t edge_index = 0;
+         .             // Fill the array with legal moves
+15,028,380 ( 0.95%)    for (int32_t i = 0; i < kNumMoves; ++i) {
+ 4,974,912 ( 0.31%)      if (legal_moves[i]) {
+         .                 assert(i < kNumMoves);
+ 2,728,130 ( 0.17%)        edges_[edge_index] = Edge(i, 0);
+ 1,364,065 ( 0.09%)        ++edge_index;
+         .               }
+         .             }
+   427,617 ( 0.03%)  }
+--------------------------------------------------------------------------------
+-- Auto-annotated source: ../corintho_ai/cpp/src/move.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 3 ----------------------------------------
+         .           #include <cassert>
+         .           #include <cstdint>
+         .           
+         .           #include <ostream>
+         .           #include <stdlib.h>
+         .           
+         .           #include "util.h"
+         .           
+ 9,044,698 ( 0.57%)  Move::Move(int32_t id) noexcept
+18,089,396 ( 1.14%)      : move_type_{id >= 48 ? MoveType::kPlace : MoveType::kMove} {
+         .             assert(id >= 0 && id < kNumMoves);
+         .           
+         .             // Place move
+         .             // This is more common
+         .             // So checking it first should be slightly more efficient
+ 4,522,349 ( 0.29%)    if (move_type_ == MoveType::kPlace) {
+ 6,772,713 ( 0.43%)      piece_type_ = (id - 48) / 16;
+13,545,426 ( 0.86%)      space_to_ = {(id % 16) / 4, id % 4};
+ 2,257,571 ( 0.14%)      return;
+         .             }
+         .             // Move move
+ 4,529,556 ( 0.29%)    if (id < 12) {  // Right
+ 8,492,760 ( 0.54%)      space_from_ = {id / 3, id % 3};
+   566,184 ( 0.04%)      space_to_ = {id / 3, id % 3 + 1};
+   566,184 ( 0.04%)      return;
+         .             }
+ 3,397,188 ( 0.21%)    if (id < 24) {  // Down
+ 5,115,978 ( 0.32%)      space_from_ = {(id - 12) / 4, id % 4};
+ 1,136,884 ( 0.07%)      space_to_ = {(id - 12) / 4 + 1, id % 4};
+   568,442 ( 0.04%)      return;
+         .             }
+ 2,260,304 ( 0.14%)    if (id < 36) {  // Left
+12,426,436 ( 0.79%)      space_from_ = {(id - 24) / 3, id % 3 + 1};
+         .               space_to_ = {(id - 24) / 3, id % 3};
+   564,838 ( 0.04%)      return;
+         .             }
+         .             // Up
+ 6,218,454 ( 0.39%)    space_from_ = {(id - 36) / 4 + 1, id % 4};
+         .             space_to_ = {(id - 36) / 4, id % 4};
+   565,314 ( 0.04%)  }
+         .           
+         .           Move::Move(Space space, PieceType piece_type) noexcept
+         .               : move_type_{MoveType::kPlace}, piece_type_{piece_type}, space_to_{space} {
+         .             assert(space.notNull());
+         .             assert(piece_type >= 0 && piece_type < 3);
+         .           }
+         .           
+         .           Move::Move(Space spaceFrom, Space spaceTo) noexcept
+-- line 50 ----------------------------------------
+-- line 78 ----------------------------------------
+         .           }
+         .           
+         .           int32_t encodePlace(Space space, PieceType piece_type) noexcept {
+         .             assert(piece_type >= 0 && piece_type < 3);
+         .             assert(space.notNull());
+         .             return 48 + piece_type * 16 + space.row * 4 + space.col;
+         .           }
+         .           
+    67,745 ( 0.00%)  int32_t encodeMove(Space spaceFrom, Space spaceTo) noexcept {
+         .             assert(spaceFrom.notNull());
+         .             assert(spaceTo.notNull());
+    27,098 ( 0.00%)    if (spaceFrom.col < spaceTo.col) {  // Right
+         .               assert(spaceFrom.row == spaceTo.row);
+         .               assert(spaceFrom.col + 1 == spaceTo.col);
+     4,527 ( 0.00%)      return spaceFrom.row * 3 + spaceFrom.col;
+         .             }
+    24,080 ( 0.00%)    if (spaceFrom.row < spaceTo.row) {  // Down
+         .               assert(spaceFrom.col == spaceTo.col);
+         .               assert(spaceFrom.row + 1 == spaceTo.row);
+     9,866 ( 0.00%)      return 12 + spaceFrom.row * 4 + spaceFrom.col;
+         .             }
+    14,214 ( 0.00%)    if (spaceFrom.col > spaceTo.col) {  // Left
+         .               assert(spaceFrom.row == spaceTo.row);
+         .               assert(spaceFrom.col - 1 == spaceTo.col);
+     3,622 ( 0.00%)      return 24 + spaceFrom.row * 3 + (spaceFrom.col - 1);
+         .             }
+         .             // Up
+         .             assert(spaceFrom.col == spaceTo.col);
+         .             assert(spaceFrom.row - 1 == spaceTo.row);
+     7,107 ( 0.00%)    return 36 + (spaceFrom.row - 1) * 4 + spaceFrom.col;
+     7,107 ( 0.00%)  }
+         .           
+         .           char getColName(int32_t col) {
+         .             switch (col) {
+         .             case 0:
+         .               return 'a';
+         .             case 1:
+         .               return 'b';
+         .             case 2:
+         .               return 'c';
+         .             case 3:
+         .               return 'd';
+         .             default:  // Should never happen
+         .               assert(false);
+         .               return ' ';
+         .             }
+         1 ( 0.00%)  }
+--------------------------------------------------------------------------------
+-- Auto-annotated source: ../corintho_ai/cpp/src/trainmc.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 9 ----------------------------------------
+         .           #include <random>
+         .           #include <vector>
+         .           
+         .           #include <gsl/gsl>
+         .           
+         .           #include "move.h"
+         .           #include "node.h"
+         .           
+        42 ( 0.00%)  TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+         .                            int32_t searches_per_eval, float c_puct, float epsilon,
+         .                            bool testing)
+        12 ( 0.00%)      : max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
+        24 ( 0.00%)        c_puct_{c_puct}, epsilon_{epsilon}, to_eval_{to_eval}, testing_{testing},
+        24 ( 0.00%)        generator_{generator} {
+         .             // We cannot have only 1 search as
+         .             // choosing a move requires having visited at least one child
+         .             assert(max_searches_ > 0);
+         .             assert(searches_per_eval_ > 0);
+         .             assert(c_puct_ > 0.0);
+         .             assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
+         .             assert(generator_ != nullptr);
+         .             // seached_ will only ever need this many elements
+         6 ( 0.00%)    searched_.reserve(searches_per_eval_);
+        36 ( 0.00%)  }
+         .           
+        30 ( 0.00%)  TrainMC::~TrainMC() {
+        18 ( 0.00%)    delete root_;
+        18 ( 0.00%)  }
+         .           
+         .           TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+         .                            int32_t searches_per_eval, float c_puct, float epsilon,
+         .                            int32_t board[4 * kBoardSize], int32_t to_play,
+         .                            int32_t pieces[6])
+         .               : TrainMC{generator, to_eval, max_searches, searches_per_eval,
+         .                         c_puct,    epsilon, true} {
+         .             createRoot(Game{board, to_play, pieces}, 0);
+         .           }
+         .           
+       153 ( 0.00%)  Node *TrainMC::root() const noexcept {
+       153 ( 0.00%)    return root_;
+       153 ( 0.00%)  }
+         .           
+         .           float TrainMC::eval() const noexcept {
+         .             return root_->evaluation();
+         .           }
+         .           
+    14,041 ( 0.00%)  int32_t TrainMC::num_requests() const noexcept {
+         .             return searched_.size();
+    14,041 ( 0.00%)  }
+         .           
+         .           bool TrainMC::no_requests() const noexcept {
+         .             return searched_.size() == 0;
+         .           }
+         .           
+        36 ( 0.00%)  bool TrainMC::uninitialized() const noexcept {
+     3,371 ( 0.00%)    return root_ == nullptr;
+        36 ( 0.00%)  }
+         .           
+         .           int32_t TrainMC::num_nodes() const noexcept {
+         .             if (root_ == nullptr) {
+         .               return 0;
+         .             }
+         .             return root_->countNodes();
+         .           }
+         .           
+-- line 73 ----------------------------------------
+-- line 74 ----------------------------------------
+         .           bool TrainMC::done() const noexcept {
+         .             return root_->terminal();
+         .           }
+         .           
+         .           bool TrainMC::drawn() const noexcept {
+         .             return root_->drawn();
+         .           }
+         .           
+        30 ( 0.00%)  void TrainMC::null_root() noexcept {
+         .             assert(root_ != nullptr);
+        54 ( 0.00%)    delete root_;
+    16,559 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::~Node() (6x)
+       702 ( 0.00%)  => ???:0x000000000010a3c0 (6x)
+        12 ( 0.00%)    root_ = nullptr;
+         .             cur_ = nullptr;
+        24 ( 0.00%)  }
+         .           
+         .           void TrainMC::writeRequests(float *game_states) const noexcept {
+         .             assert(searched_.size() <= searches_per_eval_);
+         .             for (size_t i = 0; i < searched_.size(); ++i) {
+         .               searched_[i]->writeGameState(game_states + i * kGameStateSize);
+         .             }
+         .           }
+         .           
+-- line 95 ----------------------------------------
+-- line 103 ----------------------------------------
+         .                 legal_moves[i] = 1;
+         .               } else {
+         .                 legal_moves[i] = 0;
+         .               }
+         .             }
+         .           }
+         .           
+         .           int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
+       234 ( 0.00%)                              float prob_sample[kNumMoves]) noexcept {
+         .             assert(!uninitialized());
+         .             assert(searched_.size() == 0);
+        78 ( 0.00%)    if (!testing_) {  // Write samples if we are not testing
+         .               // Before moving down, read the samples from the root node
+        78 ( 0.00%)      root_->writeGameState(game_state);
+    29,683 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::writeGameState(float*) const (39x)
+         .               // Clear the probability sample
+         .               // We will write the probabilities when we determine which move to do
+         .               std::memset(prob_sample, 0, kNumMoves * sizeof(float));
+         .             }
+         .             // Winning position. Will choose the first winning move.
+       156 ( 0.00%)    if (root_->won()) {
+       156 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::won() const (39x)
+        15 ( 0.00%)      return chooseMoveWon(prob_sample);
+   639,730 ( 0.04%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseMoveWon(float*) (5x)
+         .             }
+         .             // Losing or drawn position. Will choose the best move with the most
+         .             // searches.
+       264 ( 0.00%)    if (root_->lost() || root_->drawn()) {
+       272 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::lost() const (34x)
+       256 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::drawn() const (32x)
+         6 ( 0.00%)      return chooseMoveLostDrawn(prob_sample);
+     3,830 ( 0.00%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseMoveLostDrawn(float*) (2x)
+         .             }
+         .             // Opening move. Temperature is 1 and avoids choosing losing moves.
+       162 ( 0.00%)    if (root_->depth() < kNumOpeningMoves && !testing_) {
+        96 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::depth() const (32x)
+        81 ( 0.00%)      return chooseMoveOpening(prob_sample);
+ 6,737,948 ( 0.43%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseMoveOpening(float*) (17x)
+         .             }
+         .             // Normal move. Chooses the move with the most searches and avoids choosing
+         .             // losing moves.
+        15 ( 0.00%)    return chooseMoveNormal(prob_sample);
+ 4,079,928 ( 0.26%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseMoveNormal(float*) (15x)
+       117 ( 0.00%)  }
+         .           
+    19,794 ( 0.00%)  bool TrainMC::doIteration(float eval[], float probs[]) {
+         .             assert(to_eval_ != nullptr);
+         .             assert(searches_done_ <= max_searches_);
+         .             // This is the first iteration of a game
+     6,598 ( 0.00%)    if (uninitialized()) {
+         .               // Initialize the Monte Carlo search tree
+        33 ( 0.00%)      root_ = new Node();
+    30,345 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::Node() (3x)
+     2,244 ( 0.00%)  => ???:0x000000000010a4e0 (3x)
+         .               cur_ = root_;
+         .               // "Search" the root node
+         3 ( 0.00%)      searches_done_ = 1;
+         .               // Request an evaluation
+         .               // The result is not deduced at this point
+         9 ( 0.00%)      cur_->writeGameState(to_eval_);
+     2,310 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::writeGameState(float*) const (3x)
+         .               searched_.push_back(cur_);
+         .               assert(searched_.size() <= searches_per_eval_);
+     6,440 ( 0.00%)      return false;
+         .             }
+         .             // This occurs when we receive a new root from the opponent
+         .             // We should ignore the all_visited and not increment visit count
+    16,614 ( 0.00%)    if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
+        33 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::all_visited() const (11x)
+        90 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (30x)
+         3 ( 0.00%)      searches_done_ = 1;
+         .               // We need an evaluation
+         9 ( 0.00%)      cur_->writeGameState(to_eval_);
+     2,304 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::writeGameState(float*) const (3x)
+         .               searched_.push_back(cur_);
+         .               assert(searched_.size() <= searches_per_eval_);
+         .               return false;
+         .             }
+         .             // At the start of a turn, there are no evaluations
+     6,586 ( 0.00%)    if (searched_.size() > 0)
+    13,064 ( 0.00%)      receiveEval(eval, probs);
+342,170,297 (21.63%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::receiveEval(float*, float*) (3,266x)
+   107,032 ( 0.01%)    while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
+   641,646 ( 0.04%)           searches_done_ < max_searches_ && !root_->known() &&
+   213,816 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::known() const (53,454x)
+   106,884 ( 0.01%)           !root_->all_visited()) {
+   160,326 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::all_visited() const (53,442x)
+   106,882 ( 0.01%)      search();
+1,041,648,051 (65.84%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::search() (53,441x)
+         .             }
+         .             // Add a check for the number of requests
+         .             // We should only choose a move if we have received all evaluations
+    39,426 ( 0.00%)    return (searches_done_ == max_searches_ || root_->known()) &&
+    12,916 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::known() const (3,229x)
+         .                    searched_.size() == 0;
+    16,495 ( 0.00%)  }
+         .           
+         .           bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
+       396 ( 0.00%)                                    int32_t depth) {
+        66 ( 0.00%)    Node *cur = root_->first_child();
+        99 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (33x)
+        66 ( 0.00%)    Node *prev = nullptr;
+     1,023 ( 0.00%)    while (cur != nullptr) {
+     1,348 ( 0.00%)      if (cur->child_id() == move_choice) {
+     1,011 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (337x)
+        81 ( 0.00%)        moveDown(prev);
+ 2,171,405 ( 0.14%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::moveDown(Node*) (27x)
+        27 ( 0.00%)        return false;
+         .               }
+         .               prev = cur;
+       930 ( 0.00%)      cur = cur->next_sibling();
+       930 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (310x)
+         .             }
+         .             // Haven't searched this move yet
+         .             // The current tree is not needed
+        54 ( 0.00%)    delete root_;
+    42,555 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::~Node() (6x)
+       702 ( 0.00%)  => ???:0x000000000010a3c0 (6x)
+         .             // Copy opponent game state into our root
+         6 ( 0.00%)    root_ = nullptr;
+         .             createRoot(game, depth);
+         .             // We need an evaluation
+        18 ( 0.00%)    cur_->writeGameState(to_eval_);
+     4,592 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::writeGameState(float*) const (6x)
+         .             searched_.push_back(cur_);
+         .             assert(searched_.size() <= searches_per_eval_);
+         6 ( 0.00%)    searches_done_ = 1;
+         6 ( 0.00%)    return true;
+       264 ( 0.00%)  }
+         .           
+        27 ( 0.00%)  void TrainMC::createRoot(const Game &game, int32_t depth) {
+         .             assert(root_ == nullptr);
+       117 ( 0.00%)    root_ = new Node(game, depth);
+    56,557 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::Node(Game const&, int) (6x)
+     1,609 ( 0.00%)  => ???:0x000000000010a4e0 (6x)
+         .             cur_ = root_;
+        18 ( 0.00%)  }
+         .           
+         .           void TrainMC::getFilteredProbs(float probs[kNumMoves],
+   570,042 ( 0.04%)                                 float filtered_probs[]) const noexcept {
+         .             // Apply the legal move filter
+         .             // Legal moves can be deduced from edges
+    51,822 ( 0.00%)    int32_t edge_index = 0;
+   103,644 ( 0.01%)    float sum = 0.0;
+14,343,084 ( 0.91%)    for (int32_t j = 0; j < kNumMoves; ++j) {
+28,997,100 ( 1.83%)      if (edge_index < cur_->num_legal_moves() &&
+14,498,550 ( 0.92%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (4,832,850x)
+14,498,550 ( 0.92%)          cur_->move_id(edge_index) == j) {
+28,997,100 ( 1.83%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::move_id(int) const (4,832,850x)
+ 4,092,195 ( 0.26%)        filtered_probs[edge_index] = probs[j];
+ 2,728,130 ( 0.17%)        sum += filtered_probs[edge_index];
+ 1,364,065 ( 0.09%)        ++edge_index;
+ 5,456,260 ( 0.34%)        if (edge_index == cur_->num_legal_moves()) {
+ 4,092,195 ( 0.26%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,364,065x)
+         .                   break;
+         .                 }
+         .               }
+         .             }
+         .             // Factoring this out saves division operations
+   570,042 ( 0.04%)    float scalar = 1.0 / sum * (1 - epsilon_);
+ 7,131,257 ( 0.45%)    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+ 4,247,661 ( 0.27%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,415,887x)
+ 4,092,195 ( 0.26%)      filtered_probs[j] *= scalar;
+         .             }
+   362,754 ( 0.02%)  }
+         .           
+   414,576 ( 0.03%)  void TrainMC::generateDirichlet(float dirichlet[]) const noexcept {
+    51,822 ( 0.00%)    float sum = 0.0;
+ 5,767,192 ( 0.36%)    for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
+ 4,247,661 ( 0.27%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,415,887x)
+ 6,872,147 ( 0.43%)      dirichlet[i] = gamma_samples[(*generator_)() % kNumGammaBuckets];
+51,709,402 ( 3.27%)  => /usr/include/c++/13/bits/random.tcc:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() (1,364,065x)
+ 4,092,195 ( 0.26%)      sum += dirichlet[i];
+         .             }
+   518,220 ( 0.03%)    float scalar = 1.0 / sum * epsilon_;
+ 7,131,257 ( 0.45%)    for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
+ 4,247,661 ( 0.27%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,415,887x)
+ 4,092,195 ( 0.26%)      dirichlet[i] *= scalar;
+         .             }
+   310,932 ( 0.02%)  }
+         .           
+   777,330 ( 0.05%)  void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
+         .             // Combine probabilities and Dirichlet noise
+   932,796 ( 0.06%)    float weighted_probs[cur_->num_legal_moves()];
+   155,466 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (51,822x)
+    51,822 ( 0.00%)    float max_prob = 0.0;
+ 5,767,192 ( 0.36%)    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+ 4,247,661 ( 0.27%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,415,887x)
+ 4,092,195 ( 0.26%)      weighted_probs[j] = filtered_probs[j] + dirichlet[j];
+ 4,092,195 ( 0.26%)      max_prob = std::max(weighted_probs[j], max_prob);
+         .             }
+         .             // Scale up probabilities and convert to integers
+   155,466 ( 0.01%)    float denom = Node::kMaxProbability / max_prob;
+    51,822 ( 0.00%)    int32_t final_sum = 0;
+ 7,183,079 ( 0.45%)    for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+ 4,247,661 ( 0.27%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,415,887x)
+         .               // Make all probabilities positive
+         .               int32_t prob = std::max(
+ 6,820,325 ( 0.43%)          1, gsl::narrow_cast<int32_t>(lround(weighted_probs[j] * denom)));
+40,913,810 ( 2.59%)  => ???:0x000000000010a3b0 (1,364,065x)
+ 4,092,195 ( 0.26%)      cur_->set_probability(j, prob);
+13,640,650 ( 0.86%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_probability(int, int) (1,364,065x)
+ 1,364,065 ( 0.09%)      final_sum += prob;
+         .             }
+   310,932 ( 0.02%)    cur_->set_denominator(1.0 / static_cast<float>(final_sum));
+   155,466 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_denominator(float) (51,822x)
+   570,042 ( 0.04%)  }
+         .           
+    48,990 ( 0.00%)  void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
+         .             assert(eval != nullptr);
+         .             assert(probs != nullptr);
+   220,352 ( 0.01%)    for (size_t i = 0; i < searched_.size(); ++i) {
+   103,644 ( 0.01%)      cur_ = searched_[i];
+   829,152 ( 0.05%)      float filtered_probs[cur_->num_legal_moves()];
+   155,466 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (51,822x)
+   207,288 ( 0.01%)      getFilteredProbs(probs + kNumMoves * i, filtered_probs);
+136,196,646 ( 8.61%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::getFilteredProbs(float*, float*) const (51,822x)
+         .               // Generate Dirichlet noise
+   932,796 ( 0.06%)      float dirichlet[cur_->num_legal_moves()];
+   155,466 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (51,822x)
+   207,288 ( 0.01%)      generateDirichlet(dirichlet);
+89,455,260 ( 5.65%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::generateDirichlet(float*) const (51,822x)
+         .               // Set probabilities
+   207,288 ( 0.01%)      setProbs(filtered_probs, dirichlet);
+106,442,495 ( 6.73%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::setProbs(float*, float*) (51,822x)
+         .               // Propagate the evaluation up the tree
+   103,644 ( 0.01%)      float cur_eval = eval[i];
+   761,397 ( 0.05%)      while (cur_->parent() != nullptr) {
+   657,753 ( 0.04%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (219,251x)
+         .                 // Correct default +1 evaluation
+   825,182 ( 0.05%)        cur_->increase_evaluation(cur_eval - 1.0);
+   669,716 ( 0.04%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::increase_evaluation(float) (167,429x)
+         .                 // Reset this marker
+   502,287 ( 0.03%)        cur_->set_all_visited(false);
+   502,287 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_all_visited(bool) (167,429x)
+ 1,172,003 ( 0.07%)        cur_eval *= -1.0;
+   669,716 ( 0.04%)        cur_ = cur_->parent();
+   502,287 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (167,429x)
+         .               }
+         .               // Propagate to the root
+    51,822 ( 0.00%)      cur_->increase_evaluation(cur_eval - 1.0);
+   207,288 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::increase_evaluation(float) (51,822x)
+    51,822 ( 0.00%)    }
+     9,798 ( 0.00%)    root_->set_all_visited(false);
+     9,798 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_all_visited(bool) (3,266x)
+         .             searched_.clear();
+    35,926 ( 0.00%)  }
+         .           
+       224 ( 0.00%)  int32_t TrainMC::chooseHighProbMove() const noexcept {
+        32 ( 0.00%)    int32_t max_prob = 0;
+        32 ( 0.00%)    int32_t choice = 0;
+     5,307 ( 0.00%)    for (int32_t i = 0; i < root_->num_legal_moves(); ++i) {
+     3,165 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (1,055x)
+     8,184 ( 0.00%)      if (root_->probability(i) > max_prob) {
+    10,230 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::probability(int) const (1,023x)
+     4,092 ( 0.00%)        max_prob = root_->probability(i);
+    10,230 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::probability(int) const (1,023x)
+     5,115 ( 0.00%)        choice = root_->move_id(i);
+     6,138 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::move_id(int) const (1,023x)
+         .               }
+         .             }
+         .             return choice;
+       224 ( 0.00%)  }
+         .           
+        40 ( 0.00%)  int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
+        10 ( 0.00%)    Node *cur = root_->first_child();
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (5x)
+        10 ( 0.00%)    Node *prev = nullptr;
+         .             Node *best_prev = nullptr;
+         .             int32_t choice = 0;
+         .             // If the root is a deduced win, find the first winning move
+         .             // There should only ever be 1 winning move, since after it is found,
+         .             // the node is not searched again
+         .             // Temperature is 0 in this case, even in the opening.
+       219 ( 0.00%)    while (cur != nullptr) {
+         .               // Winning moves lead to lost positions
+       224 ( 0.00%)      if (cur->lost()) {
+       448 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::lost() const (56x)
+        66 ( 0.00%)        choice = cur->child_id();
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (5x)
+         .                 best_prev = prev;
+         5 ( 0.00%)        break;
+         .               }
+         .               prev = cur;
+        51 ( 0.00%)      cur = cur->next_sibling();
+       153 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (51x)
+         .             }
+         .             // Set the probability of the winning move to 1
+        10 ( 0.00%)    if (prob_sample != nullptr)
+        10 ( 0.00%)      prob_sample[choice] = 1.0;
+         .             // Move down the tree
+        15 ( 0.00%)    moveDown(best_prev);
+   638,404 ( 0.04%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::moveDown(Node*) (5x)
+         .             return choice;
+        35 ( 0.00%)  }
+         .           
+        20 ( 0.00%)  int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
+         4 ( 0.00%)    int32_t max_visits = 0;
+         4 ( 0.00%)    Node *cur = root_->first_child();
+         6 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (2x)
+         2 ( 0.00%)    Node *prev = nullptr;
+         2 ( 0.00%)    Node *best_prev = nullptr;
+         2 ( 0.00%)    int32_t choice = 0;
+         .             // For losing and drawn positions, find the move with the most searches
+         .             // The most searched line is likely the one with the longest and/or hardest
+         .             // to find win or draw which is practically better. The logic is the same in
+         .             // both cases except we avoid choosing losing moves in a drawn position.
+         .             // Temperature is 0 in this case, even in the opening.
+        19 ( 0.00%)    while (cur != nullptr) {
+        32 ( 0.00%)      if (cur->visits() > max_visits && (root_->lost() || !cur->won())) {
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (5x)
+        24 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::lost() const (3x)
+         9 ( 0.00%)        choice = cur->child_id();
+         9 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (3x)
+         6 ( 0.00%)        best_prev = prev;
+         9 ( 0.00%)        max_visits = cur->visits();
+         9 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (3x)
+         .               }
+         .               prev = cur;
+        12 ( 0.00%)      cur = cur->next_sibling();
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (5x)
+         .             }
+         6 ( 0.00%)    if (prob_sample != nullptr)
+         4 ( 0.00%)      prob_sample[choice] = 1.0;
+         6 ( 0.00%)    moveDown(best_prev);
+     3,597 ( 0.00%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::moveDown(Node*) (2x)
+         .             return choice;
+        18 ( 0.00%)  }
+         .           
+       221 ( 0.00%)  int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
+         .             assert(root_->depth() < kNumOpeningMoves);
+         .             assert(!testing_);
+         .             assert(!root_->known());
+         .             Node *best_prev = nullptr;
+        34 ( 0.00%)    int32_t choice = chooseHighProbMove();
+    36,635 ( 0.00%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseHighProbMove() const (17x)
+         .             // Count the number of visits to non-losing moves
+         .             // Which will be the denominator for the probabilities
+        34 ( 0.00%)    int32_t visits = 0;
+        34 ( 0.00%)    Node *cur = root_->first_child();
+        51 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (17x)
+     1,467 ( 0.00%)    while (cur != nullptr) {
+         .               // Exclude losing moves
+     2,832 ( 0.00%)      if (!cur->won()) {
+     2,832 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::won() const (708x)
+     2,094 ( 0.00%)        visits += cur->visits();
+     2,094 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (698x)
+         .               }
+     2,124 ( 0.00%)      cur = cur->next_sibling();
+     2,124 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (708x)
+         .             }
+        85 ( 0.00%)    float denominator = 1.0 / static_cast<float>(visits);
+        51 ( 0.00%)    cur = root_->first_child();
+        51 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (17x)
+         .             // Write the probability sample
+        34 ( 0.00%)    if (prob_sample != nullptr) {
+     1,450 ( 0.00%)      while (cur != nullptr) {
+         .                 // Exclude losing moves
+     2,832 ( 0.00%)        if (!cur->won()) {
+     2,832 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::won() const (708x)
+     2,792 ( 0.00%)          prob_sample[cur->child_id()] =
+     2,094 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (698x)
+     4,188 ( 0.00%)              static_cast<float>(cur->visits()) * denominator;
+     2,094 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (698x)
+         .                 }
+         .                 best_prev = cur;
+     2,124 ( 0.00%)        cur = cur->next_sibling();
+     2,124 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (708x)
+         .               }
+         .             }
+         .             // 1 search or all losing moves
+        34 ( 0.00%)    if (visits == 0) {
+         .               prob_sample[choice] = 1.0;
+         .               // Reset tree (we likely won't use any of it anyways)
+         .               Node *new_root =
+         .                   new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+         .               delete root_;
+         .               root_ = new_root;
+         .               cur_ = root_;
+         .               searches_done_ = 0;
+         .               return choice;
+         .             }
+         .             // Choose a random move weighted by the number of visits
+       102 ( 0.00%)    int32_t target = (*generator_)() % visits;
+       442 ( 0.00%)  => /usr/include/c++/13/bits/random.tcc:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() (17x)
+        17 ( 0.00%)    int32_t total = 0;
+        51 ( 0.00%)    cur = root_->first_child();
+        51 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (17x)
+       361 ( 0.00%)    best_prev = nullptr;
+       688 ( 0.00%)    while (cur != nullptr) {
+         .               // Exclude losing moves
+     1,376 ( 0.00%)      if (!cur->won()) {
+     1,376 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::won() const (344x)
+     1,026 ( 0.00%)        total += cur->visits();
+     1,026 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (342x)
+       684 ( 0.00%)        if (total > target) {
+        51 ( 0.00%)          choice = cur->child_id();
+        51 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (17x)
+        34 ( 0.00%)          break;
+         .                 }
+         .               }
+         .               best_prev = cur;
+       981 ( 0.00%)      cur = cur->next_sibling();
+       981 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (327x)
+         .             }
+        51 ( 0.00%)    moveDown(best_prev);
+ 6,653,034 ( 0.42%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::moveDown(Node*) (17x)
+         .             return choice;
+       204 ( 0.00%)  }
+         .           
+       195 ( 0.00%)  int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
+         .             assert(!root_->known());
+        30 ( 0.00%)    int32_t max_visits = 0;
+        15 ( 0.00%)    float max_eval = 0.0;
+        45 ( 0.00%)    Node *cur = root_->first_child();
+        45 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (15x)
+        15 ( 0.00%)    Node *prev = nullptr;
+        15 ( 0.00%)    Node *best_prev = nullptr;
+         .             // If there are no children (1 search) or all children are losing moves,
+         .             // choose based on probabilities
+        45 ( 0.00%)    int32_t choice = chooseHighProbMove();
+    16,338 ( 0.00%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseHighProbMove() const (15x)
+         .             // Choose the move with the most searches.
+         .             // Break ties with evaluation.
+         .             // We never choose losing moves and treat draws as having evaluation 0.
+       954 ( 0.00%)    while (cur != nullptr) {
+     1,252 ( 0.00%)      if (!cur->won()) {
+     1,252 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::won() const (313x)
+       783 ( 0.00%)        float eval = cur->evaluation();
+       783 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::evaluation() const (261x)
+     2,088 ( 0.00%)        if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
+     1,566 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::result() const (522x)
+         .                   eval = 0.0;
+         .                 }
+     1,474 ( 0.00%)        if (cur->visits() > max_visits ||
+       783 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (261x)
+       436 ( 0.00%)            (cur->visits() == max_visits && eval > max_eval)) {
+       645 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (215x)
+       138 ( 0.00%)          choice = cur->child_id();
+       138 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (46x)
+        92 ( 0.00%)          best_prev = prev;
+       138 ( 0.00%)          max_visits = cur->visits();
+       138 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (46x)
+        92 ( 0.00%)          max_eval = eval;
+         .                 }
+         .               }
+         .               prev = cur;
+       893 ( 0.00%)      cur = cur->next_sibling();
+       939 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (313x)
+         .             }
+        45 ( 0.00%)    if (prob_sample != nullptr)
+        30 ( 0.00%)      prob_sample[choice] = 1.0;
+         .             // 1 search or all losing moves
+        30 ( 0.00%)    if (max_visits == 0) {
+         .               // Reset tree (we likely won't use any of it anyways)
+         .               Node *new_root =
+         .                   new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+         .               delete root_;
+         .               root_ = new_root;
+         .               cur_ = root_;
+         .               searches_done_ = 0;
+         .               return choice;
+         .             }
+         .           
+        45 ( 0.00%)    moveDown(best_prev);
+ 4,048,271 ( 0.26%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::moveDown(Node*) (15x)
+         .             return choice;
+       180 ( 0.00%)  }
+         .           
+       396 ( 0.00%)  void TrainMC::moveDown(Node *prev) noexcept {
+         .             // Extricate the node we want
+         .             Node *new_root;
+         .             // Chosen node is first child
+       132 ( 0.00%)    if (prev == nullptr) {
+        15 ( 0.00%)      new_root = root_->first_child();
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (5x)
+        35 ( 0.00%)      root_->set_first_child(new_root->next_sibling());
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (5x)
+        15 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_first_child(Node*) (5x)
+         .             } else {
+       244 ( 0.00%)      new_root = prev->next_sibling();
+       183 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (61x)
+       371 ( 0.00%)      prev->set_next_sibling(new_root->next_sibling());
+       183 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (61x)
+       183 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_next_sibling(Node*) (61x)
+         .             }
+         .             // Remove new root from the tree
+         .             // So that it is not deleted with the old root
+       264 ( 0.00%)    new_root->null_next_sibling();
+       198 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::null_next_sibling() (66x)
+       132 ( 0.00%)    new_root->null_parent();
+       198 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::null_parent() (66x)
+       594 ( 0.00%)    delete root_;
+13,503,330 ( 0.85%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::~Node() (66x)
+     7,680 ( 0.00%)  => ???:0x000000000010a3c0 (66x)
+       132 ( 0.00%)    root_ = new_root;
+         .             cur_ = root_;
+        66 ( 0.00%)    searches_done_ = 0;
+         .             assert(searched_.size() == 0);
+       330 ( 0.00%)  }
+         .           
+    13,040 ( 0.00%)  void TrainMC::propagateTerminal() noexcept {
+         .             // We can only deduce more results from new terminal nodes
+         .             assert(cur_->terminal());
+     1,630 ( 0.00%)    Node *cur = cur_;
+     8,306 ( 0.00%)    while (cur != root_) {
+         .               // We only need one loss to deduce a win
+    16,665 ( 0.00%)      if (cur->lost()) {
+    26,664 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::lost() const (3,333x)
+     6,667 ( 0.00%)        cur = cur->parent();
+     5,001 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (1,667x)
+     5,001 ( 0.00%)        cur->set_result(kDeducedWin);
+     5,001 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_result(signed char) (1,667x)
+         .               } else {
+     3,332 ( 0.00%)        cur = cur->parent();
+     4,998 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (1,666x)
+     4,998 ( 0.00%)        Node *cur_child = cur->first_child();
+     4,998 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (1,666x)
+         .                 // Position has a drawing move
+         .                 bool has_draw = false;
+     3,332 ( 0.00%)        int32_t edge_index = 0;
+     4,262 ( 0.00%)        while (cur_child != nullptr) {
+         .                   // If there is an unknown or unvisited move, we can deduce no further
+    19,344 ( 0.00%)          if (cur_child->child_id() != cur->move_id(edge_index) ||
+    12,426 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::move_id(int) const (2,071x)
+     6,213 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (2,071x)
+     2,776 ( 0.00%)              !cur_child->known()) {
+     5,552 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::known() const (1,388x)
+         .                     return;
+         .                   }
+       930 ( 0.00%)          if (cur->drawn()) {
+     3,720 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::drawn() const (465x)
+       930 ( 0.00%)            has_draw = true;
+         .                   }
+     1,395 ( 0.00%)          cur_child = cur_child->next_sibling();
+     1,395 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (465x)
+       465 ( 0.00%)          ++edge_index;
+         .                 }
+         .                 // There are unvisited moves after the last visited move
+       240 ( 0.00%)        if (edge_index < cur->num_legal_moves())
+       180 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (60x)
+         .                   return;
+         .                 // No winning or unknown moves
+         .                 // If there are any drawing moves, the position is a draw
+        82 ( 0.00%)        if (has_draw) {
+         .                   cur->set_result(kDeducedDraw);
+         .                 }
+         .                 // Otherwise, there are only losing moves, so the position is a loss
+         .                 else {
+       164 ( 0.00%)          cur->set_result(kDeducedLoss);
+       123 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_result(signed char) (41x)
+         .                 }
+         .               }
+         .             }
+    13,040 ( 0.00%)  }
+         .           
+ 1,577,466 ( 0.10%)  TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
+   350,548 ( 0.02%)    float max_eval = kNegInf;
+   175,274 ( 0.01%)    int32_t choice = 0;
+   525,822 ( 0.03%)    Node *cur_child = cur_->first_child();
+   525,822 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (175,274x)
+   175,274 ( 0.01%)    int32_t edge_index = 0;
+         .             // Keep track of previous node to insert into linked list
+   175,274 ( 0.01%)    Node *prev = nullptr;
+   175,274 ( 0.01%)    Node *best_prev = nullptr;
+         .             // Factor this value out, as it is expense to compute
+ 2,804,384 ( 0.18%)    float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+   525,822 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (175,274x)
+14,081,808 ( 0.89%)    while (cur_child != nullptr || edge_index < cur_->num_legal_moves()) {
+ 2,933,475 ( 0.19%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::num_legal_moves() const (977,825x)
+         .               float u = kNegInf;
+         .               // This node has already been visited
+ 8,039,584 ( 0.51%)      if (cur_child != nullptr &&
+24,118,752 ( 1.52%)          cur_child->child_id() == cur_->move_id(edge_index)) {
+24,118,752 ( 1.52%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::move_id(int) const (4,019,792x)
+12,059,376 ( 0.76%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (4,019,792x)
+         .                 // Don't all_visited nodes or won or lost positions
+         .                 // We search draws since the number of searches they have
+         .                 // makes a difference in choose_move
+         .                 // as they are not automatically chosen or excluded
+17,773,664 ( 1.12%)        if ((!cur_child->known() || cur_child->drawn()) &&
+ 1,720,040 ( 0.11%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::drawn() const (215,005x)
+11,562,436 ( 0.73%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::known() const (2,890,609x)
+ 5,351,208 ( 0.34%)            !cur_child->all_visited()) {
+ 8,026,812 ( 0.51%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::all_visited() const (2,675,604x)
+         .                   // Known draw, use evaluation 0
+10,661,280 ( 0.67%)          if (cur_child->drawn()) {
+21,295,136 ( 1.35%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::drawn() const (2,661,892x)
+         .                     u = cur_->probability(edge_index) * v_sqrt;
+         .                   } else {
+26,618,920 ( 1.68%)            u = -1.0 * cur_child->evaluation() /
+ 7,985,676 ( 0.50%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::evaluation() const (2,661,892x)
+15,971,352 ( 1.01%)                    static_cast<float>(cur_child->visits()) +
+ 7,985,676 ( 0.50%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (2,661,892x)
+21,295,136 ( 1.35%)                cur_->probability(edge_index) * v_sqrt /
+26,618,920 ( 1.68%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::probability(int) const (2,661,892x)
+15,971,352 ( 1.01%)                    (static_cast<float>(cur_child->visits()) + 1.0);
+ 7,985,676 ( 0.50%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::visits() const (2,661,892x)
+         .                   }
+         .                 }
+ 2,890,609 ( 0.18%)        prev = cur_child;
+16,872,508 ( 1.07%)        cur_child = cur_child->next_sibling();
+ 8,671,827 ( 0.55%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (2,890,609x)
+         .                 // This node has not been visited, ignore the evaluation term in the
+         .                 // UCB formula This is essentially using a default evaluation of 0
+         .                 // (but we avoid division by 0)
+         .               } else {
+ 7,726,936 ( 0.49%)        u = cur_->probability(edge_index) * v_sqrt;
+19,317,340 ( 1.22%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::probability(int) const (1,931,734x)
+         .               }
+ 9,187,252 ( 0.58%)      if (u > max_eval) {
+         .                 // If the node has not been visited, prev is the previous node
+         .                 // and can be used to insert the new node
+         .                 // otherwise it is the current node, but if this is the best node,
+         .                 // best_prev is not needed since we don't insert
+   636,155 ( 0.04%)        best_prev = prev;
+         .                 max_eval = u;
+ 3,180,775 ( 0.20%)        choice = cur_->move_id(edge_index);
+ 3,816,930 ( 0.24%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::move_id(int) const (636,155x)
+         .               }
+ 4,822,343 ( 0.30%)      ++edge_index;
+         .             }
+         .             // No possible moves
+   701,098 ( 0.04%)    if (max_eval == kNegInf) {
+   525,822 ( 0.03%)      return ChooseNextOutput{ChooseNextOutput::Type::kNone, -1, nullptr};
+         .             }
+         .             // New node
+ 1,121,787 ( 0.07%)    if (best_prev == nullptr || best_prev->child_id() != choice) {
+   446,976 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::child_id() const (148,992x)
+   525,819 ( 0.03%)      return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, best_prev};
+         .             }
+         .             // Existing node
+         .             return ChooseNextOutput{ChooseNextOutput::Type::kVisited, choice, best_prev};
+ 1,577,466 ( 0.10%)  }
+         .           
+   480,969 ( 0.03%)  void TrainMC::search() {
+         .             // I feel that this should be the case anyways
+         .             // but it is sometimes not, so we set it here.
+         .             // It's insignificant and too hard to debug
+   106,882 ( 0.01%)    cur_ = root_;
+    53,441 ( 0.00%)    ++searches_done_;
+   754,537 ( 0.05%)    while (!cur_->terminal()) {
+ 1,051,644 ( 0.07%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::terminal() const (175,274x)
+         .               // Choose the next node to move down to
+ 1,226,918 ( 0.08%)      ChooseNextOutput res = chooseNext();
+381,207,634 (24.10%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::chooseNext() (175,274x)
+   350,548 ( 0.02%)      cur_->increment_visits();
+   525,822 ( 0.03%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::increment_visits() (175,274x)
+         .               // We use a default evaluation of 1.0 before we have a neural net
+         .               // evaluation This helps diversify the searches. In particular, the second
+         .               // player has a large advantage in Corintho, so most positions the first
+         .               // player plays has only losing moves. In such a position, a move getting
+         .               // a 0.0 evaluation search will improve its evaluation and will very
+         .               // likely be searched again before neural net evaluations are received.
+         .               // This drastically decreases the effective number of searches. Most
+         .               // pessimistically, with 1600 searches and 16 searches per evaluation, we
+         .               // effectively get 100 searches. Change the default value from 0.0 to 1.0
+         .               // empirically drastically improved improvement rate. Note that every node
+         .               // visited gets this default, as opposed to a leaf node getting it and
+         .               // having it propagate the normal way. This ensures that visited nodes are
+         .               // maximally unlikely to get visited again.
+   525,822 ( 0.03%)      cur_->increase_evaluation(1.0);
+   701,096 ( 0.04%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::increase_evaluation(float) (175,274x)
+         .               // If no nodes were searched, this means all nodes are all_visited
+         .               // or won or lost positions
+         .               // This node is then all_visited
+   350,548 ( 0.02%)      if (res.type == ChooseNextOutput::Type::kNone) {
+         3 ( 0.00%)        cur_->set_all_visited();
+         3 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_all_visited(bool) (1x)
+         .                 // Since no search was done
+         .                 // We need to undo the visit count and default 1.0 evaluation
+         5 ( 0.00%)        while (cur_->parent() != nullptr) {
+         3 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (1x)
+         1 ( 0.00%)          cur_->decrement_visits();
+         .                   cur_->decrease_evaluation(1.0);
+         .                   cur_ = cur_->parent();
+         .                 }
+         .                 // Remove search from root
+         1 ( 0.00%)        cur_->decrement_visits();
+         3 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::decrement_visits() (1x)
+         3 ( 0.00%)        cur_->decrease_evaluation(1.0);
+         6 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::decrease_evaluation(float) (1x)
+         1 ( 0.00%)        --searches_done_;
+         .                 return;
+         .               }
+         .               // New node at the beginning of the list
+   457,426 ( 0.03%)      if (res.type == ChooseNextOutput::Type::kNew && res.node == nullptr) {
+   105,124 ( 0.01%)        cur_->set_first_child(new Node(cur_->get_game(), cur_,
+    78,843 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_first_child(Node*) (26,281x)
+         .                                                cur_->first_child(), res.choice,
+   551,901 ( 0.03%)                                       cur_->depth() + 1));
+280,045,637 (17.70%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::Node(Game const&, Node*, Node*, int, int) (26,281x)
+18,269,425 ( 1.15%)  => ???:0x000000000010a4e0 (26,281x)
+    78,843 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::get_game() const (26,281x)
+    78,843 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::depth() const (26,281x)
+    78,843 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (26,281x)
+   105,124 ( 0.01%)        cur_ = cur_->first_child();
+    78,843 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::first_child() const (26,281x)
+    26,281 ( 0.00%)        break;
+         .               }
+         .               // New node somewhere else in the list
+         .               if (res.type == ChooseNextOutput::Type::kNew) {
+    81,477 ( 0.01%)        res.node->set_next_sibling(new Node(cur_->get_game(), cur_,
+    81,477 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_next_sibling(Node*) (27,159x)
+         .                                                     res.node->next_sibling(), res.choice,
+   570,339 ( 0.04%)                                            cur_->depth() + 1));
+292,363,120 (18.48%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::Node(Game const&, Node*, Node*, int, int) (27,159x)
+18,874,075 ( 1.19%)  => ???:0x000000000010a4e0 (27,159x)
+    81,477 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (27,159x)
+    81,477 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::get_game() const (27,159x)
+    81,477 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::depth() const (27,159x)
+   108,636 ( 0.01%)        cur_ = res.node->next_sibling();
+    81,477 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::next_sibling() const (27,159x)
+         .                 break;
+         .               }
+         .               // Existing node, continue searching
+   121,833 ( 0.01%)      cur_ = res.node;
+         .             }
+         .             // Terminal node
+         .             // This is usually a new node
+         .             // But may be a drawn node that has been searched before
+   160,320 ( 0.01%)    if (cur_->terminal()) {
+   320,640 ( 0.02%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::terminal() const (53,440x)
+         .               // Propagate the result
+     3,260 ( 0.00%)      propagateTerminal();
+   182,870 ( 0.01%)  => ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::propagateTerminal() (1,630x)
+         .               // In a decisive terminal state, the person to play is always the loser
+         .               // Otherwise the evaluation is 0.0 for a draw.
+     3,256 ( 0.00%)      float cur_eval = -1.0;
+     6,520 ( 0.00%)      if (cur_->drawn()) {
+    13,040 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::drawn() const (1,630x)
+     1,630 ( 0.00%)        cur_eval = 0.0;
+         .               }
+     4,890 ( 0.00%)      cur_->set_evaluation(cur_eval);
+     4,890 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_evaluation(float) (1,630x)
+    41,156 ( 0.00%)      while (cur_->parent() != nullptr) {
+    28,422 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (9,474x)
+    31,376 ( 0.00%)        cur_ = cur_->parent();
+    23,532 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::parent() const (7,844x)
+         .                 // Correct default +1.0 evaluation
+    23,532 ( 0.00%)        cur_->increase_evaluation(cur_eval - 1.0);
+    31,376 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::increase_evaluation(float) (7,844x)
+    54,908 ( 0.00%)        cur_eval *= -1.0;
+         .               }
+         .             }
+         .             // Otherwise, request an evaluation for the new node
+         .             else {
+         .               // Default +1 evaluation for new node
+   155,430 ( 0.01%)      cur_->set_evaluation(1.0);
+   155,430 ( 0.01%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::set_evaluation(float) (51,810x)
+         .               // Write game in correct position
+   207,240 ( 0.01%)      cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
+39,323,937 ( 2.49%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp:Node::writeGameState(float*) const (51,810x)
+         .               // Record the node in searched_
+         .               searched_.push_back(cur_);
+         .               assert(searched_.size() <= searches_per_eval_);
+         .             }
+         .             // Reset cur for next search
+         .             // Try not doing this?
+   106,880 ( 0.01%)    cur_ = root_;
+   427,529 ( 0.03%)  }
+--------------------------------------------------------------------------------
+-- Auto-annotated source: ../corintho_ai/cpp/src/game.cpp
+--------------------------------------------------------------------------------
+Ir                  
+
+-- line 20 ----------------------------------------
+         .               board_[i] = board[i] != 0;
+         .             }
+         .             for (int32_t i = 0; i < 6; ++i) {
+         .               assert(pieces[i] >= 0 && pieces[i] <= 4);
+         .               pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
+         .             }
+         .           }
+         .           
+   694,876 ( 0.04%)  bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+         .             // First set all moves to legal
+         .             legal_moves.set();
+         .             // Filter out moves that don't break lines
+   160,356 ( 0.01%)    bool is_lines = applyLines(legal_moves);
+57,148,634 ( 3.61%)  => ../corintho_ai/cpp/src/game.cpp:Game::applyLines(std::bitset<96ul>&) const (53,452x)
+         .             // Apply other rules
+15,455,437 ( 0.98%)    for (int32_t i = 0; i < kNumMoves; ++i) {
+14,069,210 ( 0.89%)      if (legal_moves[i] && !isLegalMove(i)) {
+         .                 legal_moves[i] = false;
+         .               }
+         .             }
+         .             // If there are no legal moves
+         .             // the game is over and
+         .             // the result is determined by if there are any lines
+         .             return is_lines;
+   641,424 ( 0.04%)  }
+         .           
+   155,583 ( 0.01%)  void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
+10,061,034 ( 0.64%)    for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
+12,758,133 ( 0.81%)      if (board_[i]) {
+ 3,319,104 ( 0.21%)        game_state[i] = 1.0;
+         .               } else {
+         .                 game_state[i] = 0.0;
+         .               }
+         .             }
+         .             // Canonize the pieces
+   933,498 ( 0.06%)    for (int32_t i = 0; i < 6; ++i) {
+   311,166 ( 0.02%)      game_state[4 * kBoardSize + i] =
+ 4,823,073 ( 0.30%)          static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
+         .             }
+    51,861 ( 0.00%)  }
+         .           
+   534,400 ( 0.03%)  void Game::doMove(int32_t move_id) noexcept {
+         .             assert(move_id >= 0 && move_id < kNumMoves);
+         .             // This is not a conclusive check (doesn't factor in lines) but has some use
+         .             // for debugging
+         .             assert(isLegalMove(move_id));
+   160,320 ( 0.01%)    Move move{move_id};
+ 1,072,318 ( 0.07%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:Move::Move(int) (53,440x)
+         .             // Reset the frozen space
+   694,720 ( 0.04%)    for (int32_t row = 0; row < 4; ++row) {
+ 2,778,880 ( 0.18%)      for (int32_t col = 0; col < 4; ++col) {
+         .                 set_frozen(Space{row, col}, false);
+         .               }
+         .             }
+         .             // Place move
+   213,760 ( 0.01%)    if (move.move_type() == Move::MoveType::kPlace) {
+         .               // Use a piece
+   293,570 ( 0.02%)      --pieces_[to_play_ * 3 + move.piece_type()];
+         .               // Place the piece
+   192,104 ( 0.01%)      set_board(move.space_to(), move.piece_type());
+   816,442 ( 0.05%)  => ../corintho_ai/cpp/src/game.cpp:Game::set_board(Space, int, bool) (48,026x)
+         .               // Freeze the space
+   144,078 ( 0.01%)      set_frozen(move.space_to());
+   816,442 ( 0.05%)  => ../corintho_ai/cpp/src/game.cpp:Game::set_frozen(Space, bool) (48,026x)
+         .             }
+         .             // Move move
+         .             else {
+    64,968 ( 0.00%)      for (PieceType piece_type : kPieceTypes) {  // For each piece type
+         .                 // Add the piece to the new space
+    64,968 ( 0.00%)        set_board(move.space_to(), piece_type,
+   276,114 ( 0.02%)  => ../corintho_ai/cpp/src/game.cpp:Game::set_board(Space, int, bool) (16,242x)
+    64,968 ( 0.00%)                  board(move.space_from(), piece_type) ||
+         .                               board(move.space_to(), piece_type));
+         .                 // Remove the piece from the old space
+    64,968 ( 0.00%)        set_board(move.space_from(), piece_type, false);
+   276,114 ( 0.02%)  => ../corintho_ai/cpp/src/game.cpp:Game::set_board(Space, int, bool) (16,242x)
+         .               }
+         .               // Freeze the new space
+    16,242 ( 0.00%)      set_frozen(move.space_to(), true);
+    92,038 ( 0.01%)  => ../corintho_ai/cpp/src/game.cpp:Game::set_frozen(Space, bool) (5,414x)
+         .             }
+         .             // Switch player
+   160,320 ( 0.01%)    to_play_ = 1 - to_play_;
+   480,960 ( 0.03%)  }
+         .           
+         .           std::ostream &operator<<(std::ostream &os, const Game &game) {
+         .             // Print board
+         .             for (int32_t row = 0; row < 4; ++row) {
+         .               for (int32_t col = 0; col < 4; ++col) {
+         .                 if (game.board(Space{row, col}, kBase))
+         .                   os << 'B';
+         .                 else
+-- line 104 ----------------------------------------
+-- line 136 ----------------------------------------
+         .             }
+         .             os << "Player " << game.to_play_ + 1 << " to play";
+         .             return os;
+         .           }
+         .           
+         .           bool Game::board(Space space, PieceType piece_type) const noexcept {
+         .             assert(space.notNull());
+         .             assert(piece_type >= 0 && piece_type < 3);
+42,001,004 ( 2.65%)    return board_[space.row * 16 + space.col * 4 + piece_type];
+         .           }
+         .           
+         .           bool Game::frozen(Space space) const noexcept {
+         .             assert(space.notNull());
+12,305,193 ( 0.78%)    return board_[space.row * 16 + space.col * 4 + kFrozen];
+         .           }
+         .           
+ 5,426,762 ( 0.34%)  bool Game::empty(Space space) const noexcept {
+         .             assert(space.notNull());
+21,707,048 ( 1.37%)    return !(board(space, kBase) || board(space, kColumn) ||
+         .                      board(space, kCapital));
+ 5,426,762 ( 0.34%)  }
+         .           
+         .           int32_t Game::top(Space space) const noexcept {
+         .             assert(space.notNull());
+         .             // Since it matters the order we check the pieces in
+         .             // We don't use a range based for loop
+ 4,064,030 ( 0.26%)    for (PieceType piece_type = 2; piece_type >= 0; --piece_type) {
+14,703,372 ( 0.93%)      if (board(space, piece_type))
+ 1,157,932 ( 0.07%)        return piece_type;
+         .             }
+         .             // Empty space
+   260,468 ( 0.02%)    return -1;
+         .           }
+         .           
+         .           int32_t Game::bottom(Space space) const noexcept {
+         .             assert(space.notNull());
+         .             // Since it matters the order we check the pieces in
+         .             // We don't use a range based for loop
+   734,874 ( 0.05%)    for (PieceType piece_type = 0; piece_type < 3; ++piece_type) {
+ 1,506,626 ( 0.10%)      if (board(space, piece_type))
+   495,418 ( 0.03%)        return piece_type;
+         .             }
+         .             // Empty space
+         .             return 3;
+         .           }
+         .           
+   161,020 ( 0.01%)  void Game::set_board(Space space, PieceType piece_type, bool state) noexcept {
+         .             assert(space.notNull());
+         .             assert(piece_type >= 0 && piece_type < 3);
+   322,040 ( 0.02%)    board_[space.row * 16 + space.col * 4 + piece_type] = state;
+    80,510 ( 0.01%)  }
+         .           
+   106,880 ( 0.01%)  void Game::set_frozen(Space space, bool state) noexcept {
+         .             assert(space.notNull());
+   213,760 ( 0.01%)    board_[space.row * 16 + space.col * 4 + kFrozen] = state;
+    53,440 ( 0.00%)  }
+         .           
+ 2,209,545 ( 0.14%)  bool Game::canPlace(const Move &move) const noexcept {
+         .             assert(move.move_type() == Move::MoveType::kPlace);
+         .             // Check if player has the piece left
+13,257,270 ( 0.84%)    if (pieces_[to_play_ * 3 + move.piece_type()] == 0)
+ 1,353,484 ( 0.09%)      return false;
+         .             // Check if the space is empty
+         .             // This is more common than frozen spaces, so we check it first
+         .             // An empty space cannot be frozen
+ 6,131,085 ( 0.39%)    if (empty(move.space_to()))
+32,699,120 ( 2.07%)  => ../corintho_ai/cpp/src/game.cpp:Game::empty(Space) const (2,043,695x)
+   198,434 ( 0.01%)      return true;
+         .             // Check if the space is frozen
+         .             if (frozen(move.space_to()))
+         .               return false;
+         .             // Bases can only be placed on empty spaces
+ 4,452,785 ( 0.28%)    if (move.piece_type() == kBase)
+         .               return false;
+         .             // Place a column
+         .             // Check for absence of a column or a capital
+ 1,076,548 ( 0.07%)    if (move.piece_type() == kColumn) {
+   932,748 ( 0.06%)      return !(board(move.space_to(), kColumn) ||
+         .                        board(move.space_to(), kCapital));
+         .             }
+         .             // Place a capital
+         .             // Check for absence of a base without a column or a capital
+ 1,007,042 ( 0.06%)    return !(
+         .                 board(move.space_to(), kCapital) ||
+   220,312 ( 0.01%)        (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
+ 1,299,616 ( 0.08%)  }
+         .           
+ 6,778,092 ( 0.43%)  bool Game::canMove(const Move &move) const noexcept {
+         .             assert(move.move_type() == Move::MoveType::kMove);
+         .             // If either space is empty, move moves are not possible
+10,149,201 ( 0.64%)    if (empty(move.space_from()) || empty(move.space_to()))
+54,129,072 ( 3.42%)  => ../corintho_ai/cpp/src/game.cpp:Game::empty(Space) const (3,383,067x)
+ 3,517,706 ( 0.22%)      return false;
+         .             // If either space is frozen, move moves are not possible
+ 1,898,157 ( 0.12%)    if (frozen(move.space_from()) || frozen(move.space_to()))
+         .               return false;
+         .             // The bottom of the first stack must go on the top of the second
+ 1,501,533 ( 0.09%)    return bottom(move.space_from()) - top(move.space_to()) == 1;
+   500,511 ( 0.03%)  }
+         .           
+         .           bool Game::isLegalMove(int32_t move_id) const noexcept {
+         .             assert(move_id >= 0 && move_id < kNumMoves);
+13,406,727 ( 0.85%)    Move move{move_id};
+108,613,055 ( 6.87%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:Move::Move(int) (4,468,909x)
+         .             // Place move
+13,406,727 ( 0.85%)    if (move.move_type() == Move::MoveType::kPlace)
+11,147,363 ( 0.70%)      return canPlace(move);
+80,155,580 ( 5.07%)  => ../corintho_ai/cpp/src/game.cpp:Game::canPlace(Move const&) const (2,209,545x)
+         .             // Move move
+ 4,518,728 ( 0.29%)    return canMove(move);
+106,193,649 ( 6.71%)  => ../corintho_ai/cpp/src/game.cpp:Game::canMove(Move const&) const (2,259,364x)
+         .           }
+         .           
+         .           void Game::applyLine(int32_t line,
+         .                                std::bitset<kNumMoves> &legal_moves) const noexcept {
+     8,069 ( 0.00%)    legal_moves &= line_breakers[line];
+         .           }
+         .           
+         .           bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
+ 1,175,944 ( 0.07%)                              bool isCol) const noexcept {
+ 1,553,985 ( 0.10%)    for (int32_t i = 0; i < 4; ++i) {
+         .               int32_t top0 = top(Space{i, 0, isCol});
+         .               int32_t top1 = top(Space{i, 1, isCol});
+         .               int32_t top2 = top(Space{i, 2, isCol});
+         .               int32_t top3 = top(Space{i, 3, isCol});
+   834,474 ( 0.05%)      if (top1 == -1 || top2 == -1)
+         .                 continue;  // Empty space in middle, no line possible
+         .               // Check for a long line
+ 1,081,472 ( 0.07%)      if (top0 == top1 && top1 == top2 && top2 == top3) {
+     3,240 ( 0.00%)        if (isCol) {
+    24,427 ( 0.00%)          applyLine(CB * 12 + i * 3 + top0, legal_moves);
+         .                 } else {
+     1,830 ( 0.00%)          applyLine(RB * 12 + i * 3 + top0, legal_moves);
+         .                 }
+    12,292 ( 0.00%)        return true;  // No need to check for other lines
+         .               }
+         .               // Check for a left/upper short line
+ 1,410,954 ( 0.09%)      for (int32_t extend_coord : {3, 0}) {
+   864,604 ( 0.05%)        if (top1 == top2 && ((extend_coord == 3 && top0 == top1) ||
+         .                                      (extend_coord == 0 && top2 == top3))) {
+     7,750 ( 0.00%)          if (isCol && extend_coord == 0) {  // Lower/down column
+       881 ( 0.00%)            applyLine(CD * 12 + i * 3 + top1, legal_moves);
+     8,620 ( 0.00%)          } else if (isCol && extend_coord == 3) {  // Upper column
+       665 ( 0.00%)            applyLine(CU * 12 + i * 3 + top1, legal_moves);
+     5,960 ( 0.00%)          } else if (extend_coord == 0) {  // Right row
+     1,497 ( 0.00%)            applyLine(RR * 12 + i * 3 + top1, legal_moves);
+         .                   } else {  // Left row
+     2,966 ( 0.00%)            applyLine(RL * 12 + i * 3 + top1, legal_moves);
+         .                   }
+     9,052 ( 0.00%)          if (top1 == 2) {
+         .                     // If the line is a capital line
+         .                     // A capital must be used to extend line when moving
+         .                     // The applyLine function is liberal in this case
+         .                     // So we need to remove the illegal moves
+         .                     // We turn off moving to adjacent rows/columns
+         .                     // if the top is not a capital
+         .                     // It doesn't matter which row/column the line is in
+         .                     // When it is not the correct row/column, the move is illegal anyway
+     6,478 ( 0.00%)            if (!board(Space{0, extend_coord, isCol}, kCapital)) {
+     3,496 ( 0.00%)              legal_moves[encodeMove(Space{0, extend_coord, isCol},
+    18,850 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (1,748x)
+     1,748 ( 0.00%)                                     Space{1, extend_coord, isCol})] = false;
+         .                     }
+     5,593 ( 0.00%)            if (!board(Space{1, extend_coord, isCol}, kCapital)) {
+     5,490 ( 0.00%)              legal_moves[encodeMove(Space{1, extend_coord, isCol},
+    32,445 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (2,385x)
+     1,665 ( 0.00%)                                     Space{0, extend_coord, isCol})] = false;
+     7,155 ( 0.00%)              legal_moves[encodeMove(Space{1, extend_coord, isCol},
+    25,515 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (2,385x)
+         .                                              Space{2, extend_coord, isCol})] = false;
+         .                     }
+     5,586 ( 0.00%)            if (!board(Space{2, extend_coord, isCol}, kCapital)) {
+     6,927 ( 0.00%)              legal_moves[encodeMove(Space{2, extend_coord, isCol},
+    30,839 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (2,309x)
+         .                                              Space{1, extend_coord, isCol})] = false;
+     4,618 ( 0.00%)              legal_moves[encodeMove(Space{2, extend_coord, isCol},
+    24,988 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (2,309x)
+     2,309 ( 0.00%)                                     Space{3, extend_coord, isCol})] = false;
+         .                     }
+     5,586 ( 0.00%)            if (!board(Space{3, extend_coord, isCol}, kCapital)) {
+     4,826 ( 0.00%)              legal_moves[encodeMove(Space{3, extend_coord, isCol},
+    32,729 ( 0.00%)  => /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/move.cpp:encodeMove(Space, Space) (2,413x)
+     2,413 ( 0.00%)                                     Space{2, extend_coord, isCol})] = false;
+         .                     }
+         .                   }
+     2,413 ( 0.00%)          return true;  // No need to check for other lines
+         .                 }
+         .               }
+         .             }
+   100,758 ( 0.01%)    return false;  // No lines
+ 1,175,944 ( 0.07%)  }
+         .           
+         .           bool Game::applyLongDiagLines(
+   587,972 ( 0.04%)      std::bitset<kNumMoves> &legal_moves) const noexcept {
+         .             // Checking the upper left to lower right long diagonal
+         .             // is the same as checking the upper right to lower left long diagonal
+         .             // except we flip over the y-axis
+         .             // and use different line numbers
+   529,700 ( 0.03%)    for (bool flip : {false, true}) {
+   852,432 ( 0.05%)      int32_t top0 = top(Space{0, flip ? 3 : 0});
+   106,554 ( 0.01%)      int32_t top1 = top(Space{1, flip ? 2 : 1});
+         .               int32_t top2 = top(Space{2, flip ? 1 : 2});
+   906,234 ( 0.06%)      int32_t top3 = top(Space{3, flip ? 0 : 3});
+   213,108 ( 0.01%)      if (top1 == -1 || top2 == -1) {
+         .                 continue;  // Empty space in middle, no line possible
+         .               }
+         .               // Long line
+   176,520 ( 0.01%)      if (top0 == top1 && top1 == top2 && top2 == top3) {
+       360 ( 0.00%)        if (flip) {
+       180 ( 0.00%)          applyLine(72 + D1B * 3 + top1, legal_moves);
+         .                 } else {
+        52 ( 0.00%)          applyLine(72 + D0B * 3 + top1, legal_moves);
+         .                 }
+         .                 return true;  // No need to check for other lines
+         .               }
+         .               // Upper line
+         .               if (top0 == top1 && top1 == top2) {
+     1,138 ( 0.00%)        if (flip) {
+       850 ( 0.00%)          applyLine(72 + D1U * 3 + top1, legal_moves);
+         .                 } else {
+       569 ( 0.00%)          applyLine(72 + D0U * 3 + top1, legal_moves);
+         .                 }
+         .                 return true;  // No need to check for other lines
+         .               }
+         .               // Lower/down line
+    83,336 ( 0.01%)      if (top1 == top2 && top2 == top3) {
+       782 ( 0.00%)        if (flip) {
+       391 ( 0.00%)          applyLine(72 + D1D * 3 + top1, legal_moves);
+         .                 } else {
+       180 ( 0.00%)          applyLine(72 + D0D * 3 + top1, legal_moves);
+         .                 }
+         .                 return true;  // No need to check for other lines
+         .               }
+         .             }
+    52,312 ( 0.00%)    return false;  // No lines
+   587,972 ( 0.04%)  }
+         .           
+         .           bool Game::applyShortDiagLines(
+    53,452 ( 0.00%)      std::bitset<kNumMoves> &legal_moves) const noexcept {
+         .             // Top left short diagonal
+         .             int32_t top1 = top(Space{1, 1});
+     1,226 ( 0.00%)    if (top1 != -1 && top1 == top(Space{0, 2}) && top1 == top(Space{2, 0})) {
+       139 ( 0.00%)      applyLine(72 + S0 * 3 + top1, legal_moves);
+     1,566 ( 0.00%)      return true;  // There can only be up to 1 short diagonal line
+         .             }
+         .             // Top right short diagonal
+         .             top1 = top(Space{1, 2});
+     1,484 ( 0.00%)    if (top1 != -1 && top1 == top(Space{0, 1}) && top1 == top(Space{2, 3})) {
+       188 ( 0.00%)      applyLine(72 + S1 * 3 + top1, legal_moves);
+         .               return true;  // There can only be up to 1 short diagonal line
+         .             }
+         .           
+         .             // Bottom right short diagonal
+         .             top1 = top(Space{2, 2});
+     7,082 ( 0.00%)    if (top1 != -1 && top1 == top(Space{1, 3}) && top1 == top(Space{3, 1})) {
+       286 ( 0.00%)      applyLine(72 + S2 * 3 + top1, legal_moves);
+         .               return true;  // There can only be up to 1 short diagonal line
+         .             }
+         .           
+         .             // Bottom left short diagonal
+         .             top1 = top(Space{2, 1});
+     2,362 ( 0.00%)    if (top1 != -1 && top1 == top(Space{1, 0}) && top1 == top(Space{3, 2})) {
+       170 ( 0.00%)      applyLine(72 + S3 * 3 + top1, legal_moves);
+         .               return true;  // There can only be up to 1 short diagonal line
+         .             }
+    53,115 ( 0.00%)    return false;  // No lines
+   106,904 ( 0.01%)  }
+         .           
+   320,712 ( 0.02%)  bool Game::applyLines(std::bitset<kNumMoves> &legal_moves) const noexcept {
+         .             // Flag for if there are any lines
+         .             bool is_any_lines = false;
+         .             // Row lines
+   160,356 ( 0.01%)    is_any_lines |= applyRowColLines(legal_moves, false);
+21,599,311 ( 1.37%)  => ../corintho_ai/cpp/src/game.cpp:Game::applyRowColLines(std::bitset<96ul>&, bool) const (53,452x)
+         .             // Column lines
+   267,260 ( 0.02%)    is_any_lines |= applyRowColLines(legal_moves, true);
+21,558,095 ( 1.36%)  => ../corintho_ai/cpp/src/game.cpp:Game::applyRowColLines(std::bitset<96ul>&, bool) const (53,452x)
+         .             // Long diagonal lines
+   213,808 ( 0.01%)    is_any_lines |= applyLongDiagLines(legal_moves);
+10,728,457 ( 0.68%)  => ../corintho_ai/cpp/src/game.cpp:Game::applyLongDiagLines(std::bitset<96ul>&) const (53,452x)
+         .             // Short diagonal lines
+   213,808 ( 0.01%)    is_any_lines |= applyShortDiagLines(legal_moves);
+ 1,873,019 ( 0.12%)  => ../corintho_ai/cpp/src/game.cpp:Game::applyShortDiagLines(std::bitset<96ul>&) const (53,452x)
+         .             return is_any_lines;
+   213,809 ( 0.01%)  }
+--------------------------------------------------------------------------------

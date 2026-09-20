@@ -16,7 +16,7 @@
 CXX      ?= g++
 SRC_DIR  := ../corintho_ai/cpp/src
 INC      := -I../corintho_ai/cpp/include -I../gsl/include -I.
-CXXFLAGS := -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+CXXFLAGS := -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
 LDFLAGS  := -fopenmp -flto -O3 -march=native
 
 BUILD := build

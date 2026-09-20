@@ -43,3 +43,4 @@ corintho_ai/rating/*.txtbench/build/
 bench/perf.data
 bench/cg.out
 bench/results/*.tmp
+bench/build-lines/

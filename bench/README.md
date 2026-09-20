@@ -143,21 +143,90 @@ single-threaded run has a working set that fits in L2, so cachegrind reports
 near-zero LL misses regardless of how bad real locality is. **Treat cachegrind's
 D1/DL numbers as a lower bound.**
 
-### Reading each tool
+### What each tool actually does
 
-- **gprofng** — the only tool that sees the real threaded run. Undersamples short
-  runs badly (a 3-second run gave ~35 samples and percentages that swung 10
-  points), hence the large game counts. Its absolute seconds capture roughly a
-  tenth of true CPU time, so **read only the percentages**. With `-flto` many
-  functions inline into their callers: `Node::initializeEdges` carries
-  `getLegalMoves`, and `TrainMC::doIteration` absorbs `search` and `chooseNext`.
-- **callgrind** — exact and perfectly repeatable. The right tool for confirming a
-  change removed the instructions it was meant to remove.
-- **cachegrind** — needs `--cache-sim=yes --branch-sim=yes`; both default to off
-  and without them it reports instruction counts only. `Bcm` is the interesting
-  column for move generation, `D1mr` for the search.
-- **dhat** — allocation counts. Relevant to the node arena and to the `to_eval_`
-  oversizing (`PLAN.md` §10.2).
+They are not interchangeable. Two of them do not even run your program.
+
+**gprofng — statistical sampling.** Runs the real binary at full speed and
+interrupts it on a timer, recording which function was executing. Attribution is
+statistical, so accuracy grows with the square root of the sample count, and it
+cannot reliably go below function granularity. What it *does* see is real time:
+a function that stalls on cache misses or branch mispredicts simply accumulates
+more samples. That makes it the only tool here that reflects the actual machine.
+Use it to answer **"where does the wall clock go, really"**.
+
+Caveats: it undersamples short runs badly (a 3-second run gave ~35 samples and
+percentages that swung 10 points between runs), hence the large game counts. Its
+absolute seconds capture roughly a tenth of true CPU time, so **read only the
+percentages**. With `-flto` functions inline into their callers, so
+`Node::initializeEdges` carries `getLegalMoves` and `TrainMC::doIteration`
+absorbs `search` and `chooseNext`.
+
+**callgrind — simulation, not measurement.** Valgrind executes the program on a
+synthetic CPU and counts every instruction. The result is exact, deterministic
+and repeatable to the instruction, with full caller/callee attribution — but it
+counts *instructions, not time*. It has no model of superscalar execution, cache
+or branch prediction, so a cache-missing pointer chase and an L1-hot arithmetic
+loop look identical if they issue the same instructions. Costs 50–100× slowdown.
+Use it to answer **"did my change remove the work I thought it did"**.
+
+**cachegrind — the same simulator plus a cache and branch-predictor model.**
+Adds simulated I1/D1/LL caches and a branch predictor, giving miss and mispredict
+counts per function or per line. Still a *model*: a generic LRU cache sized from
+the host CPU, with no prefetching, no out-of-order execution and no notion of
+cores sharing a cache. Directionally reliable, not quantitatively exact. Needs
+`--cache-sim=yes --branch-sim=yes` — both default to off, and without them it
+silently degrades to instruction counts. Use it to answer **"is this code
+branch-bound or cache-bound"**, which is the question that decides *which kind*
+of rewrite helps.
+
+**dhat — heap instrumentation.** Intercepts every `malloc`/`free` and tracks each
+block's size, lifetime, and how many bytes of it are actually read and written.
+That last part matters here: it can prove memory is allocated and never touched,
+which is exactly the `to_eval_` case (`PLAN.md` §10.2). Use it to answer **"how
+much am I allocating, and am I using it"**.
+
+### Precise versus coarse, and which to reach for
+
+| Question | Tool | Granularity |
+|---|---|---|
+| Where is the time going? | gprofng | function, statistical |
+| Which *lines* are hot? | callgrind/cachegrind `lines` tier | source line, exact |
+| Did my change remove the work? | callgrind | instruction, exact |
+| Branch-bound or cache-bound? | cachegrind | function or line |
+| How much am I allocating? | dhat | allocation site |
+| **Is it actually faster?** | **`run_suite.sh`, no profiler** | **wall clock** |
+
+The last row is the one that decides anything. Profilers tell you *where to
+look*; only an unprofiled timed run tells you whether the change worked.
+
+### Line-by-line needs a build without LTO
+
+`-g` is in the default flags and costs nothing measurable, but **`-flto`
+collapses the line tables**, so `cg_annotate --auto=yes` can only reach function
+granularity on the normal build. The `lines` tier therefore builds into
+`build-lines/` with `-O2 -g` and no LTO.
+
+Inlining consequently differs from the production build. Use that tier to find
+**which source lines are hot**, never to measure how fast anything is.
+
+### Single thread by default; multi-thread on purpose
+
+Profiling under threads buys nothing for most changes and costs clarity: samples
+scatter across workers, the scheduler adds noise, attribution blurs. Nearly
+everything on the roadmap — move generation, the `Node` accessors,
+`getFilteredProbs`, `lround` — is per-thread algorithmic work that costs the same
+on one thread as on fourteen. So `quick` is single-threaded and `all` does not
+include `mt`.
+
+Profile multi-threaded only when the hypothesis is *about* threading: allocator
+contention, false sharing, load imbalance, memory bandwidth saturation. Here that
+means the arena allocator, the OpenMP schedule, and the `vector<bool>` race.
+
+**Benchmarking is different and always measures both.** A change can be neutral
+single-threaded and harmful at fourteen — extra memory traffic that only
+saturates under load, say — so `run_suite.sh` records `st`, `mt` and `big` every
+time, whatever was profiled.
 
 ### Considered and rejected
 
@@ -282,6 +351,21 @@ Program-wide branch misprediction rate is **9.2%** (11.8M of 127.5M branches).
   arena allocator**, which callgrind's 2.5% instruction share had demoted:
   locality is exactly what callgrind cannot see, and these numbers are a lower
   bound because the 3-game working set fits in L2.
+
+Line-level attribution (from the `lines` tier) puts the mispredicts on specific
+statements:
+
+| Mispredicts | Line | Function |
+|---|---|---|
+| 1,131,458 (9.3%) | `if (empty(move.space_from()) \|\| empty(move.space_to()))` | `canMove` |
+| 1,086,686 (8.9%) | `if (board(space, piece_type))` | `top()`/`bottom()` |
+| 936,741 (7.7%) | `if (edge_index < cur_->num_legal_moves() && ...)` | `getFilteredProbs` |
+| 894,269 (7.3%) | `if (legal_moves[i])` | `initializeEdges` |
+| 724,476 (5.9%) | `if (empty(move.space_to()))` | `canPlace` |
+
+**About 37% of all branch mispredicts sit on five lines that the bitboard
+rewrite deletes outright** — the per-space predicates become single mask
+operations and the bitset scans become `ctz` iteration.
 
 dhat: **87,010 allocations for 2 games** (9.2 MB churn, 1.5 MB peak in 6,390
 blocks — about 1,600 nodes × 2 allocations, matching `max_searches`).

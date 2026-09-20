@@ -134,5 +134,14 @@ int main(int argc, char **argv) {
               static_cast<double>(num_samples) / cfg.num_games);
   std::printf("engine s / turn      %8.6f\n", play_time / num_samples);
   std::printf("requests / engine s  %8.0f\n", total_requests / play_time);
+
+  // Consumed by run_suite.sh; see README.md.
+  std::printf("#METRIC engine_seconds %.4f\n", play_time);
+  std::printf("#METRIC wall_seconds %.4f\n", wall);
+  std::printf("#METRIC turns %d\n", num_samples);
+  std::printf("#METRIC requests %llu\n",
+              static_cast<unsigned long long>(total_requests));
+  std::printf("#METRIC requests_per_engine_second %.0f\n",
+              total_requests / play_time);
   return 0;
 }

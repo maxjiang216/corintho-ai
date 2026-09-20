@@ -72,10 +72,28 @@ struct Result {
   double seconds{0.0};
   uint64_t ops{0};
 
+  /// @brief Slug derived from the name, for machine-readable output.
+  std::string key() const {
+    std::string out;
+    for (char c : name) {
+      if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+        out += c;
+      else if (c >= 'A' && c <= 'Z')
+        out += static_cast<char>(c - 'A' + 'a');
+      else if (!out.empty() && out.back() != '_')
+        out += '_';
+    }
+    while (!out.empty() && out.back() == '_')
+      out.pop_back();
+    return out;
+  }
+
   void report() const {
     const double ns = seconds * 1e9 / static_cast<double>(ops);
     std::printf("  %-34s %10.1f ns/op  %12llu ops  %8.3f s\n", name.c_str(), ns,
                 static_cast<unsigned long long>(ops), seconds);
+    // Consumed by run_suite.sh; see README.md.
+    std::printf("#METRIC ns_%s %.1f\n", key().c_str(), ns);
   }
 };
 

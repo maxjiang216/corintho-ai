@@ -1,0 +1,18 @@
+#label	baseline
+#suite	all
+#date	2026-09-20T14:10:09-07:00
+#commit	3c9b2a2
+#dirty	yes
+#cxxflags	-std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+#config	games=200 searches=1600 per_eval=16 threads=14 seed=12345 corpus=20000 reps=5
+digest_game	0f82fc99147482e4
+digest_engine	db113d11c95bcedb
+ns_game_getlegalmoves	930.2000	926.6000	930.5000
+ns_game_writegamestate	127.8000	124.6000	131.1000
+ns_game_domove_incl_copy	10.7000	10.7000	10.8000
+ns_node_ctor_dtor_alloc_heavy	1156.0000	1151.0000	1164.2000
+engine_seconds	2.4256	2.3562	2.4371
+wall_seconds	3.9954	3.9788	4.0983
+turns	3715.0000	3715.0000	3715.0000
+requests	4733369.0000	4733369.0000	4733369.0000
+requests_per_engine_second	1951433.0000	1942220.0000	2008869.0000

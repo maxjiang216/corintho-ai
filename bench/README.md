@@ -28,6 +28,13 @@ from the starting position, so the position distribution resembles what search
 actually visits. Covers `getLegalMoves`, `writeGameState`, `doMove`, and
 `Node` construction/destruction.
 
+### `golden [game|engine|all]`
+
+Behavioural digests. `game` fingerprints `getLegalMoves` and `writeGameState`
+over the fixed corpus; `engine` fingerprints the entire training-sample stream
+of a fixed-seed, single-threaded run. Both are verified reproducible by
+`run_suite.sh` before anything else is recorded.
+
 ### `selfplay_bench [games] [max_searches] [searches_per_eval] [threads] [seed]`
 
 Drives `Trainer` exactly as `corintho_ai/python/main.pyx` does, but replaces the
@@ -42,6 +49,53 @@ identical values — so this harness can also be used to measure position sharin
 **Caveat:** the stub is not the real network, so the search tree shape differs
 from production (observed ~18 turns/game here vs 28.4 in the real run). Use this
 for *relative* engine measurements, never as a prediction of generation time.
+
+## The optimization workflow
+
+Every optimization follows the same loop, so that each commit carries its own
+evidence and can be assessed on its own.
+
+```bash
+./run_suite.sh before-<name>     # record, on a clean tree
+#   ... make the change ...
+./run_suite.sh after-<name>
+./compare.py results/before-<name>.tsv results/after-<name>.tsv
+```
+
+`run_suite.sh` fixes every parameter that affects the result (game count, search
+count, thread count, seeds, corpus size) so two records are always comparable.
+It runs each benchmark 5 times and reports the **median** with min/max, because
+single runs on this machine vary by a few percent.
+
+`compare.py` enforces the two things that are easy to get wrong by hand:
+
+- **Digests are compared exactly.** A changed digest on a run labelled as a pure
+  optimization is a failure, not a curiosity.
+- **Deltas are judged against the observed spread.** Anything inside the noise
+  band is printed as `noise` and must not be claimed as a win.
+
+### Which suite to run
+
+| Component changed | Suite |
+|---|---|
+| `game.cpp`, `move.cpp` (move generation, state encoding) | `game` — plus `engine` to confirm it carries through |
+| `node.cpp`, `trainmc.cpp`, `selfplayer.cpp`, `trainer.cpp` | `engine` |
+| Build flags, allocator, anything cross-cutting | `all` |
+
+When in doubt run `all`; it takes about a minute.
+
+### Commit convention
+
+One commit per optimization, or per class of mechanically identical one-line
+changes. Each commit message states:
+
+1. What changed and why it is faster.
+2. The before/after table from `compare.py`.
+3. Whether the digests held. If a digest moved, the commit must say so
+   explicitly and justify it — a behaviour change disguised as an optimization
+   is the failure mode this harness exists to prevent.
+
+Records live in `results/` and are committed alongside the change.
 
 ## Profiling
 

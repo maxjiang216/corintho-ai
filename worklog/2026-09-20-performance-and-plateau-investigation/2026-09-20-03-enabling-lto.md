@@ -4,8 +4,10 @@ Branch: `perf/training-overhaul`. First actual optimization on this branch.
 
 ## TL;DR
 
-- **`-flto` added to `corintho_ai/python/setup.py`.** Worth a measured **23%**
-  of engine time, one line, no source changes, digests unchanged.
+- **`-flto` added to `corintho_ai/python/setup.py`.** One line, no source
+  changes, digests unchanged. Measured **−23.3%** and **−24.6%** on two
+  interleaved runs — but both on battery with a browser playing video, which
+  inflates it. **Best estimate on AC is −18% to −20%.**
 - **Instructions fell 32.7% but time fell only 23%** — the removed work was
   call/return overhead, the cheapest instructions in the program. Branch
   mispredicts even rose 2.2%.
@@ -47,6 +49,45 @@ Interleaved A/B via the new `bench/ab.sh`, 7 reps per arm, single-threaded,
   with-lto vs no-lto: -23.3%
   Delta exceeds the worst arm spread (7.9%), so it is real.
 ```
+
+### Measurement caveat: taken on battery, with a browser playing video
+
+Both A/B runs were made with the laptop **on battery** (`ac=0`, `powersave`
+governor) and Brave playing Netflix. Max confirmed this after the fact.
+
+Replicated to check stability:
+
+| Run | Reps | no-LTO median | with-LTO median | Delta | Worst spread |
+|---|---|---|---|---|---|
+| 1 | 7 | 9.941s | 7.628s | **−23.3%** | 7.9% |
+| 2 | 9 | 9.812s | 7.401s | **−24.6%** | 10.9% |
+
+Reproducible to ~1.3 points, so the result is not an artifact of one unlucky
+sample. Interleaving handles the slow drift (battery depleting, machine
+heating) and the median over 7–9 reps absorbs the video-decode bursts, which is
+what the 8–11% spreads are.
+
+**But the ratio itself is probably inflated.** Lower clock means each
+instruction takes longer in wall time while DRAM latency stays fixed in
+nanoseconds, so at low clock memory stalls are a *smaller* share of total time
+and compute is a *larger* one. LTO removes compute — call setup, jump, return —
+so its benefit should look bigger on battery than on AC.
+
+The earlier ad-hoc flag comparison, taken while the machine was on AC (3 reps,
+not interleaved) gave `3.067s → 2.512s` = **−18.1%**. That is the predicted
+direction and roughly the predicted magnitude.
+
+**Best estimate on AC: −18% to −20%.** The headline −23.3% should be read as an
+upper bound. Re-measure on AC with the browser quiet:
+
+```
+cd bench && ./ab.sh no-lto "-std=c++17 -O3 -fopenmp -DNDEBUG" \
+                    with-lto "-std=c++17 -O3 -fopenmp -DNDEBUG -flto" 7
+```
+
+None of this touches the counters below: they come from simulation and have no
+dependence on clock speed or contention. The *mechanism* is established
+regardless; only its wall-clock translation is uncertain.
 
 Exact counters, from simulation and therefore unaffected by clock speed
 (`bench/results/before-lto.tsv`, `bench/results/after-lto.tsv`):

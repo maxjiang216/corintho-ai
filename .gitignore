@@ -39,4 +39,6 @@ corintho_ai/python/test/
 corintho_ai/python/test_games.txt
 corintho_ai/rating/tourney/
 corintho_ai/rating/tourney_res/
-corintho_ai/rating/*.txt
+corintho_ai/rating/*.txtbench/build/
+bench/perf.data
+bench/cg.out

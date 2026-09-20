@@ -99,18 +99,69 @@ Records live in `results/` and are committed alongside the change.
 
 ## Profiling
 
-`perf` is unavailable on this machine (`/proc/sys/kernel/perf_event_paranoid` is
-`4`, which blocks user-space sampling; lowering it needs root). Use callgrind:
+`perf` is installed but unusable: `/proc/sys/kernel/perf_event_paranoid` is `4`,
+which blocks user-space sampling. Lowering it to `1` needs root and widens what
+unprivileged processes can observe, so it is a deliberate decision, not a
+default. Everything below works without it.
+
+### gprofng — the primary profiler
+
+Ships with binutils and is already installed. It does **not** use
+`perf_event_open`, so it works as-is, and unlike callgrind it samples the real
+multi-threaded run at full speed, reporting wall-clock CPU time.
 
 ```
-valgrind --tool=callgrind --callgrind-out-file=cg.out ./build/selfplay_bench 3 400 16 1
-callgrind_annotate --auto=no cg.out | head -30
+gprofng collect app -o prof.er -p on ./build/selfplay_bench 100 1600 16 14
+gprofng display text -functions -limit 20 prof.er
 ```
 
-Callgrind counts **instructions, not cycles**, and the run above is
-single-threaded. It therefore under-represents allocator contention, cache
-misses and false sharing — all of which are multi-threaded effects. Treat it as
-attribution, not as a cost model.
+Use this for "where does the time actually go". Note that with `-flto` many
+functions are inlined into their callers, so `Node::initializeEdges` shows the
+cost of `getLegalMoves`, and `TrainMC::doIteration` absorbs `search` and
+`chooseNext`. Build without LTO when attribution matters more than realism.
+
+### callgrind — exact attribution
+
+```
+make callgrind
+```
+
+Counts **instructions, not cycles**, runs single-threaded, and is ~50x slower.
+It therefore under-represents allocator contention, cache misses and false
+sharing, all of which are multi-threaded effects. Its advantage is being exact
+and perfectly repeatable, which makes it the right tool for confirming that a
+change removed the instructions it was meant to remove.
+
+### cachegrind / massif / dhat — for specific questions
+
+All installed as part of valgrind.
+
+- `--tool=cachegrind` models cache behaviour. The right instrument for the
+  bitboard rewrite (`PLAN.md` §13) and for settling whether the arena allocator
+  is worth it, since locality is exactly what callgrind cannot see.
+- `--tool=massif` or `--tool=dhat` for heap profiling — directly relevant to the
+  `to_eval_` oversizing (`PLAN.md` §10.2) and to sizing the node arena.
+
+### Considered and rejected
+
+- **samply**, **hotspot**, **nperf** — all wrap `perf_event_open` and are
+  blocked by the same setting. If it is ever lowered, `samply` is the nicest of
+  these: a Firefox Profiler view with no setup.
+- **Intel VTune** — would genuinely help, since this CPU is hybrid (6P + 8E) and
+  VTune understands OpenMP imbalance and per-core-type behaviour. Its hardware
+  sampling also wants driver or perf access, so it does not dodge the
+  restriction.
+- **Coz** (causal profiling) — conceptually the best fit for the parallel
+  scaling question, since it estimates what speeding up a region would do to
+  end-to-end throughput rather than merely attributing time. Also built on
+  `perf_event_open`.
+- **heaptrack** — nicer UI than massif, but massif and dhat are already here.
+
+### Recommended pairing
+
+`gprofng` for wall-clock reality on the threaded run, `callgrind` to verify the
+instruction delta of a specific change, `cachegrind` when the change is about
+memory layout. That covers everything in `PLAN.md` without needing root.
 
 ---
 

@@ -1,0 +1,41 @@
+# gprofng, 1 thread, 300 games x 1600 searches
+# label:    baseline
+# commit:   c70cae2
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T14:28:15-07:00
+
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+3.292 100.00  3.292 100.00   <Total>
+1.591  48.33  2.101  63.83   TrainMC::doIteration(float*, float*)
+0.831  25.23  1.061  32.22   Node::initializeEdges()
+0.320   9.73  2.552  77.51   main
+0.150   4.56  0.260   7.90   <static>@0xaab1b (<libc.so.6>)
+0.140   4.26  0.140   4.26   Game::applyRowColLines(std::bitset<96ul>&, bool) const
+0.110   3.34  0.110   3.34   <static>@0xa8e24 (<libc.so.6>)
+0.030   0.91  0.030   0.91   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+0.020   0.61  0.170   5.17   <static>@0xada6c (<libc.so.6>)
+0.020   0.61  0.060   1.82   Node::~Node()
+0.020   0.61  0.050   1.52   free
+0.020   0.61  0.020   0.61   lround
+0.010   0.30  0.010   0.30   <static>@0x188341 (<libc.so.6>)
+0.010   0.30  2.141  65.05   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+0.010   0.30  0.090   2.74   malloc
+0.010   0.30  0.010   0.30   omp_set_num_threads
+0.      0.    0.060   1.82   <static>@0x225ae (<libgomp.so.1.0.0>)
+0.      0.    2.552  77.51   <static>@0x2a145 (<libc.so.6>)
+0.      0.    0.060   1.82   <static>@0xc1ce (<libgomp.so.1.0.0>)
+0.      0.    2.202  66.87   GOMP_parallel
+0.      0.    0.040   1.22   SelfPlayer::chooseMove() [clone .part.0]
+0.      0.    0.060   1.82   SelfPlayer::chooseMoveAndContinue()
+0.      0.    0.040   1.22   TrainMC::chooseMove(float*, float*)
+0.      0.    0.040   1.22   TrainMC::moveDown(Node*)
+0.      0.    2.552  77.51   __libc_start_main
+0.      0.    0.090   2.74   operator new(unsigned long)
+0.      0.    0.110   3.34   operator new(unsigned long, std::align_val_t)
+0.      0.    0.110   3.34   posix_memalign
+

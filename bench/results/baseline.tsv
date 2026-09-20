@@ -1,18 +1,30 @@
 #label	baseline
 #suite	all
-#date	2026-09-20T14:14:07-07:00
-#commit	2bb6d28
+#date	2026-09-20T14:25:00-07:00
+#commit	c70cae2
 #dirty	yes
 #cxxflags	-std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
-#config	games=200 searches=1600 per_eval=16 threads=14 seed=12345 corpus=20000 reps=5
+#config	pair_games=50 big_games=200 searches=1600 per_eval=16 threads=14 seed=12345 corpus=20000 reps=5
 digest_game	0f82fc99147482e4
 digest_engine	db113d11c95bcedb
-ns_game_getlegalmoves	927.9000	925.6000	947.7000
-ns_game_writegamestate	127.9000	125.8000	130.3000
-ns_game_domove_incl_copy	10.7000	10.7000	11.3000
-ns_node_ctor_dtor_alloc_heavy	1156.8000	1151.9000	1171.6000
-engine_seconds	2.4264	2.4147	2.4664
-wall_seconds	4.0716	4.0626	4.1045
-turns	3715.0000	3715.0000	3715.0000
-requests	4733369.0000	4733369.0000	4733369.0000
-requests_per_engine_second	1950757.0000	1919133.0000	1960207.0000
+ns_game_getlegalmoves	928.5000	883.6000	930.1000
+ns_game_writegamestate	126.0000	121.5000	128.5000
+ns_game_domove_incl_copy	10.7000	10.7000	10.7000
+ns_node_ctor_dtor_alloc_heavy	1153.9000	1149.1000	1161.8000
+st_engine_seconds	4.0893	4.0025	4.1904
+st_wall_seconds	4.5771	4.4711	4.6845
+st_turns	971.0000	971.0000	971.0000
+st_requests	1248785.0000	1248785.0000	1248785.0000
+st_requests_per_engine_second	305378.0000	298010.0000	312003.0000
+mt_engine_seconds	0.5312	0.5235	0.5415
+mt_wall_seconds	0.9527	0.8941	0.9557
+mt_turns	971.0000	971.0000	971.0000
+mt_requests	1248785.0000	1248785.0000	1248785.0000
+mt_requests_per_engine_second	2350968.0000	2306328.0000	2385452.0000
+big_engine_seconds	2.4206	2.3603	2.4582
+big_wall_seconds	4.0922	4.0152	4.1482
+big_turns	3715.0000	3715.0000	3715.0000
+big_requests	4733369.0000	4733369.0000	4733369.0000
+big_requests_per_engine_second	1955473.0000	1925505.0000	2005437.0000
+speedup_14t	7.6982	7.6982	7.6982
+parallel_efficiency_pct	54.9874	54.9874	54.9874

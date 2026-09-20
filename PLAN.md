@@ -3,6 +3,12 @@
 Branch: `perf/training-overhaul`
 Status: plan only, nothing implemented.
 
+**See also:** `worklog/` for what actually happened and in what order, including
+measurements, corrections and rejected approaches. `bench/README.md` for the
+benchmark harness, the measured baseline and the commit convention for
+optimizations. When this document and the worklog disagree, the worklog records
+what was true at the time and this document records what we believe now.
+
 Ultimate goal: **a stronger trained network**, not a faster program. Speed matters
 only as a means — more generations per hour, or more searches per move at equal
 cost. Every change below is judged by that standard.

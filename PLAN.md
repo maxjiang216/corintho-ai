@@ -702,3 +702,176 @@ games raises gradient variance, and §12.4 is the better way to buy depth.
   measuring the count of *distinct* games in the existing logs before scaling up.
 - **Record the schedule per generation** in `metadata.txt` so later analysis can
   separate "the network got better" from "the search got deeper".
+
+---
+
+## 13. Deep dive: bitboard move generation and shared computation
+
+Borrowing the approach from `~/projects/big2-ai`, which is the right model for this:
+
+- `HandBits` (`src/core/util.h:59`) — **threshold bit-planes** (`at1/at2/at3/at4`),
+  one bit per rank, so a predicate over all ranks is a single mask operation.
+- `hand_bits_tables()` (`src/core/util.cpp:60`) — **superset-indexed lookup tables**
+  built once, enumerating supersets with the `sup = (sup-1) & complement` trick.
+- `compute_legal_moves` **emits** moves via `__builtin_ctz` bit iteration rather
+  than testing every candidate.
+- `compute_legal_moves_into` — fill-caller-buffer variant, no allocation.
+- Auto-generated `constexpr` tables in `.inc` files (`move_to_cards.inc`).
+
+Corintho's `Game::getLegalMoves` does the opposite of all of this: it sets all 96
+bits, then **filters** by constructing a `Move` from each ID and testing it, while
+recomputing `top()`/`bottom()` from scratch on every query.
+
+### 13.1 Bit-plane state
+
+Replace the interleaved `bitset<64>` (`row*16 + col*4 + piece`) with four
+16-bit planes, one bit per space:
+
+```
+uint16_t b_;  // base present
+uint16_t c_;  // column present
+uint16_t a_;  // capital present
+uint16_t f_;  // frozen
+```
+
+Derived quantities, each **one expression covering all 16 spaces at once**,
+replacing the ~150 per-space `top()`/`bottom()` calls per move generation:
+
+```
+empty     = ~(b_ | c_ | a_) & 0xFFFF
+top_base  = b_ & ~c_ & ~a_      // top() == 0
+top_col   = c_ & ~a_            // top() == 1
+top_cap   = a_                  // top() == 2
+bot_col   = c_ & ~b_            // bottom() == 1
+bot_cap   = a_ & ~b_ & ~c_      // bottom() == 2
+```
+
+### 13.2 All 48 place moves → 3 mask expressions
+
+From `Game::canPlace` (`game.cpp:181`), noting that an empty space can never be
+frozen (only `doMove`'s destination is ever frozen, and it always holds a piece):
+
+```
+placeable_base = empty
+placeable_col  = ~f_ & ~c_ & ~a_              // empty is a subset of this
+placeable_cap  = ~f_ & ~a_ & (~b_ | c_)       // empty is a subset of this
+```
+
+Mask each with `pieces_[to_play*3 + P] > 0 ? 0xFFFF : 0`, then iterate set bits
+with `__builtin_ctz`. **48 `Move` constructions and 48 `canPlace` calls become
+three mask computations.**
+
+### 13.3 All 48 move-moves → 8 shift-AND operations
+
+From `Game::canMove` (`game.cpp:206`): a move requires both spaces non-empty and
+unfrozen, and `bottom(from) - top(to) == 1`. Since both are non-empty,
+`bottom(from)` and `top(to)` are each in {0,1,2}, so only **two cases** satisfy
+the difference:
+
+| Case | `bottom(from)` | `top(to)` | Source mask | Dest mask |
+|---|---|---|---|---|
+| 1 | 1 (column) | 0 (base) | `bot_col & ~f_` | `top_base & ~f_` |
+| 2 | 2 (capital) | 1 (column) | `bot_cap & ~f_` | `top_col & ~f_` |
+
+Then, for each of the four directions, this is the standard bitboard
+sliding-piece pattern:
+
+```
+legal_src[d] = (src1 & shift_back(dst1, d)) | (src2 & shift_back(dst2, d))
+```
+
+with the usual file/rank edge masks to stop column wraparound. **4 directions ×
+2 cases = 8 shift-AND pairs cover all 48 move-moves.** Map the resulting source
+masks to move IDs through a 16-entry `constexpr` LUT per direction (the ID
+encodings in `encodeMove`, `move.cpp:84`, are a fixed permutation per direction).
+
+**Net: the basic legality of all 96 moves goes from ~96 `Move` constructions plus
+~150 `top()`/`bottom()` calls down to roughly 20 bitwise operations.** Emitted,
+not filtered.
+
+### 13.4 Line detection
+
+The 102 `line_breakers` entries (`util.h:85`) are 34 line shapes × 3 piece types
+(4 rows × 3 shapes + 4 cols × 3 shapes + 2 long diagonals × 3 + 4 short
+diagonals). A line of type P over space set L exists iff `(top_P & L) == L`.
+
+So `applyRowColLines` / `applyLongDiagLines` / `applyShortDiagLines` — currently
+~50 `top()` calls between them — become **three plane computations plus 34 mask
+compares each**, preserving the existing early-return structure and the
+capital-line special case at `game.cpp:252-278`.
+
+If profiling shows this still matters, go further: a `uint64_t lut[65536]`
+indexed by a top-plane mask returning a 34-bit "lines present" set (512 KB,
+read-only, shared across threads) reduces detection to three table lookups. Start
+with the mask compares; only build the LUT if measurements justify it.
+
+### 13.5 Other direct consequences
+
+- `Game::doMove` (`game.cpp:58`) — clearing frozen becomes `f_ = 0` instead of a
+  16-iteration loop; the piece transfer becomes a handful of mask ops.
+- `Game::writeGameState` (`game.cpp:44`) — from four 16-bit planes, emit via a
+  16-entry × 4-float LUT and `memcpy`.
+- `Node` shrinks: four `uint16_t` + 6 piece counts + `to_play` = 15 bytes vs the
+  current 16-byte `bitset` plus 7. Combined with the arena (§7.2), this helps the
+  64-byte target.
+- Everything becomes `constexpr`-friendly, so the tables can be compile-time.
+
+### 13.6 Shared computation *across* nodes — the larger prize
+
+§13.1–13.5 share work across the 96 moves within one call. The bigger opportunity
+is sharing across nodes and across games, and Corintho is unusually favourable:
+a tiny state space, heavy transposition (move-moves and place moves both commute),
+and 8-fold board symmetry.
+
+**The starting position is evaluated 25,000 times per generation.** Every game's
+first `doIteration` (`trainmc.cpp:141`) constructs `new Node()` for the initial
+position and requests an NN evaluation of it. All 25,000 requests are byte-identical.
+That is the most visible instance of a general problem: with `kNumOpeningMoves = 6`,
+early-game positions are shared across enormous numbers of games.
+
+A risk ladder, cheapest and safest first:
+
+| Level | Change | Semantics |
+|---|---|---|
+| 0 | **Deduplicate positions within a predict batch.** Hash the ~250k rows, evaluate distinct ones, scatter results back. | **None.** Identical outputs |
+| 1 | **Persistent eval cache for the generation.** The playing model is frozen during self-play, so a cache is exactly correct. | **None.** Identical outputs |
+| 2 | **Canonicalize by symmetry** before hashing (min over the 8 transforms). | Changes evals — makes them symmetry-invariant. Expected **strength-positive** |
+| 3 | **Full transposition table** sharing tree nodes between transposing lines. | Changes the search. Biggest win, biggest risk |
+
+Level 2 deserves emphasis: the pipeline already applies 8× symmetry augmentation
+at training time (`selfplayer.cpp:78`), which is an admission that the network is
+not symmetry-equivariant. Canonicalizing at inference enforces exact symmetry
+invariance **for free**, and simultaneously cuts distinct positions by up to 8×.
+That is a rare case of a speed optimization that should also gain Elo.
+
+Memory note: a full cache entry is ~400 B (hash + eval + 96 policy floats), so
+1M entries is ~400 MB — too much alongside everything else on a 15 GB laptop.
+Mitigate with float16 policy storage, a fixed-size open-addressing table with
+replacement, or — best value — **caching only shallow depths**, where sharing is
+overwhelmingly concentrated.
+
+### 13.7 Measure this before building it
+
+The decisive Phase 0 number: **instrument one generation and count distinct
+canonical positions versus total evaluation requests**, broken down by depth.
+
+That single measurement sizes the entire §13.6 opportunity, and it is cheap. If
+distinct positions are 10% of requests, Level 0–1 alone removes most of the NN
+cost. If they are 90%, skip to §13.1–13.5 and the transposition table.
+
+Report alongside it: distinct *games* per generation (opening diversity, §12.6)
+and the distribution of `num_legal_moves` (sizes the arena and the edge layout).
+
+### 13.8 Profiling setup, borrowed from big2-ai
+
+- A dedicated `benchmark` build target, separate from the instrumented test build
+  (big2's `Makefile:182-193`, `-DBENCHMARK_MAIN`). Corintho's `CMakeLists.txt:14`
+  currently forces `--coverage -pg` into every build (§7.3), so there is no clean
+  target to profile at all today.
+- A scripted profiling driver with perf / callgrind / plain modes, after the
+  pattern of `scripts/profile_pimc_selfplay.sh`.
+- `-march=native` in the default flags — big2 has it (`Makefile:4`), Corintho does not.
+- Validate every rewrite against the old implementation over an exhaustive or
+  randomized position corpus: old and new `getLegalMoves` must return identical
+  bitsets. Move generation is the one place where a subtle bug silently corrupts
+  every downstream result.

@@ -73,6 +73,11 @@ class Game {
     uint16_t empty;
     /// @brief Bit per space, set when the space is frozen
     uint16_t frozen;
+    /// @brief Bit per space, set when that space CONTAINS this piece type
+    /// @details Distinct from top_plane: a space holding a column and a
+    /// capital contains a column but is topped by the capital. Placement
+    /// rules ask about containment, line detection about topping.
+    uint16_t has[3];
     /// @brief Bit per space, set when that space's top is this piece type
     /// @details Line detection works on these directly, so they are built in
     /// the same pass that fills top and bottom rather than in a second loop.
@@ -140,6 +145,11 @@ class Game {
   /// because covering one end of a four leaves a three standing.
   /// @return The number of lines written to `out`
   int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
+
+  /// @brief Every move legal by placement and movement rules, ignoring lines
+  /// @details All 48 placements reduce to three mask expressions and all 48
+  /// moves to a shifted AND per direction, replacing 96 per-move calls.
+  MoveMask basicLegalMoves(const SpaceInfo &info) const noexcept;
 
   /// @brief The set of moves that break every line currently on the board
   /// @details One mask per line, ANDed together, rather than testing every

@@ -35,11 +35,7 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   PresentLine lines[kNumLineShapes];
   const int32_t num_lines = findLines(info, lines);
   // First set all moves to legal
-  legal_moves.setAll();
-  for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (!isLegalMove(i, info))
-      legal_moves.reset(i);
-  }
+  legal_moves = basicLegalMoves(info);
   // One AND per line, rather than testing every move against every line.
   if (num_lines > 0)
     legal_moves &= lineBreakers(info, lines, num_lines);
@@ -104,6 +100,78 @@ int32_t Game::findLines(const SpaceInfo &info,
     }
   }
   return count;
+}
+
+MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
+  const uint32_t all = 0xFFFFU;
+  const uint32_t unfrozen = ~static_cast<uint32_t>(info.frozen) & all;
+
+  // --- Placements. One expression per piece type, covering all 16 spaces. ---
+  // A base needs an empty space. A column needs a space with no column and no
+  // capital; empty spaces satisfy that too, since an empty space is never
+  // frozen. A capital needs no capital, and not a lone base.
+  uint32_t place[3];
+  place[kBase] = info.empty;
+  place[kColumn] = unfrozen & ~info.has[kColumn] & ~info.has[kCapital] & all;
+  place[kCapital] = unfrozen & ~info.has[kCapital] &
+                    (~static_cast<uint32_t>(info.has[kBase]) |
+                     info.has[kColumn]) & all;
+  for (int32_t p = 0; p < 3; ++p) {
+    if (pieces_[to_play_ * 3 + p] == 0)
+      place[p] = 0;
+  }
+
+  // --- Moves. canMove needs bottom(from) - top(to) == 1, and with both
+  // spaces occupied each is in {0,1,2}, so only two pairings are possible:
+  // a column-bottomed stack onto a base-topped space, or a capital-bottomed
+  // stack onto a column-topped one. ---
+  const uint32_t src_col = info.has[kColumn] &
+                           ~static_cast<uint32_t>(info.has[kBase]) & unfrozen;
+  const uint32_t dst_base = info.top_plane[kBase] & unfrozen;
+  const uint32_t src_cap = info.has[kCapital] &
+                           ~static_cast<uint32_t>(info.has[kBase]) &
+                           ~static_cast<uint32_t>(info.has[kColumn]) & unfrozen;
+  const uint32_t dst_col = info.top_plane[kColumn] & unfrozen;
+
+  MoveMask legal;
+  // Place IDs are 48 + piece * 16 + space, so each piece's sixteen placements
+  // are contiguous and drop straight in as a shift.
+  legal.lo = static_cast<uint64_t>(place[kBase]) << 48;
+  legal.hi = static_cast<uint64_t>(place[kColumn]) |
+             (static_cast<uint64_t>(place[kCapital]) << 16);
+
+  // For each direction, a source is playable when the matching destination
+  // sits one step away. Shifting the destination set back onto the source set
+  // tests all sixteen spaces at once; the file masks stop a row wrapping.
+  const uint32_t kNotFileD = 0x7777U;  // source may step right
+  const uint32_t kNotFileA = 0xEEEEU;  // source may step left
+  const uint32_t right = (((dst_base >> 1) & src_col) |
+                        ((dst_col >> 1) & src_cap)) & kNotFileD;
+  const uint32_t left = (((dst_base << 1) & src_col) |
+                        ((dst_col << 1) & src_cap)) & kNotFileA;
+  const uint32_t down = (((dst_base >> 4) & src_col) |
+                        ((dst_col >> 4) & src_cap)) & all;
+  const uint32_t up = (((dst_base << 4) & src_col) |
+                       ((dst_col << 4) & src_cap)) & all;
+
+  // Down and up land on contiguous ID ranges, so they shift in directly.
+  legal.lo |= static_cast<uint64_t>(down & 0x0FFFU) << 12;
+  legal.lo |= static_cast<uint64_t>((up >> 4) & 0x0FFFU) << 36;
+  // Right and left do not, since each row contributes three IDs rather than
+  // four, so those two walk their set bits.
+  uint32_t w = right;
+  while (w != 0) {
+    const int32_t c = __builtin_ctz(w);
+    w &= w - 1;
+    legal.lo |= 1ULL << ((c >> 2) * 3 + (c & 3));
+  }
+  w = left;
+  while (w != 0) {
+    const int32_t c = __builtin_ctz(w);
+    w &= w - 1;
+    legal.lo |= 1ULL << (24 + (c >> 2) * 3 + (c & 3) - 1);
+  }
+  return legal;
 }
 
 MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
@@ -229,6 +297,9 @@ void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
   info.top_plane[0] = 0;
   info.top_plane[1] = 0;
   info.top_plane[2] = 0;
+  info.has[0] = 0;
+  info.has[1] = 0;
+  info.has[2] = 0;
   for (int32_t space_index = 0; space_index < kBoardSize; ++space_index) {
     const int32_t base = space_index * 4;
     const bool has_base = board_[base + kBase];
@@ -244,6 +315,13 @@ void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
                                : has_column ? kColumn
                                : has_capital ? kCapital
                                              : 3;
+    const uint16_t bit = static_cast<uint16_t>(1u << space_index);
+    if (has_base)
+      info.has[kBase] |= bit;
+    if (has_column)
+      info.has[kColumn] |= bit;
+    if (has_capital)
+      info.has[kCapital] |= bit;
     if (!(has_base || has_column || has_capital))
       info.empty |= static_cast<uint16_t>(1u << space_index);
     else

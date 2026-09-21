@@ -62,8 +62,13 @@ MICRO_REPS=50
 
 # Exact-counter parameters. Tiny, because the simulators are 20-100x slower.
 # Same search count as everything else, per the note in profile.sh.
+#
+# EVERY counter family must use the SAME workload. They previously did not --
+# instructions came from 3 games and allocations from 2 -- so dividing one by
+# the other silently compared different runs, and an attempt to normalise
+# instructions per allocation produced nonsense. Relative comparisons are the
+# whole point of these records, so the scales must match.
 COUNTER_GAMES=3
-COUNTER_DHAT_GAMES=2
 
 mkdir -p results
 OUT="results/${LABEL}.tsv"
@@ -108,6 +113,7 @@ make -s all "${MAKEARGS[@]}"
   echo -e "#ac_power\t${AC_ONLINE}"
   echo -e "#governor\t${GOVERNOR}"
   echo -e "#loadavg\t${LOADAVG}"
+  echo -e "#counters\tgames=${COUNTER_GAMES} searches=${SEARCHES} (all counter families share this workload)"
   echo -e "#config\tpair_games=${PAIR_GAMES} big_games=${BIG_GAMES} searches=${SEARCHES} per_eval=${PER_EVAL} threads=${THREADS} seed=${SEED} corpus=${CORPUS} reps=${REPS}"
 } > "$OUT"
 
@@ -216,13 +222,37 @@ if [ "$SUITE" = "counters" ] || [ "$SUITE" = "all" ]; then
       }' >> "$OUT"
 
   valgrind --tool=dhat --dhat-out-file="$TMP/d.out" \
-    ./build/selfplay_bench "$COUNTER_DHAT_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    ./build/selfplay_bench "$COUNTER_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
     > /dev/null 2>"$TMP/d.log"
   grep -Ei "^==[0-9]+== Total:" "$TMP/d.log" | tr -d ',' \
     | awk '{
         printf "exact_alloc_bytes\t%s\t%s\t%s\n", $3, $3, $3;
         printf "exact_alloc_blocks\t%s\t%s\t%s\n", $6, $6, $6;
       }' >> "$OUT"
+
+  # Work done can change even when behaviour does not -- a correctness fix that
+  # widens the legal move set makes the search explore more nodes. Per-allocation
+  # figures separate "more work" from "slower work". Valid only because every
+  # counter family now shares one workload.
+  python3 - "$OUT" <<'PY' >> "$OUT"
+import sys
+vals = {}
+for line in open(sys.argv[1], encoding="utf-8"):
+    parts = line.rstrip("\n").split("\t")
+    if len(parts) == 4:
+        try:
+            vals[parts[0]] = float(parts[1])
+        except ValueError:
+            pass
+blocks = vals.get("exact_alloc_blocks", 0)
+if blocks:
+    for name in ("exact_instructions", "exact_branches",
+                 "exact_branch_mispredicts", "exact_d1_read_miss"):
+        if name in vals:
+            per = vals[name] / blocks
+            key = name.replace("exact_", "per_alloc_")
+            print(f"{key}\t{per:.4f}\t{per:.4f}\t{per:.4f}")
+PY
 fi
 
 echo "wrote $OUT"

@@ -1,0 +1,10 @@
+bool 1.3003
+uint8 1.3227
+bool 1.3302
+uint8 1.3624
+bool 1.3339
+uint8 1.3540
+bool 1.3411
+uint8 1.3426
+bool 1.3633
+uint8 1.3558

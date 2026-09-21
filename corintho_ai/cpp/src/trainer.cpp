@@ -19,7 +19,7 @@ Trainer::Trainer(int32_t num_games, const std::string &log_folder,
                  int32_t seed, int32_t max_searches, int32_t searches_per_eval,
                  float c_puct, float epsilon, int32_t num_logged,
                  int32_t num_threads, bool testing)
-    : is_done_{std::vector<bool>(num_games, false)},
+    : is_done_{std::vector<uint8_t>(num_games, 0)},
       max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
       num_threads_{num_threads}, generator_{gsl::narrow_cast<uint32_t>(seed)} {
   assert(num_games > 0);

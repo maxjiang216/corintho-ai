@@ -62,7 +62,10 @@ class Trainer {
   /// @brief The self-play games
   std::vector<SelfPlayer> games_{};
   /// @brief Tracks which games are done
-  std::vector<bool> is_done_{};
+  // uint8_t, not bool: std::vector<bool> packs 64 flags per word, so the
+  // parallel writes in doIteration() are read-modify-writes of a shared word
+  // and can drop each other's updates. See worklog 2026-09-21.
+  std::vector<uint8_t> is_done_{};
   /// @brief Maximum number of searches per turn for the players
   /// @details This is used to compute offsets for starting the games
   int32_t max_searches_{1600};

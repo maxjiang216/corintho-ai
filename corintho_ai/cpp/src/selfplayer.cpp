@@ -21,7 +21,14 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
                        int32_t parity)
     : generator_{std::mt19937(random_seed)},
-      to_eval_{std::make_unique<float[]>(kGameStateSize * max_searches)},
+      // Sized by searches_per_eval, NOT max_searches. The buffer holds one
+      // batch of network inputs and is refilled from offset 0 after every
+      // evaluation, so only searches_per_eval positions are ever live. Sizing
+      // it by max_searches made it 100x larger than it is ever used (1600/16)
+      // and, because make_unique value-initializes, all of that was zeroed and
+      // therefore resident: ~70% of process memory. dockermc.cpp always sized
+      // it this way. See worklog entry 09.
+      to_eval_{std::make_unique<float[]>(kGameStateSize * searches_per_eval)},
       players_{TrainMC{&generator_, to_eval_.get(), max_searches,
                        searches_per_eval, c_puct, epsilon, testing},
                TrainMC{&generator_, to_eval_.get(), max_searches,

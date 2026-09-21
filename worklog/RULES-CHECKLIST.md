@@ -280,6 +280,69 @@ The thirteenth is line 7 (row-2 left-3, columns), which contains
 four depends on the moved stack's top type, which is dynamic. This is why the
 author needed the capital-line fix-up, and why it was never finished.
 
+### Category A is UNREACHABLE in correct play
+
+Max: if b3 is frozen the previous move ended there, so the other line already
+existed and was not broken — meaning that earlier move was itself illegal.
+
+Tested by replaying 6,139,414 positions choosing moves by the **rule** rather
+than by the engine:
+
+```
+maximal lines present:  0 -> 85.005%   1 -> 13.850%   2 -> 1.132%   3 -> 0.014%
+positions with >=2 maximal lines            : 70,322 (1.1454%)
+positions with 2+ in the SAME detector cat. :      0 (0.000000%)
+```
+
+**Zero.** The comment at `game.h:105` is empirically correct for reachable
+positions: each of the four detectors really does find at most one line. The
+early return is a *latent* hazard, not an active bug — it only bites once some
+other defect lets play into an illegal position.
+
+**Methodological note.** Every earlier frequency here was measured by walking
+the engine's own buggy legal-move set, which wanders into positions that cannot
+legally occur. On rule-reachable positions only:
+
+```
+engine ALLOWS a forbidden move : 9,307 positions (0.152%), 9,686 moves
+engine FORBIDS a legal move    : 5,673 positions (0.092%), 5,673 moves
+```
+
+### Analytic enumeration of the table: only 13 real errors
+
+Classifying all 102 x 96 = 9,792 cells by hand rather than by sampling, after
+excluding moves that can never be basically legal:
+
+| class | count | |
+|---|---|---|
+| **E** — in table, NEVER breaks | **13** | genuine encoding errors |
+| **H** — missing, ALWAYS breaks | **0** | none |
+| **DEPENDS** on moved stack's top | **816** | 467 present, 349 missing |
+| correct | 8,963 | |
+
+Three facts had to be built into the model before the count settled, each of
+which removed a large block of false positives:
+
+- **4-line entries do triple duty.** The engine subsumes, applying only the
+  4-line's entry, so that entry must encode "breaks the 4-line *and* both
+  3-subsets". Confirmed: `line_breakers[24]` (row0 all-four, bases) permits
+  exactly `b3U, c3U, Cb4, Cc4` — precisely the four moves that change a middle
+  cell, matching the derived consequence. Omitting the rest is correct.
+- **A move between two cells of the same line is never playable.** Both tops are
+  `ty` and `canMove` needs `bottom(from) - top(to) == 1`, but `bottom <= top`.
+- **A base-topped stack can never be moved at all.** It is exactly `{B}`, so
+  `bottom == 0` and `canMove` would need an empty destination, which it forbids.
+  Likewise many placements onto a line cell are never legal.
+
+So the table is **mostly right**. Its only outright errors are the 13
+transpositions. Everything else wrong with it is the top-dependence it cannot
+express — and that is unfixable by any static table, which is the whole argument
+for replacing it with the explicit rule.
+
+The earlier empirical claim that "H accounted for 97.3% of over-restrictive
+cases" was mislabelled: with H analytically zero, every one of those instances
+is a DEPENDS-missing case, i.e. conservative top-dependence, not an encoding bug.
+
 ### Impact
 
 The search visits on the order of 10^9 positions per generation, so this is

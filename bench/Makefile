@@ -8,6 +8,7 @@
 #   make selfplay   end-to-end engine benchmark (stub evaluator)
 #   make golden     behavioural digests (see golden.cpp)
 #   make verify     differential test against the frozen reference
+#   make rulecheck  exhaustive line-breaking test (fails until item 4 is fixed)
 #   make run        build and run everything at default sizes
 #   make callgrind  instruction-level attribution
 #
@@ -27,14 +28,15 @@ CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
 # ships in the training module.
 CORE  += $(BUILD)/game_reference.o
 
-.PHONY: all micro selfplay golden verify run callgrind clean
+.PHONY: all micro selfplay golden verify rulecheck run callgrind clean
 
-all: micro selfplay golden verify_bin
+all: micro selfplay golden verify_bin rulecheck_bin
 
 micro: $(BUILD)/micro_bench
 selfplay: $(BUILD)/selfplay_bench
 golden: $(BUILD)/golden
 verify_bin: $(BUILD)/verify
+rulecheck_bin: $(BUILD)/rulecheck
 
 $(BUILD):
 	@mkdir -p $(BUILD)
@@ -54,6 +56,9 @@ $(BUILD)/golden.o: golden.cpp bench_util.h | $(BUILD)
 $(BUILD)/verify.o: verify.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
+$(BUILD)/rulecheck.o: rulecheck.cpp bench_util.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+
 $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
@@ -64,6 +69,9 @@ $(BUILD)/golden: $(BUILD)/golden.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/verify: $(BUILD)/verify.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILD)/rulecheck: $(BUILD)/rulecheck.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 run: all
@@ -81,6 +89,11 @@ callgrind: selfplay
 # Gate for every optimization: must pass before a stage is committed.
 verify: $(BUILD)/verify
 	@./$(BUILD)/verify
+
+# Exhaustive over the proven-complete index. Expected to FAIL until the
+# line-breaking defects in worklog/RULES-CHECKLIST.md item 4 are fixed.
+rulecheck: $(BUILD)/rulecheck
+	@./$(BUILD)/rulecheck
 
 clean:
 	rm -rf $(BUILD) build-lines build-a build-b perf.data cg.out

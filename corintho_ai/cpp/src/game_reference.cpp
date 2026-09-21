@@ -1,14 +1,19 @@
 // Reference implementation of legal move generation.
 //
-// A verbatim copy of Game::getLegalMoves as it stood before the bitboard work
-// (commit 75e7d4d), kept compiled so that every optimization can be checked
-// against it position by position. See bench/verify.cpp.
+// Kept compiled so that every optimization can be checked against it position
+// by position. See bench/verify.cpp.
 //
-// IMPORTANT: this file deliberately duplicates every helper it needs --
-// refTop, refBottom, refEmpty, refFrozen, refBoard -- instead of calling
-// Game::top(), Game::empty() and so on. If the reference shared helpers with
-// the implementation under test, a bug introduced in a shared helper would
-// corrupt both sides identically and the comparison would pass. The
+// Re-frozen after the line-breaking fix: it now mirrors the corrected rule
+// rather than the pre-fix behaviour it was first cut from. The earlier version
+// encoded the defects catalogued in worklog/RULES-CHECKLIST.md item 4, so
+// keeping it would have meant every later change being verified against a
+// known-wrong oracle.
+//
+// IMPORTANT: this file deliberately duplicates everything it needs -- the
+// space scan, the placement and movement rules, the line shapes, and the
+// breaking rule -- instead of calling Game's own helpers. If the reference
+// shared code with the implementation under test, a bug introduced in shared
+// code would corrupt both sides identically and the comparison would pass. The
 // duplication is the point.
 //
 // This file is built only by bench/Makefile. It is not listed in
@@ -27,69 +32,93 @@
 
 namespace {
 
-// --- Private copies of the board accessors, as they were. ---
+// --- Private copy of the line shapes. ---
 
-bool refBoard(const std::bitset<4 * kBoardSize> &board, Space space,
+struct RefShape {
+  int8_t cells[4];
+  int8_t count;
+  int8_t extend;
+};
+
+constexpr RefShape kRefShapes[34] = {
+    {{0, 1, 2, 3}, 4, -1},     {{0, 1, 2}, 3, 3},     {{1, 2, 3}, 3, 0},
+    {{4, 5, 6, 7}, 4, -1},     {{4, 5, 6}, 3, 7},     {{5, 6, 7}, 3, 4},
+    {{8, 9, 10, 11}, 4, -1},   {{8, 9, 10}, 3, 11},   {{9, 10, 11}, 3, 8},
+    {{12, 13, 14, 15}, 4, -1}, {{12, 13, 14}, 3, 15}, {{13, 14, 15}, 3, 12},
+    {{0, 4, 8, 12}, 4, -1},    {{0, 4, 8}, 3, 12},    {{4, 8, 12}, 3, 0},
+    {{1, 5, 9, 13}, 4, -1},    {{1, 5, 9}, 3, 13},    {{5, 9, 13}, 3, 1},
+    {{2, 6, 10, 14}, 4, -1},   {{2, 6, 10}, 3, 14},   {{6, 10, 14}, 3, 2},
+    {{3, 7, 11, 15}, 4, -1},   {{3, 7, 11}, 3, 15},   {{7, 11, 15}, 3, 3},
+    {{0, 5, 10, 15}, 4, -1},   {{0, 5, 10}, 3, 15},   {{5, 10, 15}, 3, 0},
+    {{3, 6, 9, 12}, 4, -1},    {{3, 6, 9}, 3, 12},    {{6, 9, 12}, 3, 3},
+    {{5, 2, 8}, 3, -1},        {{6, 1, 11}, 3, -1},
+    {{10, 7, 13}, 3, -1},      {{9, 4, 14}, 3, -1},
+};
+
+// --- Private copies of the board accessors. ---
+
+bool refBoard(const std::bitset<4 * kBoardSize> &board, int32_t cell,
               PieceType piece_type) noexcept {
-  return board[space.row * 16 + space.col * 4 + piece_type];
+  return board[cell * 4 + piece_type];
 }
 
-bool refFrozen(const std::bitset<4 * kBoardSize> &board, Space space) noexcept {
-  return board[space.row * 16 + space.col * 4 + kFrozen];
+bool refFrozen(const std::bitset<4 * kBoardSize> &board,
+               int32_t cell) noexcept {
+  return board[cell * 4 + kFrozen];
 }
 
-bool refEmpty(const std::bitset<4 * kBoardSize> &board, Space space) noexcept {
-  return !(refBoard(board, space, kBase) || refBoard(board, space, kColumn) ||
-           refBoard(board, space, kCapital));
+bool refEmpty(const std::bitset<4 * kBoardSize> &board, int32_t cell) noexcept {
+  return !(refBoard(board, cell, kBase) || refBoard(board, cell, kColumn) ||
+           refBoard(board, cell, kCapital));
 }
 
-int32_t refTop(const std::bitset<4 * kBoardSize> &board, Space space) noexcept {
+int32_t refTop(const std::bitset<4 * kBoardSize> &board,
+               int32_t cell) noexcept {
   for (PieceType piece_type = 2; piece_type >= 0; --piece_type) {
-    if (refBoard(board, space, piece_type))
+    if (refBoard(board, cell, piece_type))
       return piece_type;
   }
   return -1;
 }
 
 int32_t refBottom(const std::bitset<4 * kBoardSize> &board,
-                  Space space) noexcept {
+                  int32_t cell) noexcept {
   for (PieceType piece_type = 0; piece_type < 3; ++piece_type) {
-    if (refBoard(board, space, piece_type))
+    if (refBoard(board, cell, piece_type))
       return piece_type;
   }
   return 3;
 }
 
-// --- Private copies of the legality rules, as they were. ---
+// --- Private copies of the placement and movement rules. ---
 
 bool refCanPlace(const std::bitset<4 * kBoardSize> &board,
                  const int8_t pieces[6], int8_t to_play,
                  const Move &move) noexcept {
+  const int32_t to = move.space_to().row * 4 + move.space_to().col;
   if (pieces[to_play * 3 + move.piece_type()] == 0)
     return false;
-  if (refEmpty(board, move.space_to()))
+  if (refEmpty(board, to))
     return true;
-  if (refFrozen(board, move.space_to()))
+  if (refFrozen(board, to))
     return false;
   if (move.piece_type() == kBase)
     return false;
-  if (move.piece_type() == kColumn) {
-    return !(refBoard(board, move.space_to(), kColumn) ||
-             refBoard(board, move.space_to(), kCapital));
-  }
-  return !(refBoard(board, move.space_to(), kCapital) ||
-           (refBoard(board, move.space_to(), kBase) &&
-            !refBoard(board, move.space_to(), kColumn)));
+  if (move.piece_type() == kColumn)
+    return !(refBoard(board, to, kColumn) || refBoard(board, to, kCapital));
+  return !(refBoard(board, to, kCapital) ||
+           (refBoard(board, to, kBase) && !refBoard(board, to, kColumn)));
 }
 
 bool refCanMove(const std::bitset<4 * kBoardSize> &board,
                 const Move &move) noexcept {
-  if (refEmpty(board, move.space_from()) || refEmpty(board, move.space_to()))
+  const int32_t from = move.space_from().row * 4 + move.space_from().col;
+  const int32_t to = move.space_to().row * 4 + move.space_to().col;
+  if (refEmpty(board, from) || refEmpty(board, to))
     return false;
-  if (refFrozen(board, move.space_from()) || refFrozen(board, move.space_to()))
+  if (refFrozen(board, from) || refFrozen(board, to))
     return false;
-  return refBottom(board, move.space_from()) - refTop(board, move.space_to()) ==
-         1;
+  return refBottom(board, from) - refTop(board, to) == 1;
 }
 
 bool refIsLegalMove(const std::bitset<4 * kBoardSize> &board,
@@ -101,158 +130,96 @@ bool refIsLegalMove(const std::bitset<4 * kBoardSize> &board,
   return refCanMove(board, move);
 }
 
-// --- Private copies of the line detectors, as they were. ---
+// --- Private copy of the line-breaking rule. ---
 
-void refApplyLine(int32_t line, std::bitset<kNumMoves> &legal_moves) noexcept {
-  legal_moves &= line_breakers[line];
-}
-
-bool refApplyRowColLines(const std::bitset<4 * kBoardSize> &board,
-                         std::bitset<kNumMoves> &legal_moves,
-                         bool isCol) noexcept {
-  for (int32_t i = 0; i < 4; ++i) {
-    int32_t top0 = refTop(board, Space{i, 0, isCol});
-    int32_t top1 = refTop(board, Space{i, 1, isCol});
-    int32_t top2 = refTop(board, Space{i, 2, isCol});
-    int32_t top3 = refTop(board, Space{i, 3, isCol});
-    if (top1 == -1 || top2 == -1)
+int32_t refFindLines(const std::bitset<4 * kBoardSize> &board, int8_t *shapes,
+                     int8_t *types) noexcept {
+  int32_t count = 0;
+  for (int32_t s = 0; s < 34; ++s) {
+    const int32_t type = refTop(board, kRefShapes[s].cells[0]);
+    if (type < 0)
       continue;
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (isCol) {
-        refApplyLine(CB * 12 + i * 3 + top0, legal_moves);
-      } else {
-        refApplyLine(RB * 12 + i * 3 + top0, legal_moves);
+    bool all = true;
+    for (int32_t k = 1; k < kRefShapes[s].count; ++k) {
+      if (refTop(board, kRefShapes[s].cells[k]) != type) {
+        all = false;
+        break;
       }
-      return true;
     }
-    for (int32_t extend_coord : {3, 0}) {
-      if (top1 == top2 && ((extend_coord == 3 && top0 == top1) ||
-                           (extend_coord == 0 && top2 == top3))) {
-        if (isCol && extend_coord == 0) {
-          refApplyLine(CD * 12 + i * 3 + top1, legal_moves);
-        } else if (isCol && extend_coord == 3) {
-          refApplyLine(CU * 12 + i * 3 + top1, legal_moves);
-        } else if (extend_coord == 0) {
-          refApplyLine(RR * 12 + i * 3 + top1, legal_moves);
-        } else {
-          refApplyLine(RL * 12 + i * 3 + top1, legal_moves);
-        }
-        if (top1 == 2) {
-          if (!refBoard(board, Space{0, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{0, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-          }
-          if (!refBoard(board, Space{1, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{0, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-          if (!refBoard(board, Space{2, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{3, extend_coord, isCol})] = false;
-          }
-          if (!refBoard(board, Space{3, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{3, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-        }
-        return true;
-      }
+    if (all) {
+      shapes[count] = static_cast<int8_t>(s);
+      types[count] = static_cast<int8_t>(type);
+      ++count;
     }
   }
-  return false;
+  return count;
 }
 
-bool refApplyLongDiagLines(const std::bitset<4 * kBoardSize> &board,
-                           std::bitset<kNumMoves> &legal_moves) noexcept {
-  for (bool flip : {false, true}) {
-    int32_t top0 = refTop(board, Space{0, flip ? 3 : 0});
-    int32_t top1 = refTop(board, Space{1, flip ? 2 : 1});
-    int32_t top2 = refTop(board, Space{2, flip ? 1 : 2});
-    int32_t top3 = refTop(board, Space{3, flip ? 0 : 3});
-    if (top1 == -1 || top2 == -1) {
+bool refBreaksAll(const std::bitset<4 * kBoardSize> &board,
+                  const int8_t *shapes, const int8_t *types, int32_t num,
+                  int32_t move_id) noexcept {
+  Move move{move_id};
+  int32_t changed[2];
+  int32_t new_top[2];
+  int32_t num_changed;
+  const int32_t to = move.space_to().row * 4 + move.space_to().col;
+  if (move.move_type() == Move::MoveType::kPlace) {
+    changed[0] = to;
+    new_top[0] = move.piece_type();
+    num_changed = 1;
+  } else {
+    const int32_t from = move.space_from().row * 4 + move.space_from().col;
+    changed[0] = from;
+    new_top[0] = -1;
+    changed[1] = to;
+    new_top[1] = refTop(board, from);
+    num_changed = 2;
+  }
+  for (int32_t i = 0; i < num; ++i) {
+    const RefShape &shape = kRefShapes[shapes[i]];
+    const int32_t type = types[i];
+    bool survives = true;
+    for (int32_t k = 0; k < num_changed && survives; ++k) {
+      if (new_top[k] == type)
+        continue;
+      for (int32_t c = 0; c < shape.count; ++c) {
+        if (shape.cells[c] == changed[k]) {
+          survives = false;
+          break;
+        }
+      }
+    }
+    if (!survives)
       continue;
-    }
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (flip) {
-        refApplyLine(72 + D1B * 3 + top1, legal_moves);
-      } else {
-        refApplyLine(72 + D0B * 3 + top1, legal_moves);
+    if (shape.extend >= 0) {
+      int32_t extend_top = refTop(board, shape.extend);
+      for (int32_t k = 0; k < num_changed; ++k) {
+        if (changed[k] == shape.extend)
+          extend_top = new_top[k];
       }
-      return true;
+      if (extend_top == type)
+        continue;
     }
-    if (top0 == top1 && top1 == top2) {
-      if (flip) {
-        refApplyLine(72 + D1U * 3 + top1, legal_moves);
-      } else {
-        refApplyLine(72 + D0U * 3 + top1, legal_moves);
-      }
-      return true;
-    }
-    if (top1 == top2 && top2 == top3) {
-      if (flip) {
-        refApplyLine(72 + D1D * 3 + top1, legal_moves);
-      } else {
-        refApplyLine(72 + D0D * 3 + top1, legal_moves);
-      }
-      return true;
-    }
+    return false;
   }
-  return false;
-}
-
-bool refApplyShortDiagLines(const std::bitset<4 * kBoardSize> &board,
-                            std::bitset<kNumMoves> &legal_moves) noexcept {
-  int32_t top1 = refTop(board, Space{1, 1});
-  if (top1 != -1 && top1 == refTop(board, Space{0, 2}) &&
-      top1 == refTop(board, Space{2, 0})) {
-    refApplyLine(72 + S0 * 3 + top1, legal_moves);
-    return true;
-  }
-  top1 = refTop(board, Space{1, 2});
-  if (top1 != -1 && top1 == refTop(board, Space{0, 1}) &&
-      top1 == refTop(board, Space{2, 3})) {
-    refApplyLine(72 + S1 * 3 + top1, legal_moves);
-    return true;
-  }
-  top1 = refTop(board, Space{2, 2});
-  if (top1 != -1 && top1 == refTop(board, Space{1, 3}) &&
-      top1 == refTop(board, Space{3, 1})) {
-    refApplyLine(72 + S2 * 3 + top1, legal_moves);
-    return true;
-  }
-  top1 = refTop(board, Space{2, 1});
-  if (top1 != -1 && top1 == refTop(board, Space{1, 0}) &&
-      top1 == refTop(board, Space{3, 2})) {
-    refApplyLine(72 + S3 * 3 + top1, legal_moves);
-    return true;
-  }
-  return false;
-}
-
-bool refApplyLines(const std::bitset<4 * kBoardSize> &board,
-                   std::bitset<kNumMoves> &legal_moves) noexcept {
-  bool is_any_lines = false;
-  is_any_lines |= refApplyRowColLines(board, legal_moves, false);
-  is_any_lines |= refApplyRowColLines(board, legal_moves, true);
-  is_any_lines |= refApplyLongDiagLines(board, legal_moves);
-  is_any_lines |= refApplyShortDiagLines(board, legal_moves);
-  return is_any_lines;
+  return true;
 }
 
 }  // namespace
 
 bool Game::getLegalMovesReference(
     std::bitset<kNumMoves> &legal_moves) const noexcept {
+  int8_t shapes[34];
+  int8_t types[34];
+  const int32_t num_lines = refFindLines(board_, shapes, types);
   legal_moves.set();
-  bool is_lines = refApplyLines(board_, legal_moves);
   for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (legal_moves[i] && !refIsLegalMove(board_, pieces_, to_play_, i)) {
+    if (!refIsLegalMove(board_, pieces_, to_play_, i)) {
+      legal_moves[i] = false;
+    } else if (num_lines > 0 &&
+               !refBreaksAll(board_, shapes, types, num_lines, i)) {
       legal_moves[i] = false;
     }
   }
-  return is_lines;
+  return num_lines > 0;
 }

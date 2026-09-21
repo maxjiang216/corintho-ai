@@ -123,38 +123,28 @@ class Game {
   bool isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept;
   /// @brief Overload that computes its own SpaceInfo, for the doMove assert
   bool isLegalMove(int32_t move_id) const noexcept;
-  /// @brief Applies the line breakers of a given line
-  /// to a bitset of legal moves
-  /// @details Applies a bitwise AND operation to legal_moves
-  /// @param line The ID of the line to apply
-  void applyLine(int32_t line,
-                 std::bitset<kNumMoves> &legal_moves) const noexcept;
-  /// @brief Applies the row or column lines to a bitset of legal moves
-  /// @details The row and column code are identical except for the
-  /// order of the coordinates and the line numbers
-  /// This function is used to avoid code duplication
-  /// All the rows/columns are checked together
-  /// as there can only be up to 1 of each type, so we can return early
-  /// @return Whether there were any lines
-  bool applyRowColLines(std::bitset<kNumMoves> &legal_moves, bool isCol,
-                        const SpaceInfo &info) const noexcept;
-  /// @brief Applies the long diagonal lines to a bitset of legal moves
-  /// @details We can combine the code for the 2 long diagonals
-  /// There is also only at most one long diagonal line, so we can return early
-  bool applyLongDiagLines(std::bitset<kNumMoves> &legal_moves,
-                          const SpaceInfo &info) const noexcept;
-  /// @brief Applies the short diagonal lines to a bitset of legal moves
-  bool applyShortDiagLines(std::bitset<kNumMoves> &legal_moves,
-                           const SpaceInfo &info) const noexcept;
-  /// @brief Finds lines and moves that break all lines.
-  /// @details legal_moves is a bitset indicating which moves are legal
-  /// based on basic rules See getLegalMoves for more details legal_moves
-  /// will be mutated by applying a bitwise AND operation with the line
-  /// breaking moves
-  /// @param legal_moves A bitset of size kNumMoves
-  /// @return Whether there were any lines
-  bool applyLines(std::bitset<kNumMoves> &legal_moves,
-                  const SpaceInfo &info) const noexcept;
+  /// @brief A line present on the board, as a shape and the type topping it
+  struct PresentLine {
+    int8_t shape;
+    int8_t type;
+  };
+
+  /// @brief Find every line shape currently holding a single top type
+  /// @details No subsumption: a four and both of its threes are all recorded,
+  /// because covering one end of a four leaves a three standing.
+  /// @return The number of lines written to `out`
+  int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
+
+  /// @brief Whether a move breaks every line currently on the board
+  /// @details The rule: for every shape holding type t before the move,
+  /// afterwards either it no longer holds t, or it is a three whose containing
+  /// four now holds t. Short diagonals are maximal, so the second clause never
+  /// applies to them.
+  /// @note A move changes at most two spaces, so this needs no board copy: the
+  /// resulting tops are computed directly from the move.
+  bool breaksAllLines(int32_t move_id, const SpaceInfo &info,
+                      const PresentLine *lines,
+                      int32_t num_lines) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

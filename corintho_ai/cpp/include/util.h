@@ -81,7 +81,56 @@ const int32_t S1 = 7;
 const int32_t S2 = 8;
 const int32_t S3 = 9;
 
+/// @brief A straight line of three or four spaces, for win detection
+/// @details 34 shapes: 4 rows and 4 columns with three sub-shapes each
+/// (all-four, and the two threes), the two long diagonals with three each, and
+/// the four short diagonals. A cell belongs to at most one shape per category,
+/// and the two long diagonals are disjoint, as are the four short diagonals.
+struct LineShape {
+  /// @brief Board indices, row * 4 + col; only the first `count` are used
+  int8_t cells[4];
+  int8_t count;
+  /// @brief The space that would extend a three into a four, or -1
+  /// @details A three is legitimately unmade by becoming a four, so this is
+  /// consulted by the breaking rule. Short diagonals are maximal and have none.
+  int8_t extend;
+};
+
+/// @brief Every line shape on the board
+/// @note Order is irrelevant; the breaking rule treats them independently. In
+/// particular a four and its two threes are all present and all checked, since
+/// covering one end of a four leaves a three standing.
+const int32_t kNumLineShapes = 34;
+
+inline constexpr LineShape kLineShapes[kNumLineShapes] = {
+    // Rows: all-four, left three (extends right), right three (extends left)
+    {{0, 1, 2, 3}, 4, -1},   {{0, 1, 2}, 3, 3},     {{1, 2, 3}, 3, 0},
+    {{4, 5, 6, 7}, 4, -1},   {{4, 5, 6}, 3, 7},     {{5, 6, 7}, 3, 4},
+    {{8, 9, 10, 11}, 4, -1}, {{8, 9, 10}, 3, 11},   {{9, 10, 11}, 3, 8},
+    {{12, 13, 14, 15}, 4, -1}, {{12, 13, 14}, 3, 15}, {{13, 14, 15}, 3, 12},
+    // Columns: all-four, upper three (extends down), lower three (extends up)
+    {{0, 4, 8, 12}, 4, -1},  {{0, 4, 8}, 3, 12},    {{4, 8, 12}, 3, 0},
+    {{1, 5, 9, 13}, 4, -1},  {{1, 5, 9}, 3, 13},    {{5, 9, 13}, 3, 1},
+    {{2, 6, 10, 14}, 4, -1}, {{2, 6, 10}, 3, 14},   {{6, 10, 14}, 3, 2},
+    {{3, 7, 11, 15}, 4, -1}, {{3, 7, 11}, 3, 15},   {{7, 11, 15}, 3, 3},
+    // Long diagonals, a4-d1 then d4-a1
+    {{0, 5, 10, 15}, 4, -1}, {{0, 5, 10}, 3, 15},   {{5, 10, 15}, 3, 0},
+    {{3, 6, 9, 12}, 4, -1},  {{3, 6, 9}, 3, 12},    {{6, 9, 12}, 3, 3},
+    // Short diagonals, maximal at three
+    {{5, 2, 8}, 3, -1},      {{6, 1, 11}, 3, -1},
+    {{10, 7, 13}, 3, -1},    {{9, 4, 14}, 3, -1},
+};
+
 // Legal move filter for lines
+//
+// NO LONGER USED BY THE ENGINE. Replaced by the explicit rule in
+// Game::getLegalMoves, because a static table cannot express whether a
+// move-move extends a line to four -- that depends on the moved stack's top
+// type. See worklog/RULES-CHECKLIST.md item 4: 816 of its 9792 cells are
+// top-dependent and unfixable, and 13 are outright transposition errors.
+//
+// Retained only because web/line_breakers.js is generated from it. THE WEB APP
+// STILL CARRIES ALL OF THESE DEFECTS and needs the same fix.
 inline std::array<bitset<kNumMoves>, 102> line_breakers = {
     bitset<kNumMoves>("00000000000000000000000000000111000000000000100000"
                       "0000000111000000000100000000000000000000000000"),

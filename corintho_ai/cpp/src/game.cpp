@@ -27,24 +27,107 @@ Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
 
 bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   // Compute top/bottom/empty/frozen for every space once. The board cannot
-  // change during this call, and these were previously recomputed from the
-  // bitset roughly 150 times per call.
+  // change during this call.
   SpaceInfo info;
   computeSpaceInfo(info);
+  // Find the lines on the board. 85% of positions have none, and those skip
+  // the breaking check entirely.
+  PresentLine lines[kNumLineShapes];
+  const int32_t num_lines = findLines(info, lines);
   // First set all moves to legal
   legal_moves.set();
-  // Filter out moves that don't break lines
-  bool is_lines = applyLines(legal_moves, info);
-  // Apply other rules
   for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (legal_moves[i] && !isLegalMove(i, info)) {
+    if (!isLegalMove(i, info)) {
+      legal_moves[i] = false;
+    } else if (num_lines > 0 && !breaksAllLines(i, info, lines, num_lines)) {
       legal_moves[i] = false;
     }
   }
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
-  return is_lines;
+  return num_lines > 0;
+}
+
+int32_t Game::findLines(const SpaceInfo &info,
+                        PresentLine *out) const noexcept {
+  int32_t count = 0;
+  for (int32_t s = 0; s < kNumLineShapes; ++s) {
+    const LineShape &shape = kLineShapes[s];
+    const int32_t type = info.top[shape.cells[0]];
+    if (type < 0)
+      continue;  // an empty space cannot be part of a line
+    bool all = true;
+    for (int32_t k = 1; k < shape.count; ++k) {
+      if (info.top[shape.cells[k]] != type) {
+        all = false;
+        break;
+      }
+    }
+    if (all) {
+      out[count].shape = gsl::narrow_cast<int8_t>(s);
+      out[count].type = gsl::narrow_cast<int8_t>(type);
+      ++count;
+    }
+  }
+  return count;
+}
+
+bool Game::breaksAllLines(int32_t move_id, const SpaceInfo &info,
+                          const PresentLine *lines,
+                          int32_t num_lines) const noexcept {
+  // A move rewrites the top of at most two spaces: a place changes its target,
+  // and a move-move empties its source and retops its destination. Everything
+  // else is untouched, so no board copy is needed.
+  Move move{move_id};
+  int32_t changed[2];
+  int32_t new_top[2];
+  int32_t num_changed;
+  const int32_t to = move.space_to().row * 4 + move.space_to().col;
+  if (move.move_type() == Move::MoveType::kPlace) {
+    changed[0] = to;
+    new_top[0] = move.piece_type();
+    num_changed = 1;
+  } else {
+    const int32_t from = move.space_from().row * 4 + move.space_from().col;
+    changed[0] = from;
+    new_top[0] = -1;  // the source stack leaves, so the space becomes empty
+    changed[1] = to;
+    new_top[1] = info.top[from];  // the moved stack keeps its own top
+    num_changed = 2;
+  }
+
+  for (int32_t i = 0; i < num_lines; ++i) {
+    const LineShape &shape = kLineShapes[lines[i].shape];
+    const int32_t type = lines[i].type;
+    // The line held before, so it survives unless a changed space inside it
+    // now has a different top.
+    bool survives = true;
+    for (int32_t k = 0; k < num_changed && survives; ++k) {
+      if (new_top[k] == type)
+        continue;
+      for (int32_t c = 0; c < shape.count; ++c) {
+        if (shape.cells[c] == changed[k]) {
+          survives = false;
+          break;
+        }
+      }
+    }
+    if (!survives)
+      continue;  // broken outright
+    // A three is also unmade by becoming a four.
+    if (shape.extend >= 0) {
+      int32_t extend_top = info.top[shape.extend];
+      for (int32_t k = 0; k < num_changed; ++k) {
+        if (changed[k] == shape.extend)
+          extend_top = new_top[k];
+      }
+      if (extend_top == type)
+        continue;  // extended to four
+    }
+    return false;  // this line is still standing
+  }
+  return true;
 }
 
 void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
@@ -278,177 +361,4 @@ bool Game::isLegalMove(int32_t move_id) const noexcept {
   SpaceInfo info;
   computeSpaceInfo(info);
   return isLegalMove(move_id, info);
-}
-
-void Game::applyLine(int32_t line,
-                     std::bitset<kNumMoves> &legal_moves) const noexcept {
-  legal_moves &= line_breakers[line];
-}
-
-bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves, bool isCol,
-                            const SpaceInfo &info) const noexcept {
-  // Index into the cache without constructing a Space. The flip for columns is
-  // the same coordinate swap Space{a, b, isCol} performs.
-  auto cached_top = [&info, isCol](int32_t a, int32_t b) -> int32_t {
-    return isCol ? info.top[b * 4 + a] : info.top[a * 4 + b];
-  };
-  for (int32_t i = 0; i < 4; ++i) {
-    int32_t top0 = cached_top(i, 0);
-    int32_t top1 = cached_top(i, 1);
-    int32_t top2 = cached_top(i, 2);
-    int32_t top3 = cached_top(i, 3);
-    if (top1 == -1 || top2 == -1)
-      continue;  // Empty space in middle, no line possible
-    // Check for a long line
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (isCol) {
-        applyLine(CB * 12 + i * 3 + top0, legal_moves);
-      } else {
-        applyLine(RB * 12 + i * 3 + top0, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Check for a left/upper short line
-    for (int32_t extend_coord : {3, 0}) {
-      if (top1 == top2 && ((extend_coord == 3 && top0 == top1) ||
-                           (extend_coord == 0 && top2 == top3))) {
-        if (isCol && extend_coord == 0) {  // Lower/down column
-          applyLine(CD * 12 + i * 3 + top1, legal_moves);
-        } else if (isCol && extend_coord == 3) {  // Upper column
-          applyLine(CU * 12 + i * 3 + top1, legal_moves);
-        } else if (extend_coord == 0) {  // Right row
-          applyLine(RR * 12 + i * 3 + top1, legal_moves);
-        } else {  // Left row
-          applyLine(RL * 12 + i * 3 + top1, legal_moves);
-        }
-        if (top1 == 2) {
-          // If the line is a capital line
-          // A capital must be used to extend line when moving
-          // The applyLine function is liberal in this case
-          // So we need to remove the illegal moves
-          // We turn off moving to adjacent rows/columns
-          // if the top is not a capital
-          // It doesn't matter which row/column the line is in
-          // When it is not the correct row/column, the move is illegal anyway
-          if (!board(Space{0, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{0, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{1, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{0, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{2, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{3, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{3, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{3, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-        }
-        return true;  // No need to check for other lines
-      }
-    }
-  }
-  return false;  // No lines
-}
-
-bool Game::applyLongDiagLines(std::bitset<kNumMoves> &legal_moves,
-                              const SpaceInfo &info) const noexcept {
-  // Checking the upper left to lower right long diagonal
-  // is the same as checking the upper right to lower left long diagonal
-  // except we flip over the y-axis
-  // and use different line numbers
-  for (bool flip : {false, true}) {
-    int32_t top0 = info.top[0 * 4 + (flip ? 3 : 0)];
-    int32_t top1 = info.top[1 * 4 + (flip ? 2 : 1)];
-    int32_t top2 = info.top[2 * 4 + (flip ? 1 : 2)];
-    int32_t top3 = info.top[3 * 4 + (flip ? 0 : 3)];
-    if (top1 == -1 || top2 == -1) {
-      continue;  // Empty space in middle, no line possible
-    }
-    // Long line
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (flip) {
-        applyLine(72 + D1B * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0B * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Upper line
-    if (top0 == top1 && top1 == top2) {
-      if (flip) {
-        applyLine(72 + D1U * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0U * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Lower/down line
-    if (top1 == top2 && top2 == top3) {
-      if (flip) {
-        applyLine(72 + D1D * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0D * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-  }
-  return false;  // No lines
-}
-
-bool Game::applyShortDiagLines(std::bitset<kNumMoves> &legal_moves,
-                               const SpaceInfo &info) const noexcept {
-  // Top left short diagonal
-  int32_t top1 = info.top[1 * 4 + 1];
-  if (top1 != -1 && top1 == info.top[0 * 4 + 2] &&
-      top1 == info.top[2 * 4 + 0]) {
-    applyLine(72 + S0 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-  // Top right short diagonal
-  top1 = info.top[1 * 4 + 2];
-  if (top1 != -1 && top1 == info.top[0 * 4 + 1] &&
-      top1 == info.top[2 * 4 + 3]) {
-    applyLine(72 + S1 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-
-  // Bottom right short diagonal
-  top1 = info.top[2 * 4 + 2];
-  if (top1 != -1 && top1 == info.top[1 * 4 + 3] &&
-      top1 == info.top[3 * 4 + 1]) {
-    applyLine(72 + S2 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-
-  // Bottom left short diagonal
-  top1 = info.top[2 * 4 + 1];
-  if (top1 != -1 && top1 == info.top[1 * 4 + 0] &&
-      top1 == info.top[3 * 4 + 2]) {
-    applyLine(72 + S3 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-  return false;  // No lines
-}
-
-bool Game::applyLines(std::bitset<kNumMoves> &legal_moves,
-                      const SpaceInfo &info) const noexcept {
-  // Flag for if there are any lines
-  bool is_any_lines = false;
-  // Row lines
-  is_any_lines |= applyRowColLines(legal_moves, false, info);
-  // Column lines
-  is_any_lines |= applyRowColLines(legal_moves, true, info);
-  // Long diagonal lines
-  is_any_lines |= applyLongDiagLines(legal_moves, info);
-  // Short diagonal lines
-  is_any_lines |= applyShortDiagLines(legal_moves, info);
-  return is_any_lines;
 }

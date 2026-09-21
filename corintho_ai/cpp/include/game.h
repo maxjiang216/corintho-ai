@@ -73,6 +73,10 @@ class Game {
     uint16_t empty;
     /// @brief Bit per space, set when the space is frozen
     uint16_t frozen;
+    /// @brief Bit per space, set when that space's top is this piece type
+    /// @details Line detection works on these directly, so they are built in
+    /// the same pass that fills top and bottom rather than in a second loop.
+    uint16_t top_plane[3];
   };
 
   /// @brief Fill a SpaceInfo from the current board

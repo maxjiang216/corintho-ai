@@ -60,22 +60,47 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
 int32_t Game::findLines(const SpaceInfo &info,
                         PresentLine *out) const noexcept {
   int32_t count = 0;
-  for (int32_t s = 0; s < kNumLineShapes; ++s) {
-    const LineShape &shape = kLineShapes[s];
-    const int32_t type = info.top[shape.cells[0]];
-    if (type < 0)
-      continue;  // an empty space cannot be part of a line
-    bool all = true;
-    for (int32_t k = 1; k < shape.count; ++k) {
-      if (info.top[shape.cells[k]] != type) {
-        all = false;
-        break;
-      }
+  for (int32_t type = 0; type < 3; ++type) {
+    const uint32_t p = info.top_plane[type];
+    if (p == 0)
+      continue;
+    // One shifted AND per direction finds every run of that length on the
+    // whole board at once. The start masks stop runs wrapping off an edge.
+    uint32_t run3[4];
+    uint32_t run4[4];
+    uint32_t any = 0;
+    for (int32_t d = 0; d < 4; ++d) {
+      const uint32_t stride = static_cast<uint32_t>(kLineStride[d]);
+      const uint32_t three = p & (p >> stride) & (p >> (2 * stride));
+      run3[d] = three & kRunStart[d][0];
+      run4[d] = three & (p >> (3 * stride)) & kRunStart[d][1];
+      any |= run3[d];
     }
-    if (all) {
-      out[count].shape = gsl::narrow_cast<int8_t>(s);
-      out[count].type = gsl::narrow_cast<int8_t>(type);
-      ++count;
+    if (any == 0)
+      continue;  // no line of this type; the common case
+    for (int32_t d = 0; d < 4; ++d) {
+      uint32_t w = run3[d];
+      while (w != 0) {
+        const int32_t start = __builtin_ctz(w);
+        w &= w - 1;
+        const int8_t shape = kRunToShape[d][start][0];
+        if (shape >= 0) {
+          out[count].shape = shape;
+          out[count].type = gsl::narrow_cast<int8_t>(type);
+          ++count;
+        }
+      }
+      w = run4[d];
+      while (w != 0) {
+        const int32_t start = __builtin_ctz(w);
+        w &= w - 1;
+        const int8_t shape = kRunToShape[d][start][1];
+        if (shape >= 0) {
+          out[count].shape = shape;
+          out[count].type = gsl::narrow_cast<int8_t>(type);
+          ++count;
+        }
+      }
     }
   }
   return count;
@@ -201,6 +226,9 @@ void Game::doMove(int32_t move_id) noexcept {
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
   info.empty = 0;
   info.frozen = 0;
+  info.top_plane[0] = 0;
+  info.top_plane[1] = 0;
+  info.top_plane[2] = 0;
   for (int32_t space_index = 0; space_index < kBoardSize; ++space_index) {
     const int32_t base = space_index * 4;
     const bool has_base = board_[base + kBase];
@@ -218,6 +246,9 @@ void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
                                              : 3;
     if (!(has_base || has_column || has_capital))
       info.empty |= static_cast<uint16_t>(1u << space_index);
+    else
+      info.top_plane[info.top[space_index]] |=
+          static_cast<uint16_t>(1u << space_index);
     if (board_[base + kFrozen])
       info.frozen |= static_cast<uint16_t>(1u << space_index);
   }

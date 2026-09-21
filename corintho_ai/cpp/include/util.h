@@ -193,6 +193,56 @@ inline constexpr LineShape kLineShapes[kNumLineShapes] = {
     {{10, 7, 13}, 3, -1},    {{9, 4, 14}, 3, -1},
 };
 
+/// @brief Where a run of equal tops starts, and in which direction
+/// @details Every one of the 34 line shapes is a run of 3 or 4 spaces at a
+/// constant stride: 1 across a row, 4 down a column, 5 along the a4-d1
+/// diagonal, 3 along d4-a1. The short diagonals are not special -- SD1 {1,6,11}
+/// and SD3 {4,9,14} are stride-5 runs, SD0 {2,5,8} and SD2 {7,10,13} stride-3.
+/// That lets all 34 be found with shift-and-mask instead of a 34-shape scan.
+enum LineDir { kDirRow = 0, kDirCol = 1, kDirDiagA = 2, kDirDiagB = 3 };
+constexpr int32_t kLineStride[4] = {1, 4, 5, 3};
+
+/// @brief Spaces a run of the given direction and length may start from
+/// @details A stride-5 run of three needs column <= 1 and row <= 1, or it
+/// wraps off the board; stride-3 needs column >= 2. These are the guards that
+/// make the shifted AND correct.
+constexpr uint16_t kRunStart[4][2] = {
+    {0x3333, 0x1111},  // row:    three needs col<=1, four needs col==0
+    {0x00FF, 0x000F},  // column: three needs row<=1, four needs row==0
+    {0x0033, 0x0001},  // diag a4-d1, stride 5
+    {0x00CC, 0x0008},  // diag d4-a1, stride 3
+};
+
+/// @brief Which shape a run corresponds to: [direction][start space][length-3]
+/// @details Generated from kLineShapes by recovering each shape's start and
+/// stride, so it cannot disagree with the shape list.
+constexpr std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4>
+makeRunToShape() {
+  std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4> table{};
+  for (int32_t d = 0; d < 4; ++d)
+    for (int32_t c = 0; c < kBoardSize; ++c)
+      for (int32_t n = 0; n < 2; ++n)
+        table[d][c][n] = -1;
+  for (int32_t s = 0; s < kNumLineShapes; ++s) {
+    const LineShape &shape = kLineShapes[s];
+    int32_t lo = shape.cells[0];
+    for (int32_t k = 1; k < shape.count; ++k)
+      if (shape.cells[k] < lo)
+        lo = shape.cells[k];
+    int32_t second = 64;
+    for (int32_t k = 0; k < shape.count; ++k)
+      if (shape.cells[k] > lo && shape.cells[k] < second)
+        second = shape.cells[k];
+    const int32_t stride = second - lo;
+    for (int32_t d = 0; d < 4; ++d)
+      if (kLineStride[d] == stride)
+        table[d][lo][shape.count - 3] = static_cast<int8_t>(s);
+  }
+  return table;
+}
+inline constexpr std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4>
+    kRunToShape = makeRunToShape();
+
 // Legal move filter for lines
 //
 // NO LONGER USED BY THE ENGINE. Replaced by the explicit rule in

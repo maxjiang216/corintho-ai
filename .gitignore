@@ -46,3 +46,4 @@ bench/results/*.tmp
 bench/build-lines/
 bench/build-a/
 bench/build-b/
+bench/build-noLTO/

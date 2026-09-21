@@ -26,6 +26,11 @@ FLAGS_B="${4:?}"
 REPS="${5:-7}"
 THREADS="${6:-1}"
 GAMES="${AB_GAMES:-50}"
+# Pin single-threaded arms to a P-core; see the note in run_suite.sh. Without
+# it the scheduler's choice of performance vs efficiency core adds a bimodal
+# 40% swing that interleaving cannot cancel, because each run re-rolls it.
+PIN=""
+if [ "$THREADS" = "1" ]; then PIN="taskset -c 0"; fi
 SEARCHES=1600
 PER_EVAL=16
 SEED=12345
@@ -42,9 +47,9 @@ echo "interleaving ${REPS} reps per arm, ${GAMES} games, ${THREADS} thread(s)...
 
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 for _ in $(seq "$REPS"); do
-  ./build-a/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
+  $PIN ./build-a/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
     | awk '/#METRIC engine_seconds/{print $3}' >> "$TMP/a"
-  ./build-b/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
+  $PIN ./build-b/selfplay_bench "$GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" \
     | awk '/#METRIC engine_seconds/{print $3}' >> "$TMP/b"
   printf "."
 done

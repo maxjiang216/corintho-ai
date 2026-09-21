@@ -38,6 +38,18 @@ LABEL="${1:?usage: ./run_suite.sh <label> [suite] [reps]}"
 SUITE="${2:-all}"
 REPS="${3:-5}"
 
+# This CPU is heterogeneous: 6 performance cores at 4600-4700 MHz and 8
+# efficiency cores at 3500 MHz. The SAME binary measured 0.513 s pinned to a
+# P-core and 0.732 s pinned to an E-core -- 41% apart. A single-threaded run is
+# otherwise at the mercy of which type the scheduler picks, and it re-rolls that
+# choice whenever the process is descheduled, so timings come out bimodal rather
+# than merely noisy. Single-thread spread was 21-24% unpinned and 2.3% pinned.
+#
+# Pin single-threaded runs to a P-core. Never pin the multi-threaded ones: they
+# are meant to use every core, and their spread is the load imbalance we want to
+# see.
+PIN="taskset -c 0"
+
 # Engine benchmark parameters. Keep these fixed across all comparisons.
 #
 # The engine is measured at BOTH one thread and many. They answer different
@@ -113,6 +125,8 @@ make -s all "${MAKEARGS[@]}"
   echo -e "#ac_power\t${AC_ONLINE}"
   echo -e "#governor\t${GOVERNOR}"
   echo -e "#loadavg\t${LOADAVG}"
+  echo -e "#pin\t${PIN} (max $(lscpu -e=CPU,MAXMHZ 2>/dev/null | awk '$1==0{print $2}') MHz)"
+  echo -e "#topcpu\t$(ps -eo pcomm --sort=-pcpu --no-headers | head -1) at $(ps -eo pcpu --sort=-pcpu --no-headers | head -1)%"
   echo -e "#counters\tgames=${COUNTER_GAMES} searches=${SEARCHES} (all counter families share this workload)"
   echo -e "#config\tpair_games=${PAIR_GAMES} big_games=${BIG_GAMES} searches=${SEARCHES} per_eval=${PER_EVAL} threads=${THREADS} seed=${SEED} corpus=${CORPUS} reps=${REPS}"
 } > "$OUT"
@@ -172,7 +186,7 @@ fi
 
 if [ "$SUITE" = "engine" ] || [ "$SUITE" = "all" ]; then
   echo "engine benchmark, single thread (${REPS} reps)..."
-  collect_prefixed st ./build/selfplay_bench \
+  collect_prefixed st $PIN ./build/selfplay_bench \
     "$PAIR_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" | reduce >> "$OUT"
 
   echo "engine benchmark, ${THREADS} threads (${REPS} reps)..."

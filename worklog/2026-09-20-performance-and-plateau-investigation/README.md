@@ -21,10 +21,14 @@ none of it has yet been shown to move strength.
 | 07 | [applying moves, and what counters cost](2026-09-21-07-applying-moves-and-what-counters-cost.md) | `doMove`; **cost model for Ir / cache / mispredicts** |
 | 08 | [writeGameState](2026-09-21-08-writegamestate.md) | 12.7x; the ISA the training module actually builds with |
 | 09 | [to_eval_ sizing](2026-09-21-09-to-eval-sizing.md) | 100x oversized *and resident*; 3x peak RSS |
+| 10 | [the last column, and colour imbalance](2026-09-21-10-the-last-column-and-colour-imbalance.md) | **Second player wins ~74% of training games.** The gate was passing noise. |
 
 ## The two entries to read if you read nothing else
 
-- **04** is the only one that plausibly affects strength. The engine allowed
+- **10** is the one that most plausibly explains the plateau: a ~74% second-player
+  win rate, and a promotion gate that admitted 64 of 93 generations while
+  new-vs-best scores sat at 0.48-0.53.
+- **04** is the other one that plausibly affects strength. The engine allowed
   9,686 forbidden moves and forbade 5,673 legal ones per 6.1M positions, for
   every generation trained so far.
 - **07** holds the measurement framework everything else is judged by: what an
@@ -47,10 +51,14 @@ none of it has yet been shown to move strength.
 
 ## Still open
 
-- **The spreadsheet's last column is unidentified** (0.574 -> 0.935 monotonic
-  over 78 generations). Open since entry 01 and never answered. If it is the
-  second-player self-play score, colour imbalance outranks every performance
-  item here.
+- **Random-playout parity test, pre-fix rules vs fixed rules.** Highest-value
+  experiment outstanding, and it needs no training: `game_reference.cpp` still
+  holds the pre-fix rules, so the first/second win rates can be compared
+  directly. Determines how much of entry 10's 74% is real and how much was
+  manufactured by the entry-04 defects. (The spreadsheet column itself is
+  answered in entry 10.)
+- **Revisit the promotion gate** (entry 10): 0.51 over 1,600 test games is about
+  one standard error from 0.5.
 - Strength impact of the entry-04 rules fix: needs a fixed-weights match.
   Generation 92 was trained under the buggy rules.
 - `web/engine.js` and `web/line_breakers.js` still carry every line-breaking

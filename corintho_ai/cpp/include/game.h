@@ -112,10 +112,10 @@ class Game {
   /// @brief Checks if a piece can be placed on the space
   /// @param piece_type The type of piece to place
   /// @return Whether the piece can be placed
-  bool canPlace(const Move &move, const SpaceInfo &info) const noexcept;
+  bool canPlace(const MoveInfo &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a tower can be moved
   /// @return Whether the tower can be moved
-  bool canMove(const Move &move, const SpaceInfo &info) const noexcept;
+  bool canMove(const MoveInfo &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a move is legal according to basic rules
   /// @warning Does not check if the move is legal according to line breaking
   /// @param move_id The ID of the move to check

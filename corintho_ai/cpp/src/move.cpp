@@ -11,34 +11,17 @@
 Move::Move(int32_t id) noexcept
     : move_type_{id >= 48 ? MoveType::kPlace : MoveType::kMove} {
   assert(id >= 0 && id < kNumMoves);
-
-  // Place move
-  // This is more common
-  // So checking it first should be slightly more efficient
-  if (move_type_ == MoveType::kPlace) {
-    piece_type_ = (id - 48) / 16;
-    space_to_ = {(id % 16) / 4, id % 4};
+  // One table load instead of several integer divisions by 3 behind a
+  // data-dependent branch chain. kMoveTable is generated at compile time from
+  // the same formulas this used to evaluate, so it cannot drift.
+  const MoveInfo &info = kMoveTable[id];
+  if (info.is_place) {
+    piece_type_ = info.piece;
+    space_to_ = Space{info.to / 4, info.to % 4};
     return;
   }
-  // Move move
-  if (id < 12) {  // Right
-    space_from_ = {id / 3, id % 3};
-    space_to_ = {id / 3, id % 3 + 1};
-    return;
-  }
-  if (id < 24) {  // Down
-    space_from_ = {(id - 12) / 4, id % 4};
-    space_to_ = {(id - 12) / 4 + 1, id % 4};
-    return;
-  }
-  if (id < 36) {  // Left
-    space_from_ = {(id - 24) / 3, id % 3 + 1};
-    space_to_ = {(id - 24) / 3, id % 3};
-    return;
-  }
-  // Up
-  space_from_ = {(id - 36) / 4 + 1, id % 4};
-  space_to_ = {(id - 36) / 4, id % 4};
+  space_from_ = Space{info.from / 4, info.from % 4};
+  space_to_ = Space{info.to / 4, info.to % 4};
 }
 
 Move::Move(Space space, PieceType piece_type) noexcept

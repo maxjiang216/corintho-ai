@@ -79,17 +79,17 @@ bool Game::breaksAllLines(int32_t move_id, const SpaceInfo &info,
   // A move rewrites the top of at most two spaces: a place changes its target,
   // and a move-move empties its source and retops its destination. Everything
   // else is untouched, so no board copy is needed.
-  Move move{move_id};
+  const MoveInfo &move = kMoveTable[move_id];
   int32_t changed[2];
   int32_t new_top[2];
   int32_t num_changed;
-  const int32_t to = move.space_to().row * 4 + move.space_to().col;
-  if (move.move_type() == Move::MoveType::kPlace) {
+  const int32_t to = move.to;
+  if (move.is_place) {
     changed[0] = to;
-    new_top[0] = move.piece_type();
+    new_top[0] = move.piece;
     num_changed = 1;
   } else {
-    const int32_t from = move.space_from().row * 4 + move.space_from().col;
+    const int32_t from = move.from;
     changed[0] = from;
     new_top[0] = -1;  // the source stack leaves, so the space becomes empty
     changed[1] = to;
@@ -303,11 +303,11 @@ void Game::set_frozen(Space space, bool state) noexcept {
   board_[space.row * 16 + space.col * 4 + kFrozen] = state;
 }
 
-bool Game::canPlace(const Move &move, const SpaceInfo &info) const noexcept {
-  assert(move.move_type() == Move::MoveType::kPlace);
-  const int32_t to = move.space_to().row * 4 + move.space_to().col;
+bool Game::canPlace(const MoveInfo &move, const SpaceInfo &info) const noexcept {
+  assert(move.is_place);
+  const int32_t to = move.to;
   // Check if player has the piece left
-  if (pieces_[to_play_ * 3 + move.piece_type()] == 0)
+  if (pieces_[to_play_ * 3 + move.piece] == 0)
     return false;
   // Check if the space is empty
   // This is more common than frozen spaces, so we check it first
@@ -318,25 +318,22 @@ bool Game::canPlace(const Move &move, const SpaceInfo &info) const noexcept {
   if ((info.frozen >> to) & 1u)
     return false;
   // Bases can only be placed on empty spaces
-  if (move.piece_type() == kBase)
+  if (move.piece == kBase)
     return false;
   // Place a column
   // Check for absence of a column or a capital
-  if (move.piece_type() == kColumn) {
-    return !(board(move.space_to(), kColumn) ||
-             board(move.space_to(), kCapital));
-  }
+  if (move.piece == kColumn)
+    return !(board_[to * 4 + kColumn] || board_[to * 4 + kCapital]);
   // Place a capital
   // Check for absence of a base without a column or a capital
-  return !(
-      board(move.space_to(), kCapital) ||
-      (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
+  return !(board_[to * 4 + kCapital] ||
+           (board_[to * 4 + kBase] && !board_[to * 4 + kColumn]));
 }
 
-bool Game::canMove(const Move &move, const SpaceInfo &info) const noexcept {
-  assert(move.move_type() == Move::MoveType::kMove);
-  const int32_t from = move.space_from().row * 4 + move.space_from().col;
-  const int32_t to = move.space_to().row * 4 + move.space_to().col;
+bool Game::canMove(const MoveInfo &move, const SpaceInfo &info) const noexcept {
+  assert(!move.is_place);
+  const int32_t from = move.from;
+  const int32_t to = move.to;
   // If either space is empty, move moves are not possible
   if (((info.empty >> from) | (info.empty >> to)) & 1u)
     return false;
@@ -349,9 +346,11 @@ bool Game::canMove(const Move &move, const SpaceInfo &info) const noexcept {
 
 bool Game::isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept {
   assert(move_id >= 0 && move_id < kNumMoves);
-  Move move{move_id};
+  // Read the decoded move straight from the table; constructing a Move here
+  // was 10.7% of all instructions once it stopped being inlined.
+  const MoveInfo &move = kMoveTable[move_id];
   // Place move
-  if (move.move_type() == Move::MoveType::kPlace)
+  if (move.is_place)
     return canPlace(move, info);
   // Move move
   return canMove(move, info);

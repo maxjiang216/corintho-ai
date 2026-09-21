@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include <array>
 #include <ostream>
 
 #include "util.h"
@@ -18,6 +19,58 @@
  * has a unique ID (0-95). We use this to refer to moves in the Monte Carlo
  * Tree Search.
  */
+/// @brief A move decoded into flat board indices
+/// @details The hot paths -- legality and line breaking -- want cell indices,
+/// not a Move object. Decoding an ID arithmetically costs several integer
+/// divisions by 3 behind a data-dependent branch chain, and it was measured at
+/// 10.7% of all instructions once it stopped being inlined.
+struct MoveInfo {
+  /// @brief Board index of the source, row * 4 + col, or -1 for a place
+  int8_t from;
+  /// @brief Board index of the destination, row * 4 + col
+  int8_t to;
+  /// @brief Piece placed, or -1 for a move-move
+  int8_t piece;
+  /// @brief True for a place, false for a move-move
+  bool is_place;
+};
+
+/// @brief Build the move table by running the ID arithmetic at compile time
+/// @details Deliberately NOT hand-written. A transcribed constant table is how
+/// line_breakers acquired thirteen transposition errors (see
+/// worklog/RULES-CHECKLIST.md item 4); generating it from the same formulas the
+/// decoder uses means it cannot disagree with the encoding.
+constexpr std::array<MoveInfo, kNumMoves> makeMoveTable() {
+  std::array<MoveInfo, kNumMoves> table{};
+  for (int32_t id = 0; id < kNumMoves; ++id) {
+    if (id >= 48) {  // Place
+      table[id] = MoveInfo{-1,
+                           static_cast<int8_t>(((id % 16) / 4) * 4 + id % 4),
+                           static_cast<int8_t>((id - 48) / 16), true};
+    } else if (id < 12) {  // Right
+      const int32_t r = id / 3, c = id % 3;
+      table[id] = MoveInfo{static_cast<int8_t>(r * 4 + c),
+                           static_cast<int8_t>(r * 4 + c + 1), -1, false};
+    } else if (id < 24) {  // Down
+      const int32_t r = (id - 12) / 4, c = id % 4;
+      table[id] = MoveInfo{static_cast<int8_t>(r * 4 + c),
+                           static_cast<int8_t>((r + 1) * 4 + c), -1, false};
+    } else if (id < 36) {  // Left
+      const int32_t r = (id - 24) / 3, c = id % 3 + 1;
+      table[id] = MoveInfo{static_cast<int8_t>(r * 4 + c),
+                           static_cast<int8_t>(r * 4 + c - 1), -1, false};
+    } else {  // Up
+      const int32_t r = (id - 36) / 4 + 1, c = id % 4;
+      table[id] = MoveInfo{static_cast<int8_t>(r * 4 + c),
+                           static_cast<int8_t>((r - 1) * 4 + c), -1, false};
+    }
+  }
+  return table;
+}
+
+/// @brief Every move, decoded. 96 entries of 4 bytes; L1-resident.
+inline constexpr std::array<MoveInfo, kNumMoves> kMoveTable = makeMoveTable();
+
 class Move {
  public:
   enum class MoveType { kPlace, kMove };

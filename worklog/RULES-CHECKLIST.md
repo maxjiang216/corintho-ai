@@ -124,6 +124,122 @@ bitboard derivation in `PLAN.md` §13.2 — `placeable_base = empty`,
 
 ---
 
+## OPEN — 4. The engine permits moves that do not break an existing line
+
+**Two distinct defects, both letting a player leave a line standing when the
+rules require breaking it.**
+
+### 4a. `applyLines` stops after the first line in each category
+
+`applyRowColLines` returns after the first row (or column) containing a line;
+`applyLongDiagLines` returns after the first of the two long diagonals;
+`applyShortDiagLines` after the first of four. The comment at `game.h:105` states
+the assumption: *"there can only be up to 1 of each type, so we can return
+early."* It is false.
+
+Measured over 8,190,155 reachable positions: **139 positions (0.0017%) where the
+engine offers a move that leaves a second line standing. All 139 were
+non-terminal.**
+
+Worked example, found by random play:
+
+```
+ply 14  (P1 to move)                ply 15  (P2 to move)
+ C  |    |    |B                     C  |    |    |B
+  A |    |  A |                       A |    |  A |
+ C #| C  | C  |  A                   C  | C  | C  |  A
+ CA | CA | C  |  A                   CA | CA | CA#|
+
+lines: row2-left3(C)                lines: row2-left3(C), row3-left3(A)
+played: d1L                         3 legal moves, all leave a line standing
+```
+
+P1 moves the capital d1 onto c1, creating a second line without breaking the
+first. `applyRowColLines` finds row 2, returns, and never applies row 3.
+
+Note the two lines are **disjoint**, so the intuition that co-present lines must
+intersect (because the move creating the second would freeze the intersection)
+does not hold. Measured: 0.51% of multi-line positions contain a disjoint pair.
+
+### 4b. `line_breakers` is liberal about extend-to-four, and only partly corrected
+
+A 3-in-a-row is legitimately unmade by extending it to a 4-in-a-row. Whether a
+*move* move does that depends on the **moved stack's top type**, which a static
+table cannot encode, so `line_breakers` includes those moves unconditionally.
+
+The author knew. `game.cpp:252-278`:
+
+> *"A capital must be used to extend line when moving. The applyLine function is
+> liberal in this case. So we need to remove the illegal moves."*
+
+That correction exists **only in `applyRowColLines`, and only when
+`top1 == kCapital`.**
+
+Measured: **1.43% of single-line positions admit a legal move that leaves the
+line fully intact** (after correctly allowing extend-to-four as a break).
+Broken down, every cell is explained by the single root cause:
+
+| line kind | base | column | capital |
+|---|---|---|---|
+| row | 0.000% | **1.806%** | 0.000% |
+| column | 0.000% | **1.287%** | 0.000% |
+| long diagonal | **5.232%** | **5.946%** | **5.616%** |
+| short diagonal | 0.000% | 0.000% | 0.000% |
+
+- Row/column capital lines: clean, the fix-up works.
+- Row/column base lines: clean for a different reason — a base-topped stack is
+  `{B}`, and `canMove` needs `bottom(from) - top(to) == 1`, i.e. `0 - top(to) == 1`,
+  so the destination would have to be empty, which `canMove` forbids. **No move
+  can extend a base line to four**, so there is no liberality to correct.
+- Row/column column-lines: the fix-up covers only capitals.
+- Long diagonals: `applyLongDiagLines` has no fix-up at all.
+- Short diagonals: maximal 3-cell shapes with no fourth cell, so no
+  extend-to-four entries exist.
+
+Worked example. Line is the a4–d1 diagonal's lower three, `b3 c2 d1`, all
+capitals:
+
+```
+BEFORE                              AFTER  (move a3U)
+      a       b       c       d           a       b       c       d
+ 4 |<B.. >| ...  | BCA  | ...  |     4 |<BC.*>| ...  | BCA  | ...  |
+ 3 |{.C. }|[BCA*]| ...  | .C.  |     3 | ...  |[BCA ]| ...  | .C.  |
+ 2 | .C.  | ...  |[BCA ]| ...  |     2 | .C.  | ...  |[BCA ]| ...  |
+ 1 | B..  | ...  | .CA  |[.CA ]|     1 | B..  | ...  | .CA  |[.CA ]|
+```
+
+`a3U` moves a lone column from a3 onto the base at a4. The line `b3 c2 d1` is
+all capitals before and after; a4 becomes a **column**, so the diagonal reads
+C,A,A,A and is not a four. The move does nothing to the line, and the engine
+calls it legal.
+
+### Impact
+
+The search visits on the order of 10^9 positions per generation, so 4a alone is
+roughly 20,000 affected nodes per generation, and 4b is far more common. All 95
+generations trained with both.
+
+### How these were found, and a caution
+
+Neither is detectable by the benchmark harness. `digest_game` and
+`getLegalMovesReference` compare the engine against **itself**, so a defect
+present in the reference is invisible to them by construction. They were found
+by building a line detector independently from the 34 shapes and diffing.
+
+**Caution: the first version of the 4b measurement claimed 44% and was wrong** —
+it did not count extending to four as a legitimate break. The corrected figure
+is 1.43%. Treat any further analysis here sceptically until independently
+reproduced.
+
+### To resolve
+
+Max to confirm both are bugs rather than intended. Then fix before the bitboard
+rewrite bakes them in, since `digest_game` would certify the frozen behaviour as
+correct. The rewrite is a natural place to compute breakers from the board
+rather than from a static table.
+
+---
+
 ## OPEN — 3. The web app's rules overlay is inaccurate
 
 Not an engine bug; a documentation bug, and the reason items 1 and 2 looked like

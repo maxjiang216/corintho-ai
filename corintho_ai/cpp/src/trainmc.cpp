@@ -211,52 +211,48 @@ void TrainMC::createRoot(const Game &game, int32_t depth) {
 
 void TrainMC::getFilteredProbs(float probs[kNumMoves],
                                float filtered_probs[]) const noexcept {
-  // Apply the legal move filter
-  // Legal moves can be deduced from edges
-  int32_t edge_index = 0;
+  // The edges already hold the legal move IDs, in ascending order, so index
+  // them directly instead of scanning all 96 moves looking for matches. The
+  // additions happen in the same order as before, so the sum is bit-identical.
+  const int32_t num_edges = cur_->num_legal_moves();
   float sum = 0.0;
-  for (int32_t j = 0; j < kNumMoves; ++j) {
-    if (edge_index < cur_->num_legal_moves() &&
-        cur_->move_id(edge_index) == j) {
-      filtered_probs[edge_index] = probs[j];
-      sum += filtered_probs[edge_index];
-      ++edge_index;
-      if (edge_index == cur_->num_legal_moves()) {
-        break;
-      }
-    }
+  for (int32_t i = 0; i < num_edges; ++i) {
+    filtered_probs[i] = probs[cur_->move_id(i)];
+    sum += filtered_probs[i];
   }
   // Factoring this out saves division operations
   float scalar = 1.0 / sum * (1 - epsilon_);
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
-    filtered_probs[j] *= scalar;
+  for (int32_t i = 0; i < num_edges; ++i) {
+    filtered_probs[i] *= scalar;
   }
 }
 
 void TrainMC::generateDirichlet(float dirichlet[]) const noexcept {
+  const int32_t num_edges = cur_->num_legal_moves();
   float sum = 0.0;
-  for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
+  for (int32_t i = 0; i < num_edges; ++i) {
     dirichlet[i] = gamma_samples[(*generator_)() % kNumGammaBuckets];
     sum += dirichlet[i];
   }
   float scalar = 1.0 / sum * epsilon_;
-  for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
+  for (int32_t i = 0; i < num_edges; ++i) {
     dirichlet[i] *= scalar;
   }
 }
 
 void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
   // Combine probabilities and Dirichlet noise
-  float weighted_probs[cur_->num_legal_moves()];
+  const int32_t num_edges = cur_->num_legal_moves();
+  float weighted_probs[num_edges];
   float max_prob = 0.0;
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+  for (int32_t j = 0; j < num_edges; ++j) {
     weighted_probs[j] = filtered_probs[j] + dirichlet[j];
     max_prob = std::max(weighted_probs[j], max_prob);
   }
   // Scale up probabilities and convert to integers
   float denom = Node::kMaxProbability / max_prob;
   int32_t final_sum = 0;
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+  for (int32_t j = 0; j < num_edges; ++j) {
     // Make all probabilities positive
     int32_t prob = std::max(
         1, gsl::narrow_cast<int32_t>(lround(weighted_probs[j] * denom)));
@@ -547,7 +543,9 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   Node *best_prev = nullptr;
   // Factor this value out, as it is expense to compute
   float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
-  while (cur_child != nullptr || edge_index < cur_->num_legal_moves()) {
+  // Constant for the whole walk; reading it per iteration was a call.
+  const int32_t num_edges = cur_->num_legal_moves();
+  while (cur_child != nullptr || edge_index < num_edges) {
     float u = kNegInf;
     // This node has already been visited
     if (cur_child != nullptr &&

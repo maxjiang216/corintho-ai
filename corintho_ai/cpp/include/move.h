@@ -71,6 +71,89 @@ constexpr std::array<MoveInfo, kNumMoves> makeMoveTable() {
 /// @brief Every move, decoded. 96 entries of 4 bytes; L1-resident.
 inline constexpr std::array<MoveInfo, kNumMoves> kMoveTable = makeMoveTable();
 
+/// @brief Move-moves originating at each space
+constexpr std::array<MoveMask, kBoardSize> makeMovesFromCell() {
+  std::array<MoveMask, kBoardSize> table{};
+  for (int32_t id = 0; id < kNumMoves; ++id) {
+    const MoveInfo &move = kMoveTable[id];
+    if (!move.is_place)
+      table[move.from].set(id);
+  }
+  return table;
+}
+inline constexpr std::array<MoveMask, kBoardSize> kMovesFromCell =
+    makeMovesFromCell();
+
+/// @brief Moves that break a line, for every shape and topping type
+/// @details Four of the five ways to break a line depend only on the shape and
+/// its type, so they are constant:
+///   - place a piece other than `type` onto one of the line's spaces
+///   - move the stack off one of the line's spaces, emptying it
+///   - move any stack ONTO one of the line's spaces. This always breaks the
+///     line: canMove needs `bottom(from) - top(to) == 1`, and `top(to)` is the
+///     line's type, so `top(from) >= type + 1` and the arriving top can never
+///     equal it. Verified over 315,385 such moves with zero exceptions.
+///   - place a piece of `type` onto the extending space, making four
+/// The fifth -- moving a stack onto the extending space -- is the only one that
+/// depends on the board, and lives in kLineExtendMoves.
+/// @note Generated, never transcribed. line_breakers acquired thirteen
+/// transposition errors by hand; see worklog/RULES-CHECKLIST.md item 4.
+constexpr std::array<std::array<MoveMask, 3>, kNumLineShapes>
+makeLineBreakTable() {
+  std::array<std::array<MoveMask, 3>, kNumLineShapes> table{};
+  for (int32_t s = 0; s < kNumLineShapes; ++s) {
+    const LineShape &shape = kLineShapes[s];
+    for (int32_t type = 0; type < 3; ++type) {
+      MoveMask mask{};
+      for (int32_t id = 0; id < kNumMoves; ++id) {
+        const MoveInfo &move = kMoveTable[id];
+        bool from_in_line = false;
+        bool to_in_line = false;
+        for (int32_t k = 0; k < shape.count; ++k) {
+          if (move.from == shape.cells[k])
+            from_in_line = true;
+          if (move.to == shape.cells[k])
+            to_in_line = true;
+        }
+        if (move.is_place) {
+          if (to_in_line && move.piece != type)
+            mask.set(id);  // retypes a line space
+          if (shape.extend >= 0 && move.to == shape.extend &&
+              move.piece == type)
+            mask.set(id);  // completes a four
+        } else if (from_in_line || to_in_line) {
+          mask.set(id);  // empties a line space, or lands on one
+        }
+      }
+      table[s][type] = mask;
+    }
+  }
+  return table;
+}
+inline constexpr std::array<std::array<MoveMask, 3>, kNumLineShapes>
+    kLineBreakTable = makeLineBreakTable();
+
+/// @brief Move-moves landing on a shape's extending space
+/// @details The one board-dependent case: such a move breaks the line only
+/// when the arriving stack's top equals the line's type, which is what makes
+/// it inexpressible in a purely static table -- the defect that made
+/// line_breakers unfixable.
+constexpr std::array<MoveMask, kNumLineShapes> makeLineExtendMoves() {
+  std::array<MoveMask, kNumLineShapes> table{};
+  for (int32_t s = 0; s < kNumLineShapes; ++s) {
+    if (kLineShapes[s].extend < 0)
+      continue;
+    for (int32_t id = 0; id < kNumMoves; ++id) {
+      const MoveInfo &move = kMoveTable[id];
+      if (!move.is_place && move.to == kLineShapes[s].extend)
+        table[s].set(id);
+    }
+  }
+  return table;
+}
+inline constexpr std::array<MoveMask, kNumLineShapes> kLineExtendMoves =
+    makeLineExtendMoves();
+
 class Move {
  public:
   enum class MoveType { kPlace, kMove };

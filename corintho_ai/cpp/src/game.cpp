@@ -37,12 +37,12 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   // First set all moves to legal
   legal_moves.setAll();
   for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (!isLegalMove(i, info)) {
+    if (!isLegalMove(i, info))
       legal_moves.reset(i);
-    } else if (num_lines > 0 && !breaksAllLines(i, info, lines, num_lines)) {
-      legal_moves.reset(i);
-    }
   }
+  // One AND per line, rather than testing every move against every line.
+  if (num_lines > 0)
+    legal_moves &= lineBreakers(info, lines, num_lines);
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
@@ -81,61 +81,68 @@ int32_t Game::findLines(const SpaceInfo &info,
   return count;
 }
 
-bool Game::breaksAllLines(int32_t move_id, const SpaceInfo &info,
-                          const PresentLine *lines,
-                          int32_t num_lines) const noexcept {
-  // A move rewrites the top of at most two spaces: a place changes its target,
-  // and a move-move empties its source and retops its destination. Everything
-  // else is untouched, so no board copy is needed.
-  const MoveInfo &move = kMoveTable[move_id];
-  int32_t changed[2];
-  int32_t new_top[2];
-  int32_t num_changed;
-  const int32_t to = move.to;
-  if (move.is_place) {
-    changed[0] = to;
-    new_top[0] = move.piece;
-    num_changed = 1;
-  } else {
-    const int32_t from = move.from;
-    changed[0] = from;
-    new_top[0] = -1;  // the source stack leaves, so the space becomes empty
-    changed[1] = to;
-    new_top[1] = info.top[from];  // the moved stack keeps its own top
-    num_changed = 2;
-  }
-
+MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
+                            int32_t num_lines) const noexcept {
+  MoveMask breakers;
+  breakers.setAll();
   for (int32_t i = 0; i < num_lines; ++i) {
-    const LineShape &shape = kLineShapes[lines[i].shape];
+    const int32_t shape = lines[i].shape;
     const int32_t type = lines[i].type;
-    // The line held before, so it survives unless a changed space inside it
-    // now has a different top.
-    bool survives = true;
-    for (int32_t k = 0; k < num_changed && survives; ++k) {
-      if (new_top[k] == type)
-        continue;
-      for (int32_t c = 0; c < shape.count; ++c) {
-        if (shape.cells[c] == changed[k]) {
-          survives = false;
-          break;
-        }
-      }
-    }
-    if (!survives)
-      continue;  // broken outright
-    // A three is also unmade by becoming a four.
-    if (shape.extend >= 0) {
-      int32_t extend_top = info.top[shape.extend];
-      for (int32_t k = 0; k < num_changed; ++k) {
-        if (changed[k] == shape.extend)
-          extend_top = new_top[k];
-      }
-      if (extend_top == type)
-        continue;  // extended to four
-    }
-    return false;  // this line is still standing
+    MoveMask mask = kLineBreakTable[shape][type];
+    // The one board-dependent case: a stack moved onto the extending space
+    // completes a four only if its own top matches the line's type. At most
+    // four moves land on any given space, so this walks them directly rather
+    // than building a set of every move starting from a space of each type.
+    forEachMove(kLineExtendMoves[shape], [&](int32_t id) {
+      if (info.top[kMoveTable[id].from] == type)
+        mask.set(id);
+    });
+    breakers &= mask;
   }
-  return true;
+  return breakers;
+}
+
+std::ostream &operator<<(std::ostream &os, const Game &game) {
+  // Print board
+  for (int32_t row = 0; row < 4; ++row) {
+    for (int32_t col = 0; col < 4; ++col) {
+      if (game.board(Space{row, col}, kBase))
+        os << 'B';
+      else
+        os << ' ';
+      if (game.board(Space{row, col}, kColumn))
+        os << 'C';
+      else
+        os << ' ';
+      if (game.board(Space{row, col}, kCapital))
+        os << 'A';
+      else
+        os << ' ';
+      if (game.frozen(Space{row, col}))
+        os << '#';
+      else
+        os << ' ';
+      // Print column separator
+      if (col < 3)
+        os << '|';
+    }
+    // Print row separator
+    if (row < 3)
+      os << "\n-------------------\n";
+  }
+  os << '\n';
+  // Print pieces left
+  for (int32_t player = 0; player < 2; ++player) {
+    os << "Player " << player + 1 << ": ";
+    os << "B: " << static_cast<int32_t>(game.pieces_[player * 3 + kBase])
+       << ' ';
+    os << "C: " << static_cast<int32_t>(game.pieces_[player * 3 + kColumn])
+       << ' ';
+    os << "A: " << static_cast<int32_t>(game.pieces_[player * 3 + kCapital])
+       << '\n';
+  }
+  os << "Player " << game.to_play_ + 1 << " to play";
+  return os;
 }
 
 void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
@@ -189,49 +196,6 @@ void Game::doMove(int32_t move_id) noexcept {
   }
   // Switch player
   to_play_ = 1 - to_play_;
-}
-
-std::ostream &operator<<(std::ostream &os, const Game &game) {
-  // Print board
-  for (int32_t row = 0; row < 4; ++row) {
-    for (int32_t col = 0; col < 4; ++col) {
-      if (game.board(Space{row, col}, kBase))
-        os << 'B';
-      else
-        os << ' ';
-      if (game.board(Space{row, col}, kColumn))
-        os << 'C';
-      else
-        os << ' ';
-      if (game.board(Space{row, col}, kCapital))
-        os << 'A';
-      else
-        os << ' ';
-      if (game.frozen(Space{row, col}))
-        os << '#';
-      else
-        os << ' ';
-      // Print column separator
-      if (col < 3)
-        os << '|';
-    }
-    // Print row separator
-    if (row < 3)
-      os << "\n-------------------\n";
-  }
-  os << '\n';
-  // Print pieces left
-  for (int32_t player = 0; player < 2; ++player) {
-    os << "Player " << player + 1 << ": ";
-    os << "B: " << static_cast<int32_t>(game.pieces_[player * 3 + kBase])
-       << ' ';
-    os << "C: " << static_cast<int32_t>(game.pieces_[player * 3 + kColumn])
-       << ' ';
-    os << "A: " << static_cast<int32_t>(game.pieces_[player * 3 + kCapital])
-       << '\n';
-  }
-  os << "Player " << game.to_play_ + 1 << " to play";
-  return os;
 }
 
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {

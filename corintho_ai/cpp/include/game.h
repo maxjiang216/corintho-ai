@@ -137,16 +137,15 @@ class Game {
   /// @return The number of lines written to `out`
   int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
 
-  /// @brief Whether a move breaks every line currently on the board
-  /// @details The rule: for every shape holding type t before the move,
-  /// afterwards either it no longer holds t, or it is a three whose containing
-  /// four now holds t. Short diagonals are maximal, so the second clause never
-  /// applies to them.
-  /// @note A move changes at most two spaces, so this needs no board copy: the
-  /// resulting tops are computed directly from the move.
-  bool breaksAllLines(int32_t move_id, const SpaceInfo &info,
-                      const PresentLine *lines,
-                      int32_t num_lines) const noexcept;
+  /// @brief The set of moves that break every line currently on the board
+  /// @details One mask per line, ANDed together, rather than testing every
+  /// move against every line. Four of the five ways to break a line are
+  /// constant per shape and type and come straight from kLineBreakTable. The
+  /// fifth -- moving a stack onto the extending space -- is the only one that
+  /// depends on the board, and is masked by which moves currently start from a
+  /// space topped by the line's type.
+  MoveMask lineBreakers(const SpaceInfo &info, const PresentLine *lines,
+                        int32_t num_lines) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

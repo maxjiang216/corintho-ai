@@ -124,7 +124,7 @@ bitboard derivation in `PLAN.md` §13.2 — `placeable_base = empty`,
 
 ---
 
-## OPEN — 4. The engine permits moves that do not break an existing line
+## OPEN — 4. The engine's line handling is wrong in both directions
 
 **Two distinct defects, both letting a player leave a line standing when the
 rules require breaking it.**
@@ -213,32 +213,109 @@ all capitals before and after; a4 becomes a **column**, so the diagonal reads
 C,A,A,A and is not a four. The move does nothing to the line, and the engine
 calls it legal.
 
+### The correct rule (settled 2026-09-20 by Max)
+
+> A move is legal iff, for **every** shape S and type t such that all of S's
+> cells had top type t before the move, afterwards either
+> **(a)** S's cells no longer all have top type t, or
+> **(b)** S is a 3-shape and its containing 4-shape now has all cells of type t.
+>
+> Short diagonals have no containing 4-shape, so (b) never applies to them.
+
+**No subsumption.** A 4-line contains two 3-lines and all three are checked
+independently. This is not a special case: if `{a,b,c,d}` holds before, it must
+not hold after, which makes clause (b) unsatisfiable for `{a,b,c}` and
+`{b,c,d}`, so both must be destroyed outright. Max: *"the line of 4 and both
+lines of 3s have to be broken."*
+
+Derived consequence, since a move touches at most two cells and the two ends of
+a 4-line are not adjacent: **every legal move in a position containing a 4-line
+must change the top type of one of the two middle cells.**
+
+Verified by an independent route — the consequence was derived by hand and the
+rule implemented separately. Over 224,677 positions containing a 4-line and
+155,753 moves legal under the rule, **zero** failed to change a middle cell.
+
+### Measured divergence from the rule
+
+2,460,319 positions. Basic legality validated first: on 2,090,206 **line-free**
+positions, where the engine's answer *is* basic legality, an independently
+written structural test matched it with **zero** mismatches.
+
+| | positions | moves |
+|---|---|---|
+| engine **allows** a move the rule forbids | 3,790 (0.154%) | 3,972 |
+| engine **forbids** a move the rule allows | 2,270 (0.092%) | 2,270 |
+| **total divergence** | **5,927 (0.241%)** | |
+
+### Catalogue of `line_breakers` defects
+
+Attributed exactly, using only positions containing a single line:
+
+| class | cells | meaning |
+|---|---|---|
+| **PURE ERROR** — table includes, move *never* breaks | **13** | encoding mistakes; fixable |
+| LIBERAL — table includes, only sometimes breaks | 63 | depends on moved stack's top type |
+| CONSERVATIVE — table excludes, sometimes breaks | 181 | **a static table cannot express this** |
+| consistent | 7,935 | |
+
+The 13 pure errors are a **transposition between the two long diagonals**:
+
+```
+move 13 = b4D  (0,1) -> (1,1)     (1,1) is on the NW diagonal
+move 14 = c4D  (0,2) -> (1,2)     (1,2) is on the NE diagonal
+
+NW diagonal: (0,0) (1,1) (2,2) (3,3)     NE: (0,3) (1,2) (2,1) (3,0)
+```
+
+Lines 72–79 (NW) contain `c4D` and omit `b4D`. Lines 81–88 (NE) contain `b4D`
+and omit `c4D`. They are swapped. Types B and C only — for capitals the same
+move sometimes genuinely breaks, so it lands in LIBERAL instead.
+
+The thirteenth is line 7 (row-2 left-3, columns), which contains
+`d1L` = (3,3)→(3,2), entirely in row 3. The move that belongs there is
+`d1U` = (3,3)→(2,3), landing on the extend-to-four cell d2.
+
+**The other 244 cells are not patchable.** Whether a move-move extends a line to
+four depends on the moved stack's top type, which is dynamic. This is why the
+author needed the capital-line fix-up, and why it was never finished.
+
 ### Impact
 
-The search visits on the order of 10^9 positions per generation, so 4a alone is
-roughly 20,000 affected nodes per generation, and 4b is far more common. All 95
-generations trained with both.
+The search visits on the order of 10^9 positions per generation, so this is
+roughly 1.5 million affected nodes per generation. All 95 generations trained
+with it.
 
-### How these were found, and a caution
+### How these were found, and a strong caution
 
 Neither is detectable by the benchmark harness. `digest_game` and
-`getLegalMovesReference` compare the engine against **itself**, so a defect
-present in the reference is invisible to them by construction. They were found
-by building a line detector independently from the 34 shapes and diffing.
+`getLegalMovesReference` compare the engine against **itself**, so a defect in
+the reference is invisible by construction. They were found by building a line
+detector independently from the 34 shapes and diffing.
 
-**Caution: the first version of the 4b measurement claimed 44% and was wrong** —
-it did not count extending to four as a legitimate break. The corrected figure
-is 1.43%. Treat any further analysis here sceptically until independently
-reproduced.
+**Three successive measurements of 4b were wrong before this one**, each caught
+by Max's domain knowledge, and each time the error *inflated* the apparent
+problem:
+
+1. **44%** — did not count extending to four as a legitimate break.
+2. **1.43%, "over-restrictive is 9x larger"** — the oracle subsumed 3-subsets
+   under their containing 4-line, waving through moves that destroyed a 4 while
+   leaving a 3 standing.
+3. **0.241%** — current, after removing subsumption.
+
+Treat the current figure as provisional. The derived-consequence test above is
+the first independent confirmation the rule implementation has passed.
 
 ### To resolve
 
-Max to confirm both are bugs rather than intended. Then fix before the bitboard
-rewrite bakes them in, since `digest_game` would certify the frozen behaviour as
-correct. The rewrite is a natural place to compute breakers from the board
-rather than from a static table.
+Fix before the bitboard rewrite bakes this in, since `digest_game` would certify
+the frozen behaviour as correct. The rewrite is the natural place: the explicit
+rule replaces `line_breakers` entirely, and is cheap with bitboards because a
+move changes at most two cells' top types, so each present line only needs those
+two cells tested. Lines exist in 15% of positions, so the common path skips it.
 
----
+Sequence: fix first, with digests deliberately moving and the reference
+re-frozen; then optimize, with digests held.
 
 ## OPEN — 3. The web app's rules overlay is inaccurate
 

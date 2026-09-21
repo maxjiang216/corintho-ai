@@ -25,7 +25,7 @@ Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
   }
 }
 
-bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   // Compute top/bottom/empty/frozen for every space once. The board cannot
   // change during this call.
   SpaceInfo info;
@@ -35,18 +35,26 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   PresentLine lines[kNumLineShapes];
   const int32_t num_lines = findLines(info, lines);
   // First set all moves to legal
-  legal_moves.set();
+  legal_moves.setAll();
   for (int32_t i = 0; i < kNumMoves; ++i) {
     if (!isLegalMove(i, info)) {
-      legal_moves[i] = false;
+      legal_moves.reset(i);
     } else if (num_lines > 0 && !breaksAllLines(i, info, lines, num_lines)) {
-      legal_moves[i] = false;
+      legal_moves.reset(i);
     }
   }
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
   return num_lines > 0;
+}
+
+bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+  MoveMask mask;
+  const bool is_lines = getLegalMoves(mask);
+  legal_moves.reset();
+  forEachMove(mask, [&legal_moves](int32_t id) { legal_moves[id] = true; });
+  return is_lines;
 }
 
 int32_t Game::findLines(const SpaceInfo &info,

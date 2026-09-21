@@ -33,6 +33,8 @@ class Game {
   /// @brief Mutates legal_moves to indicate which moves are legal
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there are any "lines" in the current position
+  bool getLegalMoves(MoveMask &legal_moves) const noexcept;
+  /// @brief Convenience overload for callers outside the hot path
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
   /// @brief Reference implementation of getLegalMoves, for differential testing
   /// @details A verbatim copy of the pre-bitboard implementation, with its own

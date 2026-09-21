@@ -81,6 +81,78 @@ const int32_t S1 = 7;
 const int32_t S2 = 8;
 const int32_t S3 = 9;
 
+/// @brief A set of moves, one bit per move ID
+/// @details std::bitset gives no portable access to its underlying words, so
+/// the set bits cannot be iterated with a bit-scan instruction and constexpr
+/// tables of move sets cannot be built. Two explicit words fix both.
+/// @note Move IDs 0-47 are move-moves and 48-95 are places, so every move-move
+/// lives in `lo`. The dynamic part of line breaking concerns only move-moves,
+/// and therefore touches one word.
+struct MoveMask {
+  /// @brief Moves 0-63
+  uint64_t lo{0};
+  /// @brief Moves 64-95, in bits 0-31
+  uint64_t hi{0};
+
+  static constexpr uint64_t kHiMask = (1ULL << (kNumMoves - 64)) - 1;
+
+  constexpr void setAll() noexcept {
+    lo = ~0ULL;
+    hi = kHiMask;
+  }
+  constexpr void clear() noexcept {
+    lo = 0;
+    hi = 0;
+  }
+  constexpr bool test(int32_t i) const noexcept {
+    return i < 64 ? ((lo >> i) & 1U) != 0 : ((hi >> (i - 64)) & 1U) != 0;
+  }
+  constexpr void set(int32_t i) noexcept {
+    if (i < 64)
+      lo |= 1ULL << i;
+    else
+      hi |= 1ULL << (i - 64);
+  }
+  constexpr void reset(int32_t i) noexcept {
+    if (i < 64)
+      lo &= ~(1ULL << i);
+    else
+      hi &= ~(1ULL << (i - 64));
+  }
+  constexpr bool any() const noexcept { return (lo | hi) != 0; }
+  int32_t count() const noexcept {
+    return __builtin_popcountll(lo) + __builtin_popcountll(hi);
+  }
+  constexpr MoveMask &operator&=(const MoveMask &o) noexcept {
+    lo &= o.lo;
+    hi &= o.hi;
+    return *this;
+  }
+  constexpr MoveMask &operator|=(const MoveMask &o) noexcept {
+    lo |= o.lo;
+    hi |= o.hi;
+    return *this;
+  }
+};
+
+/// @brief Call `fn(move_id)` for each set bit, lowest first
+/// @details Two instructions per set bit -- a bit scan and a clear-lowest --
+/// with one predictable loop-exit branch. Testing all 96 bits instead costs
+/// one unpredictable branch per set bit, about 26 mispredicts per call.
+template <typename F>
+inline void forEachMove(const MoveMask &mask, F fn) noexcept {
+  uint64_t w = mask.lo;
+  while (w != 0) {
+    fn(static_cast<int32_t>(__builtin_ctzll(w)));
+    w &= w - 1;
+  }
+  w = mask.hi;
+  while (w != 0) {
+    fn(static_cast<int32_t>(__builtin_ctzll(w)) + 64);
+    w &= w - 1;
+  }
+}
+
 /// @brief A straight line of three or four spaces, for win detection
 /// @details 34 shapes: 4 rows and 4 columns with three sub-shapes each
 /// (all-four, and the two threes), the two long diagonals with three each, and

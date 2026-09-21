@@ -254,9 +254,9 @@ void Node::printKnownLines(std::ostream *log_file) const {
 }
 
 void Node::initializeEdges() {
-  std::bitset<kNumMoves> legal_moves;
+  MoveMask legal_moves;
   bool is_lines = game_.getLegalMoves(legal_moves);
-  num_legal_moves_ = legal_moves.count();
+  num_legal_moves_ = gsl::narrow_cast<int8_t>(legal_moves.count());
   // Terminal node
   if (num_legal_moves_ == 0) {
     // Don't set visits to 0. Not sure why we added this.
@@ -272,12 +272,10 @@ void Node::initializeEdges() {
   // Otherwise, allocate edges for the legal moves
   edges_ = new Edge[num_legal_moves_];
   int32_t edge_index = 0;
-  // Fill the array with legal moves
-  for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (legal_moves[i]) {
-      assert(i < kNumMoves);
-      edges_[edge_index] = Edge(i, 0);
-      ++edge_index;
-    }
-  }
+  // Iterate the set bits rather than testing all 96. The test was one
+  // unpredictable branch per legal move, about 26 mispredicts per call.
+  forEachMove(legal_moves, [this, &edge_index](int32_t id) {
+    edges_[edge_index] = Edge(id, 0);
+    ++edge_index;
+  });
 }

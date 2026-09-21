@@ -8,6 +8,7 @@
 
 #include <gsl/gsl>
 
+#include "arena.h"
 #include "game.h"
 #include "util.h"
 
@@ -51,6 +52,17 @@ class alignas(64) Node {
   /// or 1 more than the depth of parent
   Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
        int32_t depth);
+
+  /// @brief Nodes come from the per-thread arena, not from malloc
+  /// @details Routing allocation here rather than changing every call site
+  /// keeps ownership and the recursive destructor exactly as they were.
+  static void *operator new(size_t bytes) { return Arena::get().allocate(bytes); }
+  static void operator delete(void *p, size_t bytes) noexcept {
+    Arena::get().deallocate(p, bytes);
+  }
+  static void operator delete(void *p) noexcept {
+    Arena::get().deallocate(p, sizeof(Node));
+  }
 
   Game game() const noexcept;
   Node *parent() const noexcept;
@@ -117,6 +129,20 @@ class alignas(64) Node {
     Edge(int32_t move_id, int32_t probability)
         : move_id{gsl::narrow_cast<uint16_t>(move_id)},
           probability{gsl::narrow_cast<uint16_t>(probability)} {}
+
+    /// @brief Edge arrays come from the arena's large size class
+    /// @details At most 48 edges of 2 bytes, so one 128-byte slot always
+    /// fits and the deallocation needs no size. The request is rounded up to
+    /// that class explicitly: passing the true size would put a short array in
+    /// the SMALL class while operator delete[] returns it to the LARGE one,
+    /// corrupting the free lists.
+    static void *operator new[](size_t bytes) {
+      (void)bytes;
+      return Arena::get().allocate(Arena::kLarge);
+    }
+    static void operator delete[](void *p) noexcept {
+      Arena::get().deallocate(p, Arena::kLarge);
+    }
   };
 
   /// @brief Initialize the edges of this node

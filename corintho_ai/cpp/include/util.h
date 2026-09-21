@@ -54,6 +54,24 @@ const PieceType kCapital = 2;
 const PieceType kPieceTypes[3] = {kBase, kColumn, kCapital};
 const int32_t kFrozen = 3;
 
+// Board bit layout: four bits per space, the three piece bits then the frozen
+// bit, so space s occupies bits [4s, 4s+4) of a single uint64_t. These masks
+// are derived rather than transcribed -- a hand-written constant table is how
+// line_breakers acquired thirteen errors (see worklog entry 04).
+
+/// @brief The three piece bits of one space's nibble
+constexpr uint64_t kStackMask = (UINT64_C(1) << kFrozen) - 1;
+
+constexpr uint64_t makeUnfrozenMask() {
+  uint64_t mask = 0;
+  for (int32_t space = 0; space < kBoardSize; ++space) {
+    mask |= kStackMask << (space * 4);
+  }
+  return mask;
+}
+/// @brief Every board bit except the frozen bit of each space
+constexpr uint64_t kUnfrozenMask = makeUnfrozenMask();
+
 // Results
 const Result kResultNone = 0;
 const Result kResultLoss = 1;

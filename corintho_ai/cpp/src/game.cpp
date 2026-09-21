@@ -258,35 +258,39 @@ void Game::doMove(int32_t move_id) noexcept {
   // This is not a conclusive check (doesn't factor in lines) but has some use
   // for debugging
   assert(isLegalMove(move_id));
-  Move move{move_id};
-  // Reset the frozen space
-  for (int32_t row = 0; row < 4; ++row) {
-    for (int32_t col = 0; col < 4; ++col) {
-      set_frozen(Space{row, col}, false);
-    }
-  }
-  // Place move
-  if (move.move_type() == Move::MoveType::kPlace) {
+  // Read the decoded move straight out of the table rather than constructing a
+  // Move. Move's constructor lives in move.cpp, so without LTO the old code
+  // reached it through a PLT call -- visible as `call _ZN4MoveC1Ei@PLT` in the
+  // disassembly of this function -- for what is one array read.
+  const MoveInfo &move = kMoveTable[move_id];
+
+  // The board is four bits per space: three piece bits then a frozen bit, so
+  // space s occupies bits [4s, 4s+4). Everything below is one 64-bit word.
+  uint64_t b = board_.to_ullong();
+  // Clear every frozen bit. (The old sixteen-iteration loop compiled to this
+  // same single AND -- GCC had already reduced it -- so this costs nothing
+  // extra and only removes the source-level noise.)
+  b &= kUnfrozenMask;
+
+  const int32_t to_shift = move.to * 4;
+  if (move.is_place) {
     // Use a piece
-    --pieces_[to_play_ * 3 + move.piece_type()];
-    // Place the piece
-    set_board(move.space_to(), move.piece_type());
-    // Freeze the space
-    set_frozen(move.space_to());
+    --pieces_[to_play_ * 3 + move.piece];
+    b |= UINT64_C(1) << (to_shift + move.piece);
+  } else {
+    const int32_t from_shift = move.from * 4;
+    // Move the whole stack at once. The old code looped over the three piece
+    // types, reading source and destination and OR-ing them per type, which
+    // the compiler unrolled into a chain of test/or/andn/cmove. The stack is
+    // three adjacent bits, so lifting and depositing it is three operations.
+    const uint64_t stack = (b >> from_shift) & kStackMask;
+    b &= ~(kStackMask << from_shift);
+    b |= stack << to_shift;
   }
-  // Move move
-  else {
-    for (PieceType piece_type : kPieceTypes) {  // For each piece type
-      // Add the piece to the new space
-      set_board(move.space_to(), piece_type,
-                board(move.space_from(), piece_type) ||
-                    board(move.space_to(), piece_type));
-      // Remove the piece from the old space
-      set_board(move.space_from(), piece_type, false);
-    }
-    // Freeze the new space
-    set_frozen(move.space_to(), true);
-  }
+  // Freeze the destination. Both branches do this, so it is hoisted out.
+  b |= UINT64_C(1) << (to_shift + kFrozen);
+
+  board_ = std::bitset<4 * kBoardSize>{b};
   // Switch player
   to_play_ = 1 - to_play_;
 }

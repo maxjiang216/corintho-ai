@@ -129,35 +129,94 @@ int main(int argc, char **argv) {
 
   // --- doMove: once per node, inside the Node constructor ---
   {
-    // Precompute a legal move for each position so the timed loop measures
-    // doMove alone rather than move selection.
-    std::vector<int32_t> moves;
-    moves.reserve(corpus.size());
+    // The original version of this benchmark took the LOWEST-indexed legal
+    // move. Move IDs 0-47 are all move-moves and 48-95 are all places, so that
+    // picked a move-move whenever one existed -- the expensive branch, the same
+    // one every repetition, perfectly predicted. It also folded the Game copy
+    // into the reported figure.
+    //
+    // Here: a uniformly chosen legal move per position, split into the place
+    // and move-move branches and reported separately, with the copy timed on
+    // its own so it can be subtracted.
     std::vector<Game> playable;
-    playable.reserve(corpus.size());
+    std::vector<int32_t> any_move, place_move, tower_move;
+    std::vector<Game> place_pos, tower_pos;
+    uint64_t rng = 0x9E3779B97F4A7C15ULL;
     std::bitset<kNumMoves> legal;
     for (const Game &game : corpus) {
       game.getLegalMoves(legal);
       if (legal.count() == 0)
         continue;
-      for (int32_t i = 0; i < kNumMoves; ++i) {
-        if (legal[i]) {
-          moves.push_back(i);
-          break;
-        }
-      }
+      std::vector<int32_t> ids;
+      for (int32_t i = 0; i < kNumMoves; ++i)
+        if (legal[i])
+          ids.push_back(i);
       playable.push_back(game);
+      any_move.push_back(ids[bench::splitmix64(rng) % ids.size()]);
+      // Separate pools so each branch is measured without the other's
+      // mispredictions mixed in.
+      std::vector<int32_t> places, towers;
+      for (int32_t id : ids)
+        (id >= 48 ? places : towers).push_back(id);
+      if (!places.empty()) {
+        place_pos.push_back(game);
+        place_move.push_back(places[bench::splitmix64(rng) % places.size()]);
+      }
+      if (!towers.empty()) {
+        tower_pos.push_back(game);
+        tower_move.push_back(towers[bench::splitmix64(rng) % towers.size()]);
+      }
     }
+
+    // Copy alone, to subtract from the combined figures.
     auto start = bench::Clock::now();
     for (int32_t r = 0; r < reps; ++r) {
       for (size_t i = 0; i < playable.size(); ++i) {
         Game copy = playable[i];
-        copy.doMove(moves[i]);
+        bench::keep(copy);
+      }
+    }
+    bench::Result{"Game copy (alone)", bench::secondsSince(start),
+                  static_cast<uint64_t>(reps) * playable.size()}
+        .report();
+
+    // Kept for comparability with earlier recorded runs, but now with a
+    // uniformly chosen move rather than the lowest-indexed one.
+    start = bench::Clock::now();
+    for (int32_t r = 0; r < reps; ++r) {
+      for (size_t i = 0; i < playable.size(); ++i) {
+        Game copy = playable[i];
+        copy.doMove(any_move[i]);
         bench::keep(copy);
       }
     }
     bench::Result{"Game::doMove (incl. copy)", bench::secondsSince(start),
                   static_cast<uint64_t>(reps) * playable.size()}
+        .report();
+
+    start = bench::Clock::now();
+    for (int32_t r = 0; r < reps; ++r) {
+      for (size_t i = 0; i < place_pos.size(); ++i) {
+        Game copy = place_pos[i];
+        copy.doMove(place_move[i]);
+        bench::keep(copy);
+      }
+    }
+    bench::Result{"Game::doMove place (incl. copy)", bench::secondsSince(start),
+                  static_cast<uint64_t>(reps) * place_pos.size()}
+        .report();
+
+    start = bench::Clock::now();
+    for (int32_t r = 0; r < reps; ++r) {
+      for (size_t i = 0; i < tower_pos.size(); ++i) {
+        Game copy = tower_pos[i];
+        copy.doMove(tower_move[i]);
+        bench::keep(copy);
+      }
+    }
+    bench::Result{"Game::doMove move-move (incl. copy)",
+                  bench::secondsSince(start),
+                  static_cast<uint64_t>(reps) * tower_pos.size()}
         .report();
   }
 

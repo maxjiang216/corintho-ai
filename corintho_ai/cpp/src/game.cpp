@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 
 #include <bitset>
 #include <ostream>
@@ -238,13 +239,44 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   return os;
 }
 
-void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
-  for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
-    if (board_[i]) {
-      game_state[i] = 1.0;
-    } else {
-      game_state[i] = 0.0;
+namespace {
+
+/// @brief The four floats a single space expands to, for each nibble value
+/// @details The board stores four bits per space -- base, column, capital,
+/// frozen -- so one space's nibble is exactly one group of four network
+/// inputs. Sixteen possible nibbles, so the whole table is 256 bytes and
+/// stays resident in L1 alongside the rest of the working set. An 8 KB
+/// byte-indexed table is faster under -march=native and slower without it,
+/// and this engine's speed rests on a small cache footprint; see worklog
+/// entry 07.
+/// @note Generated, not transcribed.
+struct NibbleFloats {
+  float value[16][4];
+};
+
+constexpr NibbleFloats makeNibbleFloats() {
+  NibbleFloats table{};
+  for (int32_t nibble = 0; nibble < 16; ++nibble) {
+    for (int32_t bit = 0; bit < 4; ++bit) {
+      table.value[nibble][bit] = static_cast<float>((nibble >> bit) & 1);
     }
+  }
+  return table;
+}
+
+constexpr NibbleFloats kNibbleFloats = makeNibbleFloats();
+
+}  // namespace
+
+void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
+  // The old loop tested one bit and stored one float, sixty-four times. The
+  // branch is on board contents, so it mispredicts constantly. Expanding a
+  // nibble at a time is branchless and copies sixteen bytes per step.
+  const uint64_t board = board_.to_ullong();
+  for (int32_t space = 0; space < kBoardSize; ++space) {
+    std::memcpy(game_state + space * 4,
+                kNibbleFloats.value[(board >> (space * 4)) & 0xF],
+                4 * sizeof(float));
   }
   // Canonize the pieces
   for (int32_t i = 0; i < 6; ++i) {

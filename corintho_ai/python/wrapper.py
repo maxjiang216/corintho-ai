@@ -124,11 +124,25 @@ def get_args():
         "Default is 1, which is the standard MCST algorithm.",
     )
     parser.add_argument(
+        "--test_confidence",
+        type=float,
+        default=0.95,
+        help="Confidence level for the promotion gate. A new generation "
+        "replaces the best one only when the lower bound of this confidence "
+        "interval on its decisive-game win rate is above 0.5. Draws are "
+        "discarded, not counted as half a win. Default is 0.95. "
+        "Must be one of the tabulated levels in promotion.py.",
+    )
+    parser.add_argument(
         "--test_threshold",
         type=float,
-        default=0.5,
-        help="Minimum score (exclusive) to become new best agent. "
-        "Default is 0.5",
+        default=None,
+        help="DEPRECATED and ignored. The promotion gate is now a confidence "
+        "interval on decisive games (--test_confidence), not a fixed score. "
+        "A fixed threshold does not track the number of test games: 0.52 was "
+        "roughly a one-sided 94%% test at 1600 games, but would be far "
+        "stricter at 6400 and far weaker at 400. Still accepted so old "
+        "configs keep loading.",
     )
 
     # Dictionary of flag values
@@ -136,6 +150,12 @@ def get_args():
 
     # Process and validate the values
     args["anneal_factor"] = max(0.0, min(1.0, args["anneal_factor"]))
+    if args.get("test_threshold") is not None:
+        print(
+            "warning: --test_threshold is ignored; the promotion gate is now "
+            f"a {args['test_confidence']:.0%} confidence interval on decisive "
+            "games. See promotion.py."
+        )
     args["batch_size"] = max(1, args["batch_size"])
     args["c_puct"] = max(0.0, args["c_puct"])
     args["epochs"] = max(1, args["epochs"])

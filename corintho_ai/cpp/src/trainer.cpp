@@ -67,6 +67,32 @@ float Trainer::score() const noexcept {
   return score / games_.size();
 }
 
+int32_t Trainer::numWins() const noexcept {
+  int32_t wins = 0;
+  for (size_t i = 0; i < games_.size(); ++i) {
+    const float s =
+        (i % 2 == 0) ? games_[i].score() : 1.0F - games_[i].score();
+    if (s == 1.0F)
+      ++wins;
+  }
+  return wins;
+}
+
+int32_t Trainer::numDraws() const noexcept {
+  int32_t draws = 0;
+  for (size_t i = 0; i < games_.size(); ++i) {
+    const float s =
+        (i % 2 == 0) ? games_[i].score() : 1.0F - games_[i].score();
+    if (s == 0.5F)
+      ++draws;
+  }
+  return draws;
+}
+
+int32_t Trainer::numGames() const noexcept {
+  return gsl::narrow_cast<int32_t>(games_.size());
+}
+
 float Trainer::avg_mate_length() const noexcept {
   int32_t total_length = 0;
   for (const auto &game : games_) {

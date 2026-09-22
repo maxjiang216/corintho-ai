@@ -31,11 +31,19 @@ cdef extern from "../cpp/src/trainer.cpp":
         int num_requests(int to_play) except +
         int num_samples() except +
         float score() except +
+        int numWins() except +
+        int numDraws() except +
+        int numGames() except +
         float avg_mate_length() except +
         void writeRequests(float *game_states, int to_play) except +
         void writeSamples(float *game_states, float *eval_samples, float *prob_samples) except +
         void writeScores(string file) except +
         bool doIteration(float *evaluations, float *probabilities, int to_play) except +
+
+# Plain Python module so the gate's statistics can be tested without building
+# the extension. It sits next to this file and next to wrapper.py, which is
+# what imports the built module, so it is on sys.path.
+from promotion import should_promote, describe
 
 cdef int _NUM_MOVES = 96
 cdef int _GAME_STATE_SIZE = 70
@@ -348,7 +356,21 @@ def train_generation(params):
         new_model,
     )
     score = tester.score()
-    open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(f"New agent score {score:1f}!\n")
+    # Promotion is decided on decisive games only. Draws say nothing about
+    # which side is stronger, so counting them as half a win just shrinks the
+    # apparent distance from 0.5. See promotion.py for why a confidence level
+    # is used rather than a fixed score threshold.
+    promote, gate = should_promote(
+        tester.numWins(),
+        tester.numDraws(),
+        tester.numGames(),
+        params.get("test_confidence", 0.95),
+    )
+    open(f"{test_log_folder}/score.txt", 'w', encoding='utf-8').write(
+        describe(gate) + "\n"
+    )
+    # The rating still uses the score with draws at 0.5, which is the standard
+    # Elo convention and a separate question from whether to promote.
     update_rating(
         params["new_rating_file"],
         params["best_gen_rating"],
@@ -360,6 +382,4 @@ def train_generation(params):
     keras.backend.clear_session()
 
     # Return whether new model improved
-    if score > params["test_threshold"]:
-        return True
-    return False
+    return promote

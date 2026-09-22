@@ -31,6 +31,17 @@ class Trainer {
   int32_t num_samples() const noexcept;
   /// @brief Average score of first player
   float score() const noexcept;
+  /// @brief Number of test games the new agent won outright
+  /// @details Same parity handling as score(): even-indexed games count the
+  /// first player's result and odd-indexed games the second player's, which is
+  /// how the colours are balanced across the match. Used by the promotion
+  /// gate, which tests the decisive-game win rate and so needs counts rather
+  /// than an averaged score.
+  int32_t numWins() const noexcept;
+  /// @brief Number of drawn test games
+  int32_t numDraws() const noexcept;
+  /// @brief Number of games in this Trainer
+  int32_t numGames() const noexcept;
   /// @brief Return the average mate length
   float avg_mate_length() const noexcept;
 

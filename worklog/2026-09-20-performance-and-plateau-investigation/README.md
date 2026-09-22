@@ -22,6 +22,7 @@ none of it has yet been shown to move strength.
 | 08 | [writeGameState](2026-09-21-08-writegamestate.md) | 12.7x; the ISA the training module actually builds with |
 | 09 | [to_eval_ sizing](2026-09-21-09-to-eval-sizing.md) | 100x oversized *and resident*; 3x peak RSS |
 | 10 | [the last column, and colour imbalance](2026-09-21-10-the-last-column-and-colour-imbalance.md) | **Second player wins ~74% of training games.** The gate was passing noise. |
+| 11 | [where the 74% comes from](2026-09-21-11-where-the-74-percent-comes-from.md) | Not the rules bug, not strength. Structural, found by generation 6. |
 
 ## The two entries to read if you read nothing else
 
@@ -48,17 +49,21 @@ none of it has yet been shown to move strength.
   spreads reach 13-16%. Prefer exact counters; pin to a P-core; interleave arms.
 - **Match the gate to the change.** Digests catch behaviour changes; they cannot
   catch an out-of-bounds store. Shrinking a buffer needs memcheck (entry 09).
+- **A differential reference that is kept passing is not a record of old
+  behaviour.** `game_reference.cpp` was re-frozen by the fix commit; comparing
+  against it compares the fix with itself. Use a `git worktree` (entry 11).
+- **Suspiciously exact agreement is a bug signal.** Two 200,000-game arms that
+  match to five decimals did not agree; they were the same code (entry 11).
 
 ## Still open
 
-- **Random-playout parity test, pre-fix rules vs fixed rules.** Highest-value
-  experiment outstanding, and it needs no training: `game_reference.cpp` still
-  holds the pre-fix rules, so the first/second win rates can be compared
-  directly. Determines how much of entry 10's 74% is real and how much was
-  manufactured by the entry-04 defects. (The spreadsheet column itself is
-  answered in entry 10.)
-- **Revisit the promotion gate** (entry 10): 0.51 over 1,600 test games is about
-  one standard error from 0.5.
+- **Confirm the colour imbalance with a real network** under the fixed rules
+  (entry 11). Needs a TF or tflite runtime, which is not available locally. This
+  is the one measurement that would settle whether 0.74 survives the entry-04
+  fix in the regime that matters.
+- **Fix the promotion gate** (entries 10-11), independent of the above: 0.51
+  over 1,600 test games is about one standard error from 0.5, and 64 of 93
+  generations were promoted on that basis.
 - Strength impact of the entry-04 rules fix: needs a fixed-weights match.
   Generation 92 was trained under the buggy rules.
 - `web/engine.js` and `web/line_breakers.js` still carry every line-breaking

@@ -110,11 +110,14 @@ mis-measured; it is something the agent discovers and then exploits immediately.
    outcome sign. A value head can score well by learning "second player wins"
    and little else, which is a weak gradient for the thing that actually drives
    MCTS.
-2. **The gate was passing noise.** The recovered new-vs-best scores sit at
-   0.48–0.53 from roughly generation 40 on, yet **64 of 93 generations were
-   promoted**. With 1,600 test games, a score of 0.51 is about one standard
-   error from 0.5. The promotion rule was largely sampling noise, which explains
-   a rating that drifts without the agent improving.
+2. ~~**The gate was passing noise.** ... 64 of 93 generations were promoted.~~
+   **RETRACTED (entry 12).** This was wrong. It assumed a promotion threshold of
+   0.5 and *replayed* the promotion chain from the ratings. The real threshold
+   was **0.52**, recorded in `generations/gen_79+/metadata.txt`, and those same
+   files record `best_generation` and `best_gen_rating` directly so no replay was
+   needed. Using the recorded chain, generations 79-93 promoted **3 of 15**. The
+   gate was rejecting about 80% of candidates, and 0.52 at 1,600 games is roughly
+   a one-sided 94% test. See entry 12.
 3. Both effects are invisible to every optimization on this branch. The engine
    being 1.8x faster produces more of the same skewed data.
 
@@ -144,9 +147,8 @@ over-reading:
    neutral; the defects did not manufacture the imbalance.
 2. Re-measure colour balance with the fixed engine under a real (not stub)
    network before drawing conclusions from the old 74%.
-3. Revisit the promotion gate. A threshold that admits 0.51 over 1,600 games is
-   admitting noise; either raise the threshold, raise the test-game count, or
-   use a proper sequential test.
+3. ~~Revisit the promotion gate.~~ Superseded by entry 12: the gate was not
+   admitting 0.51, and was roughly correctly calibrated for 1,600 games.
 4. If the imbalance survives the rules fix, consider it directly — the usual
    remedies are a komi-like value adjustment, or training with colour-balanced
    position pairs.

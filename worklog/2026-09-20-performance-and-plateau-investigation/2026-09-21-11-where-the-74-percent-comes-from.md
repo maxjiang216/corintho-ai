@@ -117,10 +117,10 @@ The cause is narrowed but the consequence is unchanged and is the point:
 - **The value target is close to constant.** ~74% of training games end the same
   way. A value head scores well by learning "second player wins", which is a
   weak gradient for the signal that actually drives MCTS.
-- **The gate was admitting noise.** Recovered new-vs-best scores sit at
-  0.48–0.53 from about generation 40 on, yet 64 of 93 generations were promoted
-  on 1,600 test games. 0.51 over 1,600 games is roughly one standard error from
-  0.5.
+- ~~**The gate was admitting noise.**~~ **RETRACTED — see entry 12.** The real
+  threshold was 0.52 and only 3 of 15 late generations were promoted. The gate
+  was roughly correctly calibrated. The value-target problem above stands on its
+  own; the gate does not belong on this list.
 
 Both are untouched by any of the engine work on this branch, and both are better
 explanations of the plateau than anything in entries 02–09.
@@ -132,9 +132,8 @@ explanations of the plateau than anything in entries 02–09.
    balance. This is the one measurement that would settle whether 0.74 survives
    the rules fix in the regime that actually matters. Needs a TF or tflite
    runtime, which is not available locally yet.
-2. **Fix the promotion gate** regardless of the above: either raise the
-   threshold, raise `num_test_games` well above 1,600, or use a sequential test.
-   Promoting on 0.51 is promoting on noise.
+2. ~~Fix the promotion gate~~ — see entry 12. It was not broken in the way this
+   entry claimed.
 3. If the advantage is confirmed, treat it directly — a komi-like value offset,
    or colour-balanced position pairs in the training set.
 

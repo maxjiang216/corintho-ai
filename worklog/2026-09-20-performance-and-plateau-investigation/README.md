@@ -21,14 +21,15 @@ none of it has yet been shown to move strength.
 | 07 | [applying moves, and what counters cost](2026-09-21-07-applying-moves-and-what-counters-cost.md) | `doMove`; **cost model for Ir / cache / mispredicts** |
 | 08 | [writeGameState](2026-09-21-08-writegamestate.md) | 12.7x; the ISA the training module actually builds with |
 | 09 | [to_eval_ sizing](2026-09-21-09-to-eval-sizing.md) | 100x oversized *and resident*; 3x peak RSS |
-| 10 | [the last column, and colour imbalance](2026-09-21-10-the-last-column-and-colour-imbalance.md) | **Second player wins ~74% of training games.** The gate was passing noise. |
+| 10 | [the last column, and colour imbalance](2026-09-21-10-the-last-column-and-colour-imbalance.md) | **Second player wins ~74% of training games.** (Its claim about the gate is retracted — see 12.) |
 | 11 | [where the 74% comes from](2026-09-21-11-where-the-74-percent-comes-from.md) | Not the rules bug, not strength. Structural, found by generation 6. |
+| 12 | [the promotion gate](2026-09-21-12-the-promotion-gate.md) | **Retraction.** The gate was not passing noise; I misread it. What changed anyway, and why. |
 
 ## The two entries to read if you read nothing else
 
-- **10** is the one that most plausibly explains the plateau: a ~74% second-player
-  win rate, and a promotion gate that admitted 64 of 93 generations while
-  new-vs-best scores sat at 0.48-0.53.
+- **10** is the one that most plausibly explains the plateau: a ~74%
+  second-player win rate, which makes the value target nearly constant. Read it
+  with **12**, which retracts its claim about the promotion gate.
 - **04** is the other one that plausibly affects strength. The engine allowed
   9,686 forbidden moves and forbade 5,673 legal ones per 6.1M positions, for
   every generation trained so far.
@@ -54,6 +55,11 @@ none of it has yet been shown to move strength.
   against it compares the fix with itself. Use a `git worktree` (entry 11).
 - **Suspiciously exact agreement is a bug signal.** Two 200,000-game arms that
   match to five decimals did not agree; they were the same code (entry 11).
+- **Read what was recorded before reconstructing it.** The promotion threshold
+  and the full best-generation chain were on disk the whole time. Replaying them
+  from the ratings produced a wrong answer that then motivated a change (entries
+  10-12). A replay also diverges permanently after one wrong decision, so it
+  cannot be spot-checked at the end.
 
 ## Still open
 
@@ -61,9 +67,9 @@ none of it has yet been shown to move strength.
   (entry 11). Needs a TF or tflite runtime, which is not available locally. This
   is the one measurement that would settle whether 0.74 survives the entry-04
   fix in the regime that matters.
-- **Fix the promotion gate** (entries 10-11), independent of the above: 0.51
-  over 1,600 test games is about one standard error from 0.5, and 64 of 93
-  generations were promoted on that basis.
+- ~~Fix the promotion gate~~ — done in entry 12, though for a weaker reason than
+  entries 10-11 gave. It now adapts to the test-game count instead of being a
+  fixed 0.52.
 - Strength impact of the entry-04 rules fix: needs a fixed-weights match.
   Generation 92 was trained under the buggy rules.
 - `web/engine.js` and `web/line_breakers.js` still carry every line-breaking

@@ -140,8 +140,8 @@ over-reading:
 
 ## Next steps, in order
 
-1. **Random-playout parity test, old rules vs fixed rules.** Cheap, needs no
-   training, and determines whether entry 04's fix already changed the picture.
+1. ~~Random-playout parity test~~ — done in entry 11. The rules fix is parity
+   neutral; the defects did not manufacture the imbalance.
 2. Re-measure colour balance with the fixed engine under a real (not stub)
    network before drawing conclusions from the old 74%.
 3. Revisit the promotion gate. A threshold that admits 0.51 over 1,600 games is

@@ -28,15 +28,16 @@ CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
 # ships in the training module.
 CORE  += $(BUILD)/game_reference.o
 
-.PHONY: all micro selfplay golden verify rulecheck run callgrind clean
+.PHONY: all micro selfplay golden verify rulecheck parity run callgrind clean
 
-all: micro selfplay golden verify_bin rulecheck_bin
+all: micro selfplay golden verify_bin rulecheck_bin parity
 
 micro: $(BUILD)/micro_bench
 selfplay: $(BUILD)/selfplay_bench
 golden: $(BUILD)/golden
 verify_bin: $(BUILD)/verify
 rulecheck_bin: $(BUILD)/rulecheck
+parity: $(BUILD)/parity
 
 $(BUILD):
 	@mkdir -p $(BUILD)
@@ -59,6 +60,9 @@ $(BUILD)/verify.o: verify.cpp bench_util.h | $(BUILD)
 $(BUILD)/rulecheck.o: rulecheck.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
+$(BUILD)/parity.o: parity.cpp | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+
 $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
@@ -72,6 +76,9 @@ $(BUILD)/verify: $(BUILD)/verify.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/rulecheck: $(BUILD)/rulecheck.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILD)/parity: $(BUILD)/parity.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 run: all

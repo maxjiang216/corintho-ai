@@ -1,5 +1,6 @@
 #include "trainmc.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -27,6 +28,10 @@ TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
   assert(c_puct_ > 0.0);
   assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
   assert(generator_ != nullptr);
+  // Two 32-bit outputs make one 64-bit seed. Two statements, so the order in
+  // which they are drawn is defined.
+  noise_state_ = static_cast<uint64_t>((*generator_)()) << 32;
+  noise_state_ |= (*generator_)();
   // seached_ will only ever need this many elements
   searched_.reserve(searches_per_eval_);
 }
@@ -227,12 +232,33 @@ void TrainMC::getFilteredProbs(float probs[kNumMoves],
   }
 }
 
-void TrainMC::generateDirichlet(float dirichlet[]) const noexcept {
+uint64_t TrainMC::nextNoiseBits() noexcept {
+  // splitmix64 (Steele, Lea and Flood; constants from Vigna's reference
+  // implementation). Passes BigCrush; period 2^64.
+  uint64_t z = (noise_state_ += 0x9e3779b97f4a7c15ULL);
+  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+  z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+  return z ^ (z >> 31);
+}
+
+void TrainMC::generateDirichlet(float dirichlet[]) noexcept {
   const int32_t num_edges = cur_->num_legal_moves();
+  // A bucket index needs 10 bits, so each 64-bit draw supplies six. Leftover
+  // indices at the end of a node are discarded, so the stream consumed
+  // depends only on num_edges and stays reproducible for a seed.
+  constexpr int32_t kGammaBits = 10;
+  constexpr int32_t kIndicesPerDraw = 64 / kGammaBits;
+  static_assert(kNumGammaBuckets == 1 << kGammaBits,
+                "bucket index width must match the gamma table size");
   float sum = 0.0;
-  for (int32_t i = 0; i < num_edges; ++i) {
-    dirichlet[i] = gamma_samples[(*generator_)() % kNumGammaBuckets];
-    sum += dirichlet[i];
+  for (int32_t i = 0; i < num_edges; i += kIndicesPerDraw) {
+    uint64_t bits = nextNoiseBits();
+    const int32_t end = std::min(i + kIndicesPerDraw, num_edges);
+    for (int32_t j = i; j < end; ++j) {
+      dirichlet[j] = gamma_samples[bits & (kNumGammaBuckets - 1)];
+      bits >>= kGammaBits;
+      sum += dirichlet[j];
+    }
   }
   float scalar = 1.0 / sum * epsilon_;
   for (int32_t i = 0; i < num_edges; ++i) {

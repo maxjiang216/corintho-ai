@@ -100,7 +100,9 @@ class TrainMC {
   void getFilteredProbs(float probs[kNumMoves],
                         float filtered_probs[]) const noexcept;
   /// @brief Generate Dirichlet noise
-  void generateDirichlet(float dirichlet[]) const noexcept;
+  void generateDirichlet(float dirichlet[]) noexcept;
+  /// @brief Next 64 bits from the noise generator (splitmix64)
+  uint64_t nextNoiseBits() noexcept;
 
   /// @brief Set integer probabilities to edges, sets denominator of cur_ node.
   void setProbs(float filtered_probs[], float dirichlet[]) noexcept;
@@ -186,6 +188,13 @@ class TrainMC {
   /// @details This is shared between the two players in a SelfPlayer,
   /// since only one player is searching at a time.
   std::mt19937 *generator_{nullptr};
+  /// @brief State of the splitmix64 generator used only for Dirichlet noise
+  /// @details Seeded from generator_ at construction. The noise draws one
+  /// bucket index per legal move for every evaluation, which made
+  /// std::mt19937 (a 5000-byte state and an out-of-line call per draw) 5.9%
+  /// of engine instructions. splitmix64 is one word of state and inlines to
+  /// a few multiplies and shifts. Everything else still uses generator_.
+  uint64_t noise_state_{0};
 };
 
 #endif

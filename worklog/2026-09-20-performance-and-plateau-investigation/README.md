@@ -25,6 +25,7 @@ none of it has yet been shown to move strength.
 | 11 | [where the 74% comes from](2026-09-21-11-where-the-74-percent-comes-from.md) | Not the rules bug, not strength. Structural, found by generation 6. |
 | 12 | [the promotion gate](2026-09-21-12-the-promotion-gate.md) | **Retraction.** The gate was not passing noise; I misread it. What changed anyway, and why. |
 | 13 | [lround in setProbs](2026-09-22-13-lround.md) | Bit-identical (checked over every float in range). −6.94% Ir, −3.8% engine time. |
+| 14 | [Dirichlet noise RNG](2026-09-22-14-dirichlet-rng.md) | splitmix64 for noise only. Reproducible, not bit-identical; checked statistically. −3.7% time per request. |
 
 ## The two entries to read if you read nothing else
 
@@ -56,6 +57,9 @@ none of it has yet been shown to move strength.
   against it compares the fix with itself. Use a `git worktree` (entry 11).
 - **Suspiciously exact agreement is a bug signal.** Two 200,000-game arms that
   match to five decimals did not agree; they were the same code (entry 11).
+- **A change to the random stream changes the workload.** Raw counter totals
+  from the two arms are then different games; normalize per request over many
+  seeds (entry 14).
 - **Read what was recorded before reconstructing it.** The promotion threshold
   and the full best-generation chain were on disk the whole time. Replaying them
   from the ratings produced a wrong answer that then motivated a change (entries
@@ -80,7 +84,7 @@ none of it has yet been shown to move strength.
 - `scripts/bash/build.sh` has never been build-verified with `-flto` — no
   cython or TensorFlow available locally.
 - Stub tree shape uncalibrated: 18.2 turns/game against 28.4 real.
-- `mt19937` in `generateDirichlet` is 5.9% of Ir; `chooseNext` scores every
-  unvisited edge though only the top-prior one can win (entry 13).
+- `chooseNext` scores every unvisited edge though only the top-prior one can
+  win (entry 13).
 - Transposition table unevaluated; distinct-position instrumentation not built.
 - S3 for large benchmark artifacts not set up.

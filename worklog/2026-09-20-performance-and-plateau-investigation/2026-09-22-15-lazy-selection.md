@@ -123,6 +123,34 @@ signs do not support a directional effect. I did not test the tie-break
 explanation, and it should not be repeated as a finding. If game length
 matters, measure it with the real network over many more seeds.
 
+## What the rank change does in the machine code (checked afterwards)
+
+Explaining v2 to Max, I said v1's scan re-read `edges_[best]` from memory every
+iteration and that v2's update compiles to a conditional move. **Both were
+wrong.** I had reasoned from the source. Compiling both loops in isolation
+(`data/lazy-selection/scan_codegen.cpp`, `g++ -O3 -march=native -S`) shows:
+
+- **v1 never reloads.** Nothing in the loop writes to `edges_`, so GCC keeps
+  the current best's probability and move ID in registers.
+- **v2 keeps a branch** (`cmp` + `jnb`), not a `cmov`. That is fine: a new best
+  is rare after the first few edges, so the branch predicts well.
+
+What actually differs:
+
+- v1 compares twice: probability, then "equal probability and lower ID". The
+  second path is ~12 extra instructions, because GCC rebuilds both fields.
+- v2 compares once, on a rank whose high bits are the probability where the
+  bitfield already stores it (a mask, not a shift).
+- About 9–10 instructions per edge in v2, against 7 on v1's common path and ~20
+  on its tie path.
+
+The v1 → v2 gain (−4.85% time, −8.2% instructions) was not split between the
+lazy first scan and the rank. The lazy scan removed ~40% of scan calls outright
+and is most likely the bulk of it. Max chose not to measure the split.
+
+Lesson: check the generated code before explaining a speedup by what the
+source appears to do. The compiler had already removed the "reload".
+
 ## Reusable lessons
 
 - **Eager preparation is paid by every node; most nodes are leaves.** Check how

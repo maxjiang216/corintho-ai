@@ -32,6 +32,25 @@ none of it has yet been shown to move strength.
 | 18 | [the network in-process](2026-09-23-18-in-process-network.md) | Start of the inference plan (laptop GPU, PyTorch, C++ owns inference). Hand AVX2 MLP matches tflite to 8e-7 on 3.5M real states; ~450 GFLOP/s on 20 threads, ~9× the pipe. **Hybrid CPU: static OpenMP schedules wait on E-cores.** |
 | 19 | [the engine at scale](2026-09-23-19-engine-at-scale.md) | **~0.9 GB per 1k games in flight** (25k at once needs ~23 GB): keep only enough in flight to saturate the GPU. `schedule(dynamic, 1)` on the game loops: −20% engine time at 1k games, −32% at 2k, same games. |
 | 20 | [GPU throughput](2026-09-23-20-gpu-throughput.md) | fp32 saturates at 16k–32k rows, ~175 ns/row end to end, so a generation is ~2.6 GPU-min against ~3.4 engine-min: **the engine is the bottleneck**. TF32/fp16 are off by up to 0.18 in probability, so not usable. tflite matches Keras to 7e-5. E-cores add 22%. |
+| 21 | [orchestration reasoning](2026-09-23-21-orchestration-reasoning.md) | Synthesis of 18–20: the developer's decisions, the self-play driver design, and why the engine (not the GPU) sets every orchestration tradeoff. **Read before building the driver.** |
+
+## Session 2026-09-23: the network in-process, and where the time goes on the laptop (entries 18–21)
+
+Training moves to this laptop (RTX 3060 Laptop GPU, i7-12700H), with PyTorch
+for fitting and C++ owning inference. Measured:
+
+- **In-process CPU network** (`Mlp`): matches tflite to 8e-7 on real positions
+  (entry 18).
+- **The engine's game loops now use a dynamic OpenMP schedule:** −20 to −32%
+  engine time. The static split waited on staggered starts and on E-cores
+  (entry 19).
+- **Memory:** ~0.7 GB per 1k games in flight. The staggered start is real,
+  −30% peak (entry 19).
+- **GPU fp32:** ~175 ns/row end to end, saturating at 16k–32k rows. TF32 and
+  fp16 are not accurate enough with this network (entry 20).
+- **Per generation, the engine (~3.4 min) outlasts the GPU network
+  (~2.6 min).** The engine is the bottleneck again, so work returns to it
+  before the driver is built (entry 21).
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -55,11 +74,9 @@ length (28.7 turns vs 28.4 recorded) where the stub gives ~18. Use it before
 trusting any stub-only result.
 
 **Where to resume:**
-- **(2026-09-23) Inference plan, entries 18–19.** Steps 1 (`Mlp` plus
-  parity) and 2 (engine at scale, dynamic schedule) are done, and so is the
-  GPU measurement (entry 20). Next: a C++ GPU backend (ORT tarball or the
-  libtorch that comes with the torch wheel), rolling game starts, and
-  alternating game groups.
+- **(2026-09-23) Inference plan, entries 18–21.** Measurements done. Next,
+  by the developer's choice: make the engine faster first, then build the C++
+  self-play driver (see entry 21 for the design).
 - Remaining engine cost: `initializeEdges` (~15% of instructions), the stub's
   own work aside. `syncStats` split (entry 16) is small.
 - The strength questions are unchanged and more important: colour imbalance

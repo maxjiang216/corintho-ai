@@ -1,0 +1,112 @@
+# computeSpaceInfo SWAR rewrite. a = HEAD 900e743 (build-a), b = working tree. i7-12700H, 2026-09-23.
+# NOTE: a callgrind job (single-threaded) was running on one core throughout.
+
+## callgrind, selfplay_bench 3 1600 16 1 (stub), PROGRAM TOTALS Ir
+a 617,870,326
+b 586,147,694   (-5.13%)
+
+## stub, taskset -c 0, selfplay_bench 40 1600 16 1 <seed>; columns: arm seed junk junk engine_seconds requests
+a 101 requests engine 0.6320 946633 
+b 101 requests engine 0.5500 946633 
+a 102 requests engine 0.5873 905930 
+b 102 requests engine 0.5227 905930 
+a 103 requests engine 0.5924 905351 
+b 103 requests engine 0.5208 905351 
+a 104 requests engine 0.5796 839693 
+b 104 requests engine 0.5030 839693 
+a 105 requests engine 0.6554 998117 
+b 105 requests engine 0.5770 998117 
+a 106 requests engine 0.5658 865879 
+b 106 requests engine 0.4992 865879 
+a 107 requests engine 0.6725 988175 
+b 107 requests engine 0.6098 988175 
+a 108 requests engine 0.5989 856074 
+b 108 requests engine 0.5098 856074 
+a 109 requests engine 0.5928 909271 
+b 109 requests engine 0.5235 909271 
+a 110 requests engine 0.5968 919347 
+b 110 requests engine 0.5262 919347 
+a 111 requests engine 0.6296 960041 
+b 111 requests engine 0.5520 960041 
+a 112 requests engine 0.6368 977454 
+b 112 requests engine 0.5595 977454 
+a 113 requests engine 0.6711 1026950 
+b 113 requests engine 0.6100 1026950 
+a 114 requests engine 0.5477 809522 
+b 114 requests engine 0.4799 809522 
+a 115 requests engine 0.6586 993713 
+b 115 requests engine 0.5743 993713 
+a 116 requests engine 0.5789 882675 
+b 116 requests engine 0.5107 882675 
+a 117 requests engine 0.6254 954486 
+b 117 requests engine 0.5481 954486 
+a 118 requests engine 0.6698 1019821 
+b 118 requests engine 0.5851 1019821 
+a 119 requests engine 0.5615 864320 
+b 119 requests engine 0.4952 864320 
+a 120 requests engine 0.6414 983050 
+b 120 requests engine 0.5610 983050 
+# -12.04% (95% CI -12.62 .. -11.46), identical requests 20/20
+
+## real network, selfplay_nn - model_93.mlp 1000 1600 16 20 <seed>; columns: arm seed engine_seconds requests
+a 901 8.2030 35903101 
+b 901 8.0959 35903101 
+a 902 8.3544 35992810 
+b 902 8.2144 35992810 
+a 903 8.6016 36134374 
+b 903 8.3798 36134374 
+a 904 8.3849 35623989 
+b 904 8.2259 35623989 
+a 905 8.4486 35404805 
+b 905 8.1994 35404805 
+a 906 8.4776 35615539 
+b 906 8.1399 35615539 
+# -2.40% (95% CI -3.43 .. -1.36), identical requests 6/6
+
+## real network single thread, taskset -c 4, 40 games (too short, noisy)
+a 301 1.4829 1369881
+b 301 1.7395 1369881
+a 302 1.8106 1414590
+b 302 1.5726 1414590
+a 303 1.7286 1438139
+b 303 1.5505 1438139
+a 304 1.6142 1472307
+b 304 1.5014 1472307
+a 305 1.7281 1392663
+b 305 1.5219 1392663
+a 306 1.6927 1448210
+b 306 1.4907 1448210
+a 307 1.6175 1491767
+b 307 1.5219 1491767
+a 308 1.6432 1484038
+b 308 1.4686 1484038
+# -7.11% (CI -14.43 .. +0.84)
+
+## real network single thread, taskset -c 4, 120 games
+a 311 5.7901 4405376
+b 311 5.5325 4405376
+a 312 5.7300 4365895
+b 312 5.4286 4365895
+a 313 5.6757 4291308
+b 313 5.2916 4291308
+a 314 5.5295 4241988
+b 314 5.2404 4241988
+a 315 5.6496 4291749
+b 315 5.3268 4291749
+a 316 5.4698 4199050
+b 316 5.2258 4199050
+a 317 5.5672 4313044
+b 317 5.2681 4313044
+a 318 5.4339 4152588
+b 318 5.0459 4152588
+a 319 5.4549 4268255
+b 319 5.2780 4268255
+a 320 5.5314 4293994
+b 320 5.2560 4293994
+a 321 5.4432 4250438
+b 321 5.4117 4250438
+a 322 5.7589 4408159
+b 322 5.4178 4408159
+# -4.94% (95% CI -6.01 .. -3.85), identical requests 12/12
+
+## gates: golden game d8f9bd2d22ee9731 engine d7581196f9d30591 (unchanged); verify PASS 200000 positions; rulecheck PASS

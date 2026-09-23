@@ -33,6 +33,7 @@ none of it has yet been shown to move strength.
 | 19 | [the engine at scale](2026-09-23-19-engine-at-scale.md) | **~0.9 GB per 1k games in flight** (25k at once needs ~23 GB): keep only enough in flight to saturate the GPU. `schedule(dynamic, 1)` on the game loops: −20% engine time at 1k games, −32% at 2k, same games. |
 | 20 | [GPU throughput](2026-09-23-20-gpu-throughput.md) | fp32 saturates at 16k–32k rows, ~175 ns/row end to end, so a generation is ~2.6 GPU-min against ~3.4 engine-min: **the engine is the bottleneck**. TF32/fp16 are off by up to 0.18 in probability, so not usable. tflite matches Keras to 7e-5. E-cores add 22%. |
 | 21 | [orchestration reasoning](2026-09-23-21-orchestration-reasoning.md) | Synthesis of 18–20: the developer's decisions, the self-play driver design, and why the engine (not the GPU) sets every orchestration tradeoff. **Read before building the driver.** |
+| 22 | [computeSpaceInfo](2026-09-23-22-space-info.md) | SWAR plane extraction replaces the 16-space loop (finishes entry 02's Stage 3). Same games. −12% stub, −4.9% real network single-thread, **−2.4% at 20 threads: stub instruction counts overstate production gains.** |
 
 ## Session 2026-09-23: the network in-process, and where the time goes on the laptop (entries 18–21)
 

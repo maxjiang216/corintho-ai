@@ -571,61 +571,81 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   // were expanded, and the first edge after them is always the best
   // unvisited one (promoteBestEdge, below, maintains this). So score the
   // children, then that one edge; the other unvisited edges cannot win.
+  //
+  // The children are scored from the statistics this node keeps for them
+  // (Node::child_stats), contiguous arrays that each child keeps equal to its
+  // own fields. Walking the child list instead meant one dependent load per
+  // child through nodes scattered across the arena.
   float max_eval = kNegInf;
-  Node *best = nullptr;
+  int32_t best = -1;
   // Factor this value out, as it is expense to compute
   const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
-  int32_t edge_index = 0;
-  // Last child in the list: a new node is inserted after it
-  Node *last = nullptr;
+  const Node::ChildStats stats = cur_->child_stats();
+  const int32_t num_children = stats.count;
   // First descent into this node. The best edge is only put in place now,
   // not when the priors arrive: two thirds of evaluated nodes never get here.
   // Every later position is lined up when the edge before it is expanded.
-  if (cur_->first_child() == nullptr)
+  if (num_children == 0)
     cur_->promoteBestEdge(0);
-  for (Node *child = cur_->first_child(); child != nullptr;
-       child = child->next_sibling(), ++edge_index) {
-    assert(child->child_id() == cur_->move_id(edge_index));
-    last = child;
+#ifndef NDEBUG
+  {
+    // The mirrored statistics must match the children, in list order
+    int32_t i = 0;
+    for (Node *child = cur_->first_child(); child != nullptr;
+         child = child->next_sibling(), ++i) {
+      assert(i < num_children && stats.child[i] == child);
+      assert(child->child_id() == cur_->move_id(i));
+      assert(stats.evaluation[i] == child->evaluation());
+      assert(stats.visits[i] == static_cast<float>(child->visits()));
+      assert(((stats.flags[i] & Node::kSkipChild) != 0) ==
+             ((child->known() && !child->drawn()) || child->all_visited()));
+      assert(((stats.flags[i] & Node::kDrawnChild) != 0) == child->drawn());
+    }
+    assert(i == num_children);
+  }
+#endif
+  for (int32_t i = 0; i < num_children; ++i) {
     // Don't all_visited nodes or won or lost positions
     // We search draws since the number of searches they have
     // makes a difference in choose_move
     // as they are not automatically chosen or excluded
-    if ((child->known() && !child->drawn()) || child->all_visited())
+    if (stats.flags[i] & Node::kSkipChild)
       continue;
     float u;
     // Known draw, use evaluation 0
-    if (child->drawn()) {
-      u = cur_->probability(edge_index) * v_sqrt;
+    if (stats.flags[i] & Node::kDrawnChild) {
+      u = cur_->probability(i) * v_sqrt;
     } else {
-      const float visits = static_cast<float>(child->visits());
-      u = -1.0 * child->evaluation() / visits +
-          cur_->probability(edge_index) * v_sqrt / (visits + 1.0);
+      const float visits = stats.visits[i];
+      u = -1.0 * stats.evaluation[i] / visits +
+          cur_->probability(i) * v_sqrt / (visits + 1.0);
     }
     if (u > max_eval) {
       max_eval = u;
-      best = child;
+      best = i;
     }
   }
   // The best unvisited edge, if any
   const int32_t num_edges = cur_->num_legal_moves();
-  if (edge_index < num_edges) {
-    const float u = cur_->probability(edge_index) * v_sqrt;
+  if (num_children < num_edges) {
+    const float u = cur_->probability(num_children) * v_sqrt;
     if (u > max_eval) {
-      const int32_t choice = cur_->move_id(edge_index);
+      const int32_t choice = cur_->move_id(num_children);
       // This edge is about to become a child; line up its successor.
-      if (edge_index + 1 < num_edges)
-        cur_->promoteBestEdge(edge_index + 1);
+      if (num_children + 1 < num_edges)
+        cur_->promoteBestEdge(num_children + 1);
+      // A new node is inserted after the last child
+      Node *last = num_children > 0 ? stats.child[num_children - 1] : nullptr;
       return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, last};
     }
   }
   // No possible moves
-  if (best == nullptr) {
+  if (best < 0) {
     return ChooseNextOutput{ChooseNextOutput::Type::kNone, -1, nullptr};
   }
   // Existing node
-  return ChooseNextOutput{ChooseNextOutput::Type::kVisited, best->child_id(),
-                          best};
+  return ChooseNextOutput{ChooseNextOutput::Type::kVisited,
+                          stats.child[best]->child_id(), stats.child[best]};
 }
 
 void TrainMC::search() {

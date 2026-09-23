@@ -1,6 +1,9 @@
 #include "node.h"
 
+#include <algorithm>
+#include <cassert>
 #include <cstdint>
+#include <cstring>
 
 #include <bitset>
 #include <ostream>
@@ -18,7 +21,10 @@ Node::Node() : child_id_{0}, depth_{0} {
 }
 
 Node::~Node() {
-  delete[] edges_;
+  if (block_ != nullptr) {
+    Arena::get().deallocate(block_->stats, statsBytes(block_->capacity));
+    delete block_;
+  }
   delete next_sibling_;
   delete first_child_;
 }
@@ -37,6 +43,10 @@ Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
   game_.doMove(move_id);
   // initializeEdges can throw an exception from new
   initializeEdges();
+  // Take a slot in the parent's child statistics, then fill it. After
+  // initializeEdges, so a terminal result is already known.
+  slot_ = parent_->addChild(this);
+  syncStats();
 }
 
 Game Node::game() const noexcept {
@@ -85,13 +95,13 @@ bool Node::all_visited() const noexcept {
 
 int32_t Node::move_id(int32_t i) const noexcept {
   assert(i < num_legal_moves_);
-  return edges_[i].move_id;
+  return block_->edges[i].move_id;
 }
 
 float Node::probability(int32_t i) const noexcept {
   assert(i < num_legal_moves_);
   assert(denominator_ > 0.0);
-  return static_cast<float>(edges_[i].probability) * denominator_;
+  return static_cast<float>(block_->edges[i].probability) * denominator_;
 }
 
 bool Node::terminal() const noexcept {
@@ -129,6 +139,7 @@ void Node::set_first_child(Node *first_child) noexcept {
 
 void Node::set_evaluation(float evaluation) noexcept {
   evaluation_ = evaluation;
+  syncStats();
 }
 
 void Node::set_denominator(float denominator) noexcept {
@@ -138,19 +149,22 @@ void Node::set_denominator(float denominator) noexcept {
 
 void Node::set_visits(int32_t visits) noexcept {
   visits_ = gsl::narrow_cast<int16_t>(visits);
+  syncStats();
 }
 
 void Node::set_result(Result result) noexcept {
   result_ = result;
+  syncStats();
 }
 
 void Node::set_all_visited(bool all_visited) noexcept {
   all_visited_ = all_visited;
+  syncStats();
 }
 
 void Node::set_probability(int32_t i, int32_t probability) noexcept {
   assert(i < num_legal_moves_);
-  edges_[i].probability = gsl::narrow_cast<uint16_t>(probability);
+  block_->edges[i].probability = gsl::narrow_cast<uint16_t>(probability);
 }
 
 void Node::promoteBestEdge(int32_t first) noexcept {
@@ -163,31 +177,107 @@ void Node::promoteBestEdge(int32_t first) noexcept {
            (127U - static_cast<uint32_t>(e.move_id));
   };
   int32_t best = first;
-  uint32_t best_rank = rank(edges_[first]);
+  uint32_t best_rank = rank(block_->edges[first]);
   for (int32_t i = first + 1; i < num_legal_moves_; ++i) {
-    const uint32_t r = rank(edges_[i]);
+    const uint32_t r = rank(block_->edges[i]);
     if (r > best_rank) {
       best_rank = r;
       best = i;
     }
   }
-  std::swap(edges_[first], edges_[best]);
+  std::swap(block_->edges[first], block_->edges[best]);
 }
 
 void Node::increment_visits() noexcept {
   ++visits_;
+  syncStats();
 }
 
 void Node::decrement_visits() noexcept {
   --visits_;
+  syncStats();
 }
 
 void Node::increase_evaluation(float d) noexcept {
   evaluation_ += d;
+  syncStats();
 }
 
 void Node::decrease_evaluation(float d) noexcept {
   evaluation_ -= d;
+  syncStats();
+}
+
+Node::ChildStats Node::child_stats() const noexcept {
+  if (block_ == nullptr || block_->stats == nullptr)
+    return ChildStats{nullptr, nullptr, nullptr, nullptr, 0};
+  const int32_t cap = block_->capacity;
+  unsigned char *base = block_->stats;
+  auto *child = reinterpret_cast<Node **>(base);
+  auto *evaluation = reinterpret_cast<float *>(child + cap);
+  auto *visits = evaluation + cap;
+  auto *flags = reinterpret_cast<uint8_t *>(visits + cap);
+  return ChildStats{child, evaluation, visits, flags, block_->num_children};
+}
+
+int8_t Node::addChild(Node *child) {
+  assert(block_ != nullptr);
+  EdgeBlock &b = *block_;
+  if (b.num_children == b.capacity) {
+    // Most expanded nodes stop at one or two children, so capacity grows
+    // 3 -> 7 -> 15 -> the legal move count, each step filling a 64-, 128- or
+    // 256-byte slot. A node with children has on average ~26 legal moves, and
+    // over half of them never get a second child. The 15 step matters too:
+    // without it, peak memory was 32 MB higher at 2000 games (entry 16).
+    static_assert(statsBytes(3) <= Arena::kSmall);
+    static_assert(statsBytes(7) <= Arena::kLarge);
+    static_assert(statsBytes(15) <= 2 * Arena::kLarge);
+    static_assert(statsBytes(kMaxEdges) <= Arena::kMaxBlock);
+    const int32_t old_cap = b.capacity;
+    const int32_t new_cap = std::min<int32_t>(
+        old_cap == 0   ? 3
+        : old_cap == 3 ? 7
+        : old_cap == 7 ? 15
+                       : num_legal_moves_,
+        num_legal_moves_);
+    assert(new_cap > old_cap);
+    auto *fresh = static_cast<unsigned char *>(
+        Arena::get().allocate(statsBytes(new_cap)));
+    if (old_cap > 0) {
+      // Same four arrays, each now new_cap long
+      unsigned char *old = b.stats;
+      const size_t n = static_cast<size_t>(b.num_children);
+      std::memcpy(fresh, old, n * sizeof(Node *));
+      std::memcpy(fresh + new_cap * sizeof(Node *),
+                  old + old_cap * sizeof(Node *), n * sizeof(float));
+      std::memcpy(fresh + new_cap * (sizeof(Node *) + sizeof(float)),
+                  old + old_cap * (sizeof(Node *) + sizeof(float)),
+                  n * sizeof(float));
+      std::memcpy(fresh + new_cap * (sizeof(Node *) + 2 * sizeof(float)),
+                  old + old_cap * (sizeof(Node *) + 2 * sizeof(float)), n);
+      Arena::get().deallocate(old, statsBytes(old_cap));
+    }
+    b.stats = fresh;
+    b.capacity = gsl::narrow_cast<int8_t>(new_cap);
+  }
+  const int8_t slot = b.num_children++;
+  reinterpret_cast<Node **>(b.stats)[slot] = child;
+  return slot;
+}
+
+void Node::syncStats() noexcept {
+  if (parent_ == nullptr)
+    return;
+  const EdgeBlock &b = *parent_->block_;
+  const int32_t cap = b.capacity;
+  auto *evaluation = reinterpret_cast<float *>(b.stats + cap * sizeof(Node *));
+  auto *visits = evaluation + cap;
+  auto *flags = reinterpret_cast<uint8_t *>(visits + cap);
+  evaluation[slot_] = evaluation_;
+  visits[slot_] = static_cast<float>(visits_);
+  flags[slot_] = static_cast<uint8_t>(
+      (((known() && !drawn()) || all_visited_) ? kSkipChild : 0) |
+      (drawn() ? kDrawnChild : 0));
 }
 
 void Node::null_parent() noexcept {
@@ -292,12 +382,12 @@ void Node::initializeEdges() {
     return;
   }
   // Otherwise, allocate edges for the legal moves
-  edges_ = new Edge[num_legal_moves_];
+  block_ = new EdgeBlock;
   int32_t edge_index = 0;
   // Iterate the set bits rather than testing all 96. The test was one
   // unpredictable branch per legal move, about 26 mispredicts per call.
   forEachMove(legal_moves, [this, &edge_index](int32_t id) {
-    edges_[edge_index] = Edge(id, 0);
+    block_->edges[edge_index] = Edge(id, 0);
     ++edge_index;
   });
 }

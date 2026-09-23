@@ -112,6 +112,26 @@ class alignas(64) Node {
 
   int32_t countNodes() const noexcept;
 
+  /// @brief Selection flags mirrored for each child: skip it entirely (a
+  /// won or lost position, or all_visited), or score it as a known draw
+  static constexpr uint8_t kSkipChild = 1;
+  static constexpr uint8_t kDrawnChild = 2;
+  /// @brief The children's selection statistics, in slot order
+  /// @details Slot i is the child created i-th, which is also edge i and the
+  /// i-th node of the child list (chooseNext keeps visited edges a prefix).
+  /// Each child writes its own entry whenever its evaluation, visits, result
+  /// or all_visited change, so these always equal the child's own fields.
+  /// They exist so that selection reads contiguous arrays in the parent
+  /// instead of chasing the child list through scattered nodes.
+  struct ChildStats {
+    Node *const *child;
+    const float *evaluation;
+    const float *visits;
+    const uint8_t *flags;
+    int32_t count;
+  };
+  ChildStats child_stats() const noexcept;
+
   /// @returns If there are lines in the position
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
   void writeGameState(float game_state[kGameStateSize]) const noexcept;
@@ -137,20 +157,45 @@ class alignas(64) Node {
         : move_id{gsl::narrow_cast<uint16_t>(move_id)},
           probability{gsl::narrow_cast<uint16_t>(probability)} {}
 
-    /// @brief Edge arrays come from the arena's large size class
-    /// @details At most 48 edges of 2 bytes, so one 128-byte slot always
-    /// fits and the deallocation needs no size. The request is rounded up to
-    /// that class explicitly: passing the true size would put a short array in
-    /// the SMALL class while operator delete[] returns it to the LARGE one,
-    /// corrupting the free lists.
-    static void *operator new[](size_t bytes) {
+  };
+
+  /// @brief The most legal moves any position has
+  static constexpr int32_t kMaxEdges = 48;
+
+  /// @brief The edges plus the header of the child-statistics block
+  /// @details One 128-byte arena slot, allocated for every non-terminal node.
+  /// 48 edges take 96 bytes; the header uses the rest of the slot, which
+  /// was previously padding, so Node itself does not grow.
+  struct EdgeBlock {
+    Edge edges[kMaxEdges];
+    /// @brief Child-statistics block, allocated on the first expansion
+    /// @details Laid out as Node *child[capacity], float evaluation[capacity],
+    /// float visits[capacity], uint8_t flags[capacity].
+    unsigned char *stats{nullptr};
+    int8_t num_children{0};
+    int8_t capacity{0};
+
+    static void *operator new(size_t bytes) {
       (void)bytes;
       return Arena::get().allocate(Arena::kLarge);
     }
-    static void operator delete[](void *p) noexcept {
+    static void operator delete(void *p) noexcept {
       Arena::get().deallocate(p, Arena::kLarge);
     }
   };
+  static_assert(sizeof(EdgeBlock) <= Arena::kLarge,
+                "an edge block must fit one large arena slot");
+
+  /// @brief Bytes of a child-statistics block with room for capacity children
+  static constexpr size_t statsBytes(int32_t capacity) noexcept {
+    return static_cast<size_t>(capacity) *
+           (sizeof(Node *) + 2 * sizeof(float) + sizeof(uint8_t));
+  }
+  /// @brief Register a new child, growing the statistics block if needed
+  /// @returns The child's slot
+  int8_t addChild(Node *child);
+  /// @brief Write this node's statistics into its parent's slot for it
+  void syncStats() noexcept;
 
   /// @brief Initialize the edges of this node
   void initializeEdges();
@@ -170,13 +215,10 @@ class alignas(64) Node {
   /// @note This would more ideally be a std::shared_ptr, but
   /// that would increase the size of the class over 64 bytes.
   Node *first_child_{nullptr};
-  /// @brief An array of edges to the children of this node
-  /// @details The edges are stored in a variable length array
-  /// so that we only allocate as much memory as we need (num_legal_moves).
-  /// This is an idea taken from the Leela Zero implementation.
-  /// Ideally, this would be a vector, but that would increase the size of the
-  /// class over 64 bytes.
-  Edge *edges_{nullptr};
+  /// @brief The edges to the children of this node, and the child-statistics
+  /// header
+  /// @details Null for terminal positions, which have no legal moves.
+  EdgeBlock *block_{nullptr};
   /// @brief The evaluation of this node
   /// @details This is a sum of the initial evaluation and all the
   /// evaluations propagated from the children.
@@ -217,6 +259,9 @@ class alignas(64) Node {
   /// node. It is set to true when the node is created, as it has no children
   /// and nodes are visited when they are created.
   bool all_visited_{true};
+  /// @brief This node's slot in its parent's child statistics
+  int8_t slot_{0};
 };
+static_assert(sizeof(Node) == 64, "Node must stay one cache line");
 
 #endif

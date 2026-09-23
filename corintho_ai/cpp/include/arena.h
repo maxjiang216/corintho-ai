@@ -28,22 +28,25 @@ class Arena {
   Arena(const Arena &) = delete;
   Arena &operator=(const Arena &) = delete;
 
-  /// @brief Size classes. Node is 64 bytes; an edge array is at most
-  /// 48 edges x 2 bytes = 96.
+  /// @brief Size classes are powers of two from 64 to 1024 bytes. Node is 64;
+  /// an edge block is 128; a node's child-statistics block is 128 to 1024
+  /// depending on how many children it holds room for.
   static constexpr size_t kSmall = 64;
   static constexpr size_t kLarge = 128;
+  static constexpr size_t kMaxBlock = 1024;
 
   /// @warning A block must be returned to the class it came from. Callers
   /// that round a request up to a class must round the matching deallocation
   /// up the same way, or the free lists will be crossed.
   void *allocate(size_t bytes) {
-    void *&list = bytes <= kSmall ? small_ : large_;
-    const size_t slot = bytes <= kSmall ? kSmall : kLarge;
+    const int c = sizeClass(bytes);
+    void *&list = free_[c];
     if (list != nullptr) {
       void *p = list;
       list = *static_cast<void **>(p);  // next pointer lives in the free block
       return p;
     }
+    const size_t slot = kSmall << c;
     if (left_ < slot)
       grow();
     void *p = cur_;
@@ -55,7 +58,7 @@ class Arena {
   void deallocate(void *p, size_t bytes) noexcept {
     if (p == nullptr)
       return;
-    void *&list = bytes <= kSmall ? small_ : large_;
+    void *&list = free_[sizeClass(bytes)];
     *static_cast<void **>(p) = list;
     list = p;
   }
@@ -68,6 +71,8 @@ class Arena {
 
  private:
   void grow() {
+    // A leftover tail smaller than the request is abandoned. At most 1 KiB of
+    // each 64 KiB chunk, and only when a large block straddles the end.
     chunks_.push_back(std::make_unique<unsigned char[]>(kChunk));
     cur_ = chunks_.back().get();
     left_ = kChunk;
@@ -78,8 +83,15 @@ class Arena {
   std::vector<std::unique_ptr<unsigned char[]>> chunks_;
   unsigned char *cur_{nullptr};
   size_t left_{0};
-  void *small_{nullptr};
-  void *large_{nullptr};
+  static constexpr int kNumClasses = 5;
+  /// @brief 0 for up to 64 bytes, 1 for up to 128, ... 4 for up to 1024
+  static int sizeClass(size_t bytes) noexcept {
+    if (bytes <= kSmall)
+      return 0;
+    // Bit length of bytes - 1, minus 6: 65..128 -> 1, 129..256 -> 2, ...
+    return 64 - __builtin_clzll(static_cast<unsigned long long>(bytes - 1)) - 6;
+  }
+  void *free_[kNumClasses]{};
 };
 
 #endif

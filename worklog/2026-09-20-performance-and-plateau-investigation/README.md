@@ -27,6 +27,7 @@ none of it has yet been shown to move strength.
 | 13 | [lround in setProbs](2026-09-22-13-lround.md) | Bit-identical (checked over every float in range). −6.94% Ir, −3.8% engine time. |
 | 14 | [Dirichlet noise RNG](2026-09-22-14-dirichlet-rng.md) | splitmix64 for noise only. Reproducible, not bit-identical; checked statistically. −3.7% time per request. |
 | 15 | [lazy selection](2026-09-22-15-lazy-selection.md) | chooseNext scores one unvisited edge. Same search (2 float-tie mismatches in 4.6M). −17% engine time on stub, −12.5% with the real network. |
+| 16 | [child stats in the parent](2026-09-22-16-parent-stats.md) | Selection reads contiguous per-parent arrays mirrored by each child. Bit-identical digest. −18% engine time (real network), −9% (stub); +18% peak memory. |
 
 ## The two entries to read if you read nothing else
 
@@ -89,5 +90,7 @@ none of it has yet been shown to move strength.
 - Stub tree shape: 18 turns/game against 28.4 real, but children-per-node
   distribution matches the real network closely (entry 15). `bench/selfplay_nn`
   now measures with the real network directly.
+- Optional: split `syncStats` into value/flag paths; 4-byte child handles
+  (+2% speed, overcommit risk) (entry 16).
 - Transposition table unevaluated; distinct-position instrumentation not built.
 - S3 for large benchmark artifacts not set up.

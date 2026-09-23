@@ -199,7 +199,11 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
       offsets[i] = offset;
     }
     omp_set_num_threads(num_threads_);
-#pragma omp parallel for
+    // Dynamic, one game at a time: a static schedule gives each thread a
+    // contiguous range of games, and both the staggered starts above and the
+    // hybrid CPU's slower E-cores then leave threads idle at the barrier.
+    // Each game has its own RNG, so the schedule does not change the games.
+#pragma omp parallel for schedule(dynamic, 1)
     for (size_t i = 0; i < games_.size(); ++i) {
       if (!is_done_[i]) {
         // We offset the start of the games to try to get an even distribution
@@ -240,7 +244,9 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     offsets[i] = offset;
   }
   omp_set_num_threads(num_threads_);
-#pragma omp parallel for
+  // Dynamic for the same reason as in training (E-cores; games finish at
+  // different times)
+#pragma omp parallel for schedule(dynamic, 1)
   for (size_t i = 0; i < games_.size(); ++i) {
     // No offset in game start (there are not enough games for memory usage to
     // matter).

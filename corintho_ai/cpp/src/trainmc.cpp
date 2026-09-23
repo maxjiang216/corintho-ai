@@ -216,9 +216,9 @@ void TrainMC::createRoot(const Game &game, int32_t depth) {
 
 void TrainMC::getFilteredProbs(float probs[kNumMoves],
                                float filtered_probs[]) const noexcept {
-  // The edges already hold the legal move IDs, in ascending order, so index
-  // them directly instead of scanning all 96 moves looking for matches. The
-  // additions happen in the same order as before, so the sum is bit-identical.
+  // The edges already hold the legal move IDs (still in ascending order here;
+  // setProbs reorders them afterwards), so index them directly instead of
+  // scanning all 96 moves looking for matches.
   const int32_t num_edges = cur_->num_legal_moves();
   float sum = 0.0;
   for (int32_t i = 0; i < num_edges; ++i) {
@@ -565,67 +565,67 @@ void TrainMC::propagateTerminal() noexcept {
 }
 
 TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
+  // An unvisited edge scores prior * c_puct * sqrt(N), in which only the prior
+  // varies, so among unvisited edges only the highest prior can win. The
+  // visited edges are kept as a prefix of the edge array, in the order they
+  // were expanded, and the first edge after them is always the best
+  // unvisited one (promoteBestEdge, below, maintains this). So score the
+  // children, then that one edge; the other unvisited edges cannot win.
   float max_eval = kNegInf;
-  int32_t choice = 0;
-  Node *cur_child = cur_->first_child();
-  int32_t edge_index = 0;
-  // Keep track of previous node to insert into linked list
-  Node *prev = nullptr;
-  Node *best_prev = nullptr;
+  Node *best = nullptr;
   // Factor this value out, as it is expense to compute
-  float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
-  // Constant for the whole walk; reading it per iteration was a call.
-  const int32_t num_edges = cur_->num_legal_moves();
-  while (cur_child != nullptr || edge_index < num_edges) {
-    float u = kNegInf;
-    // This node has already been visited
-    if (cur_child != nullptr &&
-        cur_child->child_id() == cur_->move_id(edge_index)) {
-      // Don't all_visited nodes or won or lost positions
-      // We search draws since the number of searches they have
-      // makes a difference in choose_move
-      // as they are not automatically chosen or excluded
-      if ((!cur_child->known() || cur_child->drawn()) &&
-          !cur_child->all_visited()) {
-        // Known draw, use evaluation 0
-        if (cur_child->drawn()) {
-          u = cur_->probability(edge_index) * v_sqrt;
-        } else {
-          u = -1.0 * cur_child->evaluation() /
-                  static_cast<float>(cur_child->visits()) +
-              cur_->probability(edge_index) * v_sqrt /
-                  (static_cast<float>(cur_child->visits()) + 1.0);
-        }
-      }
-      prev = cur_child;
-      cur_child = cur_child->next_sibling();
-      // This node has not been visited, ignore the evaluation term in the
-      // UCB formula This is essentially using a default evaluation of 0
-      // (but we avoid division by 0)
-    } else {
+  const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+  int32_t edge_index = 0;
+  // Last child in the list: a new node is inserted after it
+  Node *last = nullptr;
+  // First descent into this node. The best edge is only put in place now,
+  // not when the priors arrive: two thirds of evaluated nodes never get here.
+  // Every later position is lined up when the edge before it is expanded.
+  if (cur_->first_child() == nullptr)
+    cur_->promoteBestEdge(0);
+  for (Node *child = cur_->first_child(); child != nullptr;
+       child = child->next_sibling(), ++edge_index) {
+    assert(child->child_id() == cur_->move_id(edge_index));
+    last = child;
+    // Don't all_visited nodes or won or lost positions
+    // We search draws since the number of searches they have
+    // makes a difference in choose_move
+    // as they are not automatically chosen or excluded
+    if ((child->known() && !child->drawn()) || child->all_visited())
+      continue;
+    float u;
+    // Known draw, use evaluation 0
+    if (child->drawn()) {
       u = cur_->probability(edge_index) * v_sqrt;
+    } else {
+      const float visits = static_cast<float>(child->visits());
+      u = -1.0 * child->evaluation() / visits +
+          cur_->probability(edge_index) * v_sqrt / (visits + 1.0);
     }
     if (u > max_eval) {
-      // If the node has not been visited, prev is the previous node
-      // and can be used to insert the new node
-      // otherwise it is the current node, but if this is the best node,
-      // best_prev is not needed since we don't insert
-      best_prev = prev;
       max_eval = u;
-      choice = cur_->move_id(edge_index);
+      best = child;
     }
-    ++edge_index;
+  }
+  // The best unvisited edge, if any
+  const int32_t num_edges = cur_->num_legal_moves();
+  if (edge_index < num_edges) {
+    const float u = cur_->probability(edge_index) * v_sqrt;
+    if (u > max_eval) {
+      const int32_t choice = cur_->move_id(edge_index);
+      // This edge is about to become a child; line up its successor.
+      if (edge_index + 1 < num_edges)
+        cur_->promoteBestEdge(edge_index + 1);
+      return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, last};
+    }
   }
   // No possible moves
-  if (max_eval == kNegInf) {
+  if (best == nullptr) {
     return ChooseNextOutput{ChooseNextOutput::Type::kNone, -1, nullptr};
   }
-  // New node
-  if (best_prev == nullptr || best_prev->child_id() != choice) {
-    return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, best_prev};
-  }
   // Existing node
-  return ChooseNextOutput{ChooseNextOutput::Type::kVisited, choice, best_prev};
+  return ChooseNextOutput{ChooseNextOutput::Type::kVisited, best->child_id(),
+                          best};
 }
 
 void TrainMC::search() {

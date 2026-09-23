@@ -4,6 +4,7 @@
 
 #include <bitset>
 #include <ostream>
+#include <utility>
 
 #include <gsl/gsl>
 
@@ -150,6 +151,27 @@ void Node::set_all_visited(bool all_visited) noexcept {
 void Node::set_probability(int32_t i, int32_t probability) noexcept {
   assert(i < num_legal_moves_);
   edges_[i].probability = gsl::narrow_cast<uint16_t>(probability);
+}
+
+void Node::promoteBestEdge(int32_t first) noexcept {
+  assert(first < num_legal_moves_);
+  // One integer per edge that orders by probability weight, then by lower
+  // move ID. Move IDs are distinct, so ranks are too, and the scan is a plain
+  // running maximum rather than a two-field comparison.
+  auto rank = [](Edge e) -> uint32_t {
+    return (static_cast<uint32_t>(e.probability) << 7) |
+           (127U - static_cast<uint32_t>(e.move_id));
+  };
+  int32_t best = first;
+  uint32_t best_rank = rank(edges_[first]);
+  for (int32_t i = first + 1; i < num_legal_moves_; ++i) {
+    const uint32_t r = rank(edges_[i]);
+    if (r > best_rank) {
+      best_rank = r;
+      best = i;
+    }
+  }
+  std::swap(edges_[first], edges_[best]);
 }
 
 void Node::increment_visits() noexcept {

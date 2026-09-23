@@ -26,6 +26,7 @@ none of it has yet been shown to move strength.
 | 12 | [the promotion gate](2026-09-21-12-the-promotion-gate.md) | **Retraction.** The gate was not passing noise; I misread it. What changed anyway, and why. |
 | 13 | [lround in setProbs](2026-09-22-13-lround.md) | Bit-identical (checked over every float in range). −6.94% Ir, −3.8% engine time. |
 | 14 | [Dirichlet noise RNG](2026-09-22-14-dirichlet-rng.md) | splitmix64 for noise only. Reproducible, not bit-identical; checked statistically. −3.7% time per request. |
+| 15 | [lazy selection](2026-09-22-15-lazy-selection.md) | chooseNext scores one unvisited edge. Same search (2 float-tie mismatches in 4.6M). −17% engine time on stub, −12.5% with the real network. |
 
 ## The two entries to read if you read nothing else
 
@@ -57,6 +58,8 @@ none of it has yet been shown to move strength.
   against it compares the fix with itself. Use a `git worktree` (entry 11).
 - **Suspiciously exact agreement is a bug signal.** Two 200,000-game arms that
   match to five decimals did not agree; they were the same code (entry 11).
+- **Eager work on the evaluation path is paid by every leaf.** Two thirds of
+  evaluated nodes never get a child; measure who uses the work first (entry 15).
 - **A change to the random stream changes the workload.** Raw counter totals
   from the two arms are then different games; normalize per request over many
   seeds (entry 14).
@@ -83,8 +86,8 @@ none of it has yet been shown to move strength.
   (entry 08).
 - `scripts/bash/build.sh` has never been build-verified with `-flto` — no
   cython or TensorFlow available locally.
-- Stub tree shape uncalibrated: 18.2 turns/game against 28.4 real.
-- `chooseNext` scores every unvisited edge though only the top-prior one can
-  win (entry 13).
+- Stub tree shape: 18 turns/game against 28.4 real, but children-per-node
+  distribution matches the real network closely (entry 15). `bench/selfplay_nn`
+  now measures with the real network directly.
 - Transposition table unevaluated; distinct-position instrumentation not built.
 - S3 for large benchmark artifacts not set up.

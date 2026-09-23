@@ -96,6 +96,13 @@ class alignas(64) Node {
   /// @param all_visited Default is true to match other standard set functions
   void set_all_visited(bool all_visited = true) noexcept;
   void set_probability(int32_t i, int32_t probability) noexcept;
+  /// @brief Move the best edge of [first, num_legal_moves) to index first
+  /// @details Best is the highest probability weight, ties going to the
+  /// lowest move ID, which is the order the full selection scan broke ties
+  /// in. Called with first equal to the number of children, so the visited
+  /// edges stay a prefix and every loop that walks the child list alongside
+  /// the edges stays in step. The order of the rest of the tail is arbitrary.
+  void promoteBestEdge(int32_t first) noexcept;
   void increment_visits() noexcept;
   void decrement_visits() noexcept;
   void increase_evaluation(float d) noexcept;

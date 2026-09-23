@@ -52,6 +52,10 @@ for fitting and C++ owning inference. Measured:
 - **Per generation, the engine (~3.4 min) outlasts the GPU network
   (~2.6 min).** The engine is the bottleneck again, so work returns to it
   before the driver is built (entry 21).
+- **`computeSpaceInfo` without its per-space loop:** −12% engine time on the
+  stub, but −4.9% with the real network and −2.4% at 20 threads. **Stub
+  instruction counts overstate production gains.** Rank targets on
+  real-network multithreaded time (entry 22).
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -75,11 +79,24 @@ length (28.7 turns vs 28.4 recorded) where the stub gives ~18. Use it before
 trusting any stub-only result.
 
 **Where to resume:**
-- **(2026-09-23) Inference plan, entries 18–21.** Measurements done. Next,
-  by the developer's choice: make the engine faster first, then build the C++
-  self-play driver (see entry 21 for the design).
-- Remaining engine cost: `initializeEdges` (~15% of instructions), the stub's
-  own work aside. `syncStats` split (entry 16) is small.
+- **(2026-09-23) Engine first, then the self-play driver (entries 18–22).**
+  In order:
+  1. **Scaling test:** the same real-network games at 1 vs 20 threads, to
+     confirm the 20-thread engine is memory-bound (entry 22 suggests it is).
+  2. **Time the Trainer's serial per-iteration work:** `num_requests`, the
+     offsets loop, the `writeRequests` copy, the done check. `selfplay_nn`
+     times none of it; `engine_seconds` covers `doIteration` only.
+  3. Memory-traffic candidates: `syncStats` (6% of instructions, 15% of L1
+     misses), and node locality and pointer hops in selection.
+  4. Compiler work after the legible changes, as the developer asked. PGO
+     first (build instrumented, train on `selfplay_nn` real-network games, not
+     the stub), then clang (needs `apt install clang`).
+  5. Then the driver (entry 21): ONNX Runtime GPU backend, rolling starts
+     with an initial stagger, two alternating groups, `searches_per_eval` 16.
+  - Rank everything on real-network, 20-thread engine time with paired
+    seeds, not stub callgrind.
+  - Environments: uv venvs. Recreate them with the commands in `bench/README.md`
+    (GPU section). The uv cache is 38 GB.
 - The strength questions are unchanged and more important: colour imbalance
   with a real network under the fixed rules (entries 10–11), and the strength
   effect of the entry-04 rules fix. `selfplay_nn` runs the real network

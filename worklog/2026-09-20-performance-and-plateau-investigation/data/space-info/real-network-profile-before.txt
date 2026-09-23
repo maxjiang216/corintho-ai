@@ -1,0 +1,24 @@
+# Real-network engine-only profile, PRE-change binary (before d890c50), stopped early by kill (partial run)
+# OMP_NUM_THREADS=1 valgrind --tool=callgrind --cache-sim=yes --branch-sim=yes --collect-atstart=no \
+#   --toggle-collect='Trainer::doIteration*' ./build/selfplay_nn - model_93.mlp 10 1600 16 1 901
+# Collects only inside Trainer::doIteration, so Mlp is excluded. Took >1 h because callgrind still simulates Mlp.
+# Totals: Ir 1,707,293,286  D1mr 7,775,140  DLmr 116 (10 games fit in the 24 MB LL cache: no memory pressure here)
+
+Ir                   D1mr               DLmr        Bcm                 file:function
+--------------------------------------------------------------------------------
+790,661,816 (46.31%) 3,718,656 (47.83%) 64 (55.17%) 3,993,042 (44.22%)  bench/src/trainmc.cpp:TrainMC::doIteration(float*, float*) [build/selfplay_nn]
+368,113,886 (21.56%) 1,526,497 (19.63%)  0          1,190,366 (13.18%)  bench/src/node.cpp:TrainMC::doIteration(float*, float*)
+152,148,773 ( 8.91%)    30,730 ( 0.40%) 27 (23.28%) 2,370,608 (26.25%)  bench/src/game.cpp:Node::initializeEdges()
+106,018,689 ( 6.21%) 1,188,189 (15.28%)  0            208,948 ( 2.31%)  bench/src/node.cpp:Node::syncStats() [build/selfplay_nn]
+ 82,511,607 ( 4.83%)   117,242 ( 1.51%)  0              4,017 ( 0.04%)  bench/src/node.cpp:Node::initializeEdges() [build/selfplay_nn]
+ 48,781,868 ( 2.86%)    10,803 ( 0.14%)  8 ( 6.90%)   898,365 ( 9.95%)  bench/include/util.h:Node::initializeEdges()
+ 40,752,393 ( 2.39%)         0           .                  .           /usr/include/c++/13/bitset:Node::initializeEdges()
+ 27,752,703 ( 1.63%)       163 ( 0.00%)  .                  .           bench/src/game.cpp:TrainMC::doIteration(float*, float*)
+ 24,654,874 ( 1.44%)         .           .                  .           /usr/include/c++/13/bits/stl_algobase.h:TrainMC::doIteration(float*, float*)
+ 13,381,207 ( 0.78%)    54,942 ( 0.71%)  0            143,477 ( 1.59%)  bench/src/node.cpp:Node::Node(Game const&, Node*, Node*, int, int) [build/selfplay_nn]
+ 11,281,550 ( 0.66%)    31,066 ( 0.40%)  5 ( 4.31%)         .           /usr/include/x86_64-linux-gnu/bits/string_fortified.h:TrainMC::doIteration(float*, float*)
+ 10,029,609 ( 0.59%)       296 ( 0.00%)  0                160 ( 0.00%)  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:__memset_avx2_unaligned_erms [/usr/lib/x86_64-linux-g
+  5,289,346 ( 0.31%)    37,923 ( 0.49%)  6 ( 5.17%)    31,295 ( 0.35%)  bench/src/game.cpp:Node::Node(Game const&, Node*, Node*, int, int)
+  4,504,258 ( 0.26%)   255,702 ( 3.29%)  0             88,249 ( 0.98%)  bench/src/node.cpp:Node::~Node()'2 [build/selfplay_nn]
+  3,960,666 ( 0.23%)     5,110 ( 0.07%)  0                 11 ( 0.00%)  /usr/include/c++/13/bits/stl_vector.h:TrainMC::doIteration(float*, float*)
+  3,419,993 ( 0.20%)         0           0             54,150 ( 0.60%)  bench/include/arena.h:Node::~Node()'2

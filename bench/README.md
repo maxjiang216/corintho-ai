@@ -86,6 +86,24 @@ P-core ~82 GFLOP/s (~57% of peak), one E-core ~24, and all 20 threads ~450
 the same machine. Pin with `taskset` when comparing single-thread numbers:
 unpinned, a single thread may land on an E-core.
 
+### GPU: `gpu_bench.py <model.mlp> [--onnx out.onnx]`
+
+GPU throughput of the network by batch size, in fp32, TF32 and fp16. It
+reports compute alone and end to end (pinned host memory in and out), plus the
+reduced-precision error against fp32. `--onnx` also times ONNX Runtime's CUDA
+provider. Results and conclusions are in worklog entry 20.
+
+Python environments are uv venvs. The pip wheels bring their own CUDA
+libraries, so no system CUDA toolkit is needed:
+
+    uv venv --python 3.12 /tmp/torchenv
+    VIRTUAL_ENV=/tmp/torchenv uv pip install torch numpy onnx onnxruntime-gpu
+    /tmp/torchenv/bin/python gpu_bench.py /tmp/model_93.mlp --onnx /tmp/model_93.onnx
+
+    # Keras SavedModel vs tflite check (worklog entry 20)
+    uv venv --python 3.12 /tmp/tfenv
+    VIRTUAL_ENV=/tmp/tfenv uv pip install tensorflow tf_keras numpy ai-edge-litert
+
 ## Measurement doctrine: decide on single thread, watch multi
 
 **Measure and decide on single-threaded. Record multi-threaded as a guardrail

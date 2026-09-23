@@ -20,6 +20,10 @@
 // games are played from the tflite outputs, so they are the same games as
 // without the check.
 //
+// gather_seconds is the serial step between the engine and the network: counting
+// requests and copying every game's rows into the batch buffer, on one thread.
+// Neither engine_seconds nor the network time includes it.
+//
 // engine_seconds excludes the network, so engine timings are comparable with
 // selfplay_bench's. Wall time is dominated by inference and is not.
 
@@ -148,6 +152,7 @@ int main(int argc, char **argv) {
 
   double play_time = 0.0;
   double eval_time = 0.0;
+  double gather_time = 0.0;
   uint64_t total_requests = 0;
   auto wall_start = bench::Clock::now();
   while (true) {
@@ -156,8 +161,10 @@ int main(int argc, char **argv) {
     play_time += bench::secondsSince(play_start);
     if (done)
       break;
+    auto gather_start = bench::Clock::now();
     const int32_t n = trainer.num_requests(-1);
     trainer.writeRequests(game_states.data(), -1);
+    gather_time += bench::secondsSince(gather_start);
 
     auto eval_start = bench::Clock::now();
     if (in_process) {
@@ -202,6 +209,7 @@ int main(int argc, char **argv) {
 
   const int32_t turns = trainer.num_samples();
   std::printf("self-play (engine)   %8.3f s\n", play_time);
+  std::printf("gather requests      %8.3f s\n", gather_time);
   std::printf("network evaluation   %8.3f s\n", eval_time);
   std::printf("turns per game       %8.2f\n",
               static_cast<double>(turns) / num_games);
@@ -215,6 +223,7 @@ int main(int argc, char **argv) {
     std::printf("#METRIC mlp_max_prob_diff %.6g\n", max_prob_diff);
   }
   std::printf("#METRIC engine_seconds %.4f\n", play_time);
+  std::printf("#METRIC gather_seconds %.4f\n", gather_time);
   std::printf("#METRIC wall_seconds %.4f\n", wall);
   std::printf("#METRIC turns %d\n", turns);
   std::printf("#METRIC requests %llu\n",

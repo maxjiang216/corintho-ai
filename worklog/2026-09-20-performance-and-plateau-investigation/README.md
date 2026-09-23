@@ -31,6 +31,7 @@ none of it has yet been shown to move strength.
 | 17 | [terminal propagation](2026-09-22-17-terminal-propagation.md) | **Correctness fix.** Drawn positions were deduced as losses (typo, audit CPP-1). 1% of real-network moves were made from a wrong root result; full-tree audit now 0 wrong, 0 missed. Golden digest blind to it. |
 | 18 | [the network in-process](2026-09-23-18-in-process-network.md) | Start of the inference plan (laptop GPU, PyTorch, C++ owns inference). Hand AVX2 MLP matches tflite to 8e-7 on 3.5M real states; ~450 GFLOP/s on 20 threads, ~9× the pipe. **Hybrid CPU: static OpenMP schedules wait on E-cores.** |
 | 19 | [the engine at scale](2026-09-23-19-engine-at-scale.md) | **~0.9 GB per 1k games in flight** (25k at once needs ~23 GB): keep only enough in flight to saturate the GPU. `schedule(dynamic, 1)` on the game loops: −20% engine time at 1k games, −32% at 2k, same games. |
+| 20 | [GPU throughput](2026-09-23-20-gpu-throughput.md) | fp32 saturates at 16k–32k rows, ~175 ns/row end to end, so a generation is ~2.6 GPU-min against ~3.4 engine-min: **the engine is the bottleneck**. TF32/fp16 are off by up to 0.18 in probability, so not usable. tflite matches Keras to 7e-5. E-cores add 22%. |
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -55,9 +56,10 @@ trusting any stub-only result.
 
 **Where to resume:**
 - **(2026-09-23) Inference plan, entries 18–19.** Steps 1 (`Mlp` plus
-  parity) and 2 (engine at scale, dynamic schedule) are done. Next is step 3:
-  PyTorch, GPU throughput by batch size (which sets games in flight), an ONNX
-  Runtime GPU backend, rolling game starts, and alternating game groups.
+  parity) and 2 (engine at scale, dynamic schedule) are done, and so is the
+  GPU measurement (entry 20). Next: a C++ GPU backend (ORT tarball or the
+  libtorch that comes with the torch wheel), rolling game starts, and
+  alternating game groups.
 - Remaining engine cost: `initializeEdges` (~15% of instructions), the stub's
   own work aside. `syncStats` split (entry 16) is small.
 - The strength questions are unchanged and more important: colour imbalance

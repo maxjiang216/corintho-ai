@@ -59,6 +59,10 @@ trusting any stub-only result.
   effect of the entry-04 rules fix. `selfplay_nn` runs the real network
   locally now. It does not report results yet, but adding the winner per game
   would answer the first question.
+- Entry 17 (draw deduction, fixed) left two behaviour questions open: proven
+  draws stop gaining visits but move choice goes by visits, and proven results
+  do not back up into ancestors' values (MCTS-Solver). Both need a strength
+  test. Gens 79–94 were trained with the bug; gens ≤78 were not.
 - `main.pyx` / `wrapper.py` gate changes (entry 12) are still unbuilt: no
   Cython or TensorFlow here.
 

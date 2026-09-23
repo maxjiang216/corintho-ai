@@ -69,7 +69,7 @@ once, and 90% of positions exit on a zero test.
 capital-bottomed-onto-column-topped can satisfy it. All 48 moves become two
 shifted ANDs per direction.
 
-Max spotted a third: **a legal move landing on a line space always breaks that
+The developer spotted a third: **a legal move landing on a line space always breaks that
 line.** `top(to) == type` forces `bottom(from) == type + 1`, and a stack's top
 is at least its bottom, so the arriving top can never equal the line's type.
 Verified over 315,385 such moves, zero exceptions. That removed a whole dynamic
@@ -96,7 +96,7 @@ Four measurement failures, each caught late, and the pattern is worth more than
 the numbers.
 
 1. **"74% more nodes."** Taken from a 3-game counter run. At 300 games it is
-   −3.8%. Max objected that a change touching 15% of positions cannot move total
+   −3.8%. The developer objected that a change touching 15% of positions cannot move total
    work by 74%, which was exactly right. The per-allocation argument built on
    top of it was unsound.
 2. **A crashed program reported as a 94% win.** The first arena corrupted the

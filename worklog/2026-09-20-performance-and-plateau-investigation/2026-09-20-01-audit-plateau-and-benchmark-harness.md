@@ -38,7 +38,7 @@ in two places, and both errors were only caught by measuring.
 ### 1. What the last training run actually shows
 
 Source data is in `generations/gen_*/` — 95 generations, run ending 2023-07-22, plus a
-per-generation spreadsheet Max supplied covering gens 1–78.
+per-generation spreadsheet the developer supplied covering gens 1–78.
 
 **Rating curve** (from `generations/gen_N/rating.txt`):
 
@@ -89,7 +89,7 @@ head is predicting a near-constant, and almost every position the first player s
 objectively lost. Learning would stall not because the optimizer failed but because
 self-play stopped producing informative games.
 
-> **Still unconfirmed.** Max has not yet said what that column is. The priority ordering in
+> **Still unconfirmed.** The developer has not yet said what that column is. The priority ordering in
 > `PLAN.md` depends on the answer.
 
 ### 2. Where the wall clock went
@@ -108,7 +108,7 @@ From `generations/gen_93/training_logs/play_time.txt` and `fit_time.txt`:
 
 78 generations ≈ 62 hours.
 
-The run was **CPU-only** (Max confirmed; `num_threads=0` in `corintho_ai/toml/train.toml`
+The run was **CPU-only** (the developer confirmed; `num_threads=0` in `corintho_ai/toml/train.toml`
 resolves to `2 * cpu_count()`, and gen-90 metadata records 64, so `cpu_count()` was 32).
 
 **No inference optimization of any kind was in use.** Grep of `main.pyx`, `wrapper.py` and
@@ -147,7 +147,7 @@ plausibly enough to put a floor under the loss, which would explain §1's readin
 
 ### 4. Hardware, and why it changed the plan
 
-Max is moving development to a local laptop: RTX 3060 Laptop (6 GB VRAM), i7-12700H
+The developer is moving development to a local laptop: RTX 3060 Laptop (6 GB VRAM), i7-12700H
 (6 P-cores + 8 E-cores, 20 threads), **15 GB RAM with ~9 GB available**, 627 GB disk.
 
 **RAM is the binding constraint, not the GPU.** And it makes one bug a blocker rather than
@@ -445,7 +445,7 @@ First entry in this epic; nothing to sweep.
 
 ## Next steps
 
-**Blocked on a decision from Max:**
+**Blocked on a decision from the developer:**
 
 - **What is the last column of the spreadsheet?** (§1.) If it is the second-player score in
   training self-play, then §5.4 of `PLAN.md` — fixing the colour imbalance — becomes the

@@ -12,7 +12,7 @@ Hypothesis: the list walk is latency-bound. Each child's address comes from the
 previous child's `next_sibling`, and children are 64-byte nodes created at
 different times, scattered through the arena.
 
-`sqrt` (Max asked) runs once per call, not per child: 0.37% of instructions.
+`sqrt` (the developer asked) runs once per call, not per child: 0.37% of instructions.
 Left alone.
 
 ## Microbenchmark first (`data/parent-stats/layout_micro.cpp`)
@@ -118,4 +118,4 @@ Possible follow-up, not done: split `syncStats` into value and flag paths
   chunks were zero-filled up front.
 - **A + B** (13-byte entries, 4 → 9 → 19 → legal): not measured.
 
-Max: memory does not matter much here; stop at A.
+The developer: memory does not matter much here; stop at A.

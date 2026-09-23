@@ -54,7 +54,7 @@ engine agree with each other.
 - The web app's own overlay: *"a stable line of three stacks in a row (orthogonal)"*.
 - jpneto: *"3 in-a-row of stacks of the same type"*, with rows and columns; diagonals
   are not mentioned.
-- Max's summary: *"Form a stable 3-in-a-row of stacks with the same top-piece type."*
+- The developer's summary: *"Form a stable 3-in-a-row of stacks with the same top-piece type."*
 
 **The sharpest form of the discrepancy:** the rules text in `web/corintho.js`
 contradicts the engine in `web/engine.js`, both written for the same app.
@@ -64,7 +64,7 @@ game, and 95 generations were trained on it. Engine and web app agree with each
 other, so the AI is self-consistent and internally valid for *its* game — but that
 game may not be Corintho.
 
-**Resolved 2026-09-20 by Max: diagonals do count. The engine is correct and the
+**Resolved 2026-09-20 by the developer: diagonals do count. The engine is correct and the
 written summaries are incomplete.**
 
 The engine, `web/engine.js`, and the `line_breakers` table all stand as-is. No code
@@ -95,7 +95,7 @@ onto bare ground.
 
 **What the rules say.**
 
-- Max's summary: *"A base can only go on an empty cell. A column must go on top of
+- The developer's summary: *"A base can only go on an empty cell. A column must go on top of
   an existing base or column. A capital must go on top of an existing column."*
 - The web app's overlay: *"A column or capital may sit only on a base or another
   column. A base cannot be placed on top of anything."*
@@ -114,7 +114,7 @@ the engine has ever built.
 rule is wrong, fix the rule first and re-derive, or the rewrite will faithfully
 preserve a bug and the digests will make it look correct.
 
-**Resolved 2026-09-20 by Max: any piece may be placed on an empty cell. The engine
+**Resolved 2026-09-20 by the developer: any piece may be placed on an empty cell. The engine
 is correct and the written summaries are incomplete.**
 
 `canPlace` stands as-is, and the opening genuinely has 48 legal placements. The
@@ -213,7 +213,7 @@ all capitals before and after; a4 becomes a **column**, so the diagonal reads
 C,A,A,A and is not a four. The move does nothing to the line, and the engine
 calls it legal.
 
-### The correct rule (settled 2026-09-20 by Max)
+### The correct rule (settled 2026-09-20 by the developer)
 
 > A move is legal iff, for **every** shape S and type t such that all of S's
 > cells had top type t before the move, afterwards either
@@ -225,7 +225,7 @@ calls it legal.
 **No subsumption.** A 4-line contains two 3-lines and all three are checked
 independently. This is not a special case: if `{a,b,c,d}` holds before, it must
 not hold after, which makes clause (b) unsatisfiable for `{a,b,c}` and
-`{b,c,d}`, so both must be destroyed outright. Max: *"the line of 4 and both
+`{b,c,d}`, so both must be destroyed outright. The developer: *"the line of 4 and both
 lines of 3s have to be broken."*
 
 Derived consequence, since a move touches at most two cells and the two ends of
@@ -282,7 +282,7 @@ author needed the capital-line fix-up, and why it was never finished.
 
 ### Category A is UNREACHABLE in correct play
 
-Max: if b3 is frozen the previous move ended there, so the other line already
+The developer: if b3 is frozen the previous move ended there, so the other line already
 existed and was not broken — meaning that earlier move was itself illegal.
 
 Tested by replaying 6,139,414 positions choosing moves by the **rule** rather
@@ -357,7 +357,7 @@ the reference is invisible by construction. They were found by building a line
 detector independently from the 34 shapes and diffing.
 
 **Three successive measurements of 4b were wrong before this one**, each caught
-by Max's domain knowledge, and each time the error *inflated* the apparent
+by the developer's domain knowledge, and each time the error *inflated* the apparent
 problem:
 
 1. **44%** — did not count extending to four as a legitimate break.

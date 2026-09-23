@@ -3,7 +3,7 @@
 ## What was there
 
 `TrainMC::generateDirichlet` draws one bucket index into the 1024-entry
-`gamma_samples` table (`util.h`, Max's 2022 approximation of Gamma sampling) for
+`gamma_samples` table (`util.h`, the developer's 2022 approximation of Gamma sampling) for
 every legal move, every time a node receives its evaluation:
 
 ```cpp
@@ -25,7 +25,7 @@ sampling. `generateDirichlet` lost its `const`, because it now advances state.
 
 ## Not bit-identical, still reproducible
 
-Max first read "not bit-identical" as "non-deterministic". It is not: the same
+The developer first read "not bit-identical" as "non-deterministic". It is not: the same
 seed gives the same games on every run (engine digest `983c2f3d4ef7f5e5`,
 repeated). It is a *different* stream from before:
 

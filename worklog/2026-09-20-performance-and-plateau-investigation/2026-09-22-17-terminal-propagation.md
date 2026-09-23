@@ -1,6 +1,6 @@
 # 17 — Terminal-result propagation: drawn positions were deduced as losses
 
-Correctness fix, not performance. Max asked to look at the correctness and
+Correctness fix, not performance. The developer asked to look at the correctness and
 performance of W/L/D propagation. Performance turned out to be negligible. The
 correctness bug is the one audit item CPP-1 (entry 01) had already listed, and
 it was still unfixed.
@@ -135,7 +135,7 @@ been searched before". It cannot be: terminal draws are skipped by the
 
 ## When it broke: the July 2023 TrainMC rewrite
 
-Max remembered drawn games in training, with engine thinking that reflected
+The developer remembered drawn games in training, with engine thinking that reflected
 draws. Both were true, for the generations before the bug existed.
 
 - Before `4f2a60d` ("Overhaul TrainMC (#117)", 2023-07-04), the loop tested

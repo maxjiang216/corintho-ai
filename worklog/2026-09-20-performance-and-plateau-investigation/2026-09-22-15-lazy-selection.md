@@ -10,7 +10,7 @@ An unvisited edge scores `prior * c_puct * sqrt(N)`. Within one call only the
 prior varies, so the highest-prior unvisited edge beats every other unvisited
 edge. The rest were scored and thrown away.
 
-A consequence Max's question drew out: unvisited edges are therefore **always
+A consequence the developer's question drew out: unvisited edges are therefore **always
 expanded in descending prior order** (ties by lowest move ID). The visited
 children at any moment are exactly the top-k edges by prior. The old code could
 not exploit this, because edges and the child list were in move-ID order, which
@@ -51,7 +51,7 @@ still sees ascending move-ID order, because reordering happens later.
 breaks ties by list position. Ties now go to the earlier-expanded (higher-prior)
 child instead of the lower move ID. `chooseMoveOpening`'s cumulative walk lands
 on a different move for the same random number, but the distribution is the
-same. Max accepted these.
+same. The developer accepted these.
 
 ## First attempt: a full sort was slower (+8.3%)
 
@@ -82,7 +82,7 @@ committed; `data/lazy-selection/children-histogram.txt`):
 - Two thirds of nodes are never descended into. v1 still did the first scan in
   `setProbs` for all of them: 11.6M of 18.5M compares. v2 moved it to first
   descent.
-- **The tree shape is not a stub artifact** (Max's question). The real
+- **The tree shape is not a stub artifact** (the developer's question). The real
   network's distribution matches the stub's closely. It seems to be set by the
   search mechanics (default +1 evaluation, 16 searches per batch), not by how
   peaked the priors are. That cause is a guess; the match itself is measured.
@@ -116,7 +116,7 @@ with the real network (1258 against ~820 ns). The other work dilutes the saving.
 ## A retracted explanation
 
 On the stub, games got longer: +3.2% turns/game pooled over 80 seeds
-(t = 2.85). I told Max this was probably the tie-break change in `chooseMove*`
+(t = 2.85). I told the developer this was probably the tie-break change in `chooseMove*`
 favouring higher-prior moves in lost positions. With the real network the
 shift is the other way: −2.9%, t = −1.94. Two borderline results with opposite
 signs do not support a directional effect. I did not test the tie-break
@@ -125,7 +125,7 @@ matters, measure it with the real network over many more seeds.
 
 ## What the rank change does in the machine code (checked afterwards)
 
-Explaining v2 to Max, I said v1's scan re-read `edges_[best]` from memory every
+Explaining v2 to the developer, I said v1's scan re-read `edges_[best]` from memory every
 iteration and that v2's update compiles to a conditional move. **Both were
 wrong.** I had reasoned from the source. Compiling both loops in isolation
 (`data/lazy-selection/scan_codegen.cpp`, `g++ -O3 -march=native -S`) shows:
@@ -146,7 +146,7 @@ What actually differs:
 
 The v1 → v2 gain (−4.85% time, −8.2% instructions) was not split between the
 lazy first scan and the rank. The lazy scan removed ~40% of scan calls outright
-and is most likely the bulk of it. Max chose not to measure the split.
+and is most likely the bulk of it. The developer chose not to measure the split.
 
 Lesson: check the generated code before explaining a speedup by what the
 source appears to do. The compiler had already removed the "reload".

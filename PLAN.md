@@ -78,7 +78,7 @@ the policy target carries little discriminating signal. Learning stalls not
 because the optimizer failed but because self-play stopped producing informative
 games.
 
-> **Open question for Max — please confirm what that last column is.** The whole
+> **Open question for the developer — please confirm what that last column is.** The whole
 > priority ordering below changes depending on the answer. If it is the
 > second-player self-play score, §5.4 becomes the highest-value work in this
 > document, ahead of all performance work.
@@ -273,7 +273,7 @@ the saved model):
 | Policy head 100→96 | 9,696 |
 | **Total** | **~132,800** |
 
-Max's instinct is that this is too large. My read is more specific: **it is not
+The developer's instinct is that this is too large. My read is more specific: **it is not
 too large so much as badly shaped.**
 
 1. **12 plain layers with no residual connections.** This is the real problem.
@@ -589,7 +589,7 @@ Protocol for the final comparison:
 
 ## 12. Search and game-count scheduling
 
-Max's proposal: ramp `max_searches` and `num_games` upward over the course of a
+The developer's proposal: ramp `max_searches` and `num_games` upward over the course of a
 run rather than holding them fixed at 1600 / 25,000.
 
 ### 12.1 Why this is principled, not just a speed trick

@@ -30,7 +30,7 @@ The remainder is the engine: two search trees per game (one per player) plus
 game state. In 2023 the other big memory users were the `to_eval_` buffer, 100×
 oversized (fixed in entry 09), and Keras `.predict` on ~400k rows.
 
-**Consequence, agreed with Max:** games in flight and games per generation are
+**Consequence, agreed with the developer:** games in flight and games per generation are
 separate numbers. Keep only enough games in flight to saturate the GPU (step 3
 measures where that is), and start a new game whenever one finishes, until the
 generation has its games. That uses less memory and less cache pressure, and
@@ -99,7 +99,7 @@ Fitting and testing still come on top.
 
 ## Addendum: the staggered starts are real, −30% peak memory
 
-Max added the stagger to cut peak memory, and asked whether it was a real
+The developer added the stagger to cut peak memory, and asked whether it was a real
 effect. Here is the mechanism:
 
 - A game's tree grows during a turn, from the kept subtree up to ~1,600
@@ -129,9 +129,9 @@ Engine time is unchanged: 33.04 against 33.03 s at 4k.
 
 ## Addendum: `searches_per_eval`
 
-Max noted that batching 16 descents per evaluation is a small inaccuracy.
+The developer noted that batching 16 descents per evaluation is a small inaccuracy.
 The 16 descents do not see each other's real results, only the provisional +1
-evaluation that acts as a virtual loss. Max asked whether lowering it is worth
+evaluation that acts as a virtual loss. The developer asked whether lowering it is worth
 it now that the GPU is not the bottleneck. Engine time, 1k games, 20 threads,
 same seed:
 

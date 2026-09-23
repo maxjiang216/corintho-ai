@@ -86,7 +86,7 @@ threads.**
 ### Original caveat, retained: taken on battery, with a browser playing video
 
 Both A/B runs were made with the laptop **on battery** (`ac=0`, `powersave`
-governor) and Brave playing Netflix. Max confirmed this after the fact.
+governor) and Brave playing Netflix. The developer confirmed this after the fact.
 
 Replicated to check stability:
 

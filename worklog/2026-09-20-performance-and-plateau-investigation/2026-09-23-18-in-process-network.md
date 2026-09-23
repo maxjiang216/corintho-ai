@@ -1,11 +1,11 @@
 # 18 — The network in-process: a C++ forward pass, parity-checked on real search states
 
-First step of the inference plan agreed with Max on 2026-09-23. Raw outputs are
+First step of the inference plan agreed with the developer on 2026-09-23. Raw outputs are
 in `data/in-process-mlp/runs.txt`.
 
 ## The plan this belongs to
 
-Max's decisions, 2026-09-23:
+The developer's decisions, 2026-09-23:
 
 - **Training moves to this laptop**, overnight runs. It has an RTX 3060 Laptop
   GPU (6 GB) and an i7-12700H (6 P-cores + 8 E-cores, 20 threads). There is no

@@ -21,7 +21,7 @@ active through all 95 training generations.
 - **The early return was not a bug.** It rests on a real structural invariant;
   it only misbehaves once other defects create illegal positions.
 - **Four of my own measurements were wrong before being right**, every one
-  caught by Max. See *Corrections*.
+  caught by the developer. See *Corrections*.
 
 ## What was wrong
 
@@ -43,7 +43,7 @@ genuinely breaks, so it falls into the top-dependent bucket instead.
 
 ## The rule, and why it replaced the table
 
-Settled by Max:
+Settled by the developer:
 
 > A move is legal iff, for **every** shape S and type t such that all of S's
 > cells had top type t before the move, afterwards either **(a)** S's cells no
@@ -126,7 +126,7 @@ instructions.
 
 ## Corrections
 
-Four wrong measurements, each caught by Max, each inflating the apparent problem.
+Four wrong measurements, each caught by the developer, each inflating the apparent problem.
 The pattern is worth more than the conclusions: **every error came from an oracle
 that was subtly wrong, and none was caught by the harness**, because
 `digest_game` and `getLegalMovesReference` compare the engine against itself.

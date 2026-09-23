@@ -6,7 +6,7 @@ building a C++ GPU backend. Raw outputs are in
 
 Setup:
 
-- Environments are uv venvs, as Max asked: `uv venv` plus `uv pip install`.
+- Environments are uv venvs, as the developer asked: `uv venv` plus `uv pip install`.
   - `torch` 2.14.0+cu130 and `onnxruntime-gpu` 1.30.0. The pip wheels bring
     their own CUDA libraries, so no system CUDA toolkit is needed.
   - A separate `tensorflow` 2.21 venv, for the Keras check below.
@@ -90,11 +90,11 @@ two differences is ~100× `Mlp`-vs-tflite, and still far below anything that
 changes play. Script: `data/gpu-throughput/keras_vs_tflite.py`.
 
 **So `.mlp` / tflite weights can initialize a PyTorch model of gen 93**, for
-the supervised experiments Max plans.
+the supervised experiments the developer plans.
 
 ## P-cores only vs all cores (engine, dynamic schedule)
 
-Max asked whether to guarantee P-cores. `taskset` or `sched_setaffinity` only
+The developer asked whether to guarantee P-cores. `taskset` or `sched_setaffinity` only
 restricts one process and changes nothing system-wide. But on 1,000 games:
 
 | cores | engine s |

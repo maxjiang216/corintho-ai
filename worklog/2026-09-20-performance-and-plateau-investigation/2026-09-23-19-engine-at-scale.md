@@ -131,7 +131,7 @@ Engine time is unchanged: 33.04 against 33.03 s at 4k.
 
 Max noted that batching 16 descents per evaluation is a small inaccuracy.
 The 16 descents do not see each other's real results, only the provisional +1
-evaluation that acts as a virtual loss. He asked whether lowering it is worth
+evaluation that acts as a virtual loss. Max asked whether lowering it is worth
 it now that the GPU is not the bottleneck. Engine time, 1k games, 20 threads,
 same seed:
 

@@ -64,11 +64,12 @@ class Game {
   /// again inside canPlace/canMove for each of the 96 candidate moves.
   /// The board cannot change during a single generation, so the answers are
   /// computed once up front and read from here instead.
+  ///
+  /// Everything is a 16-bit plane, bit i for space i, extracted from the
+  /// board word with shifts and masks. The per-space top and bottom are only
+  /// needed on rare paths (line breaking, isLegalMove), so they are derived
+  /// from the planes on demand rather than stored.
   struct SpaceInfo {
-    /// @brief Index of the top piece of each stack, or -1 if empty
-    int8_t top[kBoardSize];
-    /// @brief Index of the bottom piece of each stack, or 3 if empty
-    int8_t bottom[kBoardSize];
     /// @brief Bit per space, set when the space holds no pieces
     uint16_t empty;
     /// @brief Bit per space, set when the space is frozen
@@ -79,9 +80,25 @@ class Game {
     /// rules ask about containment, line detection about topping.
     uint16_t has[3];
     /// @brief Bit per space, set when that space's top is this piece type
-    /// @details Line detection works on these directly, so they are built in
-    /// the same pass that fills top and bottom rather than in a second loop.
+    /// @details Line detection works on these directly.
     uint16_t top_plane[3];
+
+    /// @brief Index of the top piece of the stack on space, or -1 if empty
+    int32_t top(int32_t space) const noexcept {
+      const uint32_t bit = 1U << space;
+      return (has[kCapital] & bit)  ? kCapital
+             : (has[kColumn] & bit) ? kColumn
+             : (has[kBase] & bit)   ? kBase
+                                    : -1;
+    }
+    /// @brief Index of the bottom piece of the stack on space, or 3 if empty
+    int32_t bottom(int32_t space) const noexcept {
+      const uint32_t bit = 1U << space;
+      return (has[kBase] & bit)      ? kBase
+             : (has[kColumn] & bit)  ? kColumn
+             : (has[kCapital] & bit) ? kCapital
+                                     : 3;
+    }
   };
 
   /// @brief Fill a SpaceInfo from the current board

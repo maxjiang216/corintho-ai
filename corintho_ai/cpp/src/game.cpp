@@ -188,7 +188,7 @@ MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
     // four moves land on any given space, so this walks them directly rather
     // than building a set of every move starting from a space of each type.
     forEachMove(kLineExtendMoves[shape], [&](int32_t id) {
-      if (info.top[kMoveTable[id].from] == type)
+      if (info.top(kMoveTable[id].from) == type)
         mask.set(id);
     });
     breakers &= mask;
@@ -327,45 +327,47 @@ void Game::doMove(int32_t move_id) noexcept {
   to_play_ = 1 - to_play_;
 }
 
+namespace {
+
+/// @brief Gather bit 0 of every nibble of x into a 16-bit mask: bit 4i of x
+/// becomes bit i of the result
+/// @details The board keeps four bits per space, so shifting the board right
+/// by a piece type and gathering gives that type's plane over all sixteen
+/// spaces. Each step halves the number of groups and doubles their width:
+/// pairs of bits, then nibbles, bytes and finally one 16-bit group. Plain
+/// shifts rather than BMI2 pext, so it needs no particular ISA.
+constexpr uint32_t gatherNibbleBits(uint64_t x) noexcept {
+  x &= 0x1111111111111111ULL;
+  x = (x | (x >> 3)) & 0x0303030303030303ULL;
+  x = (x | (x >> 6)) & 0x000F000F000F000FULL;
+  x = (x | (x >> 12)) & 0x000000FF000000FFULL;
+  x = (x | (x >> 24)) & 0x000000000000FFFFULL;
+  return static_cast<uint32_t>(x);
+}
+
+static_assert(gatherNibbleBits(0x1ULL) == 0x0001U);
+static_assert(gatherNibbleBits(0x10ULL) == 0x0002U);
+static_assert(gatherNibbleBits(0x1000000000000000ULL) == 0x8000U);
+static_assert(gatherNibbleBits(0x1111111111111111ULL) == 0xFFFFU);
+static_assert(gatherNibbleBits(0xEEEEEEEEEEEEEEEEULL) == 0x0000U);
+static_assert(gatherNibbleBits(0x0101010101010101ULL) == 0x5555U);
+
+}  // namespace
+
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
-  info.empty = 0;
-  info.frozen = 0;
-  info.top_plane[0] = 0;
-  info.top_plane[1] = 0;
-  info.top_plane[2] = 0;
-  info.has[0] = 0;
-  info.has[1] = 0;
-  info.has[2] = 0;
-  for (int32_t space_index = 0; space_index < kBoardSize; ++space_index) {
-    const int32_t base = space_index * 4;
-    const bool has_base = board_[base + kBase];
-    const bool has_column = board_[base + kColumn];
-    const bool has_capital = board_[base + kCapital];
-    // Top is the highest piece present, bottom the lowest. The sentinels
-    // match the originals: -1 for an empty top, 3 for an empty bottom.
-    info.top[space_index] = has_capital  ? kCapital
-                            : has_column ? kColumn
-                            : has_base   ? kBase
-                                         : -1;
-    info.bottom[space_index] = has_base     ? kBase
-                               : has_column ? kColumn
-                               : has_capital ? kCapital
-                                             : 3;
-    const uint16_t bit = static_cast<uint16_t>(1u << space_index);
-    if (has_base)
-      info.has[kBase] |= bit;
-    if (has_column)
-      info.has[kColumn] |= bit;
-    if (has_capital)
-      info.has[kCapital] |= bit;
-    if (!(has_base || has_column || has_capital))
-      info.empty |= static_cast<uint16_t>(1u << space_index);
-    else
-      info.top_plane[info.top[space_index]] |=
-          static_cast<uint16_t>(1u << space_index);
-    if (board_[base + kFrozen])
-      info.frozen |= static_cast<uint16_t>(1u << space_index);
-  }
+  const uint64_t b = board_.to_ullong();
+  const uint32_t base = gatherNibbleBits(b >> kBase);
+  const uint32_t column = gatherNibbleBits(b >> kColumn);
+  const uint32_t capital = gatherNibbleBits(b >> kCapital);
+  info.has[kBase] = static_cast<uint16_t>(base);
+  info.has[kColumn] = static_cast<uint16_t>(column);
+  info.has[kCapital] = static_cast<uint16_t>(capital);
+  info.frozen = static_cast<uint16_t>(gatherNibbleBits(b >> kFrozen));
+  info.empty = static_cast<uint16_t>(~(base | column | capital) & 0xFFFFU);
+  // The top is the highest piece present: capital over column over base
+  info.top_plane[kCapital] = static_cast<uint16_t>(capital);
+  info.top_plane[kColumn] = static_cast<uint16_t>(column & ~capital);
+  info.top_plane[kBase] = static_cast<uint16_t>(base & ~column & ~capital);
 }
 
 bool Game::board(Space space, PieceType piece_type) const noexcept {
@@ -458,7 +460,7 @@ bool Game::canMove(const MoveInfo &move, const SpaceInfo &info) const noexcept {
   if (((info.frozen >> from) | (info.frozen >> to)) & 1u)
     return false;
   // The bottom of the first stack must go on the top of the second
-  return info.bottom[from] - info.top[to] == 1;
+  return info.bottom(from) - info.top(to) == 1;
 }
 
 bool Game::isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept {

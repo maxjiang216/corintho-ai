@@ -96,3 +96,49 @@ per request (16.3 s / 71.0M). A 25k-game generation at 1600 searches is about
 
 These are extrapolations from 1k–8k-game runs, not a measured generation.
 Fitting and testing still come on top.
+
+## Addendum: the staggered starts are real, −30% peak memory
+
+Max added the stagger to cut peak memory, and asked whether it was a real
+effect. Here is the mechanism:
+
+- A game's tree grows during a turn, from the kept subtree up to ~1,600
+  searches' worth of nodes.
+- On a move, only the chosen subtree survives.
+
+So memory per game rises and falls once per turn. With every game in phase, the
+total peaks at N × the per-game peak; spread out, it is N × the average.
+
+Measured, same seed, with the dynamic schedule: the start condition was
+replaced by `if (true)` in a temporary build.
+
+| games | staggered | all start together |
+|---|---|---|
+| 2,000 | 1,400 MB | 2,006 MB (+43%) |
+| 4,000 | 2,755 MB | 3,985 MB (+45%) |
+
+Engine time is unchanged: 33.04 against 33.03 s at 4k.
+
+- **Rolling game starts must keep this.** Stagger only the initial launch.
+  Replacement games then start at whatever point a finished game frees a
+  slot, which keeps the phases spread.
+- With the stagger and the dynamic schedule, peak is **~0.7 GB per 1k games**,
+  against the 1.81 GB measured at 2k under the static schedule. The cause of
+  that drop is unverified. A guess is glibc's per-thread malloc arenas behaving
+  differently.
+
+## Addendum: `searches_per_eval`
+
+Max noted that batching 16 descents per evaluation is a small inaccuracy.
+The 16 descents do not see each other's real results, only the provisional +1
+evaluation that acts as a virtual loss. He asked whether lowering it is worth
+it now that the GPU is not the bottleneck. Engine time, 1k games, 20 threads,
+same seed:
+
+| searches per eval | 16 | 8 | 4 | 2 | 1 |
+|---|---|---|---|---|---|
+| engine s | 7.99 | 9.05 (+13%) | 10.17 (+27%) | 10.46 (+31%) | 12.74 (+60%) |
+
+Requests are the same at every setting (~35.8M). The extra cost is overhead per
+iteration: fork/join, the offset pass, barriers. The engine is the bottleneck,
+so **16 stays**. Revisit only if a strength test shows it costs Elo.

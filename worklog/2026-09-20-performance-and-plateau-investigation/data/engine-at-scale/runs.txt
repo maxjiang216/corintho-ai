@@ -33,3 +33,17 @@ b 905 game 8.0934 28275 35404805
 # engine change -20.27% (95% CI -21.44 .. -19.08, t on log ratios, 4 df); turns and requests identical in all 5 pairs
 
 ## golden engine digest after the change: d7581196f9d30591 (unchanged; golden is single-threaded)
+
+## Staggered starts on/off, after the dynamic schedule (6591bde). "off" = trainer.cpp start condition replaced by `if (true)`, temporary build
+# /usr/bin/time selfplay_nn - model_93.mlp <games> 1600 16 20 777
+staggered 2000: engine_seconds=15.9716 wall_seconds=59.8023 peak_rss_mb=1400
+staggered 4000: engine_seconds=33.0390 wall_seconds=125.1996 peak_rss_mb=2755
+all-at-once 2000: engine_seconds=16.3640 wall_seconds=62.3858 peak_rss_mb=2006
+all-at-once 4000: engine_seconds=33.0337 wall_seconds=126.1277 peak_rss_mb=3985
+
+## searches_per_eval sweep, 1000 games, 20 threads, seed 901 (engine s, network s on CPU Mlp, requests)
+spe 16: 7.988  21.087  35903101
+spe 8:  9.054  22.282  35685828
+spe 4:  10.167 24.675  35749070
+spe 2:  10.461 25.554  35815462
+spe 1:  12.742 38.461  35762812

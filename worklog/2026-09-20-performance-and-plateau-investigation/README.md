@@ -30,6 +30,7 @@ none of it has yet been shown to move strength.
 | 16 | [child stats in the parent](2026-09-22-16-parent-stats.md) | Selection reads contiguous per-parent arrays mirrored by each child. Bit-identical digest. −18% engine time (real network), −9% (stub); +18% peak memory. |
 | 17 | [terminal propagation](2026-09-22-17-terminal-propagation.md) | **Correctness fix.** Drawn positions were deduced as losses (typo, audit CPP-1). 1% of real-network moves were made from a wrong root result; full-tree audit now 0 wrong, 0 missed. Golden digest blind to it. |
 | 18 | [the network in-process](2026-09-23-18-in-process-network.md) | Start of the inference plan (laptop GPU, PyTorch, C++ owns inference). Hand AVX2 MLP matches tflite to 8e-7 on 3.5M real states; ~450 GFLOP/s on 20 threads, ~9× the pipe. **Hybrid CPU: static OpenMP schedules wait on E-cores.** |
+| 19 | [the engine at scale](2026-09-23-19-engine-at-scale.md) | **~0.9 GB per 1k games in flight** (25k at once needs ~23 GB): keep only enough in flight to saturate the GPU. `schedule(dynamic, 1)` on the game loops: −20% engine time at 1k games, −32% at 2k, same games. |
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -53,11 +54,10 @@ length (28.7 turns vs 28.4 recorded) where the stub gives ~18. Use it before
 trusting any stub-only result.
 
 **Where to resume:**
-- **(2026-09-23) Inference plan, entry 18.** Step 1 is done: `Mlp` plus
-  parity. Next are step 2, the engine's real per-generation cost locally
-  (including whether `Trainer::doIteration`'s static schedule loses on
-  E-cores), and step 3, PyTorch with an ONNX Runtime GPU backend and
-  alternating game groups.
+- **(2026-09-23) Inference plan, entries 18–19.** Steps 1 (`Mlp` plus
+  parity) and 2 (engine at scale, dynamic schedule) are done. Next is step 3:
+  PyTorch, GPU throughput by batch size (which sets games in flight), an ONNX
+  Runtime GPU backend, rolling game starts, and alternating game groups.
 - Remaining engine cost: `initializeEdges` (~15% of instructions), the stub's
   own work aside. `syncStats` split (entry 16) is small.
 - The strength questions are unchanged and more important: colour imbalance

@@ -50,6 +50,21 @@ identical values — so this harness can also be used to measure position sharin
 from production (observed ~18 turns/game here vs 28.4 in the real run). Use this
 for *relative* engine measurements, never as a prediction of generation time.
 
+### `selfplay_nn <python> <model.tflite> [games] [max_searches] [searches_per_eval] [threads] [seed]`
+
+`selfplay_bench` with the real network in place of the stub. Game states go
+over a pipe to `nn_server.py`, which runs the tflite model with LiteRT and
+returns values and probabilities exactly as `main.pyx` uses Keras `predict()`.
+Needs a Python with `ai-edge-litert` and numpy; a throwaway venv is enough:
+
+    python3 -m venv /tmp/nnenv && /tmp/nnenv/bin/pip install ai-edge-litert numpy
+    ./build/selfplay_nn /tmp/nnenv/bin/python ../corintho_ai/python/model_93.tflite 10
+
+Use it to check that a result measured on the stub holds with realistic
+priors. With `model_93` it averages ~28.7 turns/game, against 28.4 in real
+training and ~18 on the stub. `engine_seconds` excludes inference, so engine
+timings are comparable; wall time is dominated by the network.
+
 ## Measurement doctrine: decide on single thread, watch multi
 
 **Measure and decide on single-threaded. Record multi-threaded as a guardrail

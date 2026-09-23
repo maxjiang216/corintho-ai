@@ -28,12 +28,13 @@ CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
 # ships in the training module.
 CORE  += $(BUILD)/game_reference.o
 
-.PHONY: all micro selfplay golden verify rulecheck parity run callgrind clean
+.PHONY: all micro selfplay selfplay_nn golden verify rulecheck parity run callgrind clean
 
-all: micro selfplay golden verify_bin rulecheck_bin parity
+all: micro selfplay selfplay_nn golden verify_bin rulecheck_bin parity
 
 micro: $(BUILD)/micro_bench
 selfplay: $(BUILD)/selfplay_bench
+selfplay_nn: $(BUILD)/selfplay_nn
 golden: $(BUILD)/golden
 verify_bin: $(BUILD)/verify
 rulecheck_bin: $(BUILD)/rulecheck
@@ -51,6 +52,9 @@ $(BUILD)/micro.o: micro.cpp bench_util.h | $(BUILD)
 $(BUILD)/selfplay.o: selfplay.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
+$(BUILD)/selfplay_nn.o: selfplay_nn.cpp bench_util.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INC) -DBENCH_DIR='"$(CURDIR)"' -c $< -o $@
+
 $(BUILD)/golden.o: golden.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
@@ -67,6 +71,9 @@ $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/selfplay_bench: $(BUILD)/selfplay.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILD)/selfplay_nn: $(BUILD)/selfplay_nn.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/golden: $(BUILD)/golden.o $(CORE)

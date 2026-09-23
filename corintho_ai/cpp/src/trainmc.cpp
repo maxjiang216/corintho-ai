@@ -522,6 +522,10 @@ void TrainMC::moveDown(Node *prev) noexcept {
 }
 
 void TrainMC::propagateTerminal() noexcept {
+  // Results are from the point of view of the player to move. A position is
+  // won if any move leads to a lost position, lost if every move leads to a
+  // won position, and drawn if every move leads to a won or drawn position
+  // and at least one to a drawn one. Otherwise it is unknown.
   // We can only deduce more results from new terminal nodes
   assert(cur_->terminal());
   Node *cur = cur_;
@@ -542,7 +546,9 @@ void TrainMC::propagateTerminal() noexcept {
             !cur_child->known()) {
           return;
         }
-        if (cur->drawn()) {
+        // A lost child would already have made this position won, so a
+        // known child here is either won or drawn
+        if (cur_child->drawn()) {
           has_draw = true;
         }
         cur_child = cur_child->next_sibling();

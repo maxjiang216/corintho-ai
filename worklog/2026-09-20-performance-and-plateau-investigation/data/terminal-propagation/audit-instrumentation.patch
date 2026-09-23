@@ -1,0 +1,136 @@
+--- a/corintho_ai/cpp/src/trainmc.cpp
++++ b/corintho_ai/cpp/src/trainmc.cpp
+@@ -8,6 +8,66 @@
+ 
+ #include <fstream>
+ #include <random>
++
++#include "node.h"
++#include "util.h"
++#include <atomic>
++#include <cstdio>
++namespace term_instr {
++std::atomic<long long> calls{0}, leaf_loss{0}, leaf_draw{0}, ded_win{0},
++    ded_loss{0}, ded_draw{0}, mismatch{0}, child_steps{0}, audits{0},
++    audit_nodes{0}, wrong_nodes{0}, wrong_root{0}, missed_nodes{0},
++    root_known{0}, root_wrong_kind[8][8];
++static int kind(Result r) {
++  if (r == kResultNone) return 0;
++  if (r == kResultLoss || r == kDeducedLoss) return 1;
++  if (r == kResultDraw || r == kDeducedDraw) return 2;
++  return 3;
++}
++struct Printer {
++  ~Printer() {
++    std::fprintf(stderr,
++      "#TERM fix=%d calls=%lld leaf_loss=%lld leaf_draw=%lld ded_win=%lld "
++      "ded_loss=%lld ded_draw=%lld buggy_vs_correct_mismatch=%lld "
++      "child_steps=%lld\n", TERM_FIX, calls.load(), leaf_loss.load(),
++      leaf_draw.load(), ded_win.load(), ded_loss.load(), ded_draw.load(),
++      mismatch.load(), child_steps.load());
++    std::fprintf(stderr,
++      "#AUDIT audits=%lld nodes=%lld wrong=%lld missed=%lld root_known=%lld "
++      "root_wrong=%lld\n", audits.load(), audit_nodes.load(),
++      wrong_nodes.load(), missed_nodes.load(), root_known.load(),
++      wrong_root.load());
++    const char *n[4] = {"none", "loss", "draw", "win"};
++    for (int a = 0; a < 4; ++a) for (int b = 0; b < 4; ++b)
++      if (root_wrong_kind[a][b])
++        std::fprintf(stderr, "#ROOTWRONG stored=%s true=%s count=%lld\n",
++                     n[a], n[b], root_wrong_kind[a][b].load());
++  }
++} printer;
++// Correct result of node from its subtree (0 none,1 loss,2 draw,3 win)
++static int audit(const Node *node) {
++  ++audit_nodes;
++  if (node->terminal()) return kind(node->result());
++  bool any_loss = false, all_known = true, any_draw = false;
++  int n = 0;
++  for (Node *c = node->first_child(); c != nullptr; c = c->next_sibling()) {
++    int k = audit(c);
++    ++n;
++    if (k == 1) any_loss = true;
++    else if (k == 0) all_known = false;
++    else if (k == 2) any_draw = true;
++  }
++  int truth = any_loss ? 3
++            : (all_known && n == node->num_legal_moves()) ? (any_draw ? 2 : 1)
++            : 0;
++  int stored = kind(node->result());
++  if (stored != truth) {
++    if (stored == 0) ++missed_nodes; else ++wrong_nodes;
++  }
++  return truth;
++}
++}  // namespace term_instr
++
+ #include <vector>
+ 
+ #include <gsl/gsl>
+@@ -116,6 +176,18 @@
+                             float prob_sample[kNumMoves]) noexcept {
+   assert(!uninitialized());
+   assert(searched_.size() == 0);
++  {
++    ++term_instr::audits;
++    long long before = term_instr::wrong_nodes;
++    int truth = term_instr::audit(root_);
++    (void)before;
++    int stored = term_instr::kind(root_->result());
++    if (stored != 0) ++term_instr::root_known;
++    if (stored != truth) {
++      ++term_instr::wrong_root;
++      ++term_instr::root_wrong_kind[stored][truth];
++    }
++  }
+   if (!testing_) {  // Write samples if we are not testing
+     // Before moving down, read the samples from the root node
+     root_->writeGameState(game_state);
+@@ -524,11 +596,14 @@
+ void TrainMC::propagateTerminal() noexcept {
+   // We can only deduce more results from new terminal nodes
+   assert(cur_->terminal());
++  ++term_instr::calls;
++  if (cur_->drawn()) ++term_instr::leaf_draw; else ++term_instr::leaf_loss;
+   Node *cur = cur_;
+   while (cur != root_) {
+     // We only need one loss to deduce a win
+     if (cur->lost()) {
+       cur = cur->parent();
++      ++term_instr::ded_win;
+       cur->set_result(kDeducedWin);
+     } else {
+       cur = cur->parent();
+@@ -536,13 +611,16 @@
+       // Position has a drawing move
+       bool has_draw = false;
+       int32_t edge_index = 0;
++      bool correct_draw = false;
+       while (cur_child != nullptr) {
++        ++term_instr::child_steps;
+         // If there is an unknown or unvisited move, we can deduce no further
+         if (cur_child->child_id() != cur->move_id(edge_index) ||
+             !cur_child->known()) {
+           return;
+         }
+-        if (cur->drawn()) {
++        if (cur_child->drawn()) correct_draw = true;
++        if (TERM_FIX ? cur_child->drawn() : cur->drawn()) {
+           has_draw = true;
+         }
+         cur_child = cur_child->next_sibling();
+@@ -553,11 +631,14 @@
+         return;
+       // No winning or unknown moves
+       // If there are any drawing moves, the position is a draw
++      if (has_draw != correct_draw) ++term_instr::mismatch;
+       if (has_draw) {
++        ++term_instr::ded_draw;
+         cur->set_result(kDeducedDraw);
+       }
+       // Otherwise, there are only losing moves, so the position is a loss
+       else {
++        ++term_instr::ded_loss;
+         cur->set_result(kDeducedLoss);
+       }
+     }

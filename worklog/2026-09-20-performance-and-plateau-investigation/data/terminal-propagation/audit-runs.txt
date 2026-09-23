@@ -1,0 +1,57 @@
+# Terminal-propagation audit, 2026-09-22.
+# Instrumented copy of trainmc.cpp (audit-instrumentation.patch) at cba9c7a.
+# TERM_FIX=0 is the code as it was (cur->drawn()); TERM_FIX=1 the fix
+# (cur_child->drawn()). The audit runs at every TrainMC::chooseMove: it
+# recomputes every node's result from the terminal leaves by the game-theory
+# rule and compares with the stored result.
+#   wrong   = stored known result that differs from the recomputed one
+#   missed  = stored unknown where the recomputed one is known
+# Build (from bench/):
+#   make BUILD=<dir> SRC_DIR=<patched src> INC="-I<patched include> -I../gsl/include -I." \
+#        CXXFLAGS="-std=c++17 -O2 -DNDEBUG -DTERM_FIX=<0|1> -g -fopenmp" LDFLAGS="-fopenmp -O2" \
+#        <dir>/selfplay_bench <dir>/selfplay_nn
+
+## Stub, selfplay_bench 200 1600 16 8 12345
+#TERM fix=0 calls=103010 leaf_loss=102152 leaf_draw=858 ded_win=108613 ded_loss=6670 ded_draw=0 buggy_vs_correct_mismatch=181 child_steps=154439
+#AUDIT audits=3732 nodes=4983706 wrong=755 missed=0 root_known=815 root_wrong=33
+#ROOTWRONG stored=loss true=none count=12
+#ROOTWRONG stored=loss true=draw count=5
+#ROOTWRONG stored=win true=none count=15
+#ROOTWRONG stored=win true=draw count=1
+turns per game          18.66
+
+#TERM fix=1 calls=104748 leaf_loss=103630 leaf_draw=1118 ded_win=110023 ded_loss=6603 ded_draw=395 buggy_vs_correct_mismatch=0 child_steps=159289
+#AUDIT audits=3741 nodes=4990197 wrong=0 missed=0 root_known=821 root_wrong=0
+turns per game          18.70
+
+## Real network, selfplay_nn <py> model_93.tflite 200 1600 16 8 12345
+#TERM fix=0 calls=283644 leaf_loss=279270 leaf_draw=4374 ded_win=336022 ded_loss=57013 ded_draw=0 buggy_vs_correct_mismatch=2086 child_steps=752792
+#AUDIT audits=5630 nodes=10832982 wrong=8209 missed=0 root_known=1151 root_wrong=57
+#ROOTWRONG stored=loss true=none count=32
+#ROOTWRONG stored=loss true=draw count=5
+#ROOTWRONG stored=win true=none count=19
+#ROOTWRONG stored=win true=draw count=1
+self-play (engine)      3.752 s
+turns per game          28.15
+
+#TERM fix=1 calls=289631 leaf_loss=284377 leaf_draw=5254 ded_win=339405 ded_loss=55262 ded_draw=5170 buggy_vs_correct_mismatch=0 child_steps=784942
+#AUDIT audits=5632 nodes=10841758 wrong=0 missed=0 root_known=1139 root_wrong=0
+self-play (engine)      3.653 s
+turns per game          28.16
+
+## Asserts ON (no -DNDEBUG), TERM_FIX=1
+# stub, selfplay_bench 200 1600 16 8 777
+#TERM fix=1 calls=104095 leaf_loss=102907 leaf_draw=1188 ded_win=109848 ded_loss=7151 ded_draw=464 buggy_vs_correct_mismatch=0 child_steps=160462
+#AUDIT audits=3634 nodes=4875462 wrong=0 missed=0 root_known=777 root_wrong=0
+turns per game          18.17
+# real network, selfplay_nn ... 100 1600 16 8 999
+#TERM fix=1 calls=141356 leaf_loss=138368 leaf_draw=2988 ded_win=164660 ded_loss=26409 ded_draw=2866 buggy_vs_correct_mismatch=0 child_steps=384687
+#AUDIT audits=2813 nodes=5379843 wrong=0 missed=0 root_known=575 root_wrong=0
+turns per game          28.13
+
+## Cost (callgrind, bench/results/profiles/mirror-lines-ir.txt, 3 stub games)
+propagateTerminal: 139,639 Ir of ~617M (0.02%), 979 calls
+
+## Golden digests after the fix (bench/build/golden all)
+game   d8f9bd2d22ee9731  (unchanged, as expected)
+engine d7581196f9d30591  (UNCHANGED: 20 games x 200 searches never deduces a draw)

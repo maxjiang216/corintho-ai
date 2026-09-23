@@ -28,6 +28,7 @@ none of it has yet been shown to move strength.
 | 14 | [Dirichlet noise RNG](2026-09-22-14-dirichlet-rng.md) | splitmix64 for noise only. Reproducible, not bit-identical; checked statistically. −3.7% time per request. |
 | 15 | [lazy selection](2026-09-22-15-lazy-selection.md) | chooseNext scores one unvisited edge. Same search (2 float-tie mismatches in 4.6M). −17% engine time on stub, −12.5% with the real network. |
 | 16 | [child stats in the parent](2026-09-22-16-parent-stats.md) | Selection reads contiguous per-parent arrays mirrored by each child. Bit-identical digest. −18% engine time (real network), −9% (stub); +18% peak memory. |
+| 17 | [terminal propagation](2026-09-22-17-terminal-propagation.md) | **Correctness fix.** Drawn positions were deduced as losses (typo, audit CPP-1). 1% of real-network moves were made from a wrong root result; full-tree audit now 0 wrong, 0 missed. Golden digest blind to it. |
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -99,6 +100,9 @@ trusting any stub-only result.
 - **Check the generated code before explaining a speedup.** Twice the source
   suggested a mechanism (a reload, a cmov) the compiler had already removed or
   never emitted (entry 15).
+- **An unchanged digest only covers what its workload reaches.** The golden
+  engine run (20 games, 200 searches) never deduces a draw, so the entry-17
+  fix left it unchanged while changing 1600-search games (entry 17).
 - **Read what was recorded before reconstructing it.** The promotion threshold
   and the full best-generation chain were on disk the whole time. Replaying them
   from the ratings produced a wrong answer that then motivated a change (entries

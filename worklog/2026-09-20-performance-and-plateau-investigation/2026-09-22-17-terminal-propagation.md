@@ -132,3 +132,29 @@ Both are behaviour choices that would need a strength test, not a benchmark.
 The comment in `search` says the terminal node "may be a drawn node that has
 been searched before". It cannot be: terminal draws are skipped by the
 `all_visited` flag. Left alone.
+
+## When it broke: the July 2023 TrainMC rewrite
+
+Max remembered drawn games in training, with engine thinking that reflected
+draws. Both were true, for the generations before the bug existed.
+
+- Before `4f2a60d` ("Overhaul TrainMC (#117)", 2023-07-04), the loop tested
+  the child correctly:
+  `cur_node->result() == kResultDraw || cur_node->result() == kDeducedDraw`,
+  where `cur_node` was the child. The rewrite renamed the variables (`node` →
+  `cur`, `cur_node` → `cur_child`) and turned the test into `cur->drawn()`.
+- The generation log folders date gens 0–78 to January 2023 or earlier, and
+  gens 79–94 to 2023-07-21/22, after the rewrite.
+- The game logs agree (counts over `generations/gen_*/{training,testing}_logs/*.txt`):
+
+| | gens 0–78 | gens 79–94 |
+|---|---|---|
+| logs | 2,184 | 433 |
+| root `POSITION EVALUATION: DD` | 323 | **0** (~64 expected at the earlier rate) |
+| root `DL` / `DW` | 3,691 / 4,934 | 737 / 976 |
+| `GAME IS DRAWN` | 53 | 3 |
+
+Drawn games continued after the rewrite because a terminal draw (no legal
+moves, no lines) is a rules check that still worked. Only the *deduction* of
+draws inside the search broke. So the last 16 generations, including
+`model_93`, were trained with the bug, and generations up to 78 were not.

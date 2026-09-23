@@ -65,6 +65,27 @@ priors. With `model_93` it averages ~28.7 turns/game, against 28.4 in real
 training and ~18 on the stub. `engine_seconds` excludes inference, so engine
 timings are comparable; wall time is dominated by the network.
 
+Pass `-` in place of the python to evaluate in-process with `Mlp`
+(`corintho_ai/cpp/include/mlp.h`), from a `.mlp` file written by
+`export_mlp.py`. No Python runs during the benchmark, and it is ~9× faster
+than the pipe:
+
+    /tmp/nnenv/bin/python export_mlp.py ../corintho_ai/python/model_93.tflite /tmp/model_93.mlp
+    ./build/selfplay_nn - /tmp/model_93.mlp 100 1600 16 20
+
+`MLP_CHECK=/tmp/model_93.mlp` with the python form evaluates every batch both
+ways and reports the largest differences. The games are still played from
+tflite outputs. `model_93` on 3.5M real search states: max |value diff|
+2.4e-7, max |prob diff| 7.7e-7, top policy move identical on every row.
+
+### `mlp_bench <model.mlp> [rows] [threads] [reps]`
+
+Throughput of `Mlp` alone, in ns per row and GFLOP/s. On the i7-12700H: one
+P-core ~82 GFLOP/s (~57% of peak), one E-core ~24, and all 20 threads ~450
+(0.6–0.7 µs per row, flat from 4k to 262k rows). LiteRT/XNNPACK gets ~545 on
+the same machine. Pin with `taskset` when comparing single-thread numbers:
+unpinned, a single thread may land on an E-core.
+
 ## Measurement doctrine: decide on single thread, watch multi
 
 **Measure and decide on single-threaded. Record multi-threaded as a guardrail

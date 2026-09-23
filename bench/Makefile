@@ -6,6 +6,7 @@
 #   make            build all benchmarks
 #   make micro      game-layer microbenchmarks
 #   make selfplay   end-to-end engine benchmark (stub evaluator)
+#   make mlp_bench  throughput of the in-process CPU network
 #   make golden     behavioural digests (see golden.cpp)
 #   make verify     differential test against the frozen reference
 #   make rulecheck  exhaustive line-breaking test (fails until item 4 is fixed)
@@ -23,18 +24,20 @@ LDFLAGS  := -fopenmp -flto -O3 -march=native
 
 BUILD := build
 CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
-         $(BUILD)/trainmc.o $(BUILD)/selfplayer.o $(BUILD)/trainer.o
+         $(BUILD)/trainmc.o $(BUILD)/selfplayer.o $(BUILD)/trainer.o \
+         $(BUILD)/mlp.o
 # Built here only; not listed in corintho_ai/python/setup.py, so it never
 # ships in the training module.
 CORE  += $(BUILD)/game_reference.o
 
-.PHONY: all micro selfplay selfplay_nn golden verify rulecheck parity run callgrind clean
+.PHONY: all micro selfplay selfplay_nn mlp_bench golden verify rulecheck parity run callgrind clean
 
-all: micro selfplay selfplay_nn golden verify_bin rulecheck_bin parity
+all: micro selfplay selfplay_nn mlp_bench golden verify_bin rulecheck_bin parity
 
 micro: $(BUILD)/micro_bench
 selfplay: $(BUILD)/selfplay_bench
 selfplay_nn: $(BUILD)/selfplay_nn
+mlp_bench: $(BUILD)/mlp_bench
 golden: $(BUILD)/golden
 verify_bin: $(BUILD)/verify
 rulecheck_bin: $(BUILD)/rulecheck
@@ -55,6 +58,9 @@ $(BUILD)/selfplay.o: selfplay.cpp bench_util.h | $(BUILD)
 $(BUILD)/selfplay_nn.o: selfplay_nn.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -DBENCH_DIR='"$(CURDIR)"' -c $< -o $@
 
+$(BUILD)/mlp_bench.o: mlp_bench.cpp bench_util.h | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+
 $(BUILD)/golden.o: golden.cpp bench_util.h | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
 
@@ -74,6 +80,9 @@ $(BUILD)/selfplay_bench: $(BUILD)/selfplay.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/selfplay_nn: $(BUILD)/selfplay_nn.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+$(BUILD)/mlp_bench: $(BUILD)/mlp_bench.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 $(BUILD)/golden: $(BUILD)/golden.o $(CORE)

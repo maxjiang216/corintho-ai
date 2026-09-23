@@ -2,13 +2,23 @@
 //
 //   selfplay_nn <python> <model.tflite> [games] [max_searches]
 //               [searches_per_eval] [threads] [seed]
+//   selfplay_nn - <model.mlp> [games] ...
 //
-// Identical to selfplay_bench except for the evaluator: game states go over a
-// pipe to nn_server.py, which runs the tflite model and sends back values and
-// move probabilities. The stub's hash-based priors are flat and random; a
-// trained network's are peaked, which changes the tree shape (how many
-// children nodes get, how deep the search goes). Use this to check that an
-// engine change measured on the stub holds with realistic priors.
+// Identical to selfplay_bench except for the evaluator. With a python
+// interpreter, game states go over a pipe to nn_server.py, which runs the
+// tflite model and sends back values and move probabilities. With "-" in its
+// place, the in-process Mlp (mlp.h) evaluates a .mlp file written by
+// export_mlp.py, on the same number of threads as the search.
+//
+// The stub's hash-based priors are flat and random; a trained network's are
+// peaked, which changes the tree shape (how many children nodes get, how deep
+// the search goes). Use this to check that an engine change measured on the
+// stub holds with realistic priors.
+//
+// MLP_CHECK=<model.mlp> in the environment (python mode only) also evaluates
+// every batch with Mlp and reports the largest differences from tflite. The
+// games are played from the tflite outputs, so they are the same games as
+// without the check.
 //
 // engine_seconds excludes the network, so engine timings are comparable with
 // selfplay_bench's. Wall time is dominated by inference and is not.
@@ -17,13 +27,17 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "bench_util.h"
+#include "mlp.h"
 #include "trainer.h"
 #include "util.h"
 
@@ -61,7 +75,8 @@ int main(int argc, char **argv) {
   if (argc < 3) {
     std::printf(
         "usage: selfplay_nn <python> <model.tflite> [games] [max_searches] "
-        "[searches_per_eval] [threads] [seed]\n");
+        "[searches_per_eval] [threads] [seed]\n"
+        "       selfplay_nn - <model.mlp> [games] ...\n");
     return 1;
   }
   const std::string python = argv[1];
@@ -75,27 +90,38 @@ int main(int argc, char **argv) {
   const float c_puct = 3.0F;
   const float epsilon = 0.25F;
 
+  const bool in_process = python == "-";
+  std::unique_ptr<Mlp> mlp;
+  std::unique_ptr<Mlp> check;
+  if (in_process) {
+    mlp = std::make_unique<Mlp>(model);
+  } else if (const char *path = std::getenv("MLP_CHECK")) {
+    check = std::make_unique<Mlp>(path);
+  }
+
   // Start nn_server.py, next to this binary's source
-  int to_child[2], from_child[2];
-  if (pipe(to_child) != 0 || pipe(from_child) != 0) {
-    std::perror("pipe");
-    return 1;
+  int to_child[2] = {-1, -1}, from_child[2] = {-1, -1};
+  pid_t pid = -1;
+  if (!in_process) {
+    if (pipe(to_child) != 0 || pipe(from_child) != 0) {
+      std::perror("pipe");
+      return 1;
+    }
+    const std::string server = std::string(BENCH_DIR) + "/nn_server.py";
+    pid = fork();
+    if (pid == 0) {
+      dup2(to_child[0], 0);
+      dup2(from_child[1], 1);
+      close(to_child[1]);
+      close(from_child[0]);
+      execl(python.c_str(), python.c_str(), server.c_str(), model.c_str(),
+            static_cast<char *>(nullptr));
+      std::perror("exec nn_server");
+      _exit(1);
+    }
+    close(to_child[0]);
+    close(from_child[1]);
   }
-  const std::string server =
-      std::string(BENCH_DIR) + "/nn_server.py";
-  const pid_t pid = fork();
-  if (pid == 0) {
-    dup2(to_child[0], 0);
-    dup2(from_child[1], 1);
-    close(to_child[1]);
-    close(from_child[0]);
-    execl(python.c_str(), python.c_str(), server.c_str(), model.c_str(),
-          static_cast<char *>(nullptr));
-    std::perror("exec nn_server");
-    _exit(1);
-  }
-  close(to_child[0]);
-  close(from_child[1]);
 
   std::printf("Corintho self-play engine benchmark (real network: %s)\n",
               model.c_str());
@@ -107,9 +133,17 @@ int main(int argc, char **argv) {
   std::vector<float> evals(batch, 0.0F);
   std::vector<float> probs(batch * kNumMoves, 0.0F);
   std::vector<float> game_states(batch * kGameStateSize, 0.0F);
+  std::vector<float> check_evals, check_probs;
+  if (check) {
+    check_evals.resize(batch);
+    check_probs.resize(batch * kNumMoves);
+  }
+  float max_eval_diff = 0.0F;
+  float max_prob_diff = 0.0F;
+  uint64_t argmax_mismatches = 0;
 
-  Trainer trainer{num_games,         "/tmp", seed,     max_searches,
-                  searches_per_eval, c_puct, epsilon,  0 /* num_logged */,
+  Trainer trainer{num_games,         "/tmp", seed,    max_searches,
+                  searches_per_eval, c_puct, epsilon, 0 /* num_logged */,
                   num_threads,       false /* testing */};
 
   double play_time = 0.0;
@@ -126,25 +160,60 @@ int main(int argc, char **argv) {
     trainer.writeRequests(game_states.data(), -1);
 
     auto eval_start = bench::Clock::now();
-    writeAll(to_child[1], &n, sizeof(n));
-    writeAll(to_child[1], game_states.data(),
-             static_cast<size_t>(n) * kGameStateSize * sizeof(float));
-    readAll(from_child[0], evals.data(), static_cast<size_t>(n) * sizeof(float));
-    readAll(from_child[0], probs.data(),
-            static_cast<size_t>(n) * kNumMoves * sizeof(float));
+    if (in_process) {
+      mlp->evaluateParallel(game_states.data(), n, evals.data(), probs.data(),
+                            num_threads);
+    } else {
+      writeAll(to_child[1], &n, sizeof(n));
+      writeAll(to_child[1], game_states.data(),
+               static_cast<size_t>(n) * kGameStateSize * sizeof(float));
+      readAll(from_child[0], evals.data(),
+              static_cast<size_t>(n) * sizeof(float));
+      readAll(from_child[0], probs.data(),
+              static_cast<size_t>(n) * kNumMoves * sizeof(float));
+    }
     eval_time += bench::secondsSince(eval_start);
+    if (check) {
+      check->evaluateParallel(game_states.data(), n, check_evals.data(),
+                              check_probs.data(), num_threads);
+      for (int32_t i = 0; i < n; ++i) {
+        max_eval_diff =
+            std::max(max_eval_diff, std::fabs(evals[i] - check_evals[i]));
+        const float *a = probs.data() + static_cast<size_t>(i) * kNumMoves;
+        const float *b =
+            check_probs.data() + static_cast<size_t>(i) * kNumMoves;
+        int32_t best_a = 0, best_b = 0;
+        for (int32_t m = 0; m < kNumMoves; ++m) {
+          max_prob_diff = std::max(max_prob_diff, std::fabs(a[m] - b[m]));
+          best_a = a[m] > a[best_a] ? m : best_a;
+          best_b = b[m] > b[best_b] ? m : best_b;
+        }
+        argmax_mismatches += best_a != best_b;
+      }
+    }
     total_requests += static_cast<uint64_t>(n);
   }
   const double wall = bench::secondsSince(wall_start);
-  close(to_child[1]);
-  close(from_child[0]);
-  waitpid(pid, nullptr, 0);
+  if (!in_process) {
+    close(to_child[1]);
+    close(from_child[0]);
+    waitpid(pid, nullptr, 0);
+  }
 
   const int32_t turns = trainer.num_samples();
   std::printf("self-play (engine)   %8.3f s\n", play_time);
   std::printf("network evaluation   %8.3f s\n", eval_time);
   std::printf("turns per game       %8.2f\n",
               static_cast<double>(turns) / num_games);
+  if (check) {
+    std::printf("mlp check: max |eval diff| %.3g, max |prob diff| %.3g, "
+                "policy argmax differs on %llu of %llu rows\n",
+                max_eval_diff, max_prob_diff,
+                static_cast<unsigned long long>(argmax_mismatches),
+                static_cast<unsigned long long>(total_requests));
+    std::printf("#METRIC mlp_max_eval_diff %.6g\n", max_eval_diff);
+    std::printf("#METRIC mlp_max_prob_diff %.6g\n", max_prob_diff);
+  }
   std::printf("#METRIC engine_seconds %.4f\n", play_time);
   std::printf("#METRIC wall_seconds %.4f\n", wall);
   std::printf("#METRIC turns %d\n", turns);

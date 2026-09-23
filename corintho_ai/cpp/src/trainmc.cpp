@@ -254,8 +254,13 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
   int32_t final_sum = 0;
   for (int32_t j = 0; j < num_edges; ++j) {
     // Make all probabilities positive
+    // Round to nearest by adding 0.5 and truncating. This is two inline
+    // instructions; lround is a libm call (~30 instructions) because it must
+    // handle NaN, overflow and negative halves, none of which occur here: the
+    // value is always in (0, 511]. Over every float in (0, 511.5] the result
+    // matches lround except x = 0.49999997, which the clamp to 1 absorbs.
     int32_t prob = std::max(
-        1, gsl::narrow_cast<int32_t>(lround(weighted_probs[j] * denom)));
+        1, static_cast<int32_t>(weighted_probs[j] * denom + 0.5f));
     cur_->set_probability(j, prob);
     final_sum += prob;
   }

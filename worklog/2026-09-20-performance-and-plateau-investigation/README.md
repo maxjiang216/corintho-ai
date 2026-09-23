@@ -29,6 +29,38 @@ none of it has yet been shown to move strength.
 | 15 | [lazy selection](2026-09-22-15-lazy-selection.md) | chooseNext scores one unvisited edge. Same search (2 float-tie mismatches in 4.6M). −17% engine time on stub, −12.5% with the real network. |
 | 16 | [child stats in the parent](2026-09-22-16-parent-stats.md) | Selection reads contiguous per-parent arrays mirrored by each child. Bit-identical digest. −18% engine time (real network), −9% (stub); +18% peak memory. |
 
+## Session 2026-09-22: selection and search engine (entries 13–16)
+
+Engine time per NN request, each step measured against the one before it:
+
+| entry | change | stub | real network (`model_93`) |
+|---|---|---|---|
+| 13 | `lround` → add-and-truncate (bit-identical) | −3.8% | not measured |
+| 14 | splitmix64 for Dirichlet noise (new stream, reproducible) | −3.7% | not measured |
+| 15 | `chooseNext` scores only the best unvisited edge | −17.2% | −12.5% |
+| 16 | child statistics mirrored in the parent (bit-identical) | −9.0% | −18.3% |
+
+Roughly 30% less engine time per request compounded on the stub, likely more
+with the real network. Peak memory +18% (entry 16). In training the network
+dominates wall time, so end-to-end gains are smaller. None of this has yet
+been shown to change strength.
+
+New tool: `bench/selfplay_nn` runs the engine against a real tflite model
+(`pip install ai-edge-litert` in a throwaway venv). It reproduces real game
+length (28.7 turns vs 28.4 recorded) where the stub gives ~18. Use it before
+trusting any stub-only result.
+
+**Where to resume:**
+- Remaining engine cost: `initializeEdges` (~15% of instructions), the stub's
+  own work aside. `syncStats` split (entry 16) is small.
+- The strength questions are unchanged and more important: colour imbalance
+  with a real network under the fixed rules (entries 10–11), and the strength
+  effect of the entry-04 rules fix. `selfplay_nn` runs the real network
+  locally now. It does not report results yet, but adding the winner per game
+  would answer the first question.
+- `main.pyx` / `wrapper.py` gate changes (entry 12) are still unbuilt: no
+  Cython or TensorFlow here.
+
 ## The two entries to read if you read nothing else
 
 - **10** is the one that most plausibly explains the plateau: a ~74%
@@ -64,6 +96,9 @@ none of it has yet been shown to move strength.
 - **A change to the random stream changes the workload.** Raw counter totals
   from the two arms are then different games; normalize per request over many
   seeds (entry 14).
+- **Check the generated code before explaining a speedup.** Twice the source
+  suggested a mechanism (a reload, a cmov) the compiler had already removed or
+  never emitted (entry 15).
 - **Read what was recorded before reconstructing it.** The promotion threshold
   and the full best-generation chain were on disk the whole time. Replaying them
   from the ratings produced a wrong answer that then motivated a change (entries

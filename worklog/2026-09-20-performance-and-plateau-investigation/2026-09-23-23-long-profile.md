@@ -79,6 +79,24 @@ functions, ~2,206 CPU-s:
 | `Node::Node` | 51 | 2.3% |
 | OpenMP runtime (libgomp) | ~30 | ~1.4% |
 
+Per-run metrics (`gp-mt-*.out`, under gprofng; unprofiled, the same work is
+~5% faster):
+
+| seed | engine s | gather s | wall s | requests |
+|---|---|---|---|---|
+| 1 | 18.31 | 2.858 | 72.79 | 71,522,296 |
+| 2 | 18.46 | 2.875 | 73.58 | 71,658,337 |
+| 3 | 18.40 | 2.872 | 73.78 | 71,129,627 |
+| 4 | 18.31 | 2.870 | 73.00 | 70,764,333 |
+| 5 | 18.18 | 2.874 | 72.38 | 70,908,063 |
+| 6 | 18.55 | 2.895 | 73.84 | 71,534,012 |
+| 7 | 18.49 | 2.875 | 73.95 | 71,526,434 |
+| 8 | 18.65 | 2.936 | 74.67 | 72,001,183 |
+
+Engine time per request at 2,000 games is ~0.258 µs, against ~0.239 µs at
+1,000 games unprofiled. So doubling the games in flight costs little per
+request at 20 threads.
+
 - **Load balance is fine.** libgomp waiting is ~1.4% of engine CPU, so the
   dynamic schedule from entry 19 is doing its job.
 - **`syncStats` is 7.5% of instructions (below) but 18.8% of production CPU

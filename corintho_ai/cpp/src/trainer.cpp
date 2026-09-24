@@ -267,7 +267,7 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
   }
   // Testing
   int32_t offset = 0;
-  int32_t offsets[games_.size()] = {0};
+  std::vector<int32_t> offsets(games_.size(), 0);
   for (size_t i = 1; i < games_.size(); ++i) {
     // Only count games from one player
     if (games_[i - 1].to_play() == (to_play + games_[i - 1].parity()) % 2 &&

@@ -1,0 +1,59 @@
+== base: TrainMC::doIteration 2547 instructions, 23 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    3 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_insert<Node* const&>(__gnu_cxx::__normal_iterator<Node**, std::vector<Node*, std::allocator<Node*> > >, Node* const&)>
+== pgo: TrainMC::doIteration 1591 instructions, 34 call sites
+    3 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <Node::decrement_visits()>
+    3 <Game::writeGameState(float*) const>
+    3 <Arena::allocate(unsigned long)>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    3 <Arena::get()>
+    3 <Node::increase_evaluation(float)>
+    1 <sqrt@plt>
+    2 <Node::promoteBestEdge(int) [clone .isra.0]>
+    2 <Node::set_evaluation(float)>
+    1 <__stack_chk_fail@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    6 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+== engine: TrainMC::doIteration 2066 instructions, 26 call sites
+    2 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&)>
+    2 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <Game::writeGameState(float*) const>
+    1 <Arena::allocate(unsigned long)>
+    2 <Node::decrement_visits()>
+    1 <Arena::get()>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    2 <operator new[](unsigned long)@plt>
+    1 <sqrt@plt>
+    1 <__stack_chk_fail@plt>
+    2 <memset@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    5 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+== frac: TrainMC::doIteration 2423 instructions, 35 call sites
+    2 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&)>
+    3 <memcpy@plt>
+    2 <Game::writeGameState(float*) const>
+    2 <Node::decrement_visits()>
+    3 <Arena::allocate(unsigned long)>
+    1 <Node::Node(Game const&, Node*, Node*, int, int)>
+    4 <Arena::get()>
+    2 <operator new[](unsigned long)@plt>
+    1 <sqrt@plt>
+    1 <Game::getLegalMoves(MoveMask&) const [clone .constprop.0]>
+    1 <__stack_chk_fail@plt>
+    2 <memset@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    5 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+    1 <Arena::get() [clone .part.0]>

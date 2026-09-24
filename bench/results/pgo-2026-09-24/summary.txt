@@ -1,0 +1,141 @@
+PGO experiment: /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24
+
+== provenance.txt
+date:      2026-09-24T06:55:34-07:00
+commit:    25f8002785593154d0b64ebf2637d13b79cf01c2
+dirty:     no
+compiler:  g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+cxxflags:  -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+ldflags:   -fopenmp -flto -O3 -march=native
+cpu:        12th Gen Intel(R) Core(TM) i7-12700H
+governor:  powersave
+power:     1 0 
+model:     /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp (0da98eedcec00bbb)
+train:     300 games, 1 threads, seed 777
+arms:      base pgo engine frac
+sizes:     gate 300, mt 16 x 1000, st 16 x 200
+
+== binary-sizes.txt
+1475016 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/base/selfplay_nn
+1452744 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/engine/selfplay_nn
+1411088 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/frac/selfplay_nn
+2226272 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/gen/selfplay_nn
+1357400 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/pgo/selfplay_nn
+
+== inspect.txt
+== base: TrainMC::doIteration 2547 instructions, 23 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    3 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_insert<Node* const&>(__gnu_cxx::__normal_iterator<Node**, std::vector<Node*, std::allocator<Node*> > >, Node* const&)>
+== pgo: TrainMC::doIteration 1591 instructions, 34 call sites
+    3 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <Node::decrement_visits()>
+    3 <Game::writeGameState(float*) const>
+    3 <Arena::allocate(unsigned long)>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    3 <Arena::get()>
+    3 <Node::increase_evaluation(float)>
+    1 <sqrt@plt>
+    2 <Node::promoteBestEdge(int) [clone .isra.0]>
+    2 <Node::set_evaluation(float)>
+    1 <__stack_chk_fail@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    6 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+== engine: TrainMC::doIteration 2066 instructions, 26 call sites
+    2 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&)>
+    2 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <Game::writeGameState(float*) const>
+    1 <Arena::allocate(unsigned long)>
+    2 <Node::decrement_visits()>
+    1 <Arena::get()>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    2 <operator new[](unsigned long)@plt>
+    1 <sqrt@plt>
+    1 <__stack_chk_fail@plt>
+    2 <memset@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    5 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+== frac: TrainMC::doIteration 2423 instructions, 35 call sites
+    2 <std::vector<Node*, std::allocator<Node*> >::push_back(Node* const&)>
+    2 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&)>
+    3 <memcpy@plt>
+    2 <Game::writeGameState(float*) const>
+    2 <Node::decrement_visits()>
+    3 <Arena::allocate(unsigned long)>
+    1 <Node::Node(Game const&, Node*, Node*, int, int)>
+    4 <Arena::get()>
+    2 <operator new[](unsigned long)@plt>
+    1 <sqrt@plt>
+    1 <Game::getLegalMoves(MoveMask&) const [clone .constprop.0]>
+    1 <__stack_chk_fail@plt>
+    2 <memset@plt>
+    2 <Node::decrease_evaluation(float) [clone .constprop.0]>
+    5 <Node::syncFlags() [clone .isra.0]>
+    1 <Node::initializeEdges()>
+    1 <Arena::get() [clone .part.0]>
+
+== gates.txt
+base #METRIC digest_game d8f9bd2d22ee9731
+base #METRIC digest_engine d7581196f9d30591
+base verify PASS
+pgo #METRIC digest_game d8f9bd2d22ee9731
+pgo #METRIC digest_engine d7581196f9d30591
+pgo verify PASS
+engine #METRIC digest_game d8f9bd2d22ee9731
+engine #METRIC digest_engine d7581196f9d30591
+engine verify PASS
+frac #METRIC digest_game d8f9bd2d22ee9731
+frac #METRIC digest_engine d7581196f9d30591
+frac verify PASS
+base sample seed 1 2147e3071a27cc4d 8532 MATCH
+pgo sample seed 1 2147e3071a27cc4d 8532 MATCH
+engine sample seed 1 2147e3071a27cc4d 8532 MATCH
+frac sample seed 1 2147e3071a27cc4d 8532 MATCH
+base sample seed 2 a988f67a0c984be7 8533 MATCH
+pgo sample seed 2 a988f67a0c984be7 8533 MATCH
+engine sample seed 2 a988f67a0c984be7 8533 MATCH
+frac sample seed 2 a988f67a0c984be7 8533 MATCH
+base sample seed 3 dcb1745df12a1ba0 8390 MATCH
+pgo sample seed 3 dcb1745df12a1ba0 8390 MATCH
+engine sample seed 3 dcb1745df12a1ba0 8390 MATCH
+frac sample seed 3 dcb1745df12a1ba0 8390 MATCH
+base sample seed 4 e0db31d1d69b6456 8493 MATCH
+pgo sample seed 4 e0db31d1d69b6456 8493 MATCH
+engine sample seed 4 e0db31d1d69b6456 8493 MATCH
+frac sample seed 4 e0db31d1d69b6456 8493 MATCH
+ALL GATES PASS
+
+== timing (arm vs base, paired by seed; negative = faster)
+
+mt (real network, 20 threads); base engine mean 7.329 s
+  engine   engine_s  n=16   -0.10%  (95% CI  -0.72 to  +0.52)
+  engine   wall_s    n=16   -0.11%  (95% CI  -0.68 to  +0.47)
+  engine   turns identical to base on 16 of 16 seeds
+  frac     engine_s  n=16   +1.06%  (95% CI  +0.04 to  +2.09)
+  frac     wall_s    n=16   -4.60%  (95% CI  -5.53 to  -3.65)
+  frac     turns identical to base on 16 of 16 seeds
+  pgo      engine_s  n=16   +3.16%  (95% CI  +2.67 to  +3.65)
+  pgo      wall_s    n=16   +1.38%  (95% CI  +0.98 to  +1.79)
+  pgo      turns identical to base on 16 of 16 seeds
+
+st (stub, 1 thread pinned); base engine mean 3.028 s
+  engine   engine_s  n=16  +11.93%  (95% CI +11.17 to +12.70)
+  engine   wall_s    n=16   +9.59%  (95% CI  +8.96 to +10.22)
+  engine   turns identical to base on 16 of 16 seeds
+  frac     engine_s  n=16  +13.06%  (95% CI +11.87 to +14.26)
+  frac     wall_s    n=16  +10.36%  (95% CI  +9.40 to +11.32)
+  frac     turns identical to base on 16 of 16 seeds
+  pgo      engine_s  n=16  +14.71%  (95% CI +14.21 to +15.22)
+  pgo      wall_s    n=16  +11.56%  (95% CI +11.11 to +12.02)
+  pgo      turns identical to base on 16 of 16 seeds
+
+== package temperature: max 94 C, mean 91 C over 44 minutes

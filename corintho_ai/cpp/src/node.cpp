@@ -44,9 +44,14 @@ Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
   // initializeEdges can throw an exception from new
   initializeEdges();
   // Take a slot in the parent's child statistics, then fill it. After
-  // initializeEdges, so a terminal result is already known.
-  slot_ = parent_->addChild(this);
-  registerStats();
+  // initializeEdges, so a terminal result is already known. TrainMC also
+  // builds a new root this way (parent nullptr) when it discards the tree
+  // after a move with no visits; a root keeps its statistics in its own
+  // fields only.
+  if (parent_ != nullptr) {
+    slot_ = parent_->addChild(this);
+    registerStats();
+  }
 }
 
 Game Node::game() const noexcept {

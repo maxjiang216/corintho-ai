@@ -27,6 +27,8 @@ class alignas(64) Node {
   /// @brief Maximum value of a edge probability weight
   /// @details This is used to scale up the probability weights
   static constexpr float kMaxProbability = 511.0;
+  /// @brief The most legal moves any position has
+  static constexpr int32_t kMaxEdges = 48;
   /// @brief Default constructor constructs a node with the starting position
   /// @details This is used to initialize a Monte Carlo search tree.
   /// The starting position is never terminal.
@@ -115,6 +117,25 @@ class alignas(64) Node {
 
   int32_t countNodes() const noexcept;
 
+  /// @brief A legal move and its probability weight, packed in 16 bits
+  /// @details Bits 0-6 hold the move ID (at most 95) and bits 7-15 the
+  /// probability weight (0 to 511). Shifts and masks rather than bitfields:
+  /// GCC does not vectorize loops that read bitfields, and selection scores
+  /// every child's weight in one loop (worklog entry 26).
+  /// Deliberately left uninitialized, as the bitfields were: every edge is
+  /// written before it is read, and zeroing 48 of them per node costs time.
+  struct Edge {
+    uint16_t bits;
+    Edge() = default;
+    Edge(int32_t move_id, int32_t probability)
+        : bits{gsl::narrow_cast<uint16_t>(move_id | (probability << 7))} {}
+    int32_t move_id() const noexcept { return bits & 0x7F; }
+    int32_t probability() const noexcept { return bits >> 7; }
+    void set_probability(int32_t probability) noexcept {
+      bits = gsl::narrow_cast<uint16_t>((bits & 0x7F) | (probability << 7));
+    }
+  };
+
   /// @brief Selection flags mirrored for each child: skip it entirely (a
   /// won or lost position, or all_visited), or score it as a known draw
   static constexpr uint8_t kSkipChild = 1;
@@ -138,6 +159,10 @@ class alignas(64) Node {
     const float *visits;
     const uint8_t *flags;
     int32_t count;
+    /// @brief This node's edges; edge i leads to child i
+    const Edge *edges;
+    /// @brief Multiplies an edge's probability weight into a probability
+    float denominator;
   };
   ChildStats child_stats() const noexcept;
 
@@ -154,22 +179,6 @@ class alignas(64) Node {
   void printKnownLines(std::ostream *log_file) const;
 
  private:
-  struct Edge {
-    /// @brief The ID of the move used to reach the child
-    /// @details The maximal move ID is 95, which fits in a 7-bit integer.
-    uint16_t move_id : 7;
-    /// @brief The probability weight of this move
-    /// @details We scale the weights to be between 0 and 511
-    uint16_t probability : 9;
-    Edge() = default;
-    Edge(int32_t move_id, int32_t probability)
-        : move_id{gsl::narrow_cast<uint16_t>(move_id)},
-          probability{gsl::narrow_cast<uint16_t>(probability)} {}
-
-  };
-
-  /// @brief The most legal moves any position has
-  static constexpr int32_t kMaxEdges = 48;
 
   /// @brief The edges plus the header of the child-statistics block
   /// @details One 128-byte arena slot, allocated for every non-terminal node.

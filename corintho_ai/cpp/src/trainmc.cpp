@@ -15,6 +15,25 @@
 #include "move.h"
 #include "node.h"
 
+namespace {
+
+/// @brief condition != 0 ? a : b, for floats, with integer bit masks
+/// @details Under GCC's default -ftrapping-math a float ?: stays a branch,
+/// and a branch in a loop stops it from vectorizing. The same selection on
+/// the bit patterns becomes a vector blend (worklog entry 26).
+inline float selectFloat(uint32_t condition, float a, float b) noexcept {
+  const uint32_t mask = 0U - static_cast<uint32_t>(condition != 0);
+  uint32_t ab, bb;
+  std::memcpy(&ab, &a, sizeof(ab));
+  std::memcpy(&bb, &b, sizeof(bb));
+  const uint32_t rb = (ab & mask) | (bb & ~mask);
+  float r;
+  std::memcpy(&r, &rb, sizeof(r));
+  return r;
+}
+
+}  // namespace
+
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -610,24 +629,35 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
     assert(i == num_children);
   }
 #endif
+  // Score every child without branching, then take the first maximum. The
+  // scores are computed exactly as the previous one-loop form did (the same
+  // expressions, including their promotion to double), so the choice is
+  // bit-identical; taking the first index holding the maximum reproduces its
+  // strict > scan. Without branches the scoring loop vectorizes, and the
+  // flag tests no longer mispredict. Nodes with many children dominate this
+  // loop: 70% of the children scored belong to nodes with 20 or more
+  // (worklog entry 26).
+  float score[Node::kMaxEdges];
   for (int32_t i = 0; i < num_children; ++i) {
+    // Same as cur_->probability(i) * v_sqrt, read through stats
+    const float weighted =
+        static_cast<float>(stats.edges[i].probability()) * stats.denominator *
+        v_sqrt;
+    const float visits = stats.visits[i];
+    const float normal =
+        -1.0 * stats.evaluation[i] / visits + weighted / (visits + 1.0);
+    // Known draw, use evaluation 0
+    const float u = selectFloat(stats.flags[i] & Node::kDrawnChild, weighted,
+                                normal);
     // Don't all_visited nodes or won or lost positions
     // We search draws since the number of searches they have
     // makes a difference in choose_move
     // as they are not automatically chosen or excluded
-    if (stats.flags[i] & Node::kSkipChild)
-      continue;
-    float u;
-    // Known draw, use evaluation 0
-    if (stats.flags[i] & Node::kDrawnChild) {
-      u = cur_->probability(i) * v_sqrt;
-    } else {
-      const float visits = stats.visits[i];
-      u = -1.0 * stats.evaluation[i] / visits +
-          cur_->probability(i) * v_sqrt / (visits + 1.0);
-    }
-    if (u > max_eval) {
-      max_eval = u;
+    score[i] = selectFloat(stats.flags[i] & Node::kSkipChild, kNegInf, u);
+  }
+  for (int32_t i = 0; i < num_children; ++i) {
+    if (score[i] > max_eval) {
+      max_eval = score[i];
       best = i;
     }
   }

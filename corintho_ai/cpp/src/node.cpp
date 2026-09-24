@@ -95,13 +95,13 @@ bool Node::all_visited() const noexcept {
 
 int32_t Node::move_id(int32_t i) const noexcept {
   assert(i < num_legal_moves_);
-  return block_->edges[i].move_id;
+  return block_->edges[i].move_id();
 }
 
 float Node::probability(int32_t i) const noexcept {
   assert(i < num_legal_moves_);
   assert(denominator_ > 0.0);
-  return static_cast<float>(block_->edges[i].probability) * denominator_;
+  return static_cast<float>(block_->edges[i].probability()) * denominator_;
 }
 
 bool Node::terminal() const noexcept {
@@ -170,7 +170,7 @@ void Node::set_all_visited(bool all_visited) noexcept {
 
 void Node::set_probability(int32_t i, int32_t probability) noexcept {
   assert(i < num_legal_moves_);
-  block_->edges[i].probability = gsl::narrow_cast<uint16_t>(probability);
+  block_->edges[i].set_probability(probability);
 }
 
 void Node::promoteBestEdge(int32_t first) noexcept {
@@ -179,8 +179,8 @@ void Node::promoteBestEdge(int32_t first) noexcept {
   // move ID. Move IDs are distinct, so ranks are too, and the scan is a plain
   // running maximum rather than a two-field comparison.
   auto rank = [](Edge e) -> uint32_t {
-    return (static_cast<uint32_t>(e.probability) << 7) |
-           (127U - static_cast<uint32_t>(e.move_id));
+    return (static_cast<uint32_t>(e.probability()) << 7) |
+           (127U - static_cast<uint32_t>(e.move_id()));
   };
   int32_t best = first;
   uint32_t best_rank = rank(block_->edges[first]);
@@ -235,14 +235,15 @@ void Node::decrease_evaluation(float d) noexcept {
 
 Node::ChildStats Node::child_stats() const noexcept {
   if (block_ == nullptr || block_->stats == nullptr)
-    return ChildStats{nullptr, nullptr, nullptr, nullptr, 0};
+    return ChildStats{nullptr, nullptr, nullptr, nullptr, 0, nullptr, 0.0F};
   const int32_t cap = block_->capacity;
   unsigned char *base = block_->stats;
   auto *child = reinterpret_cast<Node **>(base);
   auto *evaluation = reinterpret_cast<float *>(child + cap);
   auto *visits = evaluation + cap;
   auto *flags = reinterpret_cast<uint8_t *>(visits + cap);
-  return ChildStats{child, evaluation, visits, flags, block_->num_children};
+  return ChildStats{child,      evaluation,  visits,      flags,
+                    block_->num_children, block_->edges, denominator_};
 }
 
 int8_t Node::addChild(Node *child) {

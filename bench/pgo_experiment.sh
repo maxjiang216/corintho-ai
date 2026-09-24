@@ -12,6 +12,13 @@
 #   partial  + -fprofile-use -fprofile-partial-training
 #                                     (code the training never ran is
 #                                      optimized normally)
+#   engine   + -fprofile-use without the network's profile (mlp.gcda
+#              removed), so the network's counts do not set the cutoff for
+#              "hot" code
+#   frac     + -fprofile-use with the hot cutoff lowered
+#              (hot-bb-count-fraction, hot-bb-count-ws-permille)
+#
+# ARMS selects which run (default "base pgo partial"; base is required).
 #
 # Resumable like long_profile.sh: each step leaves <out>/<step>.done, timing
 # rows are appended one per run and skipped on rerun. Everything it needs is
@@ -22,7 +29,9 @@
 #   train    instrumented selfplay_nn, real network, TRAIN_GAMES games,
 #            TRAIN_THREADS (1) thread pinned to CPU 0, seed 777 (not a
 #            timing or gate seed)
-#   pgo      rebuild with the profile, both PGO arms
+#   pgo      rebuild with the profile, every PGO arm; inspect.txt records
+#            the size of TrainMC::doIteration and the calls left in it, and
+#            inline-<arm>.txt GCC's missed-inlining report from the LTO link
 #   gates    golden digests and verify for every arm; SAMPLE_DIGEST=1
 #            selfplay_nn on seeds 1-4 (300 games, 1600 searches, 20 threads)
 #            for every arm, compared with the recorded baselines
@@ -49,7 +58,7 @@ G_MT=${G_MT:-1000}
 REPS_MT=${REPS_MT:-40}
 G_ST=${G_ST:-200}
 REPS_ST=${REPS_ST:-40}
-ARMS="base pgo partial"
+ARMS=${ARMS:-base pgo partial}
 mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd)
 cd "$OUT"
@@ -98,16 +107,16 @@ BASE_CXX=$(make -s -C "$BENCH" -p 2>/dev/null | awk -F' := ' '/^CXXFLAGS :=/ {pr
 BASE_LD=$(make -s -C "$BENCH" -p 2>/dev/null | awk -F' := ' '/^LDFLAGS :=/ {print $2; exit}')
 TARGETS="selfplay_nn selfplay_bench golden verify"
 
-# build_arm <arm> <extra flags>: builds TARGETS into bin/<arm>. All arms use
+# build_arm <arm> <extra flags> [link-only flags]: builds TARGETS into bin/<arm>. All arms use
 # the same object directory, because GCC names each .gcda file after the
 # object's full path: the -fprofile-use build must write its objects where
 # the -fprofile-generate build wrote them.
 build_arm() {
-  local arm=$1 extra=$2 b=$OUT/objs
+  local arm=$1 extra=$2 link=${3:-} b=$OUT/objs
   rm -rf "$b"
   local t targets=""
   for t in $TARGETS; do targets="$targets $b/$t"; done
-  make -C "$BENCH" BUILD="$b" CXXFLAGS="$BASE_CXX $extra" LDFLAGS="$BASE_LD $extra" \
+  make -C "$BENCH" BUILD="$b" CXXFLAGS="$BASE_CXX $extra" LDFLAGS="$BASE_LD $extra $link" \
     $targets > "$OUT/build-$arm.log" 2>&1 || return 1
   mkdir -p "$OUT/bin/$arm"
   for t in $TARGETS; do cp "$b/$t" "$OUT/bin/$arm/"; done
@@ -127,9 +136,10 @@ do_build() {
     echo "power:     $(cat /sys/class/power_supply/*/online 2>/dev/null | tr '\n' ' ')"
     echo "model:     $MODEL_SRC ($(sha256sum "$MODEL_SRC" | cut -c1-16))"
     echo "train:     $TRAIN_GAMES games, $TRAIN_THREADS threads, seed 777"
+    echo "arms:      $ARMS"
     echo "sizes:     gate $GATE_GAMES, mt $REPS_MT x $G_MT, st $REPS_ST x $G_ST"
   } > "$OUT/provenance.txt"
-  printf '%s\n' 'bin/' 'objs/' 'model.mlp' 'run.*' 'pgo-data/' > "$OUT/.gitignore"
+  printf '%s\n' 'bin/' 'objs/' 'model.mlp' 'run.*' 'pgo-data*/' 'inline-*.txt' > "$OUT/.gitignore"
   cp "$MODEL_SRC" "$M" || return 1
   build_arm base "" || return 1
   # Training runs single-threaded with plain counters. Multi-threaded
@@ -150,16 +160,46 @@ do_train() {
   [ "$n" -gt 0 ]
 }
 
+arm_flags() {  # arm_flags <arm>: compiler flags for a PGO arm
+  case $1 in
+    pgo)     echo "-fprofile-use=$PROF" ;;
+    partial) echo "-fprofile-use=$PROF -fprofile-partial-training" ;;
+    engine)  echo "-fprofile-use=$OUT/pgo-data-engine" ;;
+    frac)    echo "-fprofile-use=$PROF --param=hot-bb-count-fraction=1000000 --param=hot-bb-count-ws-permille=999" ;;
+    *)       return 1 ;;
+  esac
+}
+
+# Size of TrainMC::doIteration and the calls it still makes: inlining lost
+# on the hot path shows up here (entry 27)
+inspect() {  # inspect <arm>
+  objdump -d --no-show-raw-insn -C "$OUT/bin/$1/selfplay_nn" | awk -v A="$1" '
+    /^[0-9a-f]+ <.*>:$/ { f = ($0 ~ /<TrainMC::doIteration\(float\*, float\*\)>:$/) }
+    f && /^ *[0-9a-f]+:/ { n++ }
+    f && /call/ { sub(/.*call +[0-9a-f]+ /, ""); c[$0]++; calls++ }
+    END { printf "== %s: TrainMC::doIteration %d instructions, %d call sites\n", A, n, calls
+          for (k in c) printf "  %3d %s\n", c[k], k }'
+}
+
 do_pgo() {
-  build_arm pgo "-fprofile-use=$PROF -Wno-missing-profile" || return 1
-  build_arm partial "-fprofile-use=$PROF -fprofile-partial-training -Wno-missing-profile" || return 1
-  # A profile that silently failed to apply would make the PGO arms copies of
-  # base. Identical binaries are the tell.
-  if cmp -s "$OUT/bin/base/selfplay_nn" "$OUT/bin/pgo/selfplay_nn"; then
-    log "pgo binary identical to base: profile not applied"
-    return 1
-  fi
+  # The engine arm's profile: everything but the network's
+  rm -rf "$OUT/pgo-data-engine"
+  cp -r "$PROF" "$OUT/pgo-data-engine"
+  find "$OUT/pgo-data-engine" -name 'mlp.gcda' -delete
+  local arm
+  for arm in $ARMS; do
+    [ "$arm" = base ] && continue
+    build_arm "$arm" "$(arm_flags "$arm") -Wno-missing-profile" \
+      "-fopt-info-inline-missed=$OUT/inline-$arm.txt" || return 1
+    # A profile that silently failed to apply would make the arm a copy of
+    # base. Identical binaries are the tell.
+    if cmp -s "$OUT/bin/base/selfplay_nn" "$OUT/bin/$arm/selfplay_nn"; then
+      log "$arm binary identical to base: profile not applied"
+      return 1
+    fi
+  done
   ls -l "$OUT"/bin/*/selfplay_nn | awk '{print $5, $9}' > "$OUT/binary-sizes.txt"
+  for arm in $ARMS; do inspect "$arm"; done > "$OUT/inspect.txt"
 }
 
 # Recorded at 5a5616e and unchanged through 8f20319 (worklog entries 25-26)
@@ -189,7 +229,8 @@ do_gates() {
   done
   # Across arms: golden lines and sample digests must agree with base
   local arm
-  for arm in pgo partial; do
+  for arm in $ARMS; do
+    [ "$arm" = base ] && continue
     if ! diff <(grep "^base " "$f" | cut -d' ' -f2-) <(grep "^$arm " "$f" | cut -d' ' -f2-) > /dev/null; then
       echo "$arm DIFFERS FROM base" >> "$f"; ok=1
     fi
@@ -200,11 +241,9 @@ do_gates() {
 
 # rotate <rep>: arm order for this rep, rotated so no arm always goes first
 rotate() {
-  case $(( $1 % 3 )) in
-    0) echo "base pgo partial" ;;
-    1) echo "pgo partial base" ;;
-    2) echo "partial base pgo" ;;
-  esac
+  local a=($ARMS) n=${#a[@]} i out=""
+  for i in $(seq 0 $((n - 1))); do out="$out ${a[$(( (i + $1) % n ))]}"; done
+  echo $out
 }
 
 TIMING=$OUT/timing.tsv

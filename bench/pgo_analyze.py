@@ -40,7 +40,7 @@ def paired(base, arm):
 def main():
     out = Path(sys.argv[1])
     print(f"PGO experiment: {out}\n")
-    for name in ("provenance.txt", "binary-sizes.txt", "gates.txt"):
+    for name in ("provenance.txt", "binary-sizes.txt", "inspect.txt", "gates.txt"):
         p = out / name
         if p.exists():
             print(f"== {name}")
@@ -62,7 +62,8 @@ def main():
                  "st": "stub, 1 thread pinned"}[mode]
         mean_base = sum(float(r["engine_s"]) for r in base.values()) / len(base)
         print(f"\n{mode} ({label}); base engine mean {mean_base:.3f} s")
-        for arm in ("pgo", "partial"):
+        arms = sorted({a for (m, a) in rows if m == mode and a != "base"})
+        for arm in arms:
             a = rows.get((mode, arm), {})
             for metric in ("engine_s", "wall_s"):
                 b = {s: float(r[metric]) for s, r in base.items()}

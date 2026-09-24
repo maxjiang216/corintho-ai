@@ -20,9 +20,12 @@
 // games are played from the tflite outputs, so they are the same games as
 // without the check.
 //
-// gather_seconds is the serial step between the engine and the network: counting
-// requests and copying every game's rows into the batch buffer, on one thread.
-// Neither engine_seconds nor the network time includes it.
+// gather_seconds is the serial step between the engine and the network. It
+// used to count requests and copy every game's rows into a packed batch; the
+// games now write into fixed slots of the trainer's batch (Trainer::requests),
+// so it is only the count. Neither engine_seconds nor the network time
+// includes it. "requests" counts evaluated rows, including the few unused rows
+// in partly filled slots and the slots of finished games.
 //
 // engine_seconds excludes the network, so engine timings are comparable with
 // selfplay_bench's. Wall time is dominated by inference and is not.
@@ -136,7 +139,6 @@ int main(int argc, char **argv) {
   const size_t batch = static_cast<size_t>(num_games) * searches_per_eval;
   std::vector<float> evals(batch, 0.0F);
   std::vector<float> probs(batch * kNumMoves, 0.0F);
-  std::vector<float> game_states(batch * kGameStateSize, 0.0F);
   std::vector<float> check_evals, check_probs;
   if (check) {
     check_evals.resize(batch);
@@ -163,16 +165,16 @@ int main(int argc, char **argv) {
       break;
     auto gather_start = bench::Clock::now();
     const int32_t n = trainer.num_requests(-1);
-    trainer.writeRequests(game_states.data(), -1);
+    // The games wrote their rows into their slots of the trainer's batch
+    const float *batch = trainer.requests();
     gather_time += bench::secondsSince(gather_start);
 
     auto eval_start = bench::Clock::now();
     if (in_process) {
-      mlp->evaluateParallel(game_states.data(), n, evals.data(), probs.data(),
-                            num_threads);
+      mlp->evaluateParallel(batch, n, evals.data(), probs.data(), num_threads);
     } else {
       writeAll(to_child[1], &n, sizeof(n));
-      writeAll(to_child[1], game_states.data(),
+      writeAll(to_child[1], batch,
                static_cast<size_t>(n) * kGameStateSize * sizeof(float));
       readAll(from_child[0], evals.data(),
               static_cast<size_t>(n) * sizeof(float));
@@ -181,8 +183,8 @@ int main(int argc, char **argv) {
     }
     eval_time += bench::secondsSince(eval_start);
     if (check) {
-      check->evaluateParallel(game_states.data(), n, check_evals.data(),
-                              check_probs.data(), num_threads);
+      check->evaluateParallel(batch, n, check_evals.data(), check_probs.data(),
+                              num_threads);
       for (int32_t i = 0; i < n; ++i) {
         max_eval_diff =
             std::max(max_eval_diff, std::fabs(evals[i] - check_evals[i]));

@@ -19,7 +19,7 @@
 SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
                        int32_t searches_per_eval, float c_puct, float epsilon,
                        std::unique_ptr<std::ofstream> log_file, bool testing,
-                       int32_t parity)
+                       int32_t parity, float *to_eval)
     : generator_{std::mt19937(random_seed)},
       // Sized by searches_per_eval, NOT max_searches. The buffer holds one
       // batch of network inputs and is refilled from offset 0 after every
@@ -28,11 +28,15 @@ SelfPlayer::SelfPlayer(int32_t random_seed, int32_t max_searches,
       // and, because make_unique value-initializes, all of that was zeroed and
       // therefore resident: ~70% of process memory. dockermc.cpp always sized
       // it this way. See worklog entry 09.
-      to_eval_{std::make_unique<float[]>(kGameStateSize * searches_per_eval)},
-      players_{TrainMC{&generator_, to_eval_.get(), max_searches,
-                       searches_per_eval, c_puct, epsilon, testing},
-               TrainMC{&generator_, to_eval_.get(), max_searches,
-                       searches_per_eval, c_puct, epsilon, testing}},
+      owned_to_eval_{
+          to_eval != nullptr
+              ? nullptr
+              : std::make_unique<float[]>(kGameStateSize * searches_per_eval)},
+      to_eval_{to_eval != nullptr ? to_eval : owned_to_eval_.get()},
+      players_{TrainMC{&generator_, to_eval_, max_searches, searches_per_eval,
+                       c_puct, epsilon, testing},
+               TrainMC{&generator_, to_eval_, max_searches, searches_per_eval,
+                       c_puct, epsilon, testing}},
 
       log_file_{std::move(log_file)}, parity_{parity}, testing_{testing} {
   assert(max_searches > 0);
@@ -80,7 +84,13 @@ int32_t SelfPlayer::mate_length() const noexcept {
 void SelfPlayer::writeRequests(float *game_states) const noexcept {
   assert(game_states != nullptr);
   int32_t count = kGameStateSize * players_[to_play_].num_requests();
-  std::copy(to_eval_.get(), to_eval_.get() + count, game_states);
+  std::copy(to_eval_, to_eval_ + count, game_states);
+}
+
+void SelfPlayer::set_to_eval(float *to_eval) noexcept {
+  to_eval_ = to_eval;
+  players_[0].set_to_eval(to_eval);
+  players_[1].set_to_eval(to_eval);
 }
 
 void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
@@ -234,7 +244,9 @@ void SelfPlayer::endGame() noexcept {
   // and results which will be collected at the end
   players_[0].null_root();
   players_[1].null_root();
-  to_eval_.reset();
+  // Frees nothing when the rows live in a caller's slot
+  owned_to_eval_.reset();
+  to_eval_ = nullptr;
   log_file_.reset();
 }
 

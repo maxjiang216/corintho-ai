@@ -51,6 +51,9 @@ class TrainMC {
 
   /// @brief Set the root node to have the given game and depth
   void null_root() noexcept;
+  /// @brief Write future network inputs here instead
+  /// @details Only between iterations, after pending rows have been moved.
+  void set_to_eval(float *to_eval) noexcept { to_eval_ = to_eval; }
 
   /// @brief Write the game states for the positions we need to evaluate
   /// @details This is used when playing with the AI.

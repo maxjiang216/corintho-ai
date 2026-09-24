@@ -26,7 +26,16 @@ class Trainer {
   ~Trainer() = default;
 
   /// @brief Return the number of requests for evaluations
+  /// @details In training (to_play -1) this is the number of batch rows to
+  /// evaluate: searches_per_eval rows for every active game, including the
+  /// few rows a game left unused, whose outputs are ignored. 0 once every
+  /// game is done.
   int32_t num_requests(int32_t to_play = -1) const noexcept;
+  /// @brief The training batch, num_requests(-1) rows, to evaluate in place
+  /// @details Each active game owns one slot of searches_per_eval rows and
+  /// writes them during search, so nothing is copied. Results go back to
+  /// doIteration in the same row layout. Training only.
+  const float *requests() const noexcept;
   /// @brief Return the number of training samples
   int32_t num_samples() const noexcept;
   /// @brief Average score of first player
@@ -47,7 +56,8 @@ class Trainer {
 
   /// @brief Write the game states for which evaluations are requested
   /// @param game_states The array to write the game states to
-  /// @return The number of requests for evaluations
+  /// @details In training this copies requests(); prefer evaluating that
+  /// buffer in place.
   void writeRequests(float *game_states, int32_t to_play = -1) const noexcept;
   /// @brief Write the training samples
   void writeSamples(float *game_states, float *eval_samples,
@@ -70,6 +80,28 @@ class Trainer {
                   float c_puct, float epsilon, int32_t num_logged,
                   bool testing);
 
+  /// @brief Start of slot s in batch_
+  float *slotRows(int32_t s) noexcept;
+
+  /// @brief The training batch: one slot of searches_per_eval rows per game
+  /// @details Each game's search writes its network inputs straight into its
+  /// slot. Almost every slot is full at every iteration (15.91 of 16 rows on
+  /// average, worklog entry 23), so evaluating whole slots wastes ~0.6% of
+  /// rows, whereas packing them was a serial copy costing ~16% of engine time
+  /// at 20 threads. The active games' slots are kept a dense prefix: a game
+  /// takes the next slot when it starts, and when it finishes, the game in the
+  /// last active slot moves into its place (without that, finished games left
+  /// ~48% of rows empty in a 1000-game run). Empty in testing, where each call
+  /// serves only the games of one model and the requests are packed instead.
+  std::vector<float> batch_{};
+  /// @brief Slot of each game, -1 before it starts and after it finishes
+  std::vector<int32_t> slot_of_{};
+  /// @brief Game in each active slot
+  std::vector<int32_t> game_in_slot_{};
+  /// @brief Number of active slots, the prefix of batch_ to evaluate
+  int32_t num_active_{0};
+  /// @brief Number of games started so far; games start in index order
+  int32_t num_started_{0};
   /// @brief The self-play games
   std::vector<SelfPlayer> games_{};
   /// @brief Tracks which games are done
@@ -77,6 +109,8 @@ class Trainer {
   // parallel writes in doIteration() are read-modify-writes of a shared word
   // and can drop each other's updates. See worklog 2026-09-21.
   std::vector<uint8_t> is_done_{};
+  /// @brief Set once every game is done
+  bool all_done_{false};
   /// @brief Maximum number of searches per turn for the players
   /// @details This is used to compute offsets for starting the games
   int32_t max_searches_{1600};

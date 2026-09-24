@@ -31,7 +31,8 @@ class SelfPlayer {
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,
              std::unique_ptr<std::ofstream> log_file = nullptr,
-             bool testing = false, int32_t parity = 0);
+             bool testing = false, int32_t parity = 0,
+             float *to_eval = nullptr);
   SelfPlayer(SelfPlayer &&other) = default;
   ~SelfPlayer() = default;
 
@@ -62,6 +63,10 @@ class SelfPlayer {
   void writeSamples(float *game_states, float *eval_samples,
                     float *prob_samples) const noexcept;
 
+  /// @brief Move this game's network inputs to another buffer
+  /// @details The caller copies any pending rows first. Used by Trainer to
+  /// keep the slots of active games a dense prefix of its batch.
+  void set_to_eval(float *to_eval) noexcept;
   /// @brief Do an iteration of searches for the current player
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
@@ -86,8 +91,13 @@ class SelfPlayer {
   /// @brief Random generator for all operations
   /// @details Shared with the TrainMC objects
   std::mt19937 generator_{};
-  /// @brief Positions needing evaluation
-  std::unique_ptr<float[]> to_eval_{};
+  /// @brief Buffer owned by this game when none was passed in
+  std::unique_ptr<float[]> owned_to_eval_{};
+  /// @brief Positions needing evaluation, searches_per_eval rows
+  /// @details Either owned_to_eval_ or a slot in a buffer the caller owns
+  /// (Trainer's batch, in training), in which case the rows are written
+  /// straight into the network input and never copied.
+  float *to_eval_{nullptr};
   /// @brief Monte Carlo search trees for each player
   TrainMC players_[2];
   /// @brief Whose turn it is

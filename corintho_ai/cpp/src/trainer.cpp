@@ -36,7 +36,20 @@ Trainer::Trainer(int32_t num_games, const std::string &log_folder,
              epsilon, num_logged, testing);
 }
 
+float *Trainer::slotRows(int32_t s) noexcept {
+  return batch_.data() +
+         static_cast<size_t>(s) * searches_per_eval_ * kGameStateSize;
+}
+
+const float *Trainer::requests() const noexcept {
+  assert(!batch_.empty());
+  return batch_.data();
+}
+
 int32_t Trainer::num_requests(int32_t to_play) const noexcept {
+  // Training: whole slots, see batch_
+  if (to_play != 0 && to_play != 1)
+    return all_done_ ? 0 : searches_per_eval_ * num_active_;
   int32_t num_requests = 0;
   for (const auto &game : games_) {
     if (!is_done_[&game - &games_[0]] &&
@@ -117,13 +130,10 @@ void Trainer::writeRequests(float *game_states,
     }
     return;
   }
-  // Training mode
-  for (size_t i = 0; i < games_.size(); ++i) {
-    if (!is_done_[i]) {
-      games_[i].writeRequests(game_states + offset * kGameStateSize);
-      offset += games_[i].num_requests();
-    }
-  }
+  // Training mode: the slots are already a contiguous batch
+  const size_t count =
+      static_cast<size_t>(num_requests(to_play)) * kGameStateSize;
+  std::copy(batch_.data(), batch_.data() + count, game_states);
 }
 
 void Trainer::writeSamples(float *game_states, float *eval_samples,
@@ -190,14 +200,23 @@ void Trainer::writeScores(const std::string &filename) const {
 bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
   // Training
   if (to_play != 0 && to_play != 1) {
-    // Compute offsets for evaluations and probabilities since we use
-    // multiprocessing.
-    int32_t offset = 0;
-    int32_t offsets[games_.size()] = {0};
-    for (size_t i = 1; i < games_.size(); ++i) {
-      offset += games_[i - 1].num_requests();
-      offsets[i] = offset;
+    // We offset the start of the games to try to get an even distribution
+    // of the games across the number of searches in a move. This way, the
+    // total number of nodes will be more even. This reduces peak memory
+    // usage. Avoid division by 0 in the rare case that games_.size() <
+    // max_searches_. Games start in index order, each taking the next slot.
+    const size_t stride =
+        std::max(games_.size() / max_searches_, static_cast<size_t>(1));
+    const auto due = gsl::narrow_cast<int32_t>(std::min(
+        games_.size(), (static_cast<size_t>(searches_done_) + 1) * stride));
+    for (; num_started_ < due; ++num_started_) {
+      slot_of_[num_started_] = num_active_;
+      game_in_slot_[num_active_] = num_started_;
+      games_[num_started_].set_to_eval(slotRows(num_active_));
+      ++num_active_;
     }
+    // A game's results are in its slot, rows [slot * searches_per_eval_, ...)
+    const size_t rows = static_cast<size_t>(searches_per_eval_);
     omp_set_num_threads(num_threads_);
     // Dynamic, one game at a time: a static schedule gives each thread a
     // contiguous range of games, and both the staggered starts above and the
@@ -206,17 +225,11 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
 #pragma omp parallel for schedule(dynamic, 1)
     for (size_t i = 0; i < games_.size(); ++i) {
       if (!is_done_[i]) {
-        // We offset the start of the games to try to get an even distribution
-        // of the games across the number of searches in a move. This way, the
-        // total number of nodes will be more even. This reduces peak memory
-        // usage. Avoid division by 0 in the rare case that games_.size() <
-        // max_searches_
-        if (i / std::max(games_.size() / max_searches_,
-                         static_cast<size_t>(1)) <=
-            static_cast<size_t>(searches_done_)) {
+        if (slot_of_[i] >= 0) {
+          const size_t first = static_cast<size_t>(slot_of_[i]) * rows;
           // First search does not depend on pointers being null
-          bool done = games_[i].doIteration(eval + offsets[i],
-                                            probs + kNumMoves * offsets[i]);
+          bool done =
+              games_[i].doIteration(eval + first, probs + kNumMoves * first);
           // Game is done
           if (done) {
             is_done_[i] = true;
@@ -225,12 +238,32 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
       }
     }
     ++searches_done_;
+    // Keep the active slots a dense prefix: the game in the last active slot
+    // moves into each finished game's slot, bringing the rows it has just
+    // written. One small copy per finished game, not one per iteration.
+    bool all_done = true;
     for (size_t i = 0; i < games_.size(); ++i) {
       if (!is_done_[i]) {
-        return false;
+        all_done = false;
+        continue;
       }
+      const int32_t s = slot_of_[i];
+      if (s < 0)
+        continue;
+      const int32_t last = num_active_ - 1;
+      if (s != last) {
+        const int32_t moved = game_in_slot_[last];
+        std::copy(slotRows(last), slotRows(last) + rows * kGameStateSize,
+                  slotRows(s));
+        games_[moved].set_to_eval(slotRows(s));
+        slot_of_[moved] = s;
+        game_in_slot_[s] = moved;
+      }
+      slot_of_[i] = -1;
+      --num_active_;
     }
-    return true;
+    all_done_ = all_done;
+    return all_done;
   }
   // Testing
   int32_t offset = 0;
@@ -272,17 +305,32 @@ void Trainer::initialize(int32_t num_games, const std::string &log_folder,
                          float c_puct, float epsilon, int32_t num_logged,
                          bool testing) {
   games_.reserve(num_games);
+  // Training games write their network inputs into their own slot of one
+  // shared batch (see batch_); testing games keep their own buffers.
+  if (!testing) {
+    batch_.assign(static_cast<size_t>(num_games) * searches_per_eval *
+                      kGameStateSize,
+                  0.0F);
+    slot_of_.assign(num_games, -1);
+    game_in_slot_.assign(num_games, -1);
+  }
+  auto slot = [&](int32_t i) -> float * {
+    return testing ? nullptr
+                   : batch_.data() + static_cast<size_t>(i) *
+                                         searches_per_eval * kGameStateSize;
+  };
   for (int32_t i = 0; i < num_logged; ++i) {
     games_.emplace_back(
         generator_(), max_searches, searches_per_eval, c_puct, epsilon,
         std::make_unique<std::ofstream>(log_folder + "/game_" +
                                             std::to_string(i) + ".txt",
                                         std::ofstream::out),
-        testing, i % 2);  // Generate parity for test games (changes who plays
-                          // first). Does not affect training games
+        testing, i % 2,  // Generate parity for test games (changes who plays
+                         // first). Does not affect training games
+        slot(i));
   }
   for (int32_t i = num_logged; i < num_games; ++i) {
     games_.emplace_back(generator_(), max_searches, searches_per_eval, c_puct,
-                        epsilon, nullptr, testing, i % 2);
+                        epsilon, nullptr, testing, i % 2, slot(i));
   }
 }

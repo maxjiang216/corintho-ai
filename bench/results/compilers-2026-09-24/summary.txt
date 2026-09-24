@@ -1,0 +1,106 @@
+PGO experiment: /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24
+
+== provenance.txt
+date:      2026-09-24T08:42:47-07:00
+commit:    1245285c2bc015b22ec57a04a261a11ddad8fa9d
+dirty:     no
+compiler:  base: g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+compiler:  gcc14: g++-14 (Ubuntu 14.2.0-4ubuntu2~24.04.1) 14.2.0
+compiler:  clang20: Ubuntu clang version 20.1.2 (0ubuntu1~24.04.3)
+cxxflags:  -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+ldflags:   -fopenmp -flto -O3 -march=native
+cpu:        12th Gen Intel(R) Core(TM) i7-12700H
+governor:  powersave
+power:     1 0 
+model:     /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp (0da98eedcec00bbb)
+train:     300 games, 1 threads, seed 777
+arms:      base gcc14 clang20
+sizes:     gate 300, mt 20 x 1000, st 20 x 200
+
+== binary-sizes.txt
+1475112 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/base/selfplay_nn
+773456 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/clang20/selfplay_nn
+1496760 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/gcc14/selfplay_nn
+
+== inspect.txt
+== base: TrainMC::doIteration 2547 instructions, 23 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    3 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_insert<Node* const&>(__gnu_cxx::__normal_iterator<Node**, std::vector<Node*, std::allocator<Node*> > >, Node* const&)>
+== gcc14: TrainMC::doIteration 2529 instructions, 22 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_append<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    2 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_append<Node* const&>(Node* const&)>
+== clang20: TrainMC::doIteration 878 instructions, 25 call sites
+    1 <Node::operator delete(void*)>
+    2 <operator new(unsigned long)@plt>
+    2 <operator delete(void*, unsigned long)@plt>
+    2 <memcpy@plt>
+    3 <Node::writeGameState(float*) const>
+    3 <Arena::grow()>
+    1 <TrainMC::receiveEval(float*, float*)>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <_Unwind_Resume@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <sqrt@plt>
+    2 <Node::promoteBestEdge(int)>
+    1 <std::__throw_length_error(char const*)@plt>
+    1 <Node::initializeEdges()>
+
+== gates.txt
+base #METRIC digest_game d8f9bd2d22ee9731
+base #METRIC digest_engine d7581196f9d30591
+base verify PASS
+gcc14 #METRIC digest_game d8f9bd2d22ee9731
+gcc14 #METRIC digest_engine d7581196f9d30591
+gcc14 verify PASS
+clang20 #METRIC digest_game d8f9bd2d22ee9731
+clang20 #METRIC digest_engine d7581196f9d30591
+clang20 verify PASS
+base sample seed 1 2147e3071a27cc4d 8532 MATCH
+gcc14 sample seed 1 2147e3071a27cc4d 8532 MATCH
+clang20 sample seed 1 2147e3071a27cc4d 8532 MATCH
+base sample seed 2 a988f67a0c984be7 8533 MATCH
+gcc14 sample seed 2 a988f67a0c984be7 8533 MATCH
+clang20 sample seed 2 a988f67a0c984be7 8533 MATCH
+base sample seed 3 dcb1745df12a1ba0 8390 MATCH
+gcc14 sample seed 3 dcb1745df12a1ba0 8390 MATCH
+clang20 sample seed 3 dcb1745df12a1ba0 8390 MATCH
+base sample seed 4 e0db31d1d69b6456 8493 MATCH
+gcc14 sample seed 4 e0db31d1d69b6456 8493 MATCH
+clang20 sample seed 4 e0db31d1d69b6456 8493 MATCH
+ALL GATES PASS
+
+== timing (arm vs base, paired by seed; negative = faster)
+
+mt (real network, 20 threads); base engine mean 7.301 s
+  clang20  engine_s  n=20   -4.43%  (95% CI  -4.90 to  -3.96)
+  clang20  wall_s    n=20  -26.11%  (95% CI -26.45 to -25.77)
+  clang20  turns identical to base on 20 of 20 seeds
+  gcc14    engine_s  n=20   -0.41%  (95% CI  -0.95 to  +0.14)
+  gcc14    wall_s    n=20   -2.37%  (95% CI  -2.84 to  -1.89)
+  gcc14    turns identical to base on 20 of 20 seeds
+
+st (stub, 1 thread pinned); base engine mean 3.052 s
+  clang20  engine_s  n=20  -12.55%  (95% CI -13.63 to -11.46)
+  clang20  wall_s    n=20  -11.18%  (95% CI -12.07 to -10.28)
+  clang20  turns identical to base on 20 of 20 seeds
+  gcc14    engine_s  n=20   -0.45%  (95% CI  -1.58 to  +0.68)
+  gcc14    wall_s    n=20   -0.49%  (95% CI  -1.36 to  +0.38)
+  gcc14    turns identical to base on 20 of 20 seeds
+
+== package temperature: max 94 C, mean 91 C over 35 minutes

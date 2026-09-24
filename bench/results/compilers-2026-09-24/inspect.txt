@@ -1,0 +1,37 @@
+== base: TrainMC::doIteration 2547 instructions, 23 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    3 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_insert<Node* const&>(__gnu_cxx::__normal_iterator<Node**, std::vector<Node*, std::allocator<Node*> > >, Node* const&)>
+== gcc14: TrainMC::doIteration 2529 instructions, 22 call sites
+    3 <operator delete[](void*)@plt>
+    3 <void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_append<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <sqrt@plt>
+    3 <operator new[](unsigned long)@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <__stack_chk_fail@plt>
+    3 <memset@plt>
+    1 <Node::initializeEdges()>
+    2 <void std::vector<Node*, std::allocator<Node*> >::_M_realloc_append<Node* const&>(Node* const&)>
+== clang20: TrainMC::doIteration 878 instructions, 25 call sites
+    1 <Node::operator delete(void*)>
+    2 <operator new(unsigned long)@plt>
+    2 <operator delete(void*, unsigned long)@plt>
+    2 <memcpy@plt>
+    3 <Node::writeGameState(float*) const>
+    3 <Arena::grow()>
+    1 <TrainMC::receiveEval(float*, float*)>
+    2 <Node::Node(Game const&, Node*, Node*, int, int)>
+    1 <_Unwind_Resume@plt>
+    3 <__cxa_thread_atexit@plt>
+    1 <sqrt@plt>
+    2 <Node::promoteBestEdge(int)>
+    1 <std::__throw_length_error(char const*)@plt>
+    1 <Node::initializeEdges()>

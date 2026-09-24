@@ -1,0 +1,15 @@
+date:      2026-09-24T08:42:47-07:00
+commit:    1245285c2bc015b22ec57a04a261a11ddad8fa9d
+dirty:     no
+compiler:  base: g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+compiler:  gcc14: g++-14 (Ubuntu 14.2.0-4ubuntu2~24.04.1) 14.2.0
+compiler:  clang20: Ubuntu clang version 20.1.2 (0ubuntu1~24.04.3)
+cxxflags:  -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+ldflags:   -fopenmp -flto -O3 -march=native
+cpu:        12th Gen Intel(R) Core(TM) i7-12700H
+governor:  powersave
+power:     1 0 
+model:     /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp (0da98eedcec00bbb)
+train:     300 games, 1 threads, seed 777
+arms:      base gcc14 clang20
+sizes:     gate 300, mt 20 x 1000, st 20 x 200

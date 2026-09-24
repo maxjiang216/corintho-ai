@@ -1,0 +1,12 @@
+Creating experiment directory /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/gp-mt-7.er (Process ID: 790887) ...
+Corintho self-play engine benchmark (real network: /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp)
+games 2000  max_searches 1600  searches_per_eval 16  threads 20  seed 7
+self-play (engine)     18.495 s
+gather requests         2.875 s
+network evaluation     52.581 s
+turns per game          28.39
+#METRIC engine_seconds 18.4947
+#METRIC gather_seconds 2.8746
+#METRIC wall_seconds 73.9523
+#METRIC turns 56786
+#METRIC requests 71526434

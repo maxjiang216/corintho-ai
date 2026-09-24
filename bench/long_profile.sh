@@ -130,9 +130,9 @@ do_gprof_mt() {
     rm -rf "$exp"
     cooldown
     gprofng collect app -p hi -o "$exp" "$BIN/selfplay_nn" - "$M" "$G_MT" 1600 16 20 "$seed" \
-      > "$OUT/gp-mt-$seed.out" 2>&1 || return 1
+      > "$OUT/gp-mt-$seed.log" 2>&1 || return 1
     touch "$exp.ok"
-    log "gprof_mt seed $seed: $(grep -E 'engine_seconds|wall_seconds' "$OUT/gp-mt-$seed.out" | awk '{printf "%s=%s ", $2, $3}')"
+    log "gprof_mt seed $seed: $(grep -E 'engine_seconds|wall_seconds' "$OUT/gp-mt-$seed.log" | awk '{printf "%s=%s ", $2, $3}')"
   done
 }
 
@@ -141,7 +141,7 @@ do_gprof_st() {
   rm -rf "$exp"
   cooldown
   taskset -c 0 gprofng collect app -p hi -o "$exp" "$BIN/selfplay_nn" - "$M" "$G_ST" 1600 16 1 1 \
-    > "$OUT/gp-st.out" 2>&1
+    > "$OUT/gp-st.log" 2>&1
 }
 
 do_reports() {
@@ -166,7 +166,7 @@ do_callgrind() {
   cooldown
   valgrind --tool=callgrind --cache-sim=yes --branch-sim=yes --collect-atstart=no \
     --toggle-collect='Trainer::doIteration*' --callgrind-out-file="$cg" \
-    "$BIN/selfplay_nn" - "$M" "$G_CG" 1600 16 1 901 > "$OUT/callgrind.stdout" 2>&1 &
+    "$BIN/selfplay_nn" - "$M" "$G_CG" 1600 16 1 901 > "$OUT/callgrind.log" 2>&1 &
   local pid=$!
   # Periodic dumps: each writes callgrind.out.<n> with the counts so far
   ( while kill -0 $pid 2>/dev/null; do

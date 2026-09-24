@@ -20,6 +20,10 @@ CXX      ?= g++
 SRC_DIR  := ../corintho_ai/cpp/src
 INC      := -I../corintho_ai/cpp/include -I../gsl/include -I.
 CXXFLAGS := -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# Header dependencies: every object also writes a .d file listing the headers
+# it included, and those are pulled in below. Without this, changing a header
+# left stale objects that LTO then reported as One Definition Rule violations.
+DEPFLAGS := -MMD -MP
 LDFLAGS  := -fopenmp -flto -O3 -march=native
 
 BUILD := build
@@ -47,31 +51,31 @@ $(BUILD):
 	@mkdir -p $(BUILD)
 
 $(BUILD)/%.o: $(SRC_DIR)/%.cpp | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/micro.o: micro.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/selfplay.o: selfplay.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/selfplay_nn.o: selfplay_nn.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -DBENCH_DIR='"$(CURDIR)"' -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -DBENCH_DIR='"$(CURDIR)"' -c $< -o $@
 
 $(BUILD)/mlp_bench.o: mlp_bench.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/golden.o: golden.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/verify.o: verify.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/rulecheck.o: rulecheck.cpp bench_util.h | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/parity.o: parity.cpp | $(BUILD)
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -117,6 +121,8 @@ verify: $(BUILD)/verify
 # line-breaking defects in worklog/RULES-CHECKLIST.md item 4 are fixed.
 rulecheck: $(BUILD)/rulecheck
 	@./$(BUILD)/rulecheck
+
+-include $(wildcard $(BUILD)/*.d)
 
 clean:
 	rm -rf $(BUILD) build-lines build-a build-b perf.data cg.out

@@ -38,6 +38,7 @@ none of it has yet been shown to move strength.
 | 24 | [batch slots](2026-09-23-24-batch-slots.md) | Games write network inputs into fixed slots of the Trainer's batch, compacted as games finish. **Serial gather gone: −16% engine+gather at 20 threads**, same games, +0.56% rows. The first version without compaction was +48% rows. Makefile header dependencies fixed. |
 | 25 | [child stats updates](2026-09-23-25-child-stats-updates.md) | syncStats: store only the changed field, flags only on change, one update per level per pass. **−2.6% at 20 threads**, bit-identical. The parent-only-copy design (B) was slower: **it turned store misses into load misses.** Why 18.8% of CPU became 2.6%. |
 | 26 | [selection vectorized](2026-09-23-26-selection-vectorized.md) | chooseNext scores all children branch-free (bit-mask selects, `Edge` without bitfields), then takes the first max: the loop vectorizes. **−4.5% at 20 threads** (−13.6% stub single-thread), bit-identical. Float instead of double is next, not bit-identical. |
+| 27 | [PGO](2026-09-24-27-pgo.md) | GCC PGO trained on real-network games: bit-identical but **+3.2% slower**. The CPU network is 97% of profile counts and set the "hot" cutoff above once-per-search code, so hot calls were un-inlined ("call is unlikely"). Without the network profile: **−0.1%, neutral**. Stub 12–15% slower in every arm. Not adopted; the harness stays for compiler comparisons. |
 
 ## Session 2026-09-23: the network in-process, the long profile, and three engine changes (entries 18–26)
 
@@ -124,7 +125,9 @@ trusting any stub-only result.
   4. Tree teardown in bulk.
   5. `receiveEval` and Dirichlet cache misses.
 
-  Then PGO and clang, then the driver (entry 21).
+  Then ~~PGO~~ (entry 27: neutral at best, not adopted), clang-20 / g++-14
+  arms in `bench/pgo_experiment.sh` (needs `apt install`), manual hints
+  (cold paths, prefetch in backup), then the driver (entry 21).
   - Rank on real-network, 20-thread engine time with paired seeds.
   - Scaling is near hardware capacity (9.1× on 20 threads), so entry 22's
     memory-bound guess is weakened.

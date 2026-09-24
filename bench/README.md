@@ -133,6 +133,30 @@ checkpoint dumps. Each dump zeroes the counters, and later dumps refer back to
 names defined in earlier ones, so `callgrind_annotate` cannot read them one at
 a time.
 
+### `pgo_experiment.sh <model.mlp> [out_dir]` and `pgo_analyze.py <out_dir>`
+
+Compares build variants ("arms") of the same commit, unattended and resumable
+like `long_profile.sh`:
+
+1. build each arm;
+2. gates for each arm: golden, verify, and `SAMPLE_DIGEST` on seeds 1–4
+   against the recorded baselines;
+3. paired timing: all arms back to back per seed, in rotated order, with the
+   real network at 20 threads (`mt`) and the stub pinned to one thread
+   (`st`).
+
+`ARMS` picks the arms:
+
+- `base`;
+- `pgo`, `partial`, `engine`, `frac`: GCC PGO variants trained on
+  real-network self-play.
+
+`inspect.txt` records the size of `TrainMC::doIteration` and the calls left
+in it per arm, and `inline-<arm>.txt` holds GCC's missed-inlining report.
+`pgo_analyze.py` writes `summary.txt` with paired percentage changes and 95%
+CIs. Results are in `results/pgo-2026-09-2{3,4}/`; worklog entry 27 has the
+analysis (PGO not adopted).
+
 ## Measurement doctrine: decide on single thread, watch multi
 
 **Measure and decide on single-threaded. Record multi-threaded as a guardrail

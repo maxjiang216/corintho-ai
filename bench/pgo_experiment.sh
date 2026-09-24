@@ -17,6 +17,9 @@
 #              "hot" code
 #   frac     + -fprofile-use with the hot cutoff lowered
 #              (hot-bb-count-fraction, hot-bb-count-ws-permille)
+#   gcc14    base flags, built with g++-14
+#   clang20  base flags, built with clang++-20 (OpenMP runtime: libomp,
+#              from libomp-20-dev; the GCC arms use libgomp)
 #
 # ARMS selects which run (default "base pgo partial"; base is required).
 #
@@ -26,7 +29,7 @@
 #
 # Steps:
 #   build    base binaries; instrumented binaries (-fprofile-generate)
-#   train    instrumented selfplay_nn, real network, TRAIN_GAMES games,
+#   train    (only when a PGO arm is selected) instrumented selfplay_nn, real network, TRAIN_GAMES games,
 #            TRAIN_THREADS (1) thread pinned to CPU 0, seed 777 (not a
 #            timing or gate seed)
 #   pgo      rebuild with the profile, every PGO arm; inspect.txt records
@@ -112,23 +115,35 @@ TARGETS="selfplay_nn selfplay_bench golden verify"
 # object's full path: the -fprofile-use build must write its objects where
 # the -fprofile-generate build wrote them.
 build_arm() {
-  local arm=$1 extra=$2 link=${3:-} b=$OUT/objs
+  local arm=$1 extra=$2 link=${3:-} b=$OUT/objs cxx
+  cxx=$(arm_cxx "$arm")
   rm -rf "$b"
   local t targets=""
   for t in $TARGETS; do targets="$targets $b/$t"; done
-  make -C "$BENCH" BUILD="$b" CXXFLAGS="$BASE_CXX $extra" LDFLAGS="$BASE_LD $extra $link" \
+  make -C "$BENCH" BUILD="$b" CXX="$cxx" CXXFLAGS="$BASE_CXX $extra" LDFLAGS="$BASE_LD $extra $link" \
     $targets > "$OUT/build-$arm.log" 2>&1 || return 1
   mkdir -p "$OUT/bin/$arm"
   for t in $TARGETS; do cp "$b/$t" "$OUT/bin/$arm/"; done
   rm -rf "$b"
 }
 
+arm_cxx() {  # arm_cxx <arm>: the compiler that builds an arm
+  case $1 in
+    gcc14)   echo g++-14 ;;
+    clang20) echo clang++-20 ;;
+    *)       echo g++ ;;
+  esac
+}
+is_pgo() { case $1 in pgo|partial|engine|frac) return 0 ;; esac; return 1; }
+needs_profile() { local a; for a in $ARMS; do is_pgo "$a" && return 0; done; return 1; }
+
 do_build() {
   {
     echo "date:      $(date -Is)"
     echo "commit:    $(git -C "$BENCH" rev-parse HEAD)"
     echo "dirty:     $(git -C "$BENCH" diff --quiet -- . ../corintho_ai/cpp && echo no || echo yes)"
-    echo "compiler:  $(g++ --version | head -1)"
+    local a
+    for a in $ARMS; do echo "compiler:  $a: $($(arm_cxx "$a") --version | head -1)"; done
     echo "cxxflags:  $BASE_CXX"
     echo "ldflags:   $BASE_LD"
     echo "cpu:       $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2)"
@@ -142,6 +157,7 @@ do_build() {
   printf '%s\n' 'bin/' 'objs/' 'model.mlp' 'run.*' 'pgo-data*/' 'inline-*.txt' > "$OUT/.gitignore"
   cp "$MODEL_SRC" "$M" || return 1
   build_arm base "" || return 1
+  needs_profile || return 0
   # Training runs single-threaded with plain counters. Multi-threaded
   # training needs atomic counters (-fprofile-update=prefer-atomic), and 20
   # threads incrementing the same counters made the run several hundred times
@@ -152,6 +168,7 @@ do_build() {
 }
 
 do_train() {
+  needs_profile || return 0
   rm -rf "$PROF"
   cooldown
   taskset -c 0 "$OUT/bin/gen/selfplay_nn" - "$M" "$TRAIN_GAMES" 1600 16 "$TRAIN_THREADS" 777 > "$OUT/train.log" 2>&1 || return 1
@@ -166,6 +183,7 @@ arm_flags() {  # arm_flags <arm>: compiler flags for a PGO arm
     partial) echo "-fprofile-use=$PROF -fprofile-partial-training" ;;
     engine)  echo "-fprofile-use=$OUT/pgo-data-engine" ;;
     frac)    echo "-fprofile-use=$PROF --param=hot-bb-count-fraction=1000000 --param=hot-bb-count-ws-permille=999" ;;
+    gcc14|clang20) echo "" ;;
     *)       return 1 ;;
   esac
 }
@@ -182,15 +200,21 @@ inspect() {  # inspect <arm>
 }
 
 do_pgo() {
-  # The engine arm's profile: everything but the network's
-  rm -rf "$OUT/pgo-data-engine"
-  cp -r "$PROF" "$OUT/pgo-data-engine"
-  find "$OUT/pgo-data-engine" -name 'mlp.gcda' -delete
+  if needs_profile; then
+    # The engine arm's profile: everything but the network's
+    rm -rf "$OUT/pgo-data-engine"
+    cp -r "$PROF" "$OUT/pgo-data-engine"
+    find "$OUT/pgo-data-engine" -name 'mlp.gcda' -delete
+  fi
   local arm
   for arm in $ARMS; do
     [ "$arm" = base ] && continue
-    build_arm "$arm" "$(arm_flags "$arm") -Wno-missing-profile" \
-      "-fopt-info-inline-missed=$OUT/inline-$arm.txt" || return 1
+    if is_pgo "$arm"; then
+      build_arm "$arm" "$(arm_flags "$arm") -Wno-missing-profile" \
+        "-fopt-info-inline-missed=$OUT/inline-$arm.txt" || return 1
+    else
+      build_arm "$arm" "$(arm_flags "$arm")" || return 1
+    fi
     # A profile that silently failed to apply would make the arm a copy of
     # base. Identical binaries are the tell.
     if cmp -s "$OUT/bin/base/selfplay_nn" "$OUT/bin/$arm/selfplay_nn"; then

@@ -1,0 +1,12 @@
+# Rows per active game per iteration. TEMPORARY instrumentation in Trainer::writeRequests (not committed):
+# histogram of games_[i].num_requests() over games that are not done and have started (the staggered-start
+# condition), counted every iteration. selfplay_nn - model_93.mlp <games> 1600 16 20 901, commit b104569 + patch.
+
+== 1000 games
+#FILL iterations 3809 game_iterations 2256482 rows 35903101 unstarted_game_iterations 499500
+rows 0: 0 | 1: 3872 | 2: 1250 | 3: 1219 | 4: 1241 | 5: 1290 | 6: 1245 | 7: 1271 | 8: 1397 | 9: 1365
+rows 10: 1488 | 11: 1588 | 12: 1608 | 13: 1706 | 14: 1904 | 15: 3256 | 16: 2230782
+== 2000 games
+#FILL iterations 4764 game_iterations 4517805 rows 71883326 unstarted_game_iterations 1999000
+rows 0: 0 | 1: 7713 | 2: 2498 | 3: 2470 | 4: 2485 | 5: 2498 | 6: 2554 | 7: 2621 | 8: 2719 | 9: 2833
+rows 10: 3007 | 11: 3156 | 12: 3193 | 13: 3335 | 14: 3805 | 15: 6558 | 16: 4466360

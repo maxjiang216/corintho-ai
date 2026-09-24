@@ -200,3 +200,43 @@ real-network 20-thread paired A/Bs. Item 1 is a driver change.
   `-gdwarf-4`. Untested.
 - gprofng's "main thread" view does not isolate serial work under OpenMP.
   Explicit timers do (`gather_seconds`).
+
+## Addendum: how full is each game's slot? (for the gather fix)
+
+To remove the serial gather, the choice is between two schemes:
+
+- **fixed slots:** game *i* always owns batch rows 16*i* … 16*i*+15 and writes
+  there during search, with no copy and no offsets;
+- **count, prefix sum, write:** rows are packed, and their positions are
+  computed each iteration.
+
+The developer expected few games to produce fewer than 16 rows. Measured
+with temporary instrumentation (`data/batch-fill/runs.txt`):
+
+| | 1,000 games | 2,000 games |
+|---|---|---|
+| active game-iterations | 2,256,482 | 4,517,805 |
+| with all 16 rows | **98.9%** | 98.9% |
+| rows per active game-iteration | **15.91 (99.4% full)** | 15.91 |
+| unstarted game-iterations (staggered start) | 499,500 | 1,999,000 |
+
+**Correction.** Entries 20, 21 and the discussion around them said each game
+adds ~12.5 rows per batch, from 1,255 requests per 1,600 searches. That was
+wrong. A descent that ends on a terminal position produces no row, but
+`TrainMC::doIteration` keeps searching until it has 16 rows
+(`while searched_.size() < searches_per_eval_`). Terminal descents cost extra
+searches, not empty slots. Partial batches only come from a turn ending
+mid-batch, or from a root that is solved early. So **16k rows ≈ 1,000 games
+in flight, not 1,300**, and memory for a given GPU batch is ~20% lower than
+estimated.
+
+Consequence for the design:
+
+- **Training uses fixed slots.** The empty rows are ~0.6% in steady state.
+  - Ramp-up: slots are handed out in start order, and only the started prefix
+    is sent, so there are no holes.
+  - Tail at the end of a generation: evaluate the holes, or compact once
+    occupancy falls.
+- **Testing keeps compaction.** Each call serves only the games whose current
+  player uses one model, and that set flips every move. Fixed slots would be
+  ~50% empty there.

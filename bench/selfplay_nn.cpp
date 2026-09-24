@@ -27,6 +27,9 @@
 // includes it. "requests" counts evaluated rows, including the few unused rows
 // in partly filled slots and the slots of finished games.
 //
+// SAMPLE_DIGEST=1 in the environment prints a hash of every training sample,
+// a behavioural fingerprint at full search depth with the real network.
+//
 // engine_seconds excludes the network, so engine timings are comparable with
 // selfplay_bench's. Wall time is dominated by inference and is not.
 
@@ -210,6 +213,33 @@ int main(int argc, char **argv) {
   }
 
   const int32_t turns = trainer.num_samples();
+  if (std::getenv("SAMPLE_DIGEST") != nullptr) {
+    // FNV-1a over every training sample (positions, value targets, policy
+    // targets) and the score, as golden.cpp does for its engine digest. The
+    // policy targets are root visit distributions, so any change in search
+    // statistics changes this. Games are written in index order, so it does
+    // not depend on the thread count.
+    std::vector<float> states(
+        static_cast<size_t>(turns) * kGameStateSize * kNumSymmetries);
+    std::vector<float> values(static_cast<size_t>(turns) * kNumSymmetries);
+    std::vector<float> policies(
+        static_cast<size_t>(turns) * kNumMoves * kNumSymmetries);
+    trainer.writeSamples(states.data(), values.data(), policies.data());
+    uint64_t hash = 0xCBF29CE484222325ULL;
+    auto add = [&hash](const void *data, size_t bytes) {
+      const auto *p = static_cast<const uint8_t *>(data);
+      for (size_t i = 0; i < bytes; ++i)
+        hash = (hash ^ p[i]) * 0x100000001B3ULL;
+    };
+    add(&turns, sizeof(turns));
+    add(states.data(), states.size() * sizeof(float));
+    add(values.data(), values.size() * sizeof(float));
+    add(policies.data(), policies.size() * sizeof(float));
+    const float score = trainer.score();
+    add(&score, sizeof(score));
+    std::printf("#METRIC sample_digest %016llx\n",
+                static_cast<unsigned long long>(hash));
+  }
   std::printf("self-play (engine)   %8.3f s\n", play_time);
   std::printf("gather requests      %8.3f s\n", gather_time);
   std::printf("network evaluation   %8.3f s\n", eval_time);

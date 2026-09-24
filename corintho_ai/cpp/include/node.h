@@ -105,6 +105,9 @@ class alignas(64) Node {
   void promoteBestEdge(int32_t first) noexcept;
   void increment_visits() noexcept;
   void decrement_visits() noexcept;
+  /// @brief One visit plus an evaluation change, as a descent through this
+  /// node records it: the same as increment_visits then increase_evaluation
+  void add_visit(float evaluation) noexcept;
   void increase_evaluation(float d) noexcept;
   void decrease_evaluation(float d) noexcept;
   void null_parent() noexcept;
@@ -119,10 +122,16 @@ class alignas(64) Node {
   /// @brief The children's selection statistics, in slot order
   /// @details Slot i is the child created i-th, which is also edge i and the
   /// i-th node of the child list (chooseNext keeps visited edges a prefix).
-  /// Each child writes its own entry whenever its evaluation, visits, result
-  /// or all_visited change, so these always equal the child's own fields.
   /// They exist so that selection reads contiguous arrays in the parent
   /// instead of chasing the child list through scattered nodes.
+  ///
+  /// Each child keeps its own evaluation and visits too, and every update
+  /// changes the child's field and then stores just that field here. The
+  /// flags are derived from the child's result and all_visited and are
+  /// rewritten only when either changes. Until worklog entry 25 every update
+  /// rewrote all three entries and recomputed the flags, four times per node
+  /// per search; keeping the child's copy (rather than making this the only
+  /// copy) is deliberate, see entry 25.
   struct ChildStats {
     Node *const *child;
     const float *evaluation;
@@ -194,8 +203,20 @@ class alignas(64) Node {
   /// @brief Register a new child, growing the statistics block if needed
   /// @returns The child's slot
   int8_t addChild(Node *child);
-  /// @brief Write this node's statistics into its parent's slot for it
-  void syncStats() noexcept;
+  /// @brief This node's entries in its parent's child statistics
+  struct StatsSlot {
+    float *evaluation;
+    float *visits;
+    uint8_t *flags;
+  };
+  /// @pre parent_ is not null
+  StatsSlot statsSlot() const noexcept;
+  /// @brief Selection flags for this node, from its result and all_visited
+  uint8_t selectionFlags() const noexcept;
+  /// @brief Rewrite this node's flags in its parent's statistics, if any
+  void syncFlags() noexcept;
+  /// @brief Fill this node's slot from its own fields when it is created
+  void registerStats() noexcept;
 
   /// @brief Initialize the edges of this node
   void initializeEdges();

@@ -663,7 +663,7 @@ void TrainMC::search() {
   while (!cur_->terminal()) {
     // Choose the next node to move down to
     ChooseNextOutput res = chooseNext();
-    cur_->increment_visits();
+    // Count the visit and add the default evaluation below in one update.
     // We use a default evaluation of 1.0 before we have a neural net
     // evaluation This helps diversify the searches. In particular, the second
     // player has a large advantage in Corintho, so most positions the first
@@ -677,7 +677,7 @@ void TrainMC::search() {
     // visited gets this default, as opposed to a leaf node getting it and
     // having it propagate the normal way. This ensures that visited nodes are
     // maximally unlikely to get visited again.
-    cur_->increase_evaluation(1.0);
+    cur_->add_visit(1.0);
     // If no nodes were searched, this means all nodes are all_visited
     // or won or lost positions
     // This node is then all_visited

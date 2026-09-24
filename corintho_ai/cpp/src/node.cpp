@@ -46,7 +46,7 @@ Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
   // Take a slot in the parent's child statistics, then fill it. After
   // initializeEdges, so a terminal result is already known.
   slot_ = parent_->addChild(this);
-  syncStats();
+  registerStats();
 }
 
 Game Node::game() const noexcept {
@@ -139,7 +139,8 @@ void Node::set_first_child(Node *first_child) noexcept {
 
 void Node::set_evaluation(float evaluation) noexcept {
   evaluation_ = evaluation;
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().evaluation = evaluation_;
 }
 
 void Node::set_denominator(float denominator) noexcept {
@@ -149,17 +150,22 @@ void Node::set_denominator(float denominator) noexcept {
 
 void Node::set_visits(int32_t visits) noexcept {
   visits_ = gsl::narrow_cast<int16_t>(visits);
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().visits = static_cast<float>(visits_);
 }
 
 void Node::set_result(Result result) noexcept {
   result_ = result;
-  syncStats();
+  syncFlags();
 }
 
 void Node::set_all_visited(bool all_visited) noexcept {
+  // Backup clears this on every node of the path, and it is almost always
+  // already clear, so skip the write into the parent when nothing changes
+  if (all_visited_ == all_visited)
+    return;
   all_visited_ = all_visited;
-  syncStats();
+  syncFlags();
 }
 
 void Node::set_probability(int32_t i, int32_t probability) noexcept {
@@ -188,24 +194,43 @@ void Node::promoteBestEdge(int32_t first) noexcept {
   std::swap(block_->edges[first], block_->edges[best]);
 }
 
+// Each update changes this node's own field, then stores only that field into
+// the parent's statistics. The store never reads the parent's line, so a miss
+// on it (common in backup, whose path is cold) does not stall: see worklog
+// entry 25, where updating the parent's entry in place instead turned these
+// store misses into load misses.
 void Node::increment_visits() noexcept {
   ++visits_;
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().visits = static_cast<float>(visits_);
 }
 
 void Node::decrement_visits() noexcept {
   --visits_;
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().visits = static_cast<float>(visits_);
+}
+
+void Node::add_visit(float evaluation) noexcept {
+  ++visits_;
+  evaluation_ += evaluation;
+  if (parent_ != nullptr) {
+    const StatsSlot s = statsSlot();
+    *s.visits = static_cast<float>(visits_);
+    *s.evaluation = evaluation_;
+  }
 }
 
 void Node::increase_evaluation(float d) noexcept {
   evaluation_ += d;
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().evaluation = evaluation_;
 }
 
 void Node::decrease_evaluation(float d) noexcept {
   evaluation_ -= d;
-  syncStats();
+  if (parent_ != nullptr)
+    *statsSlot().evaluation = evaluation_;
 }
 
 Node::ChildStats Node::child_stats() const noexcept {
@@ -265,19 +290,33 @@ int8_t Node::addChild(Node *child) {
   return slot;
 }
 
-void Node::syncStats() noexcept {
-  if (parent_ == nullptr)
-    return;
+Node::StatsSlot Node::statsSlot() const noexcept {
+  assert(parent_ != nullptr);
   const EdgeBlock &b = *parent_->block_;
   const int32_t cap = b.capacity;
   auto *evaluation = reinterpret_cast<float *>(b.stats + cap * sizeof(Node *));
   auto *visits = evaluation + cap;
   auto *flags = reinterpret_cast<uint8_t *>(visits + cap);
-  evaluation[slot_] = evaluation_;
-  visits[slot_] = static_cast<float>(visits_);
-  flags[slot_] = static_cast<uint8_t>(
+  return StatsSlot{evaluation + slot_, visits + slot_, flags + slot_};
+}
+
+uint8_t Node::selectionFlags() const noexcept {
+  return static_cast<uint8_t>(
       (((known() && !drawn()) || all_visited_) ? kSkipChild : 0) |
       (drawn() ? kDrawnChild : 0));
+}
+
+void Node::syncFlags() noexcept {
+  if (parent_ != nullptr)
+    *statsSlot().flags = selectionFlags();
+}
+
+void Node::registerStats() noexcept {
+  // A new node's own fields hold its initial values (visits 1, evaluation 0)
+  const StatsSlot s = statsSlot();
+  *s.evaluation = evaluation_;
+  *s.visits = static_cast<float>(visits_);
+  *s.flags = selectionFlags();
 }
 
 void Node::null_parent() noexcept {
@@ -321,18 +360,18 @@ void Node::printMainLine(std::ostream *log_file) const {
       if (cur_child->result_ == kDeducedLoss ||
           cur_child->result_ == kResultLoss) {
         best_child = cur_child;
-        max_visits = cur_child->visits_;
+        max_visits = cur_child->visits();
         prob = probability(edge_index);
         break;
       }
       // Choose the child with the most visits
       // Break ties by choosing the child with the highest evaluation
-      if (cur_child->visits_ > max_visits ||
-          (cur_child->visits_ == max_visits &&
-           cur_child->evaluation_ > max_eval)) {
+      if (cur_child->visits() > max_visits ||
+          (cur_child->visits() == max_visits &&
+           cur_child->evaluation() > max_eval)) {
         best_child = cur_child;
-        max_visits = cur_child->visits_;
-        max_eval = cur_child->evaluation_;
+        max_visits = cur_child->visits();
+        max_eval = cur_child->evaluation();
         prob = probability(edge_index);
       }
       cur_child = cur_child->next_sibling_;

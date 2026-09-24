@@ -1,0 +1,11 @@
+Corintho self-play engine benchmark (real network: /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23/model.mlp)
+games 300  max_searches 1600  searches_per_eval 16  threads 1  seed 777
+self-play (engine)     17.463 s
+gather requests         0.000 s
+network evaluation     72.351 s
+turns per game          28.32
+#METRIC engine_seconds 17.4631
+#METRIC gather_seconds 0.0003
+#METRIC wall_seconds 89.8148
+#METRIC turns 8496
+#METRIC requests 10757824

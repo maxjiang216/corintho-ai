@@ -1,0 +1,14 @@
+Differential verification: getLegalMoves vs getLegalMovesReference
+corpus 200000 reachable positions, seed 0x1234abcd
+
+Corpus coverage
+  positions                200000
+  with lines                30118 (15.06%)
+  terminal                   9761 ( 4.88%)
+  containing frozen        190238 (95.12%)
+  containing a capital     171224 (85.61%)
+  a piece exhausted         75612 (37.81%)
+  under 8 legal moves       24255 (12.13%)
+  over 40 legal moves       34493 (17.25%)
+
+PASS: 200000 positions, identical on every one.

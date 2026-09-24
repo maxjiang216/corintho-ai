@@ -86,6 +86,31 @@ against the commit before it, with the same games in every pair:
 | 25 | store only the changed child statistic | −2.6% |
 | 26 | branch-free, vectorized selection | −4.5% |
 
+## Session 2026-09-24: build tooling (entries 27–28)
+
+No engine-logic change for speed. Build variants were compared with
+`bench/pgo_experiment.sh` (resumable and unattended; gates plus paired timing):
+
+| entry | change | engine-side time (real network, 20 threads) |
+|---|---|---|
+| 27 | GCC PGO | +3.2% as first built; −0.1% once the network's profile was removed. **Not adopted** |
+| 28 | g++ 14 instead of 13 | −0.4% (not significant) |
+| 28 | **clang++ 20** instead of g++ 13 | **−4.4%** (−12.6% single-threaded). **Adopted**, now the default in every build |
+
+Also this session:
+
+- **A crash since entry 16 was fixed** (`87533d8`). A parentless new root
+  called `parent_->addChild`; it was reached with one search or when all root
+  moves are proven losses. The unit tests had been segfaulting on the branch,
+  and the bench gates never reach that path. **The CMake unit tests are now
+  part of the gate.**
+- The unit tests and `Tourney` now build with clang (VLA and include fixes).
+- Discussed, not done:
+  - a Nix flake to pin the C++ toolchain, with uv kept for Python (the
+    developer's preference over pixi);
+  - manual hints (cold paths, `__builtin_prefetch` in backup);
+  - C++20, only if the hints need it.
+
 New verification tool: `SAMPLE_DIGEST=1 selfplay_nn …` hashes every training
 sample at full depth with the real network (`5a5616e`). Baselines are in
 `data/child-stats-updates/runs.txt`: seeds 1–4, 300 games, 1600 searches, 20

@@ -35,6 +35,7 @@ none of it has yet been shown to move strength.
 | 21 | [orchestration reasoning](2026-09-23-21-orchestration-reasoning.md) | Synthesis of 18–20: the developer's decisions, the self-play driver design, and why the engine (not the GPU) sets every orchestration tradeoff. **Read before building the driver.** |
 | 22 | [computeSpaceInfo](2026-09-23-22-space-info.md) | SWAR plane extraction replaces the 16-space loop (finishes entry 02's Stage 3). Same games. −12% stub, −4.9% real network single-thread, **−2.4% at 20 threads: stub instruction counts overstate production gains.** |
 | 23 | [long profile](2026-09-23-23-long-profile.md) | 5.5 h, real network. **Serial request gather = 16% of engine time at 20 threads** (the data-copying suspicion, confirmed). syncStats 19% of engine CPU, selection ~35% of instructions, tree teardown ~48% of LL misses. Scaling 9.1× on 20 threads ≈ hardware capacity. Ranked targets inside. |
+| 24 | [batch slots](2026-09-23-24-batch-slots.md) | Games write network inputs into fixed slots of the Trainer's batch, compacted as games finish. **Serial gather gone: −16% engine+gather at 20 threads**, same games, +0.56% rows. The first version without compaction was +48% rows. Makefile header dependencies fixed. |
 
 ## Session 2026-09-23: the network in-process, and where the time goes on the laptop (entries 18–21)
 
@@ -62,6 +63,8 @@ for fitting and C++ owning inference. Measured:
   - `syncStats` is 19% of engine CPU;
   - selection is ~35% of instructions;
   - thread scaling is close to the hardware's capacity.
+- **Fixed batch slots (entry 24):** the serial gather is gone, −16%
+  engine+gather at 20 threads.
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 
@@ -87,7 +90,8 @@ trusting any stub-only result.
 **Where to resume:**
 - **(2026-09-23) Engine first, then the self-play driver (entries 18–23).**
   Entry 23 has the ranked targets from the long profile:
-  1. The serial gather (16% at 20 threads), fixed in the driver.
+  1. ~~The serial gather (16% at 20 threads)~~: done in entry 24 with fixed
+     batch slots.
   2. `syncStats`: one sync per update (19% of engine CPU).
   3. Selection: priors in the stats block, no divisions, branch-free max
      (~35% of instructions).

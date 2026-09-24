@@ -12,7 +12,7 @@
 #   scaling    the same G_SCALE (1000) games at 1..20 threads, twice
 #   gprof_mt   gprofng, RUNS_MT (8) x G_MT (2000) games x 20 threads
 #   gprof_st   gprofng, 1 thread pinned to a P-core, G_ST (200) games
-#   reports    gprofng text reports, merged across runs
+#   reports    gprofng text reports (function level), merged across runs
 #   callgrind  callgrind with cache and branch simulation, engine only,
 #              G_CG (48) games, 1 thread; dumped every 30 min so partial
 #              results persist
@@ -87,7 +87,7 @@ do_build() {
     echo "power:    $(cat /sys/class/power_supply/*/online 2>/dev/null | tr '\n' ' ')"
     echo "model:    $MODEL_SRC ($(sha256sum "$MODEL_SRC" | cut -c1-16))"
   } > "$OUT/provenance.txt"
-  printf '%s\n' '*.er/' '*.er.ok' 'bin/' 'model.mlp' 'callgrind.out*' 'run.*' > "$OUT/.gitignore"
+  printf '%s\n' '*.er/' '*.er.ok' 'bin/' 'model.mlp' 'run.*' > "$OUT/.gitignore"
   make -s -C "$BENCH" BUILD="$OUT/build" "$OUT/build/selfplay_nn" > "$OUT/build.log" 2>&1 || return 1
   mkdir -p "$BIN" && cp "$OUT/build/selfplay_nn" "$BIN/" && rm -rf "$OUT/build"
   cp "$MODEL_SRC" "$M"
@@ -151,14 +151,13 @@ do_reports() {
   gprofng display text -limit 80 -functions $mt > "$r/mt-functions.txt" 2>&1
   gprofng display text -limit 200 -lines $mt > "$r/mt-lines.txt" 2>&1
   gprofng display text -limit 60 -calltree $mt > "$r/mt-calltree.txt" 2>&1
-  # Thread 1 is the main thread: the serial part of every iteration
-  gprofng display text -thread_select 1 -limit 60 -functions $mt > "$r/mt-main-thread-functions.txt" 2>&1
+  # No main-thread report: the main thread also runs a share of every
+  # parallel loop, so it does not isolate the serial work. gather_seconds in
+  # the run output does.
   gprofng display text -limit 80 -functions "$OUT/gp-st.er" > "$r/st-functions.txt" 2>&1
   gprofng display text -limit 200 -lines "$OUT/gp-st.er" > "$r/st-lines.txt" 2>&1
-  for fn in 'TrainMC::doIteration' 'Node::syncStats' 'Node::initializeEdges'; do
-    local name=${fn//::/_}
-    gprofng display text -source "$fn" 1 $mt > "$r/mt-source-$name.txt" 2>&1
-  done
+  # No line-level source views: gprofng 2.42 records no line numbers for this
+  # LTO build ("Source location not recorded"). Callgrind supplies lines.
   return 0
 }
 
@@ -179,10 +178,11 @@ do_callgrind() {
   local rc=$?
   kill $dumper 2>/dev/null
   mkdir -p "$OUT/reports"
-  for f in "$cg"*; do
-    callgrind_annotate --inclusive=no --show=Ir,D1mr,DLmr,Bcm "$f" > "$OUT/reports/$(basename "$f").txt" 2>&1
-  done
-  callgrind_annotate --auto=yes --include="$BENCH" --show=Ir,D1mr,DLmr,Bcm "$cg" > "$OUT/reports/callgrind-lines.txt" 2>&1
+  # Each checkpoint dump zeroes the counters, and later dumps refer back to
+  # names defined in earlier ones, so callgrind_annotate cannot read them one
+  # at a time. callgrind_merge.py sums them in dump order.
+  local dumps; dumps=$(ls "$cg".* 2>/dev/null | sort -t. -k3 -n)
+  python3 "$BENCH/callgrind_merge.py" $dumps "$cg" > "$OUT/reports/callgrind-merged.txt" 2>&1
   return $rc
 }
 

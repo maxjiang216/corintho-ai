@@ -1,0 +1,50 @@
+2026-09-23 09:43:01 long_profile start, out=/home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23, pkg 78C
+2026-09-23 09:43:01 start build
+2026-09-23 09:43:10 done build
+2026-09-23 09:43:10 start scaling
+2026-09-23 09:43:44 scaling rep 1 threads 20: 8.7240 34.5063 35903101 28478 896 1.4243
+2026-09-23 09:43:59 cooldown waited 15s, now 72C
+2026-09-23 09:44:35 scaling rep 1 threads 14: 9.5710 35.5664 35903101 28478 859 1.5128
+2026-09-23 09:45:13 scaling rep 1 threads 12: 10.3467 37.7298 35903101 28478 863 1.4738
+2026-09-23 09:45:55 scaling rep 1 threads 8: 12.6153 42.2311 35903101 28478 836 1.1816
+2026-09-23 09:46:42 scaling rep 1 threads 6: 14.8177 47.0850 35903101 28478 828 1.1845
+2026-09-23 09:47:52 scaling rep 1 threads 4: 21.0768 69.3952 35903101 28478 829 1.1894
+2026-09-23 09:50:12 scaling rep 1 threads 2: 38.4477 140.0961 35903101 28478 806 1.1883
+2026-09-23 09:55:57 scaling rep 1 threads 1: 78.7611 345.5243 35903101 28478 801 1.2918
+2026-09-23 10:01:26 scaling rep 2 threads 1: 77.4251 328.7830 35903101 28478 802 1.2711
+2026-09-23 10:03:31 scaling rep 2 threads 2: 36.8599 124.5902 35903101 28478 809 1.1651
+2026-09-23 10:04:33 scaling rep 2 threads 4: 19.7585 62.3144 35903101 28478 817 1.1886
+2026-09-23 10:05:18 scaling rep 2 threads 6: 14.4488 44.3522 35903101 28478 830 1.1251
+2026-09-23 10:05:57 scaling rep 2 threads 8: 12.2088 39.6090 35903101 28478 838 1.2336
+2026-09-23 10:06:33 scaling rep 2 threads 12: 10.0813 35.4184 35903101 28478 843 1.5279
+2026-09-23 10:07:08 scaling rep 2 threads 14: 9.4865 34.8320 35903101 28478 870 1.4882
+2026-09-23 10:07:41 scaling rep 2 threads 20: 8.4551 33.1399 35903101 28478 881 1.3836
+2026-09-23 10:07:41 done scaling
+2026-09-23 10:07:41 start gprof_mt
+2026-09-23 10:08:54 gprof_mt seed 1: engine_seconds=18.3125 wall_seconds=72.7930 
+2026-09-23 10:10:08 gprof_mt seed 2: engine_seconds=18.4611 wall_seconds=73.5846 
+2026-09-23 10:11:22 gprof_mt seed 3: engine_seconds=18.3972 wall_seconds=73.7835 
+2026-09-23 10:12:35 gprof_mt seed 4: engine_seconds=18.3125 wall_seconds=73.0035 
+2026-09-23 10:12:50 cooldown waited 15s, now 67C
+2026-09-23 10:14:02 gprof_mt seed 5: engine_seconds=18.1753 wall_seconds=72.3807 
+2026-09-23 10:15:16 gprof_mt seed 6: engine_seconds=18.5457 wall_seconds=73.8426 
+2026-09-23 10:16:30 gprof_mt seed 7: engine_seconds=18.4947 wall_seconds=73.9523 
+2026-09-23 10:17:45 gprof_mt seed 8: engine_seconds=18.6462 wall_seconds=74.6684 
+2026-09-23 10:17:45 done gprof_mt
+2026-09-23 10:17:45 start gprof_st
+2026-09-23 10:18:00 cooldown waited 15s, now 76C
+2026-09-23 10:18:36 done gprof_st
+2026-09-23 10:18:36 start reports
+2026-09-23 10:19:01 done reports
+2026-09-23 10:19:01 start callgrind
+2026-09-23 10:49:01 callgrind checkpoint dump
+2026-09-23 11:19:01 callgrind checkpoint dump
+2026-09-23 11:49:01 callgrind checkpoint dump
+2026-09-23 12:19:02 callgrind checkpoint dump
+2026-09-23 12:49:02 callgrind checkpoint dump
+2026-09-23 13:19:03 callgrind checkpoint dump
+2026-09-23 13:49:03 callgrind checkpoint dump
+2026-09-23 14:19:03 callgrind checkpoint dump
+2026-09-23 14:49:04 callgrind checkpoint dump
+2026-09-23 15:11:35 done callgrind
+2026-09-23 15:11:35 long_profile finished

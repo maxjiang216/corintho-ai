@@ -1,0 +1,59 @@
+Print limit set to 80
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total CPU  Incl. Total CPU   Name
+
+    sec.      %      sec.      %
+8835.028 100.00  8835.028 100.00   <Total>
+5514.578  62.42  5514.578  62.42   void (anonymous namespace)::denseTile<4, 3>(float const*, int, int, float const*, float const*, int, float*, int, bool)
+1450.820  16.42  2098.890  23.76   TrainMC::doIteration(float*, float*)
+ 558.066   6.32  6068.772  68.69   (anonymous namespace)::dense(float const*, int, int, int, float const*, float const*, int, float*, bool)
+ 413.913   4.68   413.913   4.68   Node::syncStats()
+ 253.299   2.87   253.299   2.87   <static>@0x77ace (<libm.so.6>)
+ 213.435   2.42  6497.693  73.54   Mlp::evaluateParallel(float const*, int, float*, float*, int) const [clone ._omp_fn.0]
+ 173.210   1.96   177.815   2.01   Node::initializeEdges()
+ 111.612   1.26   111.612   1.26   Node::~Node()
+  51.422   0.58   231.534   2.62   Node::Node(Game const&, Node*, Node*, int, int)
+  23.502   0.27    23.502   0.27   <static>@0x2430 (<selfplay_nn>)
+  15.879   0.18    15.879   0.18   <static>@0x2542b (<libgomp.so.1.0.0>)
+  15.237   0.17    15.237   0.17   expm1f
+  13.149   0.15    13.149   0.15   <static>@0x1267f (<libgomp.so.1.0.0>)
+   6.895   0.08     6.895   0.08   <static>@0x188341 (<libc.so.6>)
+   6.603   0.07  1901.661  21.52   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+   5.483   0.06    20.720   0.23   tanhf
+   2.077   0.02    67.523   0.76   TrainMC::chooseMove(float*, float*)
+   1.432   0.02     1.432   0.02   mprotect
+   1.325   0.01     2.766   0.03   <static>@0xaab1b (<libc.so.6>)
+   1.054   0.01    68.655   0.78   SelfPlayer::chooseMove() [clone .part.0]
+   0.650   0.01  8497.747  96.18   <static>@0x225ae (<libgomp.so.1.0.0>)
+   0.508   0.01   127.364   1.44   SelfPlayer::chooseMoveAndContinue()
+   0.274   0.00     0.274   0.00   GOMP_loop_ull_dynamic_next
+   0.230   0.00     0.230   0.00   GOMP_loop_dynamic_next
+   0.090   0.00     0.090   0.00   GOMP_loop_end_nowait
+   0.074   0.00     2.825   0.03   malloc
+   0.048   0.00     0.087   0.00   GOMP_loop_ull_dynamic_start
+   0.032   0.00     0.067   0.00   GOMP_loop_dynamic_start
+   0.032   0.00     0.970   0.01   main
+   0.023   0.00     0.023   0.00   <static>@0xa1220 (<libstdc++.so.6.0.33>)
+   0.020   0.00     0.020   0.00   operator new[](unsigned long)
+   0.016   0.00     2.833   0.03   operator new(unsigned long)
+   0.015   0.00     0.015   0.00   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+   0.006   0.00     0.020   0.00   free
+   0.005   0.00     0.005   0.00   operator delete(void*)
+   0.004   0.00     0.008   0.00   <static>@0xa8e24 (<libc.so.6>)
+   0.003   0.00     0.003   0.00   mmap
+   0.003   0.00     0.003   0.00   operator delete[](void*)
+   0.001   0.00     0.001   0.00   <static>@0x1938d (<libgomp.so.1.0.0>)
+   0.001   0.00     0.001   0.00   brk
+   0.001   0.00     0.001   0.00   munmap
+   0.001   0.00     0.002   0.00   void std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > >::_M_realloc_insert<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > >(__gnu_cxx::__normal_iterator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >*, std::vector<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >, std::allocator<std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> > > > >, std::unique_ptr<unsigned char [], std::default_delete<unsigned char []> >&&) [clone .constprop.0]
+   0.      0.       0.970   0.01   <static>@0x2a145 (<libc.so.6>)
+   0.      0.    8410.556  95.20   <static>@0x5115c (<libgp-collector.so>)
+   0.      0.    8410.556  95.20   <static>@0x9c526 (<libc.so.6>)
+   0.      0.       4.597   0.05   GOMP_parallel
+   0.      0.       0.007   0.00   TrainMC::createRoot(Game const&, int)
+   0.      0.       0.001   0.00   __default_morecore
+   0.      0.       0.970   0.01   __libc_start_main
+   0.      0.       0.001   0.00   sbrk
+   0.      0.       0.001   0.00   std::vector<float, std::allocator<float> >::_M_fill_assign(unsigned long, float const&) [clone .constprop.0]
+

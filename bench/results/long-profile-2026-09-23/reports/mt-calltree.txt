@@ -1,0 +1,66 @@
+Print limit set to 60
+Functions Call Tree. Metric: Attributed Total CPU Time
+
+Attr. Total CPU   Name
+
+    sec.      %
+8835.028 100.00   +-<Total>
+8410.556  95.20     +-<static>@0x9c526 (<libc.so.6>)
+8410.556  95.20     |  +-<static>@0x5115c (<libgp-collector.so>)
+8410.525  95.20     |    +-<static>@0x225ae (<libgomp.so.1.0.0>)
+6493.793  73.50     |    |  +-Mlp::evaluateParallel(float const*, int, float*, float*, int) const [clone ._omp_fn.0]
+6064.405  68.64     |    |  |  +-(anonymous namespace)::dense(float const*, int, int, int, float const*, float const*, int, float*, bool)
+5507.684  62.34     |    |  |  |  +-void (anonymous namespace)::denseTile<4, 3>(float const*, int, int, float const*, float const*, int, float*, int, bool)
+ 167.359   1.89     |    |  |  +-<static>@0x77ace (<libm.so.6>)
+  23.354   0.26     |    |  |  +-<static>@0x2430 (<selfplay_nn>)
+  20.246   0.23     |    |  |  +-tanhf
+  15.231   0.17     |    |  |  |  +-expm1f
+   3.866   0.04     |    |  |  +-void (anonymous namespace)::denseTile<4, 3>(float const*, int, int, float const*, float const*, int, float*, int, bool)
+   1.214   0.01     |    |  |  +-<static>@0x1267f (<libgomp.so.1.0.0>)
+   0.230   0.00     |    |  |  +-GOMP_loop_dynamic_next
+   0.054   0.00     |    |  |  +-GOMP_loop_end_nowait
+   0.043   0.00     |    |  |  +-GOMP_loop_dynamic_start
+   0.035   0.00     |    |  |  |  +-<static>@0x225ae (<libgomp.so.1.0.0>)
+   0.003   0.00     |    |  |  |    +-<static>@0x2542b (<libgomp.so.1.0.0>)
+   0.027   0.00     |    |  |  +-<static>@0x225ae (<libgomp.so.1.0.0>)
+   0.001   0.00     |    |  |  +-std::vector<float, std::allocator<float> >::_M_fill_assign(unsigned long, float const&) [clone .constprop.0]
+   0.001   0.00     |    |  |    +-operator new(unsigned long)
+   0.001   0.00     |    |  |      +-malloc
+   0.001   0.00     |    |  |        +-<static>@0xaab1b (<libc.so.6>)
+1900.686  21.51     |    |  +-Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+1800.249  20.38     |    |  |  +-TrainMC::doIteration(float*, float*)
+ 413.377   4.68     |    |  |  |  +-Node::syncStats()
+ 229.971   2.60     |    |  |  |  +-Node::Node(Game const&, Node*, Node*, int, int)
+ 176.341   2.00     |    |  |  |  |  +-Node::initializeEdges()
+   3.141   0.04     |    |  |  |  |  |  +-<static>@0x188341 (<libc.so.6>)
+   1.450   0.02     |    |  |  |  |  |  +-operator new(unsigned long)
+   1.448   0.02     |    |  |  |  |  |  |  +-malloc
+   1.421   0.02     |    |  |  |  |  |  |    +-<static>@0xaab1b (<libc.so.6>)
+   0.745   0.01     |    |  |  |  |  |  |      +-mprotect
+   0.004   0.00     |    |  |  |  |  |  |      +-<static>@0xa8e24 (<libc.so.6>)
+   0.002   0.00     |    |  |  |  |  |  |        +-mmap
+   0.006   0.00     |    |  |  |  |  |  +-<static>@0x2430 (<selfplay_nn>)
+   1.863   0.02     |    |  |  |  |  +-<static>@0x188341 (<libc.so.6>)
+   0.530   0.01     |    |  |  |  |  +-operator new(unsigned long)
+   0.530   0.01     |    |  |  |  |  |  +-malloc
+   0.519   0.01     |    |  |  |  |  |    +-<static>@0xaab1b (<libc.so.6>)
+   0.278   0.00     |    |  |  |  |  |      +-mprotect
+   0.001   0.00     |    |  |  |  |  |      +-<static>@0xa8e24 (<libc.so.6>)
+   0.080   0.00     |    |  |  |  |  +-<static>@0x2430 (<selfplay_nn>)
+   0.002   0.00     |    |  |  |  |  +-<static>@0xa1220 (<libstdc++.so.6.0.33>)
+   1.652   0.02     |    |  |  |  +-<static>@0x188341 (<libc.so.6>)
+   0.774   0.01     |    |  |  |  +-operator new(unsigned long)
+   0.772   0.01     |    |  |  |  |  +-malloc
+   0.754   0.01     |    |  |  |  |  |  +-<static>@0xaab1b (<libc.so.6>)
+   0.378   0.00     |    |  |  |  |  |    +-mprotect
+   0.003   0.00     |    |  |  |  |  |    +-<static>@0xa8e24 (<libc.so.6>)
+   0.001   0.00     |    |  |  |  |  |      +-mmap
+   0.001   0.00     |    |  |  |  |  |      +-munmap
+   0.001   0.00     |    |  |  |  |  +-<static>@0xa1220 (<libstdc++.so.6.0.33>)
+   0.190   0.00     |    |  |  |  +-Node::initializeEdges()
+   0.001   0.00     |    |  |  |  |  +-operator new(unsigned long)
+   0.001   0.00     |    |  |  |  |    +-malloc
+   0.001   0.00     |    |  |  |  |      +-<static>@0xaab1b (<libc.so.6>)
+   0.001   0.00     |    |  |  |  +-<static>@0x2430 (<selfplay_nn>)
+  81.644   0.92     |    |  |  +-SelfPlayer::chooseMoveAndContinue()
+  68.606   0.78     |    |  |  |  +-SelfPlayer::chooseMove() [clone .part.0]

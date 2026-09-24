@@ -1,5 +1,8 @@
 #include "selfplayer.h"
 
+#include <algorithm>
+#include <vector>
+
 #include "gtest/gtest.h"
 
 #include "util.h"
@@ -62,12 +65,14 @@ TEST(SelfPlayerTest, FewSearches) {
       EXPECT_TRUE(selfplayer.num_samples() > 0);
       // Maximum number of moves
       EXPECT_TRUE(selfplayer.num_samples() <= 40);
-      float sample_game_states[kNumSymmetries * selfplayer.num_samples() *
-                               kGameStateSize] = {0.0};
-      float sample_evals[kNumSymmetries * selfplayer.num_samples()] = {0.0};
-      float sample_probs[kNumSymmetries * selfplayer.num_samples() *
-                         kNumMoves] = {0.0};
-      selfplayer.writeSamples(sample_game_states, sample_evals, sample_probs);
+      std::vector<float> sample_game_states(
+          kNumSymmetries * selfplayer.num_samples() * kGameStateSize, 0.0f);
+      std::vector<float> sample_evals(
+          kNumSymmetries * selfplayer.num_samples(), 0.0f);
+      std::vector<float> sample_probs(
+          kNumSymmetries * selfplayer.num_samples() * kNumMoves, 0.0f);
+      selfplayer.writeSamples(sample_game_states.data(), sample_evals.data(),
+                              sample_probs.data());
       for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
         for (int32_t j = 0; j < kNumSymmetries; ++j) {
           for (int32_t k = 0; k < kGameStateSize; ++k) {
@@ -187,12 +192,14 @@ TEST(SelfPlayerTest, FullGame) {
   EXPECT_TRUE(selfplayer.num_samples() > 0);
   // Maximum number of moves
   EXPECT_TRUE(selfplayer.num_samples() <= 40);
-  float sample_game_states[kNumSymmetries * selfplayer.num_samples() *
-                           kGameStateSize] = {0.0};
-  float sample_evals[kNumSymmetries * selfplayer.num_samples()] = {0.0};
-  float sample_probs[kNumSymmetries * selfplayer.num_samples() * kNumMoves] = {
-      0.0};
-  selfplayer.writeSamples(sample_game_states, sample_evals, sample_probs);
+  std::vector<float> sample_game_states(
+      kNumSymmetries * selfplayer.num_samples() * kGameStateSize, 0.0f);
+  std::vector<float> sample_evals(kNumSymmetries * selfplayer.num_samples(),
+                                  0.0f);
+  std::vector<float> sample_probs(
+      kNumSymmetries * selfplayer.num_samples() * kNumMoves, 0.0f);
+  selfplayer.writeSamples(sample_game_states.data(), sample_evals.data(),
+                          sample_probs.data());
   for (int32_t i = 0; i < selfplayer.num_samples(); ++i) {
     for (int32_t j = 0; j < kNumSymmetries; ++j) {
       for (int32_t k = 0; k < kGameStateSize; ++k) {

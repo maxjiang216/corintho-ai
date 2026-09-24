@@ -1,5 +1,8 @@
 #include "trainer.h"
 
+#include <algorithm>
+#include <vector>
+
 #include "gtest/gtest.h"
 
 // Test the default constructor
@@ -49,12 +52,14 @@ TEST(TrainerTest, FullGameTraining) {
           EXPECT_TRUE(trainer.num_requests() == 0);
           EXPECT_TRUE(trainer.num_samples() > 0);
           // Sanity checks for samples
-          float sample_game_states[kNumSymmetries * trainer.num_samples() *
-                                   kGameStateSize] = {0.0};
-          float sample_evals[kNumSymmetries * trainer.num_samples()] = {0.0};
-          float sample_probs[kNumSymmetries * trainer.num_samples() *
-                             kNumMoves] = {0.0};
-          trainer.writeSamples(sample_game_states, sample_evals, sample_probs);
+          std::vector<float> sample_game_states(
+              kNumSymmetries * trainer.num_samples() * kGameStateSize, 0.0f);
+          std::vector<float> sample_evals(
+              kNumSymmetries * trainer.num_samples(), 0.0f);
+          std::vector<float> sample_probs(
+              kNumSymmetries * trainer.num_samples() * kNumMoves, 0.0f);
+          trainer.writeSamples(sample_game_states.data(), sample_evals.data(),
+                               sample_probs.data());
           for (int32_t i = 0; i < trainer.num_samples(); ++i) {
             for (int32_t j = 0; j < kNumSymmetries; ++j) {
               for (int32_t k = 0; k < kGameStateSize; ++k) {

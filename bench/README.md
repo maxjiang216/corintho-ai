@@ -78,6 +78,13 @@ ways and reports the largest differences. The games are still played from
 tflite outputs. `model_93` on 3.5M real search states: max |value diff|
 2.4e-7, max |prob diff| 7.7e-7, top policy move identical on every row.
 
+`SAMPLE_DIGEST=1` prints `#METRIC sample_digest`, an FNV-1a hash of every
+training sample (positions, value targets, policy targets) and the score. It
+is a behavioural fingerprint at full search depth with the real network, and
+it does not depend on the thread count. Baselines and their use are in worklog
+entries 25–26. `gather_seconds` times the step between the engine and the
+network; since entry 24 that is only the request count.
+
 ### `mlp_bench <model.mlp> [rows] [threads] [reps]`
 
 Throughput of `Mlp` alone, in ns per row and GFLOP/s. On the i7-12700H: one
@@ -103,6 +110,28 @@ libraries, so no system CUDA toolkit is needed:
     # Keras SavedModel vs tflite check (worklog entry 20)
     uv venv --python 3.12 /tmp/tfenv
     VIRTUAL_ENV=/tmp/tfenv uv pip install tensorflow tf_keras numpy ai-edge-litert
+
+### `long_profile.sh <model.mlp> [out_dir]`
+
+An unattended, resumable, multi-hour profile with the real network, run
+detached (`setsid nohup … &`):
+
+- thread scaling on identical games;
+- gprofng at production shape (function level; it records no line numbers
+  for this LTO build);
+- callgrind with cache and branch simulation, dumped every 30 minutes.
+
+It works from private copies of the binary and model, runs at nice 10, cools
+the CPU between runs and logs temperature every minute. Results and analysis
+of the first run are in `results/long-profile-2026-09-23/` and worklog entry
+23.
+
+### `callgrind_merge.py <dump files in order>`
+
+Sums self costs by function and by source line over a sequence of callgrind
+checkpoint dumps. Each dump zeroes the counters, and later dumps refer back to
+names defined in earlier ones, so `callgrind_annotate` cannot read them one at
+a time.
 
 ## Measurement doctrine: decide on single thread, watch multi
 

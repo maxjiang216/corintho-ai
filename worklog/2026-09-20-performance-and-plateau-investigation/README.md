@@ -39,7 +39,7 @@ none of it has yet been shown to move strength.
 | 25 | [child stats updates](2026-09-23-25-child-stats-updates.md) | syncStats: store only the changed field, flags only on change, one update per level per pass. **−2.6% at 20 threads**, bit-identical. The parent-only-copy design (B) was slower: **it turned store misses into load misses.** Why 18.8% of CPU became 2.6%. |
 | 26 | [selection vectorized](2026-09-23-26-selection-vectorized.md) | chooseNext scores all children branch-free (bit-mask selects, `Edge` without bitfields), then takes the first max: the loop vectorizes. **−4.5% at 20 threads** (−13.6% stub single-thread), bit-identical. Float instead of double is next, not bit-identical. |
 
-## Session 2026-09-23: the network in-process, and where the time goes on the laptop (entries 18–21)
+## Session 2026-09-23: the network in-process, the long profile, and three engine changes (entries 18–26)
 
 Training moves to this laptop (RTX 3060 Laptop GPU, i7-12700H), with PyTorch
 for fitting and C++ owning inference. Measured:
@@ -72,6 +72,23 @@ for fitting and C++ owning inference. Measured:
   load misses.
 - **Selection (entry 26):** branch-free and vectorized, −4.5% at 20
   threads, bit-identical.
+
+Engine changes this session, real network at 20 threads, each measured
+against the commit before it, with the same games in every pair:
+
+| entry | change | engine-side time |
+|---|---|---|
+| 19 | `schedule(dynamic, 1)` on the game loops | −20% (1k games) to −32% (2k) |
+| 22 | `computeSpaceInfo` without the per-space loop | −2.4% |
+| 24 | fixed batch slots: the serial gather is gone | −16% (engine + gather) |
+| 25 | store only the changed child statistic | −2.6% |
+| 26 | branch-free, vectorized selection | −4.5% |
+
+New verification tool: `SAMPLE_DIGEST=1 selfplay_nn …` hashes every training
+sample at full depth with the real network (`5a5616e`). Baselines are in
+`data/child-stats-updates/runs.txt`: seeds 1–4, 300 games, 1600 searches, 20
+threads. Entries 25 and 26 match them exactly, and any bit-identical change
+must too.
 
 ## Session 2026-09-22: selection and search engine (entries 13–16)
 

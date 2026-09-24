@@ -6,7 +6,8 @@
 # Question: does GCC PGO, trained on real-network self-play, make the engine
 # faster, and is it bit-identical? Three arms, all built from the same commit:
 #
-#   base     the normal bench build (-O3 -flto -march=native)
+#   base     the normal bench build (-O3 -flto -march=native) with the
+#              Makefile's default compiler (clang++-20 since entry 28)
 #   pgo      + -fprofile-use          (code the training never ran is
 #                                      optimized for size)
 #   partial  + -fprofile-use -fprofile-partial-training
@@ -17,11 +18,14 @@
 #              "hot" code
 #   frac     + -fprofile-use with the hot cutoff lowered
 #              (hot-bb-count-fraction, hot-bb-count-ws-permille)
+#   gcc13    base flags, built with g++ (13; the default before entry 28)
 #   gcc14    base flags, built with g++-14
 #   clang20  base flags, built with clang++-20 (OpenMP runtime: libomp,
 #              from libomp-20-dev; the GCC arms use libgomp)
 #
 # ARMS selects which run (default "base pgo partial"; base is required).
+# The PGO arms use GCC flags and g++; compare them against a GCC base by
+# setting BASE_CXX_BIN=g++ (entries 27's runs had g++ as base).
 #
 # Resumable like long_profile.sh: each step leaves <out>/<step>.done, timing
 # rows are appended one per run and skipped on rerun. Everything it needs is
@@ -129,9 +133,10 @@ build_arm() {
 
 arm_cxx() {  # arm_cxx <arm>: the compiler that builds an arm
   case $1 in
+    base)    echo "${BASE_CXX_BIN:-$(make -s -C "$BENCH" -p 2>/dev/null | awk -F' :?= ' '/^CXX :?= / {print $2; exit}')}" ;;
     gcc14)   echo g++-14 ;;
     clang20) echo clang++-20 ;;
-    *)       echo g++ ;;
+    *)       echo g++ ;;   # gcc13 and the PGO arms
   esac
 }
 is_pgo() { case $1 in pgo|partial|engine|frac) return 0 ;; esac; return 1; }
@@ -183,7 +188,7 @@ arm_flags() {  # arm_flags <arm>: compiler flags for a PGO arm
     partial) echo "-fprofile-use=$PROF -fprofile-partial-training" ;;
     engine)  echo "-fprofile-use=$OUT/pgo-data-engine" ;;
     frac)    echo "-fprofile-use=$PROF --param=hot-bb-count-fraction=1000000 --param=hot-bb-count-ws-permille=999" ;;
-    gcc14|clang20) echo "" ;;
+    gcc13|gcc14|clang20) echo "" ;;
     *)       return 1 ;;
   esac
 }

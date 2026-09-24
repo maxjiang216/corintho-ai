@@ -21,6 +21,14 @@ make run        # build and run both at default sizes
 make clean
 ```
 
+**Compiler: clang++ 20 by default** since worklog entry 28. It is
+bit-identical to g++, and its engine time is 4.4% lower at 20 threads (12.6%
+single-threaded). It needs `apt install clang-20 libomp-20-dev`: libomp is
+LLVM's OpenMP runtime, and `-fopenmp=libgomp` makes clang silently ignore
+every OpenMP pragma. `make CXX=g++` still builds with GCC. `CMakeLists.txt`
+and `setup.py` default to clang the same way. Timings recorded before entry
+28 are g++ 13 numbers.
+
 ### `micro_bench [corpus_size] [reps]`
 
 Times the game-simulation layer against a corpus built by random legal playouts
@@ -148,8 +156,11 @@ like `long_profile.sh`:
 `ARMS` picks the arms:
 
 - `base`;
+- `gcc13`, `gcc14`, `clang20`: compilers;
 - `pgo`, `partial`, `engine`, `frac`: GCC PGO variants trained on
-  real-network self-play.
+  real-network self-play. Set `BASE_CXX_BIN=g++` so that `base` is GCC too.
+
+`base` uses the Makefile's default compiler.
 
 `inspect.txt` records the size of `TrainMC::doIteration` and the calls left
 in it per arm, and `inline-<arm>.txt` holds GCC's missed-inlining report.
@@ -433,7 +444,7 @@ time, whatever was profiled.
 
 ## Baseline — 2026-09-20
 
-Machine: i7-12700H (6P + 8E, 20 threads), 15 GB RAM, g++ 13.3.0.
+Machine: i7-12700H (6P + 8E, 20 threads), 15 GB RAM, g++ 13.3.0 (the compiler for everything before worklog entry 28; clang++ 20.1.2 after).
 Build: `-O3 -DNDEBUG -flto -march=native -fopenmp`.
 
 ### Microbenchmarks

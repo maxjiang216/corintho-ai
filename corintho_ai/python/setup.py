@@ -9,6 +9,13 @@ from setuptools.extension import Extension
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
+# clang 20 by default: bit-identical to GCC and faster (worklog entry 28).
+# Needs libomp-20-dev for -fopenmp. CC/CXX in the environment still override.
+# setuptools compiles and links C++ extensions with CC, and derives the
+# shared-library link command from it.
+os.environ.setdefault("CC", "clang-20")
+os.environ.setdefault("CXX", "clang++-20")
+
 setup(
     ext_modules=cythonize(
         [

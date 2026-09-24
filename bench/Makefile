@@ -16,7 +16,13 @@
 # For the before/after workflow use ./run_suite.sh, not these targets
 # directly -- see README.md.
 
-CXX      ?= g++
+# clang++ 20 by default: bit-identical to g++ and 4.4% faster engine time at
+# 20 threads (12.6% single-threaded), worklog entry 28. Needs libomp-20-dev.
+# CXX=g++ on the command line or in the environment still selects GCC.
+# (Make predefines CXX, so ?= would never apply; origin tells them apart.)
+ifeq ($(origin CXX),default)
+CXX := clang++-20
+endif
 SRC_DIR  := ../corintho_ai/cpp/src
 INC      := -I../corintho_ai/cpp/include -I../gsl/include -I.
 CXXFLAGS := -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra

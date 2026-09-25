@@ -94,7 +94,13 @@ def step(run_dir, g, name, fn):
     if os.path.exists(marker):
         return
     t = time.perf_counter()
-    fn()
+    try:
+        fn()
+    except subprocess.CalledProcessError as e:
+        log(run_dir, f"gen {g} {name} FAILED (exit {e.returncode}); see "
+                     f"gen_{g}/{'fit' if name == 'fit' else 'play'}.log. "
+                     "Rerun the same command to retry from this step.")
+        raise SystemExit(1)
     seconds = time.perf_counter() - t
     times_path = os.path.join(run_dir, f"gen_{g}", "timing.json")
     times = load_json(times_path, {})

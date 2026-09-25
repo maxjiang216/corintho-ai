@@ -1,0 +1,15 @@
+{
+  "new": "ort-cuda /home/max/projects/corintho-ai/pipeline/runs/full-2/gen_2/model.onnx",
+  "best": "ort-cuda /home/max/projects/corintho-ai/pipeline/runs/full-2/gen_1/model.onnx",
+  "games": 1600,
+  "wins": 769,
+  "draws": 65,
+  "losses": 766,
+  "score": 0.500938,
+  "seed": 100008,
+  "network_calls": 3661,
+  "rows_evaluated": 55719597,
+  "engine_seconds": 10.4179,
+  "eval_seconds": 14.4922,
+  "wall_seconds": 26.7188
+}

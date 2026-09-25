@@ -1,0 +1,17 @@
+{
+  "samples": 5688288,
+  "train_rows": 3981802,
+  "val_rows": 1706486,
+  "epochs": 10,
+  "batch": 2048,
+  "lr": 5e-06,
+  "best_epoch": 9,
+  "best_val_loss": 1.0851474205006584,
+  "load_seconds": 4.661952267000743,
+  "fit_seconds": 33.83298944799935,
+  "total_seconds": 38.66988359100105,
+  "init": "/home/max/projects/corintho-ai/pipeline/runs/full-2/gen_3/model",
+  "sample_dirs": [
+    "/home/max/projects/corintho-ai/pipeline/runs/full-2/gen_4/samples"
+  ]
+}

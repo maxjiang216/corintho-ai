@@ -1,0 +1,140 @@
+diff --git a/corintho_ai/cpp/include/arena.h b/corintho_ai/cpp/include/arena.h
+index 6ff272f..9380f5e 100644
+--- a/corintho_ai/cpp/include/arena.h
++++ b/corintho_ai/cpp/include/arena.h
+@@ -7,6 +7,12 @@
+ #include <memory>
+ #include <vector>
+ 
++// TEMPORARY instrumentation (not for commit): bytes allocated per game
++struct AllocStats {
++  long long cum{0}, live{0}, peak{0};
++};
++inline thread_local AllocStats *g_alloc_stats = nullptr;
++
+ /// @brief A bump allocator with size-class free lists, for search tree nodes
+ /// @details The search churns through far more nodes than it ever holds: at
+ /// 1600 searches a game peaks at about 3,300 live blocks while allocating
+@@ -40,6 +46,13 @@ class Arena {
+   /// up the same way, or the free lists will be crossed.
+   void *allocate(size_t bytes) {
+     const int c = sizeClass(bytes);
++    if (g_alloc_stats != nullptr) {
++      const long long b = static_cast<long long>(kSmall << c);
++      g_alloc_stats->cum += b;
++      g_alloc_stats->live += b;
++      if (g_alloc_stats->live > g_alloc_stats->peak)
++        g_alloc_stats->peak = g_alloc_stats->live;
++    }
+     void *&list = free_[c];
+     if (list != nullptr) {
+       void *p = list;
+@@ -58,6 +71,8 @@ class Arena {
+   void deallocate(void *p, size_t bytes) noexcept {
+     if (p == nullptr)
+       return;
++    if (g_alloc_stats != nullptr)
++      g_alloc_stats->live -= static_cast<long long>(kSmall << sizeClass(bytes));
+     void *&list = free_[sizeClass(bytes)];
+     *static_cast<void **>(p) = list;
+     list = p;
+diff --git a/corintho_ai/cpp/include/selfplayer.h b/corintho_ai/cpp/include/selfplayer.h
+index bc205c7..30fb62e 100644
+--- a/corintho_ai/cpp/include/selfplayer.h
++++ b/corintho_ai/cpp/include/selfplayer.h
+@@ -10,6 +10,7 @@
+ #include <utility>
+ #include <vector>
+ 
++#include "arena.h"
+ #include "trainmc.h"
+ #include "util.h"
+ 
+@@ -27,6 +28,7 @@ struct Sample {
+ /// @brief A training match with 2 TrainMC players
+ class SelfPlayer {
+  public:
++  AllocStats alloc_stats_;  // TEMPORARY
+   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
+              int32_t searches_per_eval = 16, float c_puct = 1.0,
+              float epsilon = 0.25,
+diff --git a/corintho_ai/cpp/src/selfplayer.cpp b/corintho_ai/cpp/src/selfplayer.cpp
+index 56685bd..de3a69e 100644
+--- a/corintho_ai/cpp/src/selfplayer.cpp
++++ b/corintho_ai/cpp/src/selfplayer.cpp
+@@ -130,10 +130,15 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
+ }
+ 
+ bool SelfPlayer::doIteration(float eval[], float probs[]) {
++  g_alloc_stats = &alloc_stats_;  // TEMPORARY
+   bool done = players_[to_play_].doIteration(eval, probs);
+   // If we have completed a turn, we can choose a move
+-  if (done)
+-    return chooseMoveAndContinue();
++  if (done) {
++    const bool r = chooseMoveAndContinue();
++    g_alloc_stats = nullptr;
++    return r;
++  }
++  g_alloc_stats = nullptr;
+   // Otherwise, the turn is not done so the game is not done
+   return false;
+ }
+diff --git a/corintho_ai/cpp/src/trainer.cpp b/corintho_ai/cpp/src/trainer.cpp
+index c30de06..963d15b 100644
+--- a/corintho_ai/cpp/src/trainer.cpp
++++ b/corintho_ai/cpp/src/trainer.cpp
+@@ -1,6 +1,7 @@
+ #include "trainer.h"
+ 
+ #include <cstdint>
++#include <cstdio>
+ 
+ #include <algorithm>
+ #include <queue>
+@@ -238,6 +239,45 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
+       }
+     }
+     ++searches_done_;
++    {  // TEMPORARY: in-flight live bytes vs bytes held if nothing were freed
++      static long long max_live = 0, max_cum = 0;
++      static double sum_ratio = 0, max_ratio = 0;
++      static long long n_games = 0, sum_cum = 0, sum_peak = 0;
++      long long live = 0, cum = 0;
++      for (size_t i = 0; i < games_.size(); ++i) {
++        if (slot_of_[i] < 0)
++          continue;
++        const AllocStats &a = games_[i].alloc_stats_;
++        if (is_done_[i]) {
++          ++n_games;
++          sum_cum += a.cum;
++          sum_peak += a.peak;
++          const double r = static_cast<double>(a.cum) / a.peak;
++          sum_ratio += r;
++          if (r > max_ratio)
++            max_ratio = r;
++          continue;
++        }
++        live += a.live;
++        cum += a.cum;
++      }
++      if (live > max_live)
++        max_live = live;
++      if (cum > max_cum)
++        max_cum = cum;
++      bool any = false;
++      for (size_t i = 0; i < games_.size(); ++i)
++        any |= !is_done_[i];
++      if (!any) {
++        std::fprintf(stderr,
++                     "#ALLOC games %lld mean_cum_MB %.3f mean_peak_MB %.3f "
++                     "mean_ratio %.2f max_ratio %.2f inflight_peak_live_MB "
++                     "%.1f inflight_peak_nofree_MB %.1f\n",
++                     n_games, sum_cum / 1e6 / n_games,
++                     sum_peak / 1e6 / n_games, sum_ratio / n_games, max_ratio,
++                     max_live / 1e6, max_cum / 1e6);
++      }
++    }
+     // Keep the active slots a dense prefix: the game in the last active slot
+     // moves into each finished game's slot, bringing the rows it has just
+     // written. One small copy per finished game, not one per iteration.

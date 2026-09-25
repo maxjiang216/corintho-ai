@@ -40,6 +40,7 @@ none of it has yet been shown to move strength.
 | 26 | [selection vectorized](2026-09-23-26-selection-vectorized.md) | chooseNext scores all children branch-free (bit-mask selects, `Edge` without bitfields), then takes the first max: the loop vectorizes. **−4.5% at 20 threads** (−13.6% stub single-thread), bit-identical. Float instead of double is next, not bit-identical. |
 | 27 | [PGO](2026-09-24-27-pgo.md) | GCC PGO trained on real-network games: bit-identical but **+3.2% slower**. The CPU network is 97% of profile counts and set the "hot" cutoff above once-per-search code, so hot calls were un-inlined ("call is unlikely"). Without the network profile: **−0.1%, neutral**. Stub 12–15% slower in every arm. Not adopted; the harness stays for compiler comparisons. |
 | 28 | [compilers](2026-09-24-28-compilers.md) | g++-13 vs g++-14 vs clang-20, all bit-identical. **clang-20: engine −4.4% at 20 threads (−12.6% single-threaded), wall −26%** (the CPU network is much faster). g++-14 same as 13. clang needs libomp (`-fopenmp=libgomp` silently disables OpenMP) and a VLA fix (`488a74a`). **Adopted** (`019ee6d`). Found on the way: unit tests segfaulting since entry 16 (null parent for a new root, fixed in `87533d8`); **unit tests are now part of the gate**. |
+| 29 | [GPU pipeline](2026-09-25-29-gpu-pipeline.md) | `pipeline/`: C++ driver (ONNX Runtime CUDA + CPU backends), PyTorch fitter, resumable generation loop. Gated against selfplay_nn digests, Keras, and the CPU network. **~6.9 min per 25k-game generation** (cloud ~57). Fixed on the way: **the node pool leaked ~290 MB per 1,000 games across threads since entry 19** (`16ed8b8`, +2.2% engine); BatchNorm left in the ONNX model ran at 1/8 speed; the old pipeline never used older generations' samples. First-player score ~0.50 in 4 generations (entries 10-11 found 74% for the second player). |
 
 ## Session 2026-09-23: the network in-process, the long profile, and three engine changes (entries 18–26)
 
@@ -139,6 +140,18 @@ length (28.7 turns vs 28.4 recorded) where the stub gives ~18. Use it before
 trusting any stub-only result.
 
 **Where to resume:**
+- **(2026-09-25) The GPU pipeline exists (entry 29):** `pipeline/`, on branch
+  `feat/gpu-pipeline`. `pipeline/README.md` explains setup and use.
+  `runs/full-2` has 4 generations (gen 1 promoted over gen_93). Open
+  decisions for the developer:
+  - start an overnight run;
+  - the old-generation sample window (`--old-gens`, 0 = what was done);
+  - whether to keep samples, for supervised architecture tests.
+
+  Speed levers left, each ~5–15% of self-play: rolling starts, smoother
+  overlap, ORT CUDA graphs. The strength questions (a match harness) matter
+  more now. The colour imbalance of entries 10–11 is not visible in the new
+  runs (first-player score ~0.50).
 - **(2026-09-23) Engine first, then the self-play driver (entries 18–23).**
   Entry 23 has the ranked targets from the long profile:
   1. ~~The serial gather (16% at 20 threads)~~: done in entry 24 with fixed

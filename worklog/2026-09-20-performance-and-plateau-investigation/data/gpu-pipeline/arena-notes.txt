@@ -1,0 +1,16 @@
+# Arena drift and its fix (entry 29). clang++ 20, model_93.mlp / gen_93.onnx, 1600 searches, 16 per eval.
+
+## Drift: RSS (MB) after each chunk, corintho_play train, GPU backend
+old arena, 12 chunks x 1000 games, 20 threads: 1655 1957 2225 2551 2828 3146 3451 3732 3986 4251 4509 4832
+old arena, 6 chunks x 200 games, 1 thread:      687 693 696 696 697 697     (no drift: nothing crosses threads)
+old arena, 6 chunks x 200 games, 20 threads:    732 772 813 840 879 913
+old arena, 25k games, 2 groups x 2000 in flight: peak RSS 10122 MB
+batched arena, 12 chunks x 1000 games, 20 threads: 1484 1503 1510 1522 1524 1528 1516 1526 1526 1526 1526 1527
+batched arena, 6 chunks x 200 games, 20 threads:   688 697 701 702 703 704
+
+## Engine time vs the old arena, selfplay_nn 1000 games 20 threads (engine_seconds), same seeds
+first version (1 spare batch/thread, mutex on every empty refill): +10.99% (CI +10.05..+11.93), n=6
+local cap 2 / 16 / 64 batches (mutex still on empty refill), 4 seeds: ~+12% / +6.8% / +6.6%
+local cap unlimited (no sharing) with the mutex: ~+5%;  after the lock-free empty check: +2.5% (3 seeds)
+FINAL (cap 16, lock-free empty check): mt +2.24% (CI +1.50..+2.98) n=6; st stub 1 thread pinned +1.57% (CI -0.68..+3.88) n=8
+peak RSS one 1000-game chunk: old ~950 MB, final ~800 MB

@@ -47,3 +47,9 @@ bench/build-lines/
 bench/build-a/
 bench/build-b/
 bench/build-noLTO/
+
+# GPU pipeline: local environment, third-party binaries, run outputs
+pipeline/.venv/
+pipeline/third_party/
+pipeline/build/
+pipeline/runs/

@@ -29,3 +29,9 @@ fi
 
 make -s
 echo "built build/corintho_play"
+
+# The starting model: gen_93, the last cloud generation, converted once from
+# its Keras SavedModel (keras_to_npz.py, needs TensorFlow) into models/gen_93.npz
+if [ ! -f models/gen_93.onnx ]; then
+  .venv/bin/python model.py convert models/gen_93.npz models/gen_93
+fi

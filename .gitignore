@@ -53,3 +53,6 @@ pipeline/.venv/
 pipeline/third_party/
 pipeline/build/
 pipeline/runs/
+pipeline/models/*.pt
+pipeline/models/*.onnx
+pipeline/models/*.mlp

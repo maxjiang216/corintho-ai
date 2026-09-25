@@ -155,6 +155,15 @@ def main():
                            eps=1e-7, fused=True, capturable=True)
     if "optimizer" in state:
         opt.load_state_dict(state["optimizer"])
+        # load_state_dict also restores the saved param_group flags, and a
+        # state saved by a non-graph fit has capturable=False; the step
+        # counters must then move to the GPU as well
+        for group in opt.param_groups:
+            group["capturable"], group["fused"] = True, True
+        for st in opt.state.values():
+            for k, v in st.items():
+                if torch.is_tensor(v):
+                    st[k] = v.to(device=device, dtype=torch.float32 if k == "step" else v.dtype)
     for group in opt.param_groups:  # the run's schedule sets the rate
         if torch.is_tensor(group["lr"]):
             group["lr"].fill_(args.lr)

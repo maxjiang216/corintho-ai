@@ -1,5 +1,6 @@
 #include "backend.h"
 
+#include <algorithm>
 #include <array>
 #include <stdexcept>
 
@@ -59,35 +60,79 @@ class OrtBackend : public Backend {
     options.AppendExecutionProvider_CUDA_V2(*cuda);
     Ort::GetApi().ReleaseCUDAProviderOptions(cuda);
     session_ = std::make_unique<Ort::Session>(env, path.c_str(), options);
+    pinned_ = std::make_unique<Ort::Allocator>(*session_, pinned_info_);
   }
 
   void evaluate(const float *states, int32_t rows, float *values,
                 float *probs) override {
-    const Ort::MemoryInfo cpu =
-        Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+    // Stage through page-locked (pinned) host buffers: the GPU then moves the
+    // data by DMA. With ordinary pageable buffers, CUDA copies through its own
+    // staging buffer on the CPU, which competed with the engine's threads and
+    // made each call ~2.6x slower while the engine was searching (entry 29).
+    reserve(rows);
+    const size_t in_n = static_cast<size_t>(rows) * kGameStateSize;
+    std::copy(states, states + in_n, pinned_in_);
     const std::array<int64_t, 2> in_shape{rows, kGameStateSize};
     const std::array<int64_t, 2> value_shape{rows, 1};
     const std::array<int64_t, 2> policy_shape{rows, kNumMoves};
-    // ORT does not write through the input, but its API takes non-const
-    Ort::Value input = Ort::Value::CreateTensor<float>(
-        cpu, const_cast<float *>(states),
-        static_cast<size_t>(rows) * kGameStateSize, in_shape.data(), 2);
-    std::array<Ort::Value, 2> outputs{
-        Ort::Value::CreateTensor<float>(cpu, values, static_cast<size_t>(rows),
-                                        value_shape.data(), 2),
-        Ort::Value::CreateTensor<float>(
-            cpu, probs, static_cast<size_t>(rows) * kNumMoves,
-            policy_shape.data(), 2)};
-    const std::array<const char *, 1> in_names{"states"};
-    const std::array<const char *, 2> out_names{"value", "policy"};
-    session_->Run(Ort::RunOptions{nullptr}, in_names.data(), &input, 1,
-                  out_names.data(), outputs.data(), 2);
+    Ort::IoBinding binding{*session_};
+    binding.BindInput("states", Ort::Value::CreateTensor<float>(
+                                    cpu_info_, pinned_in_, in_n,
+                                    in_shape.data(), 2));
+    binding.BindOutput("value", Ort::Value::CreateTensor<float>(
+                                    cpu_info_, pinned_value_,
+                                    static_cast<size_t>(rows),
+                                    value_shape.data(), 2));
+    binding.BindOutput("policy", Ort::Value::CreateTensor<float>(
+                                     cpu_info_, pinned_policy_,
+                                     static_cast<size_t>(rows) * kNumMoves,
+                                     policy_shape.data(), 2));
+    session_->Run(Ort::RunOptions{nullptr}, binding);
+    std::copy(pinned_value_, pinned_value_ + rows, values);
+    std::copy(pinned_policy_,
+              pinned_policy_ + static_cast<size_t>(rows) * kNumMoves, probs);
   }
+
+  ~OrtBackend() override { release(); }
+
   std::string describe() const override { return "ort-cuda " + path_; }
 
  private:
+  void reserve(int32_t rows) {
+    if (rows <= capacity_)
+      return;
+    release();
+    capacity_ = std::max(rows, 2 * capacity_);
+    auto get = [this](size_t floats) {
+      return static_cast<float *>(pinned_->Alloc(floats * sizeof(float)));
+    };
+    pinned_in_ = get(static_cast<size_t>(capacity_) * kGameStateSize);
+    pinned_value_ = get(static_cast<size_t>(capacity_));
+    pinned_policy_ = get(static_cast<size_t>(capacity_) * kNumMoves);
+  }
+  void release() {
+    for (float *p : {pinned_in_, pinned_value_, pinned_policy_})
+      if (p != nullptr)
+        pinned_->Free(p);
+    pinned_in_ = pinned_value_ = pinned_policy_ = nullptr;
+    capacity_ = 0;
+  }
+
   std::unique_ptr<Ort::Session> session_;
   std::string path_;
+  // Pinned buffers come from ORT's CudaPinned allocator but are bound as
+  // plain CPU tensors: binding them as CudaPinned made ORT's CUDA provider
+  // attempt a copy onto the same address. CUDA recognises page-locked memory
+  // by address, so the host-device copies are still DMA.
+  Ort::MemoryInfo pinned_info_{"CudaPinned", OrtDeviceAllocator, 0,
+                               OrtMemTypeCPUOutput};
+  Ort::MemoryInfo cpu_info_ =
+      Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeDefault);
+  std::unique_ptr<Ort::Allocator> pinned_;
+  float *pinned_in_{nullptr};
+  float *pinned_value_{nullptr};
+  float *pinned_policy_{nullptr};
+  int32_t capacity_{0};
 };
 
 bool endsWith(const std::string &s, const std::string &suffix) {

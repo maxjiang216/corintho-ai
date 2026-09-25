@@ -119,6 +119,7 @@ def generation(run_dir, cfg, state, g):
         os.makedirs(samples, exist_ok=True)
         sh([PLAY, "train", "--model", model_prefix(run_dir, best) + ".onnx",
             "--games", str(cfg["games"]), "--in-flight", str(cfg["in_flight"]),
+            "--groups", str(cfg.get("groups", 1)),
             "--seed", str(cfg["seed"] * 100003 + 2 * g), "--out", samples,
             "--logged", str(cfg["logged"])] + common, play_log)
 
@@ -219,7 +220,11 @@ def main():
                     help="rating of --init (gen_93's)")
     # Defaults: gen_93's metadata.txt
     ap.add_argument("--games", type=int, default=25000)
-    ap.add_argument("--in-flight", type=int, default=1000)
+    # Two groups of 2,000 games: the engine searches one while the GPU
+    # evaluates the other; 25k games in ~336 s instead of ~407 s with one
+    # group of 1,000, at ~3.7 GB peak (entry 29)
+    ap.add_argument("--in-flight", type=int, default=2000)
+    ap.add_argument("--groups", type=int, default=2)
     ap.add_argument("--test-games", type=int, default=1600)
     ap.add_argument("--searches", type=int, default=1600)
     ap.add_argument("--spe", type=int, default=16)

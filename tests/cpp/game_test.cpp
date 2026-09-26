@@ -571,3 +571,31 @@ TEST(GameTest, SymmetryTablesAgree) {
   }
   EXPECT_GT(checked, 1000);
 }
+
+// hasLine (branch-free) agrees with the line finder over random play
+TEST(GameTest, HasLineMatchesLineSpaces) {
+  std::mt19937 rng{7};
+  int32_t with_line = 0, checked = 0;
+  for (int32_t g = 0; g < 300; ++g) {
+    Game game;
+    for (int32_t ply = 0; ply < 60; ++ply) {
+      uint16_t spaces[3];
+      game.lineSpaces(spaces);
+      const bool any = (spaces[0] | spaces[1] | spaces[2]) != 0;
+      ASSERT_EQ(game.hasLine(), any) << "game " << g << " ply " << ply;
+      with_line += any;
+      ++checked;
+      std::bitset<kNumMoves> legal;
+      game.getLegalMoves(legal);
+      if (legal.none())
+        break;
+      std::vector<int32_t> moves;
+      for (int32_t j = 0; j < kNumMoves; ++j)
+        if (legal[j])
+          moves.push_back(j);
+      game.doMove(moves[rng() % moves.size()]);
+    }
+  }
+  EXPECT_GT(with_line, 100);
+  EXPECT_GT(checked, 3000);
+}

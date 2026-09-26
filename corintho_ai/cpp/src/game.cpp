@@ -54,13 +54,6 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
-bool Game::hasLine() const noexcept {
-  SpaceInfo info;
-  computeSpaceInfo(info);
-  PresentLine lines[kNumLineShapes];
-  return findLines(info, lines) > 0;
-}
-
 void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   board = board_.to_ullong();
   rest = static_cast<uint64_t>(to_play_);
@@ -509,4 +502,36 @@ bool Game::isLegalMove(int32_t move_id) const noexcept {
   SpaceInfo info;
   computeSpaceInfo(info);
   return isLegalMove(move_id, info);
+}
+
+// Every run of three that kRunStart admits is a line shape, so a line stands
+// exactly when some top plane has a run of three in some direction
+constexpr bool everyRunIsAShape() {
+  for (int32_t d = 0; d < 4; ++d)
+    for (int32_t c = 0; c < kBoardSize; ++c)
+      if (((kRunStart[d][0] >> c) & 1) != 0 && kRunToShape[d][c][0] < 0)
+        return false;
+  return true;
+}
+static_assert(everyRunIsAShape());
+
+bool Game::hasLine() const noexcept {
+  // Branch-free: the top planes by bit gathering, then one shifted AND per
+  // type and direction (entry 08: the looping findLines was 42% of the
+  // solver's instructions and 55% of its mispredicted branches)
+  const uint64_t b = board_.to_ullong();
+  const uint32_t base = gatherNibbleBits(b >> kBase);
+  const uint32_t column = gatherNibbleBits(b >> kColumn);
+  const uint32_t capital = gatherNibbleBits(b >> kCapital);
+  const uint32_t top[3] = {base & ~column & ~capital, column & ~capital,
+                           capital};
+  uint32_t any = 0;
+  for (int32_t type = 0; type < 3; ++type) {
+    const uint32_t p = top[type];
+    for (int32_t d = 0; d < 4; ++d) {
+      const uint32_t s = static_cast<uint32_t>(kLineStride[d]);
+      any |= p & (p >> s) & (p >> (2 * s)) & kRunStart[d][0];
+    }
+  }
+  return any != 0;
 }

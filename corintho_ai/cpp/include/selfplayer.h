@@ -1,6 +1,7 @@
 #ifndef SELFPLAYER_H
 #define SELFPLAYER_H
 
+#include <cassert>
 #include <cstdint>
 
 #include <array>
@@ -31,7 +32,9 @@ class SelfPlayer {
   /// @brief Root of the tree now being searched (the player to move's),
   /// or nullptr. For measurements (worklog 2026-09-25-nn-architectures,
   /// entry 08).
-  const Node *searchRoot() const noexcept { return players_[to_play_].root(); }
+  const Node *searchRoot() const noexcept {
+    return players_[tree(to_play_)].root();
+  }
   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,
@@ -93,6 +96,15 @@ class SelfPlayer {
       if (model < 0 || p == (model + parity_) % 2)
         players_[p].set_node_solver(max_horizon, max_nodes);
   }
+  /// @brief Both sides search one tree (training only; worklog
+  /// 2026-09-25-nn-architectures, entry 17); call before the first iteration
+  /// @details Both sides use the same network in training, and with a tree
+  /// each ~20% of evaluations repeated positions the other side's tree had
+  /// already evaluated. Each move still gets max_searches new searches.
+  void set_shared_tree(bool shared) noexcept {
+    assert(!testing_ || !shared);
+    shared_tree_ = shared;
+  }
   /// @brief Whether the game ended by an exact solution
   bool adjudicated() const noexcept { return adjudicated_; }
   /// @brief Wait for a submitted solve and apply its result; call before
@@ -127,6 +139,8 @@ class SelfPlayer {
   int32_t chooseMove();
   /// @brief Choose a move and then do an iteration of searches
   bool chooseMoveAndContinue();
+  /// @brief Index in players_ of player p's tree
+  int32_t tree(int32_t p) const noexcept { return shared_tree_ ? 0 : p; }
   /// @brief Random generator for all operations
   /// @details Shared with the TrainMC objects
   std::mt19937 generator_{};
@@ -138,7 +152,9 @@ class SelfPlayer {
   /// straight into the network input and never copied.
   float *to_eval_{nullptr};
   /// @brief Monte Carlo search trees for each player
+  /// @details With shared_tree_, both sides use players_[0]
   TrainMC players_[2];
+  bool shared_tree_{false};
   /// @brief Whose turn it is
   int32_t to_play_{0};
   /// @brief Training samples

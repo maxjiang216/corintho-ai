@@ -116,6 +116,12 @@ class Trainer {
     for (SelfPlayer &game : games_)
       game.set_node_solver(max_horizon, max_nodes, model);
   }
+  /// @brief Both sides of each game search one tree (entry 17); call before
+  /// the first iteration, training only
+  void setSharedTree(bool shared) {
+    for (SelfPlayer &game : games_)
+      game.set_shared_tree(shared);
+  }
   /// @brief Games ended by exact solution so far
   int32_t numAdjudicated() const noexcept;
   /// @brief The solver pool, or nullptr (for its statistics)

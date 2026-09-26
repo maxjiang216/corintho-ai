@@ -34,6 +34,8 @@
 //   --node-p 0      solve search leaves with horizon P <= this exactly
 //                   instead of asking the network (entry 15); --node-cap
 //                   20000 positions per leaf, then the network
+//   --shared-tree 0 train: 1 = both sides of a game search one tree
+//                   (entry 17); each move still gets --searches new ones
 //   --node-side both  test only: which side uses the node solver (new, best)
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
@@ -277,6 +279,7 @@ int runTrain(const Args &a) {
         static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
   // Search leaves solved exactly from horizon --node-p down (entry 15)
   const int32_t node_p = a.i32("node-p", 0);
+  const bool shared_tree = a.i32("shared-tree", 0) != 0;
   const uint64_t node_cap = static_cast<uint64_t>(a.i64("node-cap", 20000));
   int64_t adjudicated = 0, solve_unknown = 0;
   double solve_wait_s = 0;  // waiting for solves at chunk ends
@@ -378,6 +381,8 @@ int runTrain(const Args &a) {
       g.trainer->setSolver(solver_pool.get(), solve_p);
     if (node_p > 0)
       g.trainer->setNodeSolver(node_p, node_cap);
+    if (shared_tree)
+      g.trainer->setSharedTree(true);
     g.values.assign(static_cast<size_t>(g.games) * spe, 0.0F);
     g.probs.assign(static_cast<size_t>(g.games) * spe * kNumMoves, 0.0F);
     games_started += g.games;
@@ -592,6 +597,7 @@ int runTrain(const Args &a) {
      << "  \"adjudicated_games\": " << adjudicated << ",\n"
      << "  \"solve_unknown_games\": " << solve_unknown << ",\n"
      << "  \"node_horizon\": " << node_p << ",\n"
+     << "  \"shared_tree\": " << shared_tree << ",\n"
      << "  \"node_solve_attempts\": " << node_attempts << ",\n"
      << "  \"node_solved\": " << node_solved << ",\n"
      << "  \"node_solve_seconds\": " << node_seconds << ",\n"

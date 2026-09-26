@@ -50,8 +50,12 @@ def main():
     for kind in ("cuda", "cuda", "trt32", "trt16"):
         sess = session(model, kind)
         xg = ort.OrtValue.ortvalue_from_numpy(x, "cuda", 0)
-        vg = ort.OrtValue.ortvalue_from_shape_and_type([n, 1], np.float32, "cuda", 0)
-        pg = ort.OrtValue.ortvalue_from_shape_and_type([n, M], np.float32, "cuda", 0)
+        vg = ort.OrtValue.ortvalue_from_shape_and_type(
+            [n, 1], np.float32, "cuda", 0
+        )
+        pg = ort.OrtValue.ortvalue_from_shape_and_type(
+            [n, M], np.float32, "cuda", 0
+        )
         b = sess.io_binding()
         b.bind_ortvalue_input("states", xg)
         b.bind_ortvalue_output("value", vg)
@@ -65,16 +69,20 @@ def main():
         bh.bind_output("policy", "cpu", 0, np.float32, [n, M], p.ctypes.data)
         host = timed(lambda: sess.run_with_iobinding(bh))
         sess.run_with_iobinding(bh)
-        line = (f"{kind:6s} compute {comp * 1e3:6.3f} ms ({comp * 1e9 / n:5.1f} ns/row)"
-                f"  host-bound {host * 1e3:6.3f} ms ({host * 1e9 / n:5.1f} ns/row)")
+        line = (
+            f"{kind:6s} compute {comp * 1e3:6.3f} ms ({comp * 1e9 / n:5.1f} ns/row)"
+            f"  host-bound {host * 1e3:6.3f} ms ({host * 1e9 / n:5.1f} ns/row)"
+        )
         if ref is None:
             ref = (v.copy(), p.copy())
         else:
             dv = np.abs(v - ref[0])
             dp = np.abs(p - ref[1])
             top = (p.argmax(1) != ref[1].argmax(1)).mean()
-            line += (f"  |dv| max {dv.max():.1e} mean {dv.mean():.1e}"
-                     f"  |dp| max {dp.max():.1e}  top-move differs {top:.2%}")
+            line += (
+                f"  |dv| max {dv.max():.1e} mean {dv.mean():.1e}"
+                f"  |dp| max {dp.max():.1e}  top-move differs {top:.2%}"
+            )
         print(line, flush=True)
 
 

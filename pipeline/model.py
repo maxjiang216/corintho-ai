@@ -248,9 +248,9 @@ def check_exports(net, prefix):
     )
     # fp16 policy: relative error up to 2^-11, so up to ~5e-4 absolute
     tol = {"onnx_policy": 1e-3 if compact else 1e-4}
-    assert all(d < tol.get(k, 1e-4) for k, d in diffs.items()), (
-        "an export does not match the model"
-    )
+    assert all(
+        d < tol.get(k, 1e-4) for k, d in diffs.items()
+    ), "an export does not match the model"
 
 
 def save(net, prefix, optimizer=None, extra=None):

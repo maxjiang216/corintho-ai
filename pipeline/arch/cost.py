@@ -40,8 +40,10 @@ class ResMlp(nn.Module):
         self.inp = nn.Linear(S, width)
         self.blocks = nn.ModuleList(
             nn.Sequential(
-                nn.ReLU(), nn.Linear(width, width),
-                nn.ReLU(), nn.Linear(width, width),
+                nn.ReLU(),
+                nn.Linear(width, width),
+                nn.ReLU(),
+                nn.Linear(width, width),
             )
             for _ in range(blocks)
         )
@@ -63,12 +65,16 @@ class Conv(nn.Module):
         self.inp = nn.Conv2d(10, ch, 3, padding=1)
         self.blocks = nn.ModuleList(
             nn.Sequential(
-                nn.ReLU(), nn.Conv2d(ch, ch, 3, padding=1),
-                nn.ReLU(), nn.Conv2d(ch, ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(ch, ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(ch, ch, 3, padding=1),
             )
             for _ in range(blocks)
         )
-        self.v = nn.Sequential(nn.Linear(ch * 16, 64), nn.ReLU(), nn.Linear(64, 1))
+        self.v = nn.Sequential(
+            nn.Linear(ch * 16, 64), nn.ReLU(), nn.Linear(64, 1)
+        )
         self.p = nn.Linear(ch * 16, M)
 
     def forward(self, x):
@@ -92,11 +98,19 @@ class Attn(nn.Module):
         self.res = nn.Linear(6, d)
         self.layers = nn.ModuleList()
         for _ in range(layers):
-            self.layers.append(nn.ModuleDict(dict(
-                n1=nn.LayerNorm(d), qkv=nn.Linear(d, 3 * d), o=nn.Linear(d, d),
-                n2=nn.LayerNorm(d),
-                ff=nn.Sequential(nn.Linear(d, 2 * d), nn.ReLU(), nn.Linear(2 * d, d)),
-            )))
+            self.layers.append(
+                nn.ModuleDict(
+                    dict(
+                        n1=nn.LayerNorm(d),
+                        qkv=nn.Linear(d, 3 * d),
+                        o=nn.Linear(d, d),
+                        n2=nn.LayerNorm(d),
+                        ff=nn.Sequential(
+                            nn.Linear(d, 2 * d), nn.ReLU(), nn.Linear(2 * d, d)
+                        ),
+                    )
+                )
+            )
         self.heads, self.d = heads, d
         self.v = nn.Linear(d, 1)
         self.p = nn.Linear(17 * d, M)
@@ -107,11 +121,17 @@ class Attn(nn.Module):
         h = torch.cat([self.res(x[:, 64:]).unsqueeze(1), t], 1)
         H, dh = self.heads, self.d // self.heads
         for L in self.layers:
-            q, k, v = L["qkv"](L["n1"](h)).reshape(n, 17, 3, H, dh).permute(2, 0, 3, 1, 4)
+            q, k, v = (
+                L["qkv"](L["n1"](h))
+                .reshape(n, 17, 3, H, dh)
+                .permute(2, 0, 3, 1, 4)
+            )
             a = torch.softmax(q @ k.transpose(-1, -2) / dh**0.5, -1) @ v
             h = h + L["o"](a.transpose(1, 2).reshape(n, 17, self.d))
             h = h + L["ff"](L["n2"](h))
-        return torch.tanh(self.v(h[:, 0])), torch.softmax(self.p(h.flatten(1)), 1)
+        return torch.tanh(self.v(h[:, 0])), torch.softmax(
+            self.p(h.flatten(1)), 1
+        )
 
 
 class Half(nn.Module):
@@ -137,10 +157,14 @@ CANDIDATES = {
 
 def export(net, path):
     torch.onnx.export(
-        net.eval(), (torch.zeros(16, S),), path,
-        input_names=["states"], output_names=["value", "policy"],
+        net.eval(),
+        (torch.zeros(16, S),),
+        path,
+        input_names=["states"],
+        output_names=["value", "policy"],
         dynamic_axes={k: {0: "n"} for k in ("states", "value", "policy")},
-        opset_version=17, dynamo=False,
+        opset_version=17,
+        dynamo=False,
     )
 
 

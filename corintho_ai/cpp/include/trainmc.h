@@ -175,6 +175,12 @@ class TrainMC {
   Node *cur_{nullptr};
   /// @brief The number of searches done for the current move
   int32_t searches_done_{0};
+  /// @brief Root visits at which a search stops early: Node counts visits
+  /// in int16_t. Never reached with a tree per player (max ~7.7k); a tree
+  /// shared by both players carries more over (entry 17).
+  static constexpr int32_t kMaxRootVisits = 32000;
+  /// @brief Whether this move's search may start another search
+  bool budgetLeft() const noexcept;
   /// @brief The maximum number of searches to do per move.
   /// @details 1600 was used during training.
   const int32_t max_searches_{1600};

@@ -40,6 +40,10 @@ class Solver {
   int32_t search(const Game &game, const MoveMask &legal, bool lines,
                  int32_t alpha, int32_t beta);
 
+  /// @brief Store a result with its bound and best move; returns best
+  int32_t store(uint64_t board, uint64_t rest, int32_t best, int32_t alpha0,
+                int32_t beta, int32_t best_move);
+
   enum Bound : int8_t { kExact = 0, kLower = 1, kUpper = 2 };
   struct Entry {
     uint64_t board{0};

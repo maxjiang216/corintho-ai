@@ -40,10 +40,10 @@ int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
   return aborted_ ? kUnknown : result;
 }
 
-// Negamax alpha-beta over exact results. Every child is generated first:
-// a move that leaves the opponent no moves while a line stands wins at once;
-// the others are tried table move first, then fewest opponent replies first
-// (entry 08).
+// Negamax alpha-beta over exact results. The table's move is searched
+// first; if it does not cut off, every other child is generated: a move that
+// leaves the opponent no moves while a line stands wins at once, and the
+// others are searched fewest opponent replies first (entry 08).
 int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
                        int32_t alpha, int32_t beta) {
   if (++nodes_ > max_nodes_) {
@@ -68,6 +68,26 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
       beta = std::min(beta, s);
     table_move = slot.move;
   }
+  int32_t best = -2, best_move = -1;
+  // The table's move alone first: when it refutes, the other children are
+  // never generated (entry 08)
+  if (table_move >= 0) {
+    Game child = game;
+    child.doMove(table_move);
+    MoveMask child_legal;
+    const bool child_lines = child.getLegalMoves(child_legal);
+    const int32_t s =
+        !child_legal.any() && child_lines
+            ? 1
+            : -search(child, child_legal, child_lines, -beta, -alpha);
+    if (aborted_)
+      return 0;
+    best = s;
+    best_move = table_move;
+    alpha = std::max(alpha, s);
+    if (alpha >= beta)
+      return store(board, rest, best, alpha0, beta, best_move);
+  }
   struct Child {
     Game game;
     MoveMask legal;
@@ -84,13 +104,12 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   bool win = false;
   int32_t win_move = -1;
   forEachMove(legal, [&](int32_t m) {
-    if (win)
+    if (win || m == table_move)
       return;
     Child &c = *new (&children[n]) Child{game, {}, m, 0, false};
     c.game.doMove(m);
     c.lines = c.game.getLegalMoves(c.legal);
-    c.move = m;
-    c.replies = static_cast<int32_t>(c.legal.count());
+    c.replies = c.legal.count();
     if (c.replies == 0 && c.lines) {
       win = true;  // the opponent is stuck with a line on the board
       win_move = m;
@@ -98,27 +117,18 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     }
     ++n;
   });
-  int32_t best = -2, best_move = -1;
   if (win) {
     best = 1;
     best_move = win_move;
   } else {
+    // Fewest replies first; an insertion sort, stable, with no allocation
+    // (std::stable_sort's merge sort was ~6%)
     int32_t order[kNumMoves];
-    for (int32_t i = 0; i < n; ++i)
-      order[i] = i;
-    // Table move first, then fewest replies; an insertion sort, stable, with
-    // no allocation (std::stable_sort's merge sort was ~6%)
-    auto before = [&](int32_t a, int32_t b) {
-      const bool ta = children[a].move == table_move;
-      const bool tb = children[b].move == table_move;
-      if (ta != tb)
-        return ta;
-      return children[a].replies < children[b].replies;
-    };
-    for (int32_t i = 1; i < n; ++i) {
-      const int32_t x = order[i];
+    for (int32_t i = 0; i < n; ++i) {
+      const int32_t x = i;
       int32_t j = i;
-      for (; j > 0 && before(x, order[j - 1]); --j)
+      for (; j > 0 && children[x].replies < children[order[j - 1]].replies;
+           --j)
         order[j] = order[j - 1];
       order[j] = x;
     }
@@ -136,15 +146,20 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
         break;
     }
   }
-  // The search above may have overwritten this slot; store afresh
-  Entry &out = table_[mix(board, rest) & mask_];
-  out = Entry{board,
-              rest,
-              epoch_,
-              static_cast<int8_t>(best),
-              static_cast<int8_t>(best <= alpha0 ? kUpper
-                                  : best >= beta ? kLower
-                                                 : kExact),
-              static_cast<int8_t>(best_move)};
+  return store(board, rest, best, alpha0, beta, best_move);
+}
+
+int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,
+                      int32_t alpha0, int32_t beta, int32_t best_move) {
+  // The search may have overwritten this position's slot; store afresh
+  table_[mix(board, rest) & mask_] =
+      Entry{board,
+            rest,
+            epoch_,
+            static_cast<int8_t>(best),
+            static_cast<int8_t>(best <= alpha0 ? kUpper
+                                : best >= beta ? kLower
+                                               : kExact),
+            static_cast<int8_t>(best_move)};
   return best;
 }

@@ -38,6 +38,14 @@ threads), the cache cannot pay. Parked; `--cache` off by default. The
 worker-thread driver is in the source; the loop runs on a build from
 before it.
 
+Unverified observation, check pending: with the cache off, the
+worker-thread binary ran 49.1 / 49.2 s (GPU wait 9.7 s) where the older
+binary (a std::async thread per network call, so the two groups' calls
+could overlap on the GPU) had run 57-60 s (wait ~17.5 s), but on a
+different network (gen 5 vs gen 4). If it holds with the same network,
+serializing the groups' GPU calls is itself a ~15% self-play speed-up. The
+A/B (same network, both binaries, cache off) was interrupted.
+
 Better route: merging transpositions inside the search (a graph instead of
 a tree; KataGo's graph search) avoids the repeats at the source and shares
 statistics; Corintho has no cycles (P falls every move). Parked by the

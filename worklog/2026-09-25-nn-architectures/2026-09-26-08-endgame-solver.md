@@ -22,8 +22,8 @@ be emitted as extra samples with exact labels.
   at P 22-29 (0% at P <= 18): the label noise a game solver removes.
 - Break-even for the game solver: self-play spends ~7 ms of CPU per move,
   so solving at P with k plies left is free up to ~7k ms.
-- Search depth (500 games, leaves vs their search root, in P): median 7,
-  p90 12. From root P 27, 47% of leaves are at P <= 19; from 30, 20%; 32,
+- Search depth (500 games, leaves vs their search root, in P; full table in
+  `data/search-depth-by-root-P.txt`): median 7, p90 12. From root P 27, 47% of leaves are at P <= 19; from 30, 20%; 32,
   9%. The node solver would see a lot of use in the few moves before
   P_game, at a cost to be measured with a warm table.
 
@@ -59,9 +59,15 @@ generated only when searched.
 | 8 | quiet order explicit: stack moves, then base, column, capital | identical (the reverse, the developer's intuition, was 7.5x more nodes) |
 
 Net, one thread pinned: P <= 22 5.66 -> 0.21 s (27x); **P <= 24 64.1 ->
-0.92 s (70x)**, 4350 -> 4371 of 4371 solved. Frontier (5M-node cap):
-P 24 median 0.6-0.8 ms, P 26 ~5 ms (99.7%), P 28 42 ms (94%), P 30 0.14
-s (68%).
+0.92 s (70x)**, 4350 -> 4371 of 4371 solved.
+
+Frontier (5M-node cap, 20 threads, so per-solve times are pessimistic;
+`data/solver/bench-8-final-p32.txt`), after step 1 -> final: P 26 99.7% /
+4.8 ms -> 100% / 1.7 ms median; P 28 94% / 42 ms -> 99% / 9 ms; P 30 68% /
+141 ms -> 93% / 62 ms; P 32 40% -> 64% solved.
+
+Profiles (callgrind summaries, instructions, mispredicted branches, L1
+misses) after steps 1, 4, 6 and 8 are in `data/solver/profile-*.txt`.
 
 Tried and dropped: an AVX2 version classifying four children at once
 (child boards as word arithmetic, top pieces in nibble space): +3%

@@ -1,0 +1,17 @@
+5,493,165,086 (100.0%) 39,878,318 (100.0%) 2,588,499 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                     Bcm                 D1mr                file:function
+--------------------------------------------------------------------------------
+2,292,390,407 (41.73%) 22,262,002 (55.82%)       444 ( 0.02%)  corintho_ai/cpp/src/game.cpp:Game::findLines(Game::SpaceInfo const&, Game::PresentLine*) const [
+  768,121,935 (13.98%)  5,475,507 (13.73%) 2,524,818 (97.54%)  corintho_ai/cpp/src/solver.cpp:Solver::search(Game const&, MoveMask const&, bool, int, int)'2 [
+  747,027,974 (13.60%)          .                  0           corintho_ai/cpp/src/game.cpp:Game::hasLine() const [
+  613,911,251 (11.18%)  1,633,507 ( 4.10%)    37,370 ( 1.44%)  corintho_ai/cpp/src/game.cpp:Game::getLegalMoves(MoveMask&) const [
+  441,137,061 ( 8.03%)  2,120,425 ( 5.32%)         0           corintho_ai/cpp/src/game.cpp:Game::basicLegalMoves(Game::SpaceInfo const&) const [
+  231,233,361 ( 4.21%)    566,818 ( 1.42%)       591 ( 0.02%)  corintho_ai/cpp/src/game.cpp:Game::doMove(int) [
+   89,912,284 ( 1.64%)  2,949,909 ( 7.40%)        61 ( 0.00%)  corintho_ai/cpp/include/util.h:Solver::search(Game const&, MoveMask const&, bool, int, int)'2
+   82,889,026 ( 1.51%)  1,717,308 ( 4.31%)     5,646 ( 0.22%)  corintho_ai/cpp/include/util.h:Game::getLegalMoves(MoveMask&) const
+   70,737,100 ( 1.29%)          .                  0           corintho_ai/cpp/src/game.cpp:Game::key(unsigned long&, unsigned long&) const
+   66,778,245 ( 1.22%)  3,107,633 ( 7.79%)         6 ( 0.00%)  corintho_ai/cpp/include/game.h:Game::getLegalMoves(MoveMask&) const
+   38,860,864 ( 0.71%)          .                  .           /usr/lib/gcc/x86_64-linux-gnu/14/../../../../include/c++/14/array:Game::getLegalMoves(MoveMask&) const
+

@@ -30,6 +30,7 @@ LR=${LR:-1e-2}               # warm-start rate (entry 06: best of 1e-3..3.2e-2)
 WARMUP=${WARMUP:-100}
 VAL_FRACTION=${VAL_FRACTION:-0.02}
 THREADS=${THREADS:-14}
+LOGGED=${LOGGED:-50}         # full game logs written per generation
 WIDTH=${WIDTH:-512}
 DEPTH=${DEPTH:-4}
 MATCH_EVERY=${MATCH_EVERY:-5}
@@ -46,7 +47,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS WIDTH DEPTH MATCH_EVERY MATCH INIT SEED_DATA ANCHORS; do
+  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH INIT SEED_DATA ANCHORS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -98,6 +99,7 @@ for g in $(seq 1 "$GENS"); do
     mkdir -p "$C/samples"
     "$PLAY" train --model "trt16:$P/model.onnx" --games "$GAMES" \
       --in-flight 2000 --groups 2 --threads "$THREADS" --seed $((100000 + g)) \
+      --logged "$LOGGED" \
       --out "$C/samples" > "$C/selfplay.log" 2>&1
   fi
   # 2. compact, then drop the raw samples (selfplay.json and logs stay)

@@ -14,6 +14,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 01 | [self-play is GPU-bound; TensorRT and compact I/O](2026-09-25-01-gpu-bound-tensorrt-compact-io.md) | The engine waited ~38% of self-play on the GPU. TensorRT + uint8/fp16 I/O: call 3.97 → 1.94 ms, self-play wall −22%. Same-network match even. Now `run.py`'s default. |
 | 02 | [float in selection and backup](2026-09-25-02-float-engine.md) | Double literals removed. Engine −1.5%, not bit-identical, games alike. |
 | 03 | [supervised bench, masking, the symmetry bug](2026-09-25-03-supervised-bench-masking-symmetry-bug.md) | **`move_symmetries` rows 2 and 6 were swapped since 2023: 25% of every generation's policy targets were wrong.** Fixed. Masking helps; residual 256x4 is best so far. |
+| 04 | [recipe, size, first matches, overnight loop](2026-09-25-04-recipe-size-first-matches-overnight.md) | lr 3.2e-2 (16x) is the big lever; width beats depth; residual 512x4 (fp16) beats gen 1 65% after 20 epochs. Overnight loop `runs/night-1`. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -46,6 +47,12 @@ kept no samples.
 
 ## Where to resume
 
-- Supervised test bench (idea 7) with masking (3), symmetry (4) and line
-  features (5) as switches; the current architecture as reference.
-- Re-run `pipeline/arch/cost.py` candidates under `trt:` with compact I/O.
+- **Read `pipeline/runs/night-1/summary.tsv` and `progress.log`** (the
+  overnight loop, entry 04): does strength keep rising, or plateau?
+- The symmetry fix `873988e` should go to `main` on its own (small PR).
+- Then put the 512x4 and the recipe into the real pipeline (`model.py`,
+  `fit.py`, `run.py`): steady learning rate, sliding window, weight
+  averaging, matches as monitoring instead of a gate (see
+  `research-other-games.md`), 14 engine threads.
+- Open: equal-wall-time matches (the 512x4 costs +40% self-play time);
+  distillation; the orientation/value quirk.

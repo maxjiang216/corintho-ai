@@ -35,6 +35,10 @@ WIDTH=${WIDTH:-512}
 DEPTH=${DEPTH:-4}
 MATCH_EVERY=${MATCH_EVERY:-5}
 MATCH=${MATCH:-1600}
+# End self-play games by exact solution at horizon P <= SOLVE_P (entry 14;
+# 0: off). Matches are played out as before.
+SOLVE_P=${SOLVE_P:-27}
+SOLVE_THREADS=${SOLVE_THREADS:-6}
 INIT=${INIT:-runs/night-2/it1/net.pt}
 # Compact data files standing in for the generations before gen 1
 SEED_DATA=${SEED_DATA:-}
@@ -47,7 +51,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH INIT SEED_DATA ANCHORS; do
+  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS INIT SEED_DATA ANCHORS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -99,7 +103,7 @@ for g in $(seq 1 "$GENS"); do
     mkdir -p "$C/samples"
     "$PLAY" train --model "trt16:$P/model.onnx" --games "$GAMES" \
       --in-flight 2000 --groups 2 --threads "$THREADS" --seed $((100000 + g)) \
-      --logged "$LOGGED" \
+      --logged "$LOGGED" --solve-p "$SOLVE_P" --solve-threads "$SOLVE_THREADS" \
       --out "$C/samples" > "$C/selfplay.log" 2>&1
   fi
   # 2. compact, then drop the raw samples (selfplay.json and logs stay)

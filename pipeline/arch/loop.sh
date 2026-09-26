@@ -41,6 +41,9 @@ MATCH=${MATCH:-1600}
 # samples (entry 19).
 SOLVE_P=${SOLVE_P:-0}
 SOLVE_THREADS=${SOLVE_THREADS:-6}
+# Exact value labels at P <= RELABEL_P on games played out as usual
+# (entry 20; 0: off; not with SOLVE_P)
+RELABEL_P=${RELABEL_P:-0}
 # Matches adjudicated by exact solution at P <= MATCH_SOLVE_P, both sides
 # alike (0: played out), as a user-facing engine with the solver would play
 MATCH_SOLVE_P=${MATCH_SOLVE_P:-0}
@@ -56,7 +59,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS MATCH_SOLVE_P INIT SEED_DATA ANCHORS; do
+  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS RELABEL_P MATCH_SOLVE_P INIT SEED_DATA ANCHORS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -110,6 +113,7 @@ for g in $(seq 1 "$GENS"); do
     "$PLAY" train --model "trt16:$P/model.onnx" --games "$GAMES" \
       --in-flight 2000 --groups 2 --threads "$THREADS" --seed $((100000 + g)) \
       --logged "$LOGGED" --solve-p "$SOLVE_P" --solve-threads "$SOLVE_THREADS" \
+      --relabel-p "$RELABEL_P" \
       --out "$C/samples" > "$C/selfplay.log" 2>&1
   fi
   # 2. compact, then drop the raw samples (selfplay.json and logs stay)

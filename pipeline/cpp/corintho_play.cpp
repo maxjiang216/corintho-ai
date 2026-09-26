@@ -270,7 +270,8 @@ int runTrain(const Args &a) {
     solver_pool = std::make_unique<SolverPool>(
         a.i32("solve-threads", 4), a.i32("solve-table", 22),
         static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
-  int64_t adjudicated = 0;
+  int64_t adjudicated = 0, solve_unknown = 0;
+  double solve_wait_s = 0;  // waiting for solves at chunk ends
   const int32_t cache_log2 = a.i32("cache", 0);
   // CORINTHO_CACHE_VERIFY=1 (with --groups 1): also evaluate every batch in
   // full and compare the rows served from the cache. [0]: rows whose own
@@ -375,6 +376,9 @@ int runTrain(const Args &a) {
   auto finishChunk = [&](Group &g) {
     const auto t = Clock::now();
     Trainer &trainer = *g.trainer;
+    const auto t_solves = Clock::now();
+    solve_unknown += trainer.finalizeSolves();
+    solve_wait_s += since(t_solves);
     adjudicated += trainer.numAdjudicated();
     const int32_t turns = trainer.num_samples();
     const size_t sample_rows = static_cast<size_t>(turns) * kNumSymmetries;
@@ -573,6 +577,8 @@ int runTrain(const Args &a) {
      << "  \"write_seconds\": " << write_s << ",\n"
      << "  \"solve_horizon\": " << solve_p << ",\n"
      << "  \"adjudicated_games\": " << adjudicated << ",\n"
+     << "  \"solve_unknown_games\": " << solve_unknown << ",\n"
+     << "  \"solve_wait_seconds\": " << solve_wait_s << ",\n"
      << "  \"solves\": " << (solver_pool ? solver_pool->solves() : 0) << ",\n"
      << "  \"solves_capped\": " << (solver_pool ? solver_pool->capped() : 0)
      << ",\n"
@@ -668,6 +674,7 @@ int runTest(const Args &a) {
     ++calls;
   }
   const double wall = since(wall_start);
+  trainer.finalizeSolves();  // exact results of games ended by solution
   trainer.writeScores(out + "/score_verbose.txt");
   const int32_t wins = trainer.numWins();
   const int32_t draws = trainer.numDraws();

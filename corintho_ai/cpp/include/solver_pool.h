@@ -18,13 +18,15 @@
 struct SolveJob {
   static constexpr int8_t kWaiting = 3;
   Game game;
+  uint64_t max_nodes{0};  // 0: the pool's default
   std::atomic<int8_t> result{kWaiting};
 };
 
 /// @brief Threads that solve self-play positions off the engine's critical
 /// path (worklog 2026-09-25-nn-architectures, entry 14)
 /// @details A game whose position reaches the solve horizon submits it and
-/// pauses; self-play iterations never wait for a solve. Each thread keeps
+/// ends at once; its result is collected when the samples are written, so
+/// self-play iterations never wait for a solve. Each thread keeps
 /// one Solver whose table is never cleared: stored results and bounds are
 /// facts about positions, true in every game, so the table becomes a
 /// growing endgame cache.
@@ -35,7 +37,10 @@ class SolverPool {
   SolverPool(const SolverPool &) = delete;
   SolverPool &operator=(const SolverPool &) = delete;
 
-  std::shared_ptr<SolveJob> submit(const Game &game);
+  std::shared_ptr<SolveJob> submit(const Game &game, uint64_t max_nodes = 0);
+  /// @brief Block until the job has a result; returns it
+  static int32_t wait(const SolveJob &job);
+  uint64_t max_nodes() const noexcept { return max_nodes_; }
 
   /// @brief Totals so far: solves finished, of which capped; seconds spent
   /// solving (summed over threads); the longest single solve

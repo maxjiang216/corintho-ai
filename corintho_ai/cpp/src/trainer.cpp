@@ -369,3 +369,10 @@ int32_t Trainer::numAdjudicated() const noexcept {
     n += game.adjudicated();
   return n;
 }
+
+int32_t Trainer::finalizeSolves() {
+  int32_t unknown = 0;
+  for (SelfPlayer &game : games_)
+    unknown += !game.finalize();
+  return unknown;
+}

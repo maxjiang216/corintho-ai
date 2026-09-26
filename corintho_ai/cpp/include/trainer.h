@@ -97,6 +97,10 @@ class Trainer {
   /// @brief As enableSolver, with a pool the caller owns and may share
   /// between Trainers (its tables stay warm across them)
   void setSolver(SolverPool *pool, int32_t max_horizon);
+  /// @brief Wait for every submitted solve and apply its result; call before
+  /// writeSamples, score and the result counts
+  /// @return Games whose result stayed unknown (counted as draws)
+  int32_t finalizeSolves();
   /// @brief Games ended by exact solution so far
   int32_t numAdjudicated() const noexcept;
   /// @brief The solver pool, or nullptr (for its statistics)

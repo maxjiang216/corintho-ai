@@ -224,10 +224,18 @@ MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
     // completes a four only if its own top matches the line's type. At most
     // four moves land on any given space, so this walks them directly rather
     // than building a set of every move starting from a space of each type.
-    forEachMove(kLineExtendMoves[shape], [&](int32_t id) {
-      if (info.top(kMoveTable[id].from) == type)
-        mask.set(id);
-    });
+    // A stack's top is `type` exactly when its bit is set in top_plane[type],
+    // so each candidate move is one branch-free bit test (entry 11). The
+    // extending moves are all move-moves, whose IDs lie in the low word.
+    const uint32_t tops = info.top_plane[type];
+    uint64_t w = kLineExtendMoves[shape].lo;
+    assert(kLineExtendMoves[shape].hi == 0);
+    while (w != 0) {
+      const int32_t id = __builtin_ctzll(w);
+      w &= w - 1;
+      mask.lo |= static_cast<uint64_t>((tops >> kMoveTable[id].from) & 1U)
+                 << id;
+    }
     breakers &= mask;
   }
   return breakers;

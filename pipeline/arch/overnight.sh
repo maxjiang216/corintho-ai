@@ -33,6 +33,9 @@ WIDTH=${WIDTH:-512}
 DEPTH=${DEPTH:-4}
 INIT=${INIT:-runs/sup/models/s4_512x4.pt}
 ANCHOR=${ANCHOR:-$PWD/runs/full-2/gen_1/model.onnx}
+KEEP=${KEEP:-1.0}            # fraction of each directory's positions used
+# The sample directories that come before this run's own, oldest first
+SEED_DIRS=${SEED_DIRS:-$(ls -d "$PWD"/runs/full-2/gen_{1,2,3,4}/samples | tr '\n' ' ')}
 
 R=$PWD/runs/$NAME
 PLAY=$PWD/build/corintho_play
@@ -40,7 +43,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME ITERS DIRS GAMES WINDOW EPOCHS MATCH THREADS WIDTH DEPTH INIT ANCHOR; do
+  for v in NAME ITERS DIRS GAMES WINDOW EPOCHS MATCH THREADS WIDTH DEPTH INIT ANCHOR KEEP SEED_DIRS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -49,7 +52,7 @@ log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 
 # All finished sample directories, oldest first (rebuilt from disk each time)
 sample_dirs() {
-  ls -d "$PWD"/runs/full-2/gen_{1,2,3,4}/samples
+  for s in $SEED_DIRS; do echo "$s"; done
   for j in $(seq 1 "$ITERS"); do
     for d in $(seq 1 "$DIRS"); do
       [ -f "$R/it$j/samples_$d/selfplay.json" ] && echo "$R/it$j/samples_$d"
@@ -91,9 +94,10 @@ for i in $(seq 1 "$ITERS"); do
   # 2. dataset over the window
   if [ ! -f "$C/data.npz" ]; then
     sample_dirs | tail -n "$WINDOW" > "$C/window.txt"
-    $PY arch/dataset.py "$C/data.tmp.npz" $(cat "$C/window.txt") > "$C/dataset.log" 2>&1
+    $PY arch/dataset.py "$C/data.tmp.npz" $(cat "$C/window.txt") \
+      --keep "$KEEP" --seed "$i" > "$C/dataset.log" 2>&1
     mv "$C/data.tmp.npz" "$C/data.npz"
-    log "it$i: dataset of $(wc -l < "$C/window.txt") directories, $(tail -1 "$C/dataset.log" | grep -o '[0-9]* positions')"
+    log "it$i: dataset of $(wc -l < "$C/window.txt") directories (keep $KEEP), $(tail -1 "$C/dataset.log" | grep -o '[0-9]* positions')"
     # Raw samples outside the window are not needed again; keep their logs
     for old in $(sample_dirs | grep "^$R/" | head -n -"$WINDOW"); do
       rm -f "$old"/*.npy

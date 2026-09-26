@@ -1,0 +1,65 @@
+2026-09-25 23:10:10 it0: exported runs/sup/models/s4_512x4.pt
+2026-09-25 23:16:33 it1: self-play 1/10 done in 375.107 s
+2026-09-25 23:22:47 it1: self-play 2/10 done in 371.848 s
+2026-09-25 23:29:04 it1: self-play 3/10 done in 375.997 s
+2026-09-25 23:35:18 it1: self-play 4/10 done in 373.318 s
+2026-09-25 23:41:37 it1: self-play 5/10 done in 378.238 s
+2026-09-25 23:47:52 it1: self-play 6/10 done in 373.367 s
+2026-09-25 23:54:07 it1: self-play 7/10 done in 374.16 s
+2026-09-26 00:00:23 it1: self-play 8/10 done in 375.736 s
+2026-09-26 00:06:38 it1: self-play 9/10 done in 373.604 s
+2026-09-26 00:12:54 it1: self-play 10/10 done in 374.971 s
+2026-09-26 00:17:09 it1: dataset of 14 directories, 10247924 positions
+2026-09-26 00:41:07 it1: trained: epoch 39  train v 0.3428 p 1.1397  val v 0.3248 p 1.1208 top1 0.6827 loss 0.6050  1435 s
+2026-09-26 00:41:46 it1: vs prev: decisive win rate 0.568 (882-46-672)
+2026-09-26 00:42:14 it1: vs gen1: decisive win rate 0.624 (969-47-584)
+2026-09-26 00:42:14 it1: done; summary: 1	3746	10247924	0.3248	1.1208	0.6827	1435	0.568	0.568	0.624	+47
+2026-09-26 00:48:31 it2: self-play 1/10 done in 375.867 s
+2026-09-26 00:54:41 it2: self-play 2/10 done in 369.407 s
+2026-09-26 01:00:59 it2: self-play 3/10 done in 376.337 s
+2026-09-26 01:07:11 it2: self-play 4/10 done in 371.39 s
+2026-09-26 01:13:30 it2: self-play 5/10 done in 378.484 s
+2026-09-26 01:19:42 it2: self-play 6/10 done in 370.991 s
+2026-09-26 01:26:07 it2: self-play 7/10 done in 383.91 s
+2026-09-26 01:32:20 it2: self-play 8/10 done in 371.306 s
+2026-09-26 01:38:45 it2: self-play 9/10 done in 384.87 s
+2026-09-26 01:44:58 it2: self-play 10/10 done in 371.976 s
+2026-09-26 01:49:20 it2: dataset of 14 directories, 10326653 positions
+2026-09-26 02:13:28 it2: trained: epoch 39  train v 0.2858 p 1.1345  val v 0.3001 p 1.1477 top1 0.6854 loss 0.5870  1444 s
+2026-09-26 02:14:07 it2: vs prev: decisive win rate 0.502 (783-39-778)
+2026-09-26 02:14:38 it2: vs it0: decisive win rate 0.590 (912-54-634)
+2026-09-26 02:15:06 it2: vs gen1: decisive win rate 0.625 (968-52-580)
+2026-09-26 02:15:06 it2: done; summary: 2	3755	10326653	0.3001	1.1477	0.6854	1444	0.502	0.590	0.625	+48
+2026-09-26 02:21:10 it3: self-play 1/10 done in 362.844 s
+2026-09-26 02:27:16 it3: self-play 2/10 done in 365.017 s
+2026-09-26 02:33:23 it3: self-play 3/10 done in 365.806 s
+2026-09-26 02:39:28 it3: self-play 4/10 done in 364.732 s
+2026-09-26 02:45:37 it3: self-play 5/10 done in 367.154 s
+2026-09-26 02:51:43 it3: self-play 6/10 done in 365.409 s
+2026-09-26 02:57:50 it3: self-play 7/10 done in 366.464 s
+2026-09-26 03:03:57 it3: self-play 8/10 done in 365.446 s
+2026-09-26 03:10:07 it3: self-play 9/10 done in 368.599 s
+2026-09-26 03:16:13 it3: self-play 10/10 done in 365.289 s
+2026-09-26 03:20:36 it3: dataset of 14 directories, 10277499 positions
+2026-09-26 03:44:34 it3: trained: epoch 39  train v 0.2983 p 1.1346  val v 0.3260 p 1.1300 top1 0.6896 loss 0.6085  1434 s
+2026-09-26 03:45:13 it3: vs prev: decisive win rate 0.564 (876-47-677)
+2026-09-26 03:45:45 it3: vs it0: decisive win rate 0.585 (913-39-648)
+2026-09-26 03:46:12 it3: vs gen1: decisive win rate 0.572 (886-52-662)
+2026-09-26 03:46:12 it3: done; summary: 3	3657	10277499	0.3260	1.1300	0.6896	1434	0.564	0.585	0.572	+93
+2026-09-26 03:53:29 it4: self-play 1/10 done in 435.705 s
+2026-09-26 04:01:20 it4: self-play 2/10 done in 469.743 s
+2026-09-26 04:08:14 it4: self-play 3/10 done in 412.688 s
+2026-09-26 04:14:24 it4: self-play 4/10 done in 369.522 s
+2026-09-26 04:20:30 it4: self-play 5/10 done in 364.794 s
+2026-09-26 04:26:37 it4: self-play 6/10 done in 366.249 s
+2026-09-26 04:32:38 it4: self-play 7/10 done in 359.323 s
+2026-09-26 04:38:40 it4: self-play 8/10 done in 361.585 s
+2026-09-26 04:44:40 it4: self-play 9/10 done in 358.876 s
+2026-09-26 04:50:45 it4: self-play 10/10 done in 363.647 s
+2026-09-26 04:55:01 it4: dataset of 14 directories, 10254582 positions
+2026-09-26 05:18:51 it4: trained: epoch 39  train v 0.3080 p 1.1395  val v 0.3346 p 1.1492 top1 0.6874 loss 0.6219  1426 s
+2026-09-26 05:19:30 it4: vs prev: decisive win rate 0.550 (858-41-701)
+2026-09-26 05:20:01 it4: vs it0: decisive win rate 0.508 (791-43-766)
+2026-09-26 05:20:28 it4: vs gen1: decisive win rate 0.598 (934-39-627)
+2026-09-26 05:20:28 it4: done; summary: 4	3862	10254582	0.3346	1.1492	0.6874	1426	0.550	0.508	0.598	+128
+2026-09-26 05:21:36 paused by Claude after it4 (plateau/cycling found; testing a wider window as night-2). Resume: NAME=night-1 ITERS=8 arch/overnight_supervise.sh

@@ -12,7 +12,7 @@ Arrays: states uint8 [n, 70] (4x the network input), values float32 [n],
 policies float16 [n, 96], legal packed uint8 [n, 12], lines uint16 [n, 3],
 source int8 [n] (index of the samples directory).
 """
-import sys
+import argparse
 
 import numpy as np
 from features import features, symmetries
@@ -83,9 +83,32 @@ def load(d, sym_state, sym_move):
 
 
 def main():
-    out, dirs = sys.argv[1], sys.argv[2:]
+    ap = argparse.ArgumentParser()
+    ap.add_argument("out")
+    ap.add_argument("dirs", nargs="+")
+    ap.add_argument(
+        "--keep",
+        type=float,
+        default=1.0,
+        help="random fraction of each directory's positions to keep "
+        "(after the checks), to fit a wider window in GPU memory",
+    )
+    ap.add_argument("--seed", type=int, default=0)
+    a = ap.parse_args()
+    out, dirs = a.out, a.dirs
     sym_state, sym_move, _ = symmetries()
-    parts = [load(d, sym_state, sym_move) for d in dirs]
+    parts = []
+    for i, d in enumerate(dirs):
+        part = load(d, sym_state, sym_move)
+        if a.keep < 1.0:
+            rng = np.random.default_rng([a.seed, i])
+            n = len(part[0])
+            pick = np.sort(
+                rng.choice(n, int(round(a.keep * n)), replace=False)
+            )
+            part = tuple(x[pick] for x in part)
+            print(f"{d}: kept {len(pick)} of {n} positions", flush=True)
+        parts.append(part)
     source = np.concatenate(
         [np.full(len(p[0]), i, np.int8) for i, p in enumerate(parts)]
     )

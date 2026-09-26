@@ -15,6 +15,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 02 | [float in selection and backup](2026-09-25-02-float-engine.md) | Double literals removed. Engine −1.5%, not bit-identical, games alike. |
 | 03 | [supervised bench, masking, the symmetry bug](2026-09-25-03-supervised-bench-masking-symmetry-bug.md) | **`move_symmetries` rows 2 and 6 were swapped since 2023: 25% of every generation's policy targets were wrong.** Fixed. Masking helps; residual 256x4 is best so far. |
 | 04 | [recipe, size, first matches, overnight loop](2026-09-25-04-recipe-size-first-matches-overnight.md) | lr 3.2e-2 (16x) is the big lever; width beats depth; residual 512x4 (fp16) beats gen 1 65% after 20 epochs. Overnight loop `runs/night-1`. |
+| 05 | [night-1: plateau and cycling](2026-09-26-05-night-1-plateau-and-cycling.md) | One real step (it1), then flat: each iteration beats the last 55-57% but not fixed anchors. Narrow window suspected; night-2 tests a 4-iteration window. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -47,8 +48,9 @@ kept no samples.
 
 ## Where to resume
 
-- **Read `pipeline/runs/night-1/summary.tsv` and `progress.log`** (the
-  overnight loop, entry 04): does strength keep rising, or plateau?
+- **Read entry 05, then `pipeline/runs/night-2/summary.tsv` and
+  `extra/anchors.tsv`** (the wider-window run): does it break night-1's
+  plateau? Judge by the fixed anchors, not the Elo chain.
 - The symmetry fix `873988e` should go to `main` on its own (small PR).
 - Then put the 512x4 and the recipe into the real pipeline (`model.py`,
   `fit.py`, `run.py`): steady learning rate, sliding window, weight

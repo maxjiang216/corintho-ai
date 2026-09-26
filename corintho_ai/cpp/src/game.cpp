@@ -386,13 +386,27 @@ static_assert(gatherNibbleBits(0x0101010101010101ULL) == 0x5555U);
 
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
   const uint64_t b = board_.to_ullong();
+#if defined(__BMI2__)
+  // pext gathers one bit of every nibble in one instruction; the portable
+  // gathering below was ~6% of the solver's instructions (entry 11)
+  const uint64_t nibble = 0x1111111111111111ULL;
+  const uint32_t base = static_cast<uint32_t>(_pext_u64(b, nibble << kBase));
+  const uint32_t column =
+      static_cast<uint32_t>(_pext_u64(b, nibble << kColumn));
+  const uint32_t capital =
+      static_cast<uint32_t>(_pext_u64(b, nibble << kCapital));
+  const uint32_t frozen =
+      static_cast<uint32_t>(_pext_u64(b, nibble << kFrozen));
+#else
   const uint32_t base = gatherNibbleBits(b >> kBase);
   const uint32_t column = gatherNibbleBits(b >> kColumn);
   const uint32_t capital = gatherNibbleBits(b >> kCapital);
+  const uint32_t frozen = gatherNibbleBits(b >> kFrozen);
+#endif
   info.has[kBase] = static_cast<uint16_t>(base);
   info.has[kColumn] = static_cast<uint16_t>(column);
   info.has[kCapital] = static_cast<uint16_t>(capital);
-  info.frozen = static_cast<uint16_t>(gatherNibbleBits(b >> kFrozen));
+  info.frozen = static_cast<uint16_t>(frozen);
   info.empty = static_cast<uint16_t>(~(base | column | capital) & 0xFFFFU);
   // The top is the highest piece present: capital over column over base
   info.top_plane[kCapital] = static_cast<uint16_t>(capital);

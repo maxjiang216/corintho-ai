@@ -1,5 +1,7 @@
 #include "backend.h"
 
+#include <immintrin.h>
+
 #include <algorithm>
 #include <array>
 #include <stdexcept>
@@ -91,6 +93,12 @@ class OrtBackend : public Backend {
     Ort::GetApi().ReleaseCUDAProviderOptions(cuda);
     session_ = std::make_unique<Ort::Session>(env, path.c_str(), options);
     pinned_ = std::make_unique<Ort::Allocator>(*session_, pinned_info_);
+    // A compact model takes uint8 states (4x the engine's floats) and returns
+    // the policy in fp16: 70 + 192 bytes a row cross the bus instead of 664.
+    // The value stays fp32. Older models take and return fp32 throughout.
+    compact_ = session_->GetInputTypeInfo(0)
+                   .GetTensorTypeAndShapeInfo()
+                   .GetElementType() == ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8;
   }
 
   void evaluate(const float *states, int32_t rows, float *values,
@@ -101,26 +109,51 @@ class OrtBackend : public Backend {
     // made each call ~2.6x slower while the engine was searching (entry 29).
     reserve(rows);
     const size_t in_n = static_cast<size_t>(rows) * kGameStateSize;
-    std::copy(states, states + in_n, pinned_in_);
+    const size_t policy_n = static_cast<size_t>(rows) * kNumMoves;
     const std::array<int64_t, 2> in_shape{rows, kGameStateSize};
     const std::array<int64_t, 2> value_shape{rows, 1};
     const std::array<int64_t, 2> policy_shape{rows, kNumMoves};
     Ort::IoBinding binding{*session_};
-    binding.BindInput("states", Ort::Value::CreateTensor<float>(
-                                    cpu_info_, pinned_in_, in_n,
-                                    in_shape.data(), 2));
+    if (compact_) {
+      // Every input is a multiple of 0.25 in [0, 1], so 4x fits a byte
+      // exactly; the model multiplies by 0.25 itself (entry 30)
+      auto *in = static_cast<uint8_t *>(pinned_in_);
+      for (size_t i = 0; i < in_n; ++i)
+        in[i] = static_cast<uint8_t>(states[i] * 4.0F + 0.5F);
+      binding.BindInput("states", Ort::Value::CreateTensor<uint8_t>(
+                                      cpu_info_, in, in_n, in_shape.data(), 2));
+      binding.BindOutput(
+          "policy", Ort::Value::CreateTensor<Ort::Float16_t>(
+                        cpu_info_, static_cast<Ort::Float16_t *>(pinned_policy_),
+                        policy_n, policy_shape.data(), 2));
+    } else {
+      auto *in = static_cast<float *>(pinned_in_);
+      std::copy(states, states + in_n, in);
+      binding.BindInput("states", Ort::Value::CreateTensor<float>(
+                                      cpu_info_, in, in_n, in_shape.data(), 2));
+      binding.BindOutput("policy", Ort::Value::CreateTensor<float>(
+                                       cpu_info_,
+                                       static_cast<float *>(pinned_policy_),
+                                       policy_n, policy_shape.data(), 2));
+    }
     binding.BindOutput("value", Ort::Value::CreateTensor<float>(
                                     cpu_info_, pinned_value_,
                                     static_cast<size_t>(rows),
                                     value_shape.data(), 2));
-    binding.BindOutput("policy", Ort::Value::CreateTensor<float>(
-                                     cpu_info_, pinned_policy_,
-                                     static_cast<size_t>(rows) * kNumMoves,
-                                     policy_shape.data(), 2));
     session_->Run(Ort::RunOptions{nullptr}, binding);
     std::copy(pinned_value_, pinned_value_ + rows, values);
-    std::copy(pinned_policy_,
-              pinned_policy_ + static_cast<size_t>(rows) * kNumMoves, probs);
+    if (compact_) {
+      // fp16 to fp32, eight at a time (F16C); 96 moves per row, so the total
+      // is a multiple of eight
+      const auto *half = static_cast<const uint16_t *>(pinned_policy_);
+      for (size_t i = 0; i < policy_n; i += 8)
+        _mm256_storeu_ps(probs + i,
+                         _mm256_cvtph_ps(_mm_loadu_si128(
+                             reinterpret_cast<const __m128i *>(half + i))));
+    } else {
+      const auto *p = static_cast<const float *>(pinned_policy_);
+      std::copy(p, p + policy_n, probs);
+    }
   }
 
   ~OrtBackend() override { release(); }
@@ -129,7 +162,7 @@ class OrtBackend : public Backend {
     const char *kind = trt_ == TensorRt::kFp16   ? "ort-trt-fp16 "
                        : trt_ == TensorRt::kFp32 ? "ort-trt "
                                                  : "ort-cuda ";
-    return kind + path_;
+    return kind + std::string{compact_ ? "compact " : ""} + path_;
   }
 
  private:
@@ -138,6 +171,7 @@ class OrtBackend : public Backend {
       return;
     release();
     capacity_ = std::max(rows, 2 * capacity_);
+    // Sized for fp32 either way; a compact model uses the start of each
     auto get = [this](size_t floats) {
       return static_cast<float *>(pinned_->Alloc(floats * sizeof(float)));
     };
@@ -146,10 +180,12 @@ class OrtBackend : public Backend {
     pinned_policy_ = get(static_cast<size_t>(capacity_) * kNumMoves);
   }
   void release() {
-    for (float *p : {pinned_in_, pinned_value_, pinned_policy_})
+    for (void *p : {pinned_in_, static_cast<void *>(pinned_value_),
+                    pinned_policy_})
       if (p != nullptr)
         pinned_->Free(p);
-    pinned_in_ = pinned_value_ = pinned_policy_ = nullptr;
+    pinned_in_ = pinned_policy_ = nullptr;
+    pinned_value_ = nullptr;
     capacity_ = 0;
   }
 
@@ -172,10 +208,11 @@ class OrtBackend : public Backend {
   Ort::MemoryInfo cpu_info_ =
       Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeDefault);
   std::unique_ptr<Ort::Allocator> pinned_;
-  float *pinned_in_{nullptr};
+  void *pinned_in_{nullptr};
   float *pinned_value_{nullptr};
-  float *pinned_policy_{nullptr};
+  void *pinned_policy_{nullptr};
   int32_t capacity_{0};
+  bool compact_{false};
 };
 
 bool endsWith(const std::string &s, const std::string &suffix) {

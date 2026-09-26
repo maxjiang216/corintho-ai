@@ -284,6 +284,16 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
         order[j] = order[j - 1];
       order[j] = x;
     }
+    // Every child's table line, fetched ahead of its probe (entry 13:
+    // prefetching the first 0 / 2 / 4 / 8 / all children took 66.1 / 66.0 /
+    // 61.8 / 58.7 / 56.5 s at P <= 30)
+    for (int32_t k = 0; k < n; ++k) {
+      uint64_t child_board, child_rest;
+      children[order[k]].game.key(child_board, child_rest);
+      _mm_prefetch(reinterpret_cast<const char *>(
+                       &table_[mix(child_board, child_rest) & mask_]),
+                   _MM_HINT_T0);
+    }
     for (int32_t k = 0; k < n; ++k) {
       Child &c = children[order[k]];
       if (c.replies > kNumMoves) {

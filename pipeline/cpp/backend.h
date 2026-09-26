@@ -29,8 +29,10 @@ std::unique_ptr<Backend> makeCpuBackend(const std::string &mlp_path,
 /// value [N, 1] and policy [N, 96] float32 (pipeline/model.py exports it).
 /// fp32 throughout: TF32 and fp16 put probabilities off by up to 0.18 with
 /// this network (worklog entry 20), so TF32 is disabled explicitly.
+enum class TensorRt { kOff, kFp32, kFp16 };
+
 std::unique_ptr<Backend> makeOrtBackend(const std::string &onnx_path,
-                                        int32_t device_id);
+                                        int32_t device_id, TensorRt trt);
 
 /// @brief Pick by file extension: .mlp -> CPU, .onnx -> ONNX Runtime CUDA
 std::unique_ptr<Backend> makeBackend(const std::string &path,

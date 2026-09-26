@@ -19,7 +19,9 @@ DEPFLAGS := -MMD -MP
 # The CUDA provider dlopens cuDNN, cuBLAS and the CUDA runtime at run time.
 # They come from the pip wheels in .venv, so the executable carries an
 # old-style DT_RPATH (not RUNPATH), which also applies to libraries' dlopen.
-RPATHS   := $(abspath $(ORT)/lib) $(NVIDIA)/cu13/lib $(NVIDIA)/cudnn/lib
+# TensorRT (trt: and trt16: models) is the tensorrt-cu13 wheel's libraries.
+RPATHS   := $(abspath $(ORT)/lib) $(NVIDIA)/cu13/lib $(NVIDIA)/cudnn/lib \
+            $(abspath .venv/lib/python3.12/site-packages/tensorrt_libs)
 LDFLAGS  := -fopenmp -flto -O3 -march=native -L$(ORT)/lib -lonnxruntime \
             -Wl,--disable-new-dtags $(foreach p,$(RPATHS),-Wl,-rpath,$(p))
 

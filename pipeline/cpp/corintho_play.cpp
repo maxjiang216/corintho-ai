@@ -5,6 +5,8 @@
 //   corintho_play bench --model M [--rows 1000,4000,16000] [--reps 50]
 //
 // M is a .onnx file (ONNX Runtime, CUDA) or a .mlp file (the CPU network).
+// Prefix a .onnx path with trt: or trt16: for the TensorRT provider (fp32
+// with TF32, or fp16); engines are cached in trt_cache/ beside the model.
 //
 // train plays N games, at most --in-flight at a time, and writes the samples
 // as DIR/states.npy (rows x 70), DIR/values.npy (rows) and DIR/policies.npy

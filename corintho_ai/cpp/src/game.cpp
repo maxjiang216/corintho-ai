@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include <immintrin.h>
+
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -516,22 +518,32 @@ constexpr bool everyRunIsAShape() {
 static_assert(everyRunIsAShape());
 
 bool Game::hasLine() const noexcept {
-  // Branch-free: the top planes by bit gathering, then one shifted AND per
-  // type and direction (entry 08: the looping findLines was 42% of the
-  // solver's instructions and 55% of its mispredicted branches)
+  // Branch-free: the three top planes, packed into 16-bit lanes of one word,
+  // then one shifted AND per direction for all three types at once. A lane
+  // shifted right spills its low bits into the lane below, but only onto
+  // positions the run masks exclude: every admitted run lies within its lane
+  // (entry 08). pext gathers a piece's bit from all 16 nibbles at once.
   const uint64_t b = board_.to_ullong();
-  const uint32_t base = gatherNibbleBits(b >> kBase);
-  const uint32_t column = gatherNibbleBits(b >> kColumn);
-  const uint32_t capital = gatherNibbleBits(b >> kCapital);
-  const uint32_t top[3] = {base & ~column & ~capital, column & ~capital,
-                           capital};
-  uint32_t any = 0;
-  for (int32_t type = 0; type < 3; ++type) {
-    const uint32_t p = top[type];
-    for (int32_t d = 0; d < 4; ++d) {
-      const uint32_t s = static_cast<uint32_t>(kLineStride[d]);
-      any |= p & (p >> s) & (p >> (2 * s)) & kRunStart[d][0];
-    }
+#if defined(__BMI2__)
+  const uint64_t nibble = 0x1111111111111111ULL;
+  const uint64_t base = _pext_u64(b, nibble << kBase);
+  const uint64_t column = _pext_u64(b, nibble << kColumn);
+  const uint64_t capital = _pext_u64(b, nibble << kCapital);
+#else
+  const uint64_t base = gatherNibbleBits(b >> kBase);
+  const uint64_t column = gatherNibbleBits(b >> kColumn);
+  const uint64_t capital = gatherNibbleBits(b >> kCapital);
+#endif
+  const uint64_t planes =
+      (base & ~column & ~capital) | (column & ~capital) << 16 | capital << 32;
+  constexpr auto lanes = [](uint16_t m) {
+    return static_cast<uint64_t>(m) * 0x0000000100010001ULL;
+  };
+  uint64_t any = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t s = static_cast<uint32_t>(kLineStride[d]);
+    any |=
+        planes & (planes >> s) & (planes >> (2 * s)) & lanes(kRunStart[d][0]);
   }
   return any != 0;
 }

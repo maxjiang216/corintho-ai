@@ -55,8 +55,23 @@ int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
   aborted_ = false;
   MoveMask legal;
   const bool lines = game.getLegalMoves(legal);
+#ifdef SOLVER_FULL_WINDOW
   const int32_t result = search(game, legal, lines, -1, 1);
   return aborted_ ? kUnknown : result;
+#else
+  // Two yes/no questions instead of one three-way one (entry 12): is it a
+  // win (window 0..1), and if not, is it at least a draw (window -1..0)?
+  // Each null window prunes distinctions the answer does not need; the
+  // second search reuses the table the first one filled.
+  if (search(game, legal, lines, 0, 1) >= 1)
+    return aborted_ ? kUnknown : 1;
+  if (aborted_)
+    return kUnknown;
+  const int32_t at_least_draw = search(game, legal, lines, -1, 0);
+  if (aborted_)
+    return kUnknown;
+  return at_least_draw >= 0 ? 0 : -1;
+#endif
 }
 
 #ifdef SOLVER_STATS

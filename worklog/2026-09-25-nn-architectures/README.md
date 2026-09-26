@@ -26,6 +26,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 13 | [the solver's table](2026-09-26-13-solver-table.md) | 16-byte entries, 4-way buckets with one AVX2 compare, prefetching every child: P <= 30 -25%, P <= 27 -14%. |
 | 14 | [the game solver in self-play](2026-09-26-14-game-solver-in-self-play.md) | A game at P <= 27 ends at once and is solved on spare threads (pausing it was 36-55% slower). P_game 27: self-play wall -7%, turns per game 29.9 -> 19.6; 28-29 cost wall time. |
 | 15 | [node solver; games end when known](2026-09-26-15-node-solver-and-proven-endings.md) | Games end once proven or at P 27, checked every move. Node solver (P_node 15-19): slower, and paired matches (per-game, same seeds) show no gain, mild harm at 17-19: off. |
+| 16 | [solver in self-play: a first training comparison (loss only)](2026-09-26-16-solver-in-training-loss-comparison.md) | `solve-27` vs `solve-0`, 3 generations each, same init. Value/policy loss higher with the solver, but not from label extremity (checked: ~97-99% \|v\|=1 either way) — data-volume and a widening gen-over-gen gap in `solve-27`'s val_value_mse are unexplained. No strength comparison yet (`paired.py` next). |
 
 ## The developer's ideas (2026-09-25), to work through
 

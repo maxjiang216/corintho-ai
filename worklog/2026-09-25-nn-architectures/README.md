@@ -21,6 +21,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 08 | [the endgame solver](2026-09-26-08-endgame-solver.md) | Exact solver module; 70x faster than the probe at P <= 24 (line-making moves first, branch-free bit tricks). P_game ~26-27, P_node ~19. |
 | 09 | [network calls: queueing, groups, pipelining](2026-09-26-09-driver-queueing-and-pipelining.md) | One call at a time: self-play -7 to -11%. More groups: no gain. Copy/compute pipelining: correct but 9% slower (copies are only ~15% of a 512x4 call). |
 | 10 | [solver move ordering study](2026-09-26-10-solver-move-ordering-study.md) | History heuristic (0.80x nodes at P <= 27). Per-move statistics (the developer's idea): 89% first-move cutoffs; every statistics-suggested reordering lost in controlled tests (observational bias). |
+| 11 | [legal-move generation](2026-09-26-11-legal-move-generation.md) | pext in computeSpaceInfo and basicLegalMoves, branch-free lineBreakers: -13.5% instructions, bit-identical (digests, rulecheck, verify). Engine-wide. |
 
 ## The developer's ideas (2026-09-25), to work through
 

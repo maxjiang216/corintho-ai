@@ -1,0 +1,11 @@
+# corintho_play bench, ORT 1.30 CUDA, RTX 3060 Laptop, 16000 rows/call (self-play calls average ~14.6k rows)
+# random weights, exported by pipeline/arch/cost.py; params excludes nothing
+model            params   fp32 ns/row  fp16 ns/row
+gen_93 (folded)  127997   247          -
+mlp100x12        127997   254          211
+mlp256x6         372065   328          225
+res256x4         569441   437          285
+res512x4        2187361  1015          485
+conv32x4         159041  1202          646
+conv64x6         613025  3288         3001
+attn64x4         240289  8746         3113

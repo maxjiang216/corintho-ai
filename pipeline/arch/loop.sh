@@ -36,8 +36,9 @@ DEPTH=${DEPTH:-4}
 MATCH_EVERY=${MATCH_EVERY:-5}
 MATCH=${MATCH:-1600}
 # End self-play games by exact solution at horizon P <= SOLVE_P (entry 14;
-# 0: off). Matches are played out as before.
-SOLVE_P=${SOLVE_P:-27}
+# 0: off). Matches are played out as before. Off by default: at 27 the
+# network got much weaker in 5 generations (entry 18).
+SOLVE_P=${SOLVE_P:-0}
 SOLVE_THREADS=${SOLVE_THREADS:-6}
 INIT=${INIT:-runs/night-2/it1/net.pt}
 # Compact data files standing in for the generations before gen 1

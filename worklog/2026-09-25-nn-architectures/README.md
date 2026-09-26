@@ -20,6 +20,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 07 | [repeated evaluations, the cache](2026-09-26-07-repeated-evaluations-and-the-cache.md) | 50% of network rows repeat (33% within a game; 56/38% up to symmetry). An evaluation cache cannot pay while GPU wait is ~20%: parked. Graph search later. |
 | 08 | [the endgame solver](2026-09-26-08-endgame-solver.md) | Exact solver module; 70x faster than the probe at P <= 24 (line-making moves first, branch-free bit tricks). P_game ~26-27, P_node ~19. |
 | 09 | [network calls: queueing, groups, pipelining](2026-09-26-09-driver-queueing-and-pipelining.md) | One call at a time: self-play -7 to -11%. More groups: no gain. Copy/compute pipelining: correct but 9% slower (copies are only ~15% of a 512x4 call). |
+| 10 | [solver move ordering study](2026-09-26-10-solver-move-ordering-study.md) | History heuristic (0.80x nodes at P <= 27). Per-move statistics (the developer's idea): 89% first-move cutoffs; every statistics-suggested reordering lost in controlled tests (observational bias). |
 
 ## The developer's ideas (2026-09-25), to work through
 

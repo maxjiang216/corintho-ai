@@ -31,6 +31,10 @@
 //                   solve; a capped solve is retried once at 20x, then
 //                   counts as a draw),
 //                   --solve-threads 4, --solve-table 22 (log2 entries)
+//   --relabel-p 0   train: play games out as usual, but label every sample
+//                   at horizon P <= this with its exact value, and earlier
+//                   samples with the first one's, flipped back (entry 20);
+//                   uses the --solve-* pool settings. Not with --solve-p
 //   --node-p 0      solve search leaves with horizon P <= this exactly
 //                   instead of asking the network (entry 15); --node-cap
 //                   20000 positions per leaf, then the network
@@ -272,8 +276,14 @@ int runTrain(const Args &a) {
   // Exact solutions from horizon --solve-p down (entry 14): one pool for
   // the whole run, so its tables stay warm across chunks and groups
   const int32_t solve_p = a.i32("solve-p", 0);
+  const int32_t relabel_p = a.i32("relabel-p", 0);
+  if (solve_p > 0 && relabel_p > 0) {
+    std::fprintf(stderr, "--solve-p and --relabel-p exclude each other\n");
+    return 2;
+  }
+  int64_t relabelled = 0, relabel_changed = 0;
   std::unique_ptr<SolverPool> solver_pool;
-  if (solve_p > 0)
+  if (solve_p > 0 || relabel_p > 0)
     solver_pool = std::make_unique<SolverPool>(
         a.i32("solve-threads", 4), a.i32("solve-table", 22),
         static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
@@ -377,8 +387,10 @@ int runTrain(const Args &a) {
         g.games, out, seed + chunks_started, searches, spe, c_puct, epsilon,
         chunks_started == 0 ? logged : 0, threads, false);
     g.trainer->set_stagger_iterations(stagger);
-    if (solver_pool)
+    if (solve_p > 0)
       g.trainer->setSolver(solver_pool.get(), solve_p);
+    if (relabel_p > 0)
+      g.trainer->setRelabel(solver_pool.get(), relabel_p);
     if (node_p > 0)
       g.trainer->setNodeSolver(node_p, node_cap);
     if (shared_tree)
@@ -395,6 +407,7 @@ int runTrain(const Args &a) {
     solve_unknown += trainer.finalizeSolves();
     solve_wait_s += since(t_solves);
     adjudicated += trainer.numAdjudicated();
+    trainer.relabelCounts(relabelled, relabel_changed);
     const int32_t turns = trainer.num_samples();
     const size_t sample_rows = static_cast<size_t>(turns) * kNumSymmetries;
     st.resize(sample_rows * kGameStateSize);
@@ -598,6 +611,9 @@ int runTrain(const Args &a) {
      << "  \"solve_unknown_games\": " << solve_unknown << ",\n"
      << "  \"node_horizon\": " << node_p << ",\n"
      << "  \"shared_tree\": " << shared_tree << ",\n"
+     << "  \"relabel_horizon\": " << relabel_p << ",\n"
+     << "  \"relabelled_samples\": " << relabelled << ",\n"
+     << "  \"relabel_changed\": " << relabel_changed << ",\n"
      << "  \"node_solve_attempts\": " << node_attempts << ",\n"
      << "  \"node_solved\": " << node_solved << ",\n"
      << "  \"node_solve_seconds\": " << node_seconds << ",\n"

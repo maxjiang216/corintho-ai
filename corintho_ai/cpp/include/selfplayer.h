@@ -90,6 +90,19 @@ class SelfPlayer {
     solver_pool_ = pool;
     solve_horizon_ = max_horizon;
   }
+  /// @brief Label training samples with exact values (entry 20): games are
+  /// played out as usual, every sample at horizon P <= max_horizon gets its
+  /// position's exact value, and the earlier samples the first of these
+  /// values, flipped back. Policy targets are unchanged. Not with set_solver.
+  void set_relabel(SolverPool *pool, int32_t max_horizon) noexcept {
+    assert(solver_pool_ == nullptr);
+    relabel_pool_ = pool;
+    relabel_horizon_ = max_horizon;
+  }
+  /// @brief After finalize: samples given an exact label, and of them the
+  /// ones whose game outcome label differed
+  int32_t num_relabelled() const noexcept { return num_relabelled_; }
+  int32_t num_relabel_changed() const noexcept { return num_relabel_changed_; }
   /// @brief Solve search leaves with horizon P <= max_horizon (entry 15)
   /// @param model In test games, only the player of this model (0 new, 1
   /// best); -1 both
@@ -135,6 +148,8 @@ class SelfPlayer {
   /// @brief In solver mode, end the game at `position` (to_play_ to move) if
   /// its outcome is proven or it is within the solve horizon
   bool tryEnd(const Node &position);
+  /// @brief Collect the relabelling solves into labels_ (in finalize)
+  void finalizeRelabel();
   /// @brief At the start of an iteration: tryEnd on the current position
   bool solveStep();
   /// @brief Choose a move and write the training sample
@@ -173,6 +188,15 @@ class SelfPlayer {
   /// @brief In training, the value the search proved for the position sent
   /// to the solver for its line, else Solver::kUnknown
   int32_t proven_value_{Solver::kUnknown};
+  SolverPool *relabel_pool_{nullptr};
+  int32_t relabel_horizon_{0};
+  /// @brief Solves of the samples at P <= relabel_horizon_, by sample index
+  std::vector<std::pair<int32_t, std::shared_ptr<SolveJob>>> relabel_jobs_{};
+  /// @brief Exact value target per sample after finalize (NaN: none, the
+  /// game outcome is used); empty without relabelling
+  std::vector<float> labels_{};
+  int32_t num_relabelled_{0};
+  int32_t num_relabel_changed_{0};
 
   bool adjudicated_{false};
   /// @brief File where all logs are written to

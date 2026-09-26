@@ -6,8 +6,10 @@
 #include <cstdint>
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -106,6 +108,9 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   float evaluation = last_mover_value_;
   // Start from end of the game to get evaluations more easily
   for (int32_t i = samples_.size() - 1; i >= 0; --i) {
+    // An exact label where relabelling gave one (entry 20)
+    const float label =
+        labels_.empty() || std::isnan(labels_[i]) ? evaluation : labels_[i];
     // Apply symmetries
     // The first symmetry is the identity, which is a bit inefficient but
     // makes the code simpler
@@ -119,7 +124,7 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
         *(game_states + i * kGameStateSize * kNumSymmetries +
           k * kGameStateSize + j) = samples_[i].game_state[j];
       }
-      *(eval_samples + i * kNumSymmetries + k) = evaluation;
+      *(eval_samples + i * kNumSymmetries + k) = label;
       for (int32_t j = 0; j < kNumMoves; ++j) {
         *(prob_samples + i * kNumMoves * kNumSymmetries + k * kNumMoves + j) =
             samples_[i].probabilities[move_symmetries[k][j]];
@@ -163,7 +168,38 @@ bool SelfPlayer::tryEnd(const Node &position) {
   return true;
 }
 
+void SelfPlayer::finalizeRelabel() {
+  if (relabel_jobs_.empty())
+    return;
+  labels_.assign(samples_.size(), std::numeric_limits<float>::quiet_NaN());
+  for (auto &[index, job] : relabel_jobs_) {
+    int32_t r = SolverPool::wait(*job);
+    if (r == Solver::kUnknown) {
+      job = relabel_pool_->submit(job->game, 20 * relabel_pool_->max_nodes());
+      r = SolverPool::wait(*job);
+    }
+    if (r != Solver::kUnknown)
+      labels_[static_cast<size_t>(index)] = static_cast<float>(r);
+  }
+  // Before the first solved position, its value flipped back: the result
+  // had both sides played perfectly from there
+  const auto first = static_cast<size_t>(relabel_jobs_.front().first);
+  if (!std::isnan(labels_[first]))
+    for (size_t i = first; i-- > 0;)
+      labels_[i] = -labels_[i + 1];
+  // Compare with the outcome labels writeSamples would otherwise use
+  float outcome = last_mover_value_;
+  for (size_t i = samples_.size(); i-- > 0; outcome = -outcome) {
+    if (std::isnan(labels_[i]))
+      continue;
+    ++num_relabelled_;
+    num_relabel_changed_ += labels_[i] != outcome;
+  }
+  relabel_jobs_.clear();
+}
+
 bool SelfPlayer::finalize() {
+  finalizeRelabel();
   if (!solve_job_)
     return true;
   int32_t r = SolverPool::wait(*solve_job_);
@@ -354,6 +390,13 @@ void SelfPlayer::endGame() noexcept {
 }
 
 int32_t SelfPlayer::chooseMove() {
+  if (relabel_pool_ != nullptr) {
+    // This move's sample is the root position; solved off the critical path
+    const Game &game = players_[tree(to_play_)].root()->get_game();
+    if (game.horizon() <= relabel_horizon_)
+      relabel_jobs_.emplace_back(static_cast<int32_t>(samples_.size()),
+                                 relabel_pool_->submit(game));
+  }
   if (!testing_) {
     std::array<float, kGameStateSize> game_state;
     std::array<float, kNumMoves> prob_sample;

@@ -84,6 +84,11 @@ class SelfPlayer {
     solver_pool_ = pool;
     solve_horizon_ = max_horizon;
   }
+  /// @brief Solve search leaves with horizon P <= max_horizon (entry 15)
+  void set_node_solver(int32_t max_horizon, uint64_t max_nodes) noexcept {
+    players_[0].set_node_solver(max_horizon, max_nodes);
+    players_[1].set_node_solver(max_horizon, max_nodes);
+  }
   /// @brief Whether the game ended by an exact solution
   bool adjudicated() const noexcept { return adjudicated_; }
   /// @brief Wait for a submitted solve and apply its result; call before

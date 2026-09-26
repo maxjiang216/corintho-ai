@@ -101,6 +101,12 @@ class Trainer {
   /// writeSamples, score and the result counts
   /// @return Games whose result stayed unknown (counted as draws)
   int32_t finalizeSolves();
+  /// @brief Solve search leaves with horizon P <= max_horizon exactly,
+  /// giving up after max_nodes (entry 15); call before the first iteration
+  void setNodeSolver(int32_t max_horizon, uint64_t max_nodes) {
+    for (SelfPlayer &game : games_)
+      game.set_node_solver(max_horizon, max_nodes);
+  }
   /// @brief Games ended by exact solution so far
   int32_t numAdjudicated() const noexcept;
   /// @brief The solver pool, or nullptr (for its statistics)

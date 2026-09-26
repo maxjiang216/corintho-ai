@@ -1,4 +1,7 @@
 #include "trainmc.h"
+#include "solver.h"
+#include <chrono>
+#include <atomic>
 
 #include <algorithm>
 #include <cassert>
@@ -207,13 +210,18 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   Node *prev = nullptr;
   while (cur != nullptr) {
     if (cur->child_id() == move_choice) {
+      // A leaf the node solver proved has no children and was never given
+      // network priors, so it cannot serve as a root; rebuild it below
+      // like an unsearched move (entry 15)
+      if (cur->known() && !cur->terminal() && cur->first_child() == nullptr)
+        break;
       moveDown(prev);
       return false;
     }
     prev = cur;
     cur = cur->next_sibling();
   }
-  // Haven't searched this move yet
+  // Haven't searched this move yet (or it was a proven leaf)
   // The current tree is not needed
   delete root_;
   // Copy opponent game state into our root
@@ -545,8 +553,9 @@ void TrainMC::propagateTerminal() noexcept {
   // won if any move leads to a lost position, lost if every move leads to a
   // won position, and drawn if every move leads to a won or drawn position
   // and at least one to a drawn one. Otherwise it is unknown.
-  // We can only deduce more results from new terminal nodes
-  assert(cur_->terminal());
+  // We can only deduce more results from new terminal nodes, or from new
+  // leaves the node solver proved (entry 15)
+  assert(cur_->known());
   Node *cur = cur_;
   while (cur != root_) {
     // We only need one loss to deduce a win
@@ -764,6 +773,9 @@ void TrainMC::search() {
       cur_eval *= -1.0F;
     }
   }
+  // A new leaf near the end of the game: solve it exactly (entry 15)
+  else if (node_horizon_ > 0 && solveLeaf()) {
+  }
   // Otherwise, request an evaluation for the new node
   else {
     // Default +1 evaluation for new node
@@ -777,4 +789,48 @@ void TrainMC::search() {
   // Reset cur for next search
   // Try not doing this?
   cur_ = root_;
+}
+
+namespace {
+std::atomic<uint64_t> g_node_attempts{0}, g_node_solved{0}, g_node_nanos{0};
+}  // namespace
+
+void TrainMC::nodeSolveStats(uint64_t &attempts, uint64_t &solved,
+                             double &seconds) noexcept {
+  attempts = g_node_attempts.load();
+  solved = g_node_solved.load();
+  seconds = static_cast<double>(g_node_nanos.load()) * 1e-9;
+}
+
+bool TrainMC::solveLeaf() {
+  const Game &game = cur_->get_game();
+  if (game.horizon() > node_horizon_)
+    return false;
+  // One solver per engine thread; its table is never cleared (results and
+  // bounds are facts about positions), so it stays warm across searches and
+  // games
+  thread_local Solver solver{20};
+  const auto t0 = std::chrono::steady_clock::now();
+  const int32_t r = solver.solve(game, node_cap_);
+  g_node_nanos.fetch_add(
+      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                                std::chrono::steady_clock::now() - t0)
+                                .count()),
+      std::memory_order_relaxed);
+  g_node_attempts.fetch_add(1, std::memory_order_relaxed);
+  if (r == Solver::kUnknown)
+    return false;
+  g_node_solved.fetch_add(1, std::memory_order_relaxed);
+  // Proven: known like a terminal node, and backed up with its exact value
+  // instead of a network evaluation (as the terminal branch above)
+  cur_->set_result(r > 0 ? kDeducedWin : r == 0 ? kDeducedDraw : kDeducedLoss);
+  propagateTerminal();
+  float cur_eval = static_cast<float>(r);
+  cur_->set_evaluation(cur_eval);
+  while (cur_->parent() != nullptr) {
+    cur_ = cur_->parent();
+    cur_->increase_evaluation(cur_eval - 1.0F);
+    cur_eval *= -1.0F;
+  }
+  return true;
 }

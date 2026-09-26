@@ -30,6 +30,9 @@
 //                   off (entry 14). --solve-cap 5000000 (positions per
 //                   attempt; a capped game retries at its next move),
 //                   --solve-threads 4, --solve-table 22 (log2 entries)
+//   --node-p 0      solve search leaves with horizon P <= this exactly
+//                   instead of asking the network (entry 15); --node-cap
+//                   20000 positions per leaf, then the network
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
@@ -270,6 +273,9 @@ int runTrain(const Args &a) {
     solver_pool = std::make_unique<SolverPool>(
         a.i32("solve-threads", 4), a.i32("solve-table", 22),
         static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
+  // Search leaves solved exactly from horizon --node-p down (entry 15)
+  const int32_t node_p = a.i32("node-p", 0);
+  const uint64_t node_cap = static_cast<uint64_t>(a.i64("node-cap", 20000));
   int64_t adjudicated = 0, solve_unknown = 0;
   double solve_wait_s = 0;  // waiting for solves at chunk ends
   const int32_t cache_log2 = a.i32("cache", 0);
@@ -368,6 +374,8 @@ int runTrain(const Args &a) {
     g.trainer->set_stagger_iterations(stagger);
     if (solver_pool)
       g.trainer->setSolver(solver_pool.get(), solve_p);
+    if (node_p > 0)
+      g.trainer->setNodeSolver(node_p, node_cap);
     g.values.assign(static_cast<size_t>(g.games) * spe, 0.0F);
     g.probs.assign(static_cast<size_t>(g.games) * spe * kNumMoves, 0.0F);
     games_started += g.games;
@@ -549,6 +557,9 @@ int runTrain(const Args &a) {
   policies_out.close();
   const double wall = since(wall_start);
 
+  uint64_t node_attempts = 0, node_solved = 0;
+  double node_seconds = 0;
+  TrainMC::nodeSolveStats(node_attempts, node_solved, node_seconds);
   std::ofstream js{out + "/selfplay.json"};
   js << "{\n"
      << "  \"backend\": \"" << backend_name << "\",\n"
@@ -578,6 +589,10 @@ int runTrain(const Args &a) {
      << "  \"solve_horizon\": " << solve_p << ",\n"
      << "  \"adjudicated_games\": " << adjudicated << ",\n"
      << "  \"solve_unknown_games\": " << solve_unknown << ",\n"
+     << "  \"node_horizon\": " << node_p << ",\n"
+     << "  \"node_solve_attempts\": " << node_attempts << ",\n"
+     << "  \"node_solved\": " << node_solved << ",\n"
+     << "  \"node_solve_seconds\": " << node_seconds << ",\n"
      << "  \"solve_wait_seconds\": " << solve_wait_s << ",\n"
      << "  \"solves\": " << (solver_pool ? solver_pool->solves() : 0) << ",\n"
      << "  \"solves_capped\": " << (solver_pool ? solver_pool->capped() : 0)
@@ -640,6 +655,9 @@ int runTest(const Args &a) {
                   c_puct, epsilon, logged, threads,  true};
   // Matches end games by exact solution the same way (entry 14): both
   // players alike, as deployment would
+  if (a.i32("node-p", 0) > 0)
+    trainer.setNodeSolver(a.i32("node-p", 0),
+                          static_cast<uint64_t>(a.i64("node-cap", 20000)));
   const int32_t solve_p = a.i32("solve-p", 0);
   if (solve_p > 0)
     trainer.enableSolver(solve_p,

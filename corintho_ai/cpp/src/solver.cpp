@@ -1,6 +1,8 @@
 #include "solver.h"
 
 #include <algorithm>
+#include <new>
+#include <type_traits>
 
 #include "move.h"
 #include "util.h"
@@ -73,15 +75,18 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     int32_t replies;
     bool lines;
   };
-  Child children[kNumMoves];
+  // Uninitialized: default-constructing 96 Games (each set to the starting
+  // position) was ~14% of the solver's instructions (entry 08)
+  static_assert(std::is_trivially_copyable_v<Child>);
+  alignas(Child) unsigned char storage[sizeof(Child) * kNumMoves];
+  Child *children = reinterpret_cast<Child *>(storage);
   int32_t n = 0;
   bool win = false;
   int32_t win_move = -1;
   forEachMove(legal, [&](int32_t m) {
     if (win)
       return;
-    Child &c = children[n];
-    c.game = game;
+    Child &c = *new (&children[n]) Child{game, {}, m, 0, false};
     c.game.doMove(m);
     c.lines = c.game.getLegalMoves(c.legal);
     c.move = m;
@@ -101,13 +106,22 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     int32_t order[kNumMoves];
     for (int32_t i = 0; i < n; ++i)
       order[i] = i;
-    std::stable_sort(order, order + n, [&](int32_t a, int32_t b) {
+    // Table move first, then fewest replies; an insertion sort, stable, with
+    // no allocation (std::stable_sort's merge sort was ~6%)
+    auto before = [&](int32_t a, int32_t b) {
       const bool ta = children[a].move == table_move;
       const bool tb = children[b].move == table_move;
       if (ta != tb)
         return ta;
       return children[a].replies < children[b].replies;
-    });
+    };
+    for (int32_t i = 1; i < n; ++i) {
+      const int32_t x = order[i];
+      int32_t j = i;
+      for (; j > 0 && before(x, order[j - 1]); --j)
+        order[j] = order[j - 1];
+      order[j] = x;
+    }
     for (int32_t k = 0; k < n; ++k) {
       const Child &c = children[order[k]];
       const int32_t s = -search(c.game, c.legal, c.lines, -beta, -alpha);

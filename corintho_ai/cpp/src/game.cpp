@@ -54,6 +54,20 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+void Game::lineSpaces(uint16_t by_type[3]) const noexcept {
+  SpaceInfo info;
+  computeSpaceInfo(info);
+  PresentLine lines[kNumLineShapes];
+  const int32_t num_lines = findLines(info, lines);
+  by_type[0] = by_type[1] = by_type[2] = 0;
+  for (int32_t i = 0; i < num_lines; ++i) {
+    const LineShape &shape = kLineShapes[lines[i].shape];
+    for (int32_t c = 0; c < shape.count; ++c)
+      by_type[lines[i].type] |=
+          static_cast<uint16_t>(1U << static_cast<uint32_t>(shape.cells[c]));
+  }
+}
+
 int32_t Game::findLines(const SpaceInfo &info,
                         PresentLine *out) const noexcept {
   int32_t count = 0;

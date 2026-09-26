@@ -46,6 +46,11 @@ class Game {
   bool
   getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
+  /// @brief The spaces that belong to a line on the board, by top type
+  /// @details Bit i of by_type[t] is set when space i is part of a line
+  /// topped by type t (base, column, capital). For network input features
+  /// (pipeline/arch); the engine does not use it.
+  void lineSpaces(uint16_t by_type[3]) const noexcept;
   /// @brief Write a representation of the game state to a float array
   /// @param game_state A float array of size kGameStateSize, used for input to
   /// the neural network

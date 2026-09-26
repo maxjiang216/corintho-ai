@@ -30,7 +30,7 @@ CORE  := util move game node trainmc selfplayer trainer mlp
 OBJS  := $(CORE:%=$(BUILD)/%.o) $(BUILD)/backend.o $(BUILD)/corintho_play.o
 
 .PHONY: all clean
-all: $(BUILD)/corintho_play
+all: $(BUILD)/corintho_play $(BUILD)/libcorintho_features.so
 
 $(BUILD):
 	@mkdir -p $(BUILD)
@@ -43,6 +43,13 @@ $(BUILD)/%.o: cpp/%.cpp | $(BUILD)
 
 $(BUILD)/corintho_play: $(OBJS)
 	$(CXX) $^ $(LDFLAGS) -o $@
+
+# Rules-derived features for pipeline/arch (legal-move masks, line spaces),
+# loaded by Python through ctypes; position-independent, so built separately
+FEATURE_SRC := $(SRC_DIR)/game.cpp $(SRC_DIR)/move.cpp $(SRC_DIR)/util.cpp \
+               cpp/features.cpp
+$(BUILD)/libcorintho_features.so: $(FEATURE_SRC) | $(BUILD)
+	$(CXX) -std=c++17 -O2 -DNDEBUG -fPIC -shared -fopenmp $(INC) $^ -o $@
 
 -include $(wildcard $(BUILD)/*.d)
 

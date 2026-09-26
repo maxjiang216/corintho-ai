@@ -110,10 +110,13 @@ class SelfPlayer {
   /// @brief Clean up when game is complete
   void endGame() noexcept;
   /// @brief End the game with the exact result `value` (1, 0, -1 for the
-  /// side to move at the current position)
-  void adjudicate(int32_t value) noexcept;
-  /// @brief At the start of an iteration: true when the position reached
-  /// the solve horizon, was submitted, and the game has ended
+  /// side to move at the current position, at horizon `horizon`; `how`
+  /// for the log: PROVEN or SOLVED)
+  void adjudicate(int32_t value, int32_t horizon, const char *how) noexcept;
+  /// @brief In solver mode, end the game at `position` (to_play_ to move) if
+  /// its outcome is proven or it is within the solve horizon
+  bool tryEnd(const Node &position);
+  /// @brief At the start of an iteration: tryEnd on the current position
   bool solveStep();
   /// @brief Choose a move and write the training sample
   /// @return The ID of the chosen move

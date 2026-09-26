@@ -1,0 +1,47 @@
+# gprofng, 1 thread, 300 games x 1600 searches
+# label:    baseline
+# commit:   88abeae
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T14:37:16-07:00
+
+# Percentages only -- absolute seconds are unreliable.
+
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+3.302 100.00  3.302 100.00   <Total>
+1.651  50.00  2.001  60.61   TrainMC::doIteration(float*, float*)
+0.741  22.42  0.941  28.48   Node::initializeEdges()
+0.300   9.09  2.472  74.85   main
+0.150   4.55  0.280   8.48   <static>@0xaab1b (<libc.so.6>)
+0.130   3.94  0.130   3.94   Game::applyRowColLines(std::bitset<96ul>&, bool) const
+0.120   3.64  0.120   3.64   <static>@0xa8e24 (<libc.so.6>)
+0.040   1.21  0.090   2.73   Node::~Node()
+0.040   1.21  0.040   1.21   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+0.030   0.91  0.030   0.91   <static>@0x188341 (<libc.so.6>)
+0.030   0.91  0.060   1.82   free
+0.020   0.61  0.070   2.12   malloc
+0.010   0.30  0.220   6.67   <static>@0xada6c (<libc.so.6>)
+0.010   0.30  0.010   0.30   Game::doMove(int)
+0.010   0.30  0.010   0.30   brk
+0.010   0.30  0.010   0.30   lround
+0.010   0.30  0.010   0.30   munmap
+0.      0.    0.080   2.42   <static>@0x225ae (<libgomp.so.1.0.0>)
+0.      0.    2.472  74.85   <static>@0x2a145 (<libc.so.6>)
+0.      0.    0.080   2.42   <static>@0xc1ce (<libgomp.so.1.0.0>)
+0.      0.    2.141  64.85   GOMP_parallel
+0.      0.    0.080   2.42   SelfPlayer::chooseMove() [clone .part.0]
+0.      0.    0.110   3.33   SelfPlayer::chooseMoveAndContinue()
+0.      0.    0.080   2.42   TrainMC::chooseMove(float*, float*)
+0.      0.    0.080   2.42   TrainMC::moveDown(Node*)
+0.      0.    2.061  62.42   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+0.      0.    0.010   0.30   __default_morecore
+0.      0.    2.472  74.85   __libc_start_main
+0.      0.    0.070   2.12   operator new(unsigned long)
+0.      0.    0.140   4.24   operator new(unsigned long, std::align_val_t)
+0.      0.    0.140   4.24   posix_memalign
+0.      0.    0.010   0.30   sbrk
+

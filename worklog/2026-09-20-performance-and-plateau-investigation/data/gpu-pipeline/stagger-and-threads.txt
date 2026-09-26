@@ -1,0 +1,22 @@
+# Self-play tuning after the first full generations (entry 29 addendum). corintho_play train, gen_93.onnx, 2 groups.
+
+## Rows per network call, full-2 gens 2-4 (2 x 2000 in flight, max 32000 rows per call): ~14,600 (46%)
+
+## Stagger span, 12k games, seed 11
+in-flight 2000, stagger original (~16 turns): engine 92.9 s, wait 57.3 s, wall 153.1 s, peak 3690 MB, rows/call 15081
+in-flight 2000, stagger one turn (100 it):    engine 105.0 s, wait 44.9 s, wall 152.4 s, peak 4617 MB, rows/call 23717
+in-flight 1500, stagger one turn:             engine 105.2 s, wait 52.4 s, wall 160.4 s, peak 3496 MB, rows/call 17700
+in-flight 1000, stagger one turn:             engine 107.1 s, wait 71.7 s, wall 182.3 s, peak 2516 MB, rows/call 11931
+# sample digest identical for both spans (300 games, CPU backend): start times do not change the games
+
+## Engine threads and OpenMP spin, 8k games, 2 x 2000, in this order (the laptop heated through the series)
+threads 20, default:        engine 65.1 wait 38.4 wall 105.5
+threads 20, KMP_BLOCKTIME=0: engine 68.1 wait 37.5 wall 107.6
+threads 19, default:        engine 70.2 wait 41.4 wall 113.8
+threads 19, KMP_BLOCKTIME=0: engine 72.9 wait 40.5 wall 115.5
+threads 20, default (again): engine 75.3 wait 43.9 wall 121.4   <- same config as the first: +15% thermal drift
+
+## Dell thermal mode (AWThermalManagement, set by the developer via dell-wmi-sysman: Balanced -> Performance), 2026-09-25
+# Same config (8k games, 2 x 2000, 20 threads, seed 11), 5 runs back to back; 10 s samples in thermal-performance-mode.tsv
+Performance: wall 101.7 104.6 106.2 106.8 107.3 s (drift +5.5%); mean 88 C (max 96), mean clock 2687 MHz, fans ~3791 / 4275 rpm
+Balanced (series above, not interleaved, mixed configs): 105.5 ... 121.4 s (drift +15%); ~91 C, ~2568 MHz

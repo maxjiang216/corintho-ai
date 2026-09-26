@@ -1,0 +1,65 @@
+PGO experiment: /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23
+
+== provenance.txt
+date:      2026-09-23T21:56:09-07:00
+commit:    6d4a2c3f49df417f3084f1bf97002b236d226028
+dirty:     no
+compiler:  g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+cxxflags:  -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+ldflags:   -fopenmp -flto -O3 -march=native
+cpu:        12th Gen Intel(R) Core(TM) i7-12700H
+governor:  powersave
+power:     1 0 
+model:     /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp (0da98eedcec00bbb)
+train:     300 games, 1 threads, seed 777
+sizes:     gate 300, mt 40 x 1000, st 40 x 200
+
+== binary-sizes.txt
+1475016 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23/bin/base/selfplay_nn
+2226272 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23/bin/gen/selfplay_nn
+1366464 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23/bin/partial/selfplay_nn
+1357304 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-23/bin/pgo/selfplay_nn
+
+== gates.txt
+base #METRIC digest_game d8f9bd2d22ee9731
+base #METRIC digest_engine d7581196f9d30591
+base verify PASS
+pgo #METRIC digest_game d8f9bd2d22ee9731
+pgo #METRIC digest_engine d7581196f9d30591
+pgo verify PASS
+partial #METRIC digest_game d8f9bd2d22ee9731
+partial #METRIC digest_engine d7581196f9d30591
+partial verify PASS
+base sample seed 1 2147e3071a27cc4d 8532 MATCH
+pgo sample seed 1 2147e3071a27cc4d 8532 MATCH
+partial sample seed 1 2147e3071a27cc4d 8532 MATCH
+base sample seed 2 a988f67a0c984be7 8533 MATCH
+pgo sample seed 2 a988f67a0c984be7 8533 MATCH
+partial sample seed 2 a988f67a0c984be7 8533 MATCH
+base sample seed 3 dcb1745df12a1ba0 8390 MATCH
+pgo sample seed 3 dcb1745df12a1ba0 8390 MATCH
+partial sample seed 3 dcb1745df12a1ba0 8390 MATCH
+base sample seed 4 e0db31d1d69b6456 8493 MATCH
+pgo sample seed 4 e0db31d1d69b6456 8493 MATCH
+partial sample seed 4 e0db31d1d69b6456 8493 MATCH
+ALL GATES PASS
+
+== timing (arm vs base, paired by seed; negative = faster)
+
+mt (real network, 20 threads); base engine mean 7.220 s
+  pgo      engine_s  n=40   +3.21%  (95% CI  +3.03 to  +3.39)
+  pgo      wall_s    n=40   +1.40%  (95% CI  +1.18 to  +1.62)
+  pgo      turns identical to base on 40 of 40 seeds
+  partial  engine_s  n=40   +3.49%  (95% CI  +3.29 to  +3.69)
+  partial  wall_s    n=40   +1.64%  (95% CI  +1.42 to  +1.85)
+  partial  turns identical to base on 40 of 40 seeds
+
+st (stub, 1 thread pinned); base engine mean 2.978 s
+  pgo      engine_s  n=40  +14.41%  (95% CI +13.86 to +14.96)
+  pgo      wall_s    n=40  +11.16%  (95% CI +10.70 to +11.62)
+  pgo      turns identical to base on 40 of 40 seeds
+  partial  engine_s  n=40  +15.17%  (95% CI +14.45 to +15.89)
+  partial  wall_s    n=40  +11.89%  (95% CI +11.33 to +12.45)
+  partial  turns identical to base on 40 of 40 seeds
+
+== package temperature: max 94 C, mean 91 C over 74 minutes

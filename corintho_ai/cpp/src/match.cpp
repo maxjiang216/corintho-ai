@@ -15,9 +15,14 @@
 Match::Match(int32_t random_seed, Player player1, Player player2,
              std::unique_ptr<std::ofstream> log_file)
     : generator_{std::mt19937(random_seed)},
+      // Both players share this buffer and both fill it from offset 0, so it
+      // needs one batch, not one turn. Note this takes the max over
+      // searches_per_eval and not over max_searches: the two players may be
+      // configured differently, and it is the batch size that bounds the
+      // writes. See selfplayer.cpp and worklog entry 09.
       to_eval_{std::make_unique<float[]>(
           kGameStateSize *
-          std::max(player1.max_searches, player2.max_searches))},
+          std::max(player1.searches_per_eval, player2.searches_per_eval))},
       players_{
           player1.random ? nullptr
                          : std::make_unique<TrainMC>(

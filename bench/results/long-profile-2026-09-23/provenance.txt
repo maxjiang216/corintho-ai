@@ -1,0 +1,8 @@
+date:     2026-09-23T09:43:01-07:00
+commit:   52b2e8239b167a77712c2a9f7ee8d128c82a47a3
+dirty:    no
+cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+cpu:       12th Gen Intel(R) Core(TM) i7-12700H
+governor: powersave
+power:    1 0 
+model:    /tmp/claude-1000/-home-max-projects-corintho-ai/5e02a57a-2052-46cc-8e7b-c923afe797a6/scratchpad/model_93.mlp (0da98eedcec00bbb)

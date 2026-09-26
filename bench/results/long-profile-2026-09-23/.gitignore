@@ -1,0 +1,5 @@
+*.er/
+*.er.ok
+bin/
+model.mlp
+run.*

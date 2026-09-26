@@ -1,0 +1,41 @@
+# Tree teardown sizing (2026-09-25), clang++ 20 build at a9c7285, model_93, 1600 searches, 16 per eval, 20 threads.
+
+## Bytes allocated per game vs peak live (TEMPORARY counters: alloc-counters.patch, not committed)
+# Arena slot bytes charged to the game running on the thread (SelfPlayer::doIteration scope).
+# "nofree" = what would be held if no node were freed until its game ended.
+300 games seed 1:    mean_cum 8.651 MB/game, mean_peak_live 1.453 MB/game, ratio mean 6.23 max 12.06; in flight: peak live 247.2 MB, peak nofree 1790.7 MB (7.2x)
+1000 games seed 901: mean_cum 8.667 MB/game, mean_peak_live 1.460 MB/game, ratio mean 6.19 max 12.50; in flight: peak live 781.1 MB, peak nofree 5759.1 MB (7.4x); process peak RSS 971 MB
+# sample digest with counters, seed 1: 2147e3071a27cc4d (unchanged: instrumentation does not alter behaviour)
+
+## gprofng, 2 x 2000 games (seeds 1, 2), clang build with -gdwarf-4
+# (gprofng 2.42 display segfaults on clang's default DWARF 5)
+Print limit set to 40
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total CPU  Incl. Total CPU   Name
+
+    sec.      %      sec.      %
+1737.494 100.00  1737.494 100.00   <Total>
+1083.113  62.34  1083.113  62.34   (anonymous namespace)::dense(float const*, int, int, int, float const*, float const*, int, float*, bool)
+ 239.308  13.77   396.575  22.82   TrainMC::doIteration(float*, float*)
+ 139.305   8.02   150.431   8.66   TrainMC::receiveEval(float*, float*)
+  84.123   4.84    84.123   4.84   <static>@0x77ace (<libm.so.6>)
+  62.498   3.60  1213.432  69.84   Mlp::evaluateParallel(float const*, int, float*, float*, int) const [clone .omp_outlined]
+  29.592   1.70    30.886   1.78   Node::initializeEdges()
+  27.425   1.58    27.425   1.58   Node::~Node()
+  11.198   0.64    11.198   0.64   TrainMC::setProbs(float*, float*)
+   9.785   0.56    34.705   2.00   Node::Node(Game const&, Node*, Node*, int, int)
+   8.964   0.52     8.964   0.52   Node::promoteBestEdge(int)
+   7.589   0.44     7.589   0.44   <static>@0x188341 (<libc.so.6>)
+   4.817   0.28     4.817   0.28   Node::writeGameState(float*) const
+   4.800   0.28    12.008   0.69   <static>@0x66e6b (<libc.so.6>)
+   4.725   0.27     4.725   0.27   expm1f
+   2.454   0.14    13.705   0.79   <static>@0x9d87b (<libomp.so.5>)
+   2.387   0.14     4.026   0.23   <static>@0x60321 (<libc.so.6>)
+   1.903   0.11     1.935   0.11   <static>@0x98cd5 (<libc.so.6>)
+   1.764   0.10   341.841  19.67   Trainer::doIteration(float*, float*, int) [clone .omp_outlined]
+   1.506   0.09     6.231   0.36   tanhf
+   1.186   0.07     1.186   0.07   <static>@0xa9d43 (<libomp.so.5>)
+   0.834   0.05    15.974   0.92   __kmpc_dispatch_next_8u
+   0.791   0.05     1.169   0.07   <static>@0xaab1b (<libc.so.6>)
+   0.771   0.04     0.785   0.05   TrainMC::chooseMove(float*, float*)

@@ -1,4 +1,15 @@
 cmake_minimum_required(VERSION 3.26)
+
+# clang++ 20 by default when it is installed (worklog entry 28); must be set
+# before project(). -DCMAKE_CXX_COMPILER=... or CXX in the environment still
+# override it, and without clang++-20 (CI) CMake picks its usual compiler.
+if(NOT DEFINED CMAKE_CXX_COMPILER AND NOT DEFINED ENV{CXX})
+  find_program(CLANGXX_20 clang++-20)
+  if(CLANGXX_20)
+    set(CMAKE_CXX_COMPILER ${CLANGXX_20})
+  endif()
+endif()
+
 project(CorinthoAI)
 
 set(CMAKE_CXX_STANDARD 17)

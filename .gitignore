@@ -39,4 +39,20 @@ corintho_ai/python/test/
 corintho_ai/python/test_games.txt
 corintho_ai/rating/tourney/
 corintho_ai/rating/tourney_res/
-corintho_ai/rating/*.txt
+corintho_ai/rating/*.txtbench/build/
+bench/perf.data
+bench/cg.out
+bench/results/*.tmp
+bench/build-lines/
+bench/build-a/
+bench/build-b/
+bench/build-noLTO/
+
+# GPU pipeline: local environment, third-party binaries, run outputs
+pipeline/.venv/
+pipeline/third_party/
+pipeline/build/
+pipeline/runs/
+pipeline/models/*.pt
+pipeline/models/*.onnx
+pipeline/models/*.mlp

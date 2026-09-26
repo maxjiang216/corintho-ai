@@ -1,0 +1,273 @@
+#!/usr/bin/env bash
+# Record one labelled benchmark run for before/after comparison.
+#
+#   ./run_suite.sh <label> [suite] [reps]
+#
+#   label   name for the record, e.g. "before-bitboard"
+#   suite   game | engine | counters | all   (default: all)
+#   reps    timed repetitions                (default: 5)
+#
+# Records two kinds of number, which serve different purposes:
+#
+#   TIMED    wall clock from unprofiled runs. This is the only thing that says
+#            whether a change actually made the program faster. It is also
+#            noisy, so it is repeated and reduced to a median, and any delta
+#            inside the run-to-run spread must not be claimed as a result.
+#
+#   EXACT    deterministic counters from simulation: instructions retired,
+#            branch mispredicts, cache misses, allocation counts. These do not
+#            say whether anything got faster -- they say whether the work you
+#            intended to remove actually went away, and by exactly how much.
+#            They have zero variance, so a 2% change is unambiguous where the
+#            same 2% would be invisible in the timings.
+#
+# A good optimization moves both. When they disagree -- fewer instructions but
+# no speedup, or a speedup with no counter change -- that disagreement is the
+# finding, and it belongs in the commit message.
+#
+# Writes results/<label>.tsv. Timed metrics are reported as the median across
+# reps, with min and max, because single runs on this machine vary by a few
+# percent. Digests must be identical across reps or the run is rejected.
+#
+# Compare two records with ./compare.py results/before.tsv results/after.tsv
+
+set -euo pipefail
+cd "$(dirname "$0")"
+
+LABEL="${1:?usage: ./run_suite.sh <label> [suite] [reps]}"
+SUITE="${2:-all}"
+REPS="${3:-5}"
+
+# This CPU is heterogeneous: 6 performance cores at 4600-4700 MHz and 8
+# efficiency cores at 3500 MHz. The SAME binary measured 0.513 s pinned to a
+# P-core and 0.732 s pinned to an E-core -- 41% apart. A single-threaded run is
+# otherwise at the mercy of which type the scheduler picks, and it re-rolls that
+# choice whenever the process is descheduled, so timings come out bimodal rather
+# than merely noisy. Single-thread spread was 21-24% unpinned and 2.3% pinned.
+#
+# Pin single-threaded runs to a P-core. Never pin the multi-threaded ones: they
+# are meant to use every core, and their spread is the load imbalance we want to
+# see.
+PIN="taskset -c 0"
+
+# Engine benchmark parameters. Keep these fixed across all comparisons.
+#
+# The engine is measured at BOTH one thread and many. They answer different
+# questions and a change can easily improve one while hurting the other:
+#
+#   st  single thread -- pure algorithmic cost, no scheduling or allocator
+#       contention. This is the number that should track the profiler.
+#   mt  many threads, same game count -- st/mt gives parallel efficiency, so a
+#       regression in scaling (false sharing, allocator contention, load
+#       imbalance) shows up here even when st is unchanged.
+#   big many threads at the headline game count -- overall throughput.
+PAIR_GAMES=50          # st and mt use this, so the two are directly comparable
+BIG_GAMES=200
+SEARCHES=1600
+PER_EVAL=16
+THREADS=14
+SEED=12345
+
+# Microbenchmark parameters.
+CORPUS=20000
+MICRO_REPS=50
+
+# Exact-counter parameters. Tiny, because the simulators are 20-100x slower.
+# Same search count as everything else, per the note in profile.sh.
+#
+# EVERY counter family must use the SAME workload. They previously did not --
+# instructions came from 3 games and allocations from 2 -- so dividing one by
+# the other silently compared different runs, and an attempt to normalise
+# instructions per allocation produced nonsense. Relative comparisons are the
+# whole point of these records, so the scales must match.
+COUNTER_GAMES=3
+
+mkdir -p results
+OUT="results/${LABEL}.tsv"
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+# Capture provenance BEFORE touching the output file. Re-recording over an
+# existing tracked record would otherwise dirty the tree and make this field
+# permanently report "yes", which would defeat the point of recording it.
+COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+if git diff --quiet 2>/dev/null; then DIRTY=no; else DIRTY=yes; fi
+CXXFLAGS_USED="$(grep -m1 '^CXXFLAGS' Makefile | cut -d= -f2- | xargs)"
+# Machine state. A laptop on battery clocks far below the same laptop on AC --
+# measured at 77% slower for an identical build -- and a busy browser steals
+# cores. Neither is visible in the numbers, so both are recorded. Records taken
+# under different conditions here must not be compared; use ab.sh instead.
+AC_ONLINE="$(cat /sys/class/power_supply/AC*/online 2>/dev/null | head -1 || echo unknown)"
+GOVERNOR="$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo unknown)"
+LOADAVG="$(cut -d' ' -f1-3 /proc/loadavg)"
+
+# Optional flag override, for A/B testing build flags themselves.
+#   BENCH_CXXFLAGS="-std=c++17 -O3 -fopenmp -DNDEBUG" ./run_suite.sh before-lto
+# When set it is recorded in the header, so the record says what was built.
+if [ -n "${BENCH_CXXFLAGS:-}" ]; then
+  CXXFLAGS_USED="$BENCH_CXXFLAGS (override)"
+  MAKEARGS=(CXXFLAGS="$BENCH_CXXFLAGS" LDFLAGS="-fopenmp")
+else
+  MAKEARGS=()
+fi
+
+echo "building..."
+make -s clean > /dev/null
+make -s all "${MAKEARGS[@]}"
+
+{
+  echo -e "#label\t${LABEL}"
+  echo -e "#suite\t${SUITE}"
+  echo -e "#date\t$(date -Iseconds)"
+  echo -e "#commit\t${COMMIT}"
+  echo -e "#dirty\t${DIRTY}"
+  echo -e "#cxxflags\t${CXXFLAGS_USED}"
+  echo -e "#ac_power\t${AC_ONLINE}"
+  echo -e "#governor\t${GOVERNOR}"
+  echo -e "#loadavg\t${LOADAVG}"
+  echo -e "#pin\t${PIN} (max $(lscpu -e=CPU,MAXMHZ 2>/dev/null | awk '$1==0{print $2}') MHz)"
+  echo -e "#topcpu\t$(ps -eo pcomm --sort=-pcpu --no-headers | head -1) at $(ps -eo pcpu --sort=-pcpu --no-headers | head -1)%"
+  echo -e "#counters\tgames=${COUNTER_GAMES} searches=${SEARCHES} (all counter families share this workload)"
+  echo -e "#config\tpair_games=${PAIR_GAMES} big_games=${BIG_GAMES} searches=${SEARCHES} per_eval=${PER_EVAL} threads=${THREADS} seed=${SEED} corpus=${CORPUS} reps=${REPS}"
+} > "$OUT"
+
+# --- Digests: must be reproducible, so any variation is a hard error. ---
+echo "digests..."
+./build/golden | grep '^#METRIC' | awk '{print $2"\t"$3}' > "$TMP/d0"
+for _ in $(seq 2); do
+  ./build/golden | grep '^#METRIC' | awk '{print $2"\t"$3}' > "$TMP/dn"
+  if ! diff -q "$TMP/d0" "$TMP/dn" > /dev/null; then
+    echo "FATAL: digests are not reproducible across runs" >&2
+    exit 1
+  fi
+done
+cat "$TMP/d0" >> "$OUT"
+
+# --- Collect repeated samples, then reduce to median/min/max. ---
+collect() {  # collect <binary> <args...>
+  local bin="$1"; shift
+  for _ in $(seq "$REPS"); do
+    "$bin" "$@" | grep '^#METRIC' || true
+  done
+}
+
+collect_prefixed() {  # collect_prefixed <prefix> <binary> <args...>
+  local prefix="$1"; shift
+  collect "$@" | sed "s/^#METRIC /#METRIC ${prefix}_/"
+}
+
+reduce() {  # reduce < raw metric lines
+  python3 -c '
+import sys, collections, statistics
+vals = collections.defaultdict(list)
+order = []
+for line in sys.stdin:
+    parts = line.split()
+    if len(parts) != 3:
+        continue
+    _, key, value = parts
+    try:
+        v = float(value)
+    except ValueError:
+        continue
+    if key not in vals:
+        order.append(key)
+    vals[key].append(v)
+for key in order:
+    xs = vals[key]
+    print(f"{key}\t{statistics.median(xs):.4f}\t{min(xs):.4f}\t{max(xs):.4f}")
+'
+}
+
+if [ "$SUITE" = "game" ] || [ "$SUITE" = "all" ]; then
+  echo "microbenchmarks (${REPS} reps)..."
+  collect ./build/micro_bench "$CORPUS" "$MICRO_REPS" | reduce >> "$OUT"
+fi
+
+if [ "$SUITE" = "engine" ] || [ "$SUITE" = "all" ]; then
+  echo "engine benchmark, single thread (${REPS} reps)..."
+  collect_prefixed st $PIN ./build/selfplay_bench \
+    "$PAIR_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" | reduce >> "$OUT"
+
+  echo "engine benchmark, ${THREADS} threads (${REPS} reps)..."
+  collect_prefixed mt ./build/selfplay_bench \
+    "$PAIR_GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" | reduce >> "$OUT"
+
+  echo "engine benchmark, ${THREADS} threads at ${BIG_GAMES} games (${REPS} reps)..."
+  collect_prefixed big ./build/selfplay_bench \
+    "$BIG_GAMES" "$SEARCHES" "$PER_EVAL" "$THREADS" "$SEED" | reduce >> "$OUT"
+
+  # Parallel efficiency, derived from the matched st/mt pair.
+  python3 - "$OUT" "$THREADS" <<'PY' >> "$OUT"
+import sys
+path, threads = sys.argv[1], int(sys.argv[2])
+vals = {}
+for line in open(path, encoding="utf-8"):
+    parts = line.split("\t")
+    if len(parts) == 4:
+        vals[parts[0]] = float(parts[1])
+st, mt = vals.get("st_engine_seconds"), vals.get("mt_engine_seconds")
+if st and mt:
+    speedup = st / mt
+    print(f"speedup_{threads}t\t{speedup:.4f}\t{speedup:.4f}\t{speedup:.4f}")
+    eff = speedup / threads * 100.0
+    print(f"parallel_efficiency_pct\t{eff:.4f}\t{eff:.4f}\t{eff:.4f}")
+PY
+fi
+
+if [ "$SUITE" = "counters" ] || [ "$SUITE" = "all" ]; then
+  echo "exact counters (simulated, ~25 s)..."
+
+  valgrind --tool=cachegrind --cache-sim=yes --branch-sim=yes \
+    --cachegrind-out-file="$TMP/c.out" \
+    ./build/selfplay_bench "$COUNTER_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>&1
+  # PROGRAM TOTALS column order, after stripping percentages and commas:
+  #   1=Ir 2=I1mr 3=ILmr 4=Dr 5=D1mr 6=DLmr 7=Dw 8=D1mw 9=DLmw
+  #   10=Bc 11=Bcm 12=Bi 13=Bim
+  cg_annotate --auto=no "$TMP/c.out" 2>/dev/null | grep "PROGRAM TOTALS" \
+    | sed 's/([^)]*)//g' | tr -s ' ' | tr -d ',' \
+    | awk '{
+        printf "exact_instructions\t%s\t%s\t%s\n", $1, $1, $1;
+        printf "exact_d1_read_miss\t%s\t%s\t%s\n", $5, $5, $5;
+        printf "exact_d1_write_miss\t%s\t%s\t%s\n", $8, $8, $8;
+        printf "exact_branches\t%s\t%s\t%s\n", $10, $10, $10;
+        printf "exact_branch_mispredicts\t%s\t%s\t%s\n", $11, $11, $11;
+      }' >> "$OUT"
+
+  valgrind --tool=dhat --dhat-out-file="$TMP/d.out" \
+    ./build/selfplay_bench "$COUNTER_GAMES" "$SEARCHES" "$PER_EVAL" 1 "$SEED" \
+    > /dev/null 2>"$TMP/d.log"
+  grep -Ei "^==[0-9]+== Total:" "$TMP/d.log" | tr -d ',' \
+    | awk '{
+        printf "exact_alloc_bytes\t%s\t%s\t%s\n", $3, $3, $3;
+        printf "exact_alloc_blocks\t%s\t%s\t%s\n", $6, $6, $6;
+      }' >> "$OUT"
+
+  # Work done can change even when behaviour does not -- a correctness fix that
+  # widens the legal move set makes the search explore more nodes. Per-allocation
+  # figures separate "more work" from "slower work". Valid only because every
+  # counter family now shares one workload.
+  python3 - "$OUT" <<'PY' >> "$OUT"
+import sys
+vals = {}
+for line in open(sys.argv[1], encoding="utf-8"):
+    parts = line.rstrip("\n").split("\t")
+    if len(parts) == 4:
+        try:
+            vals[parts[0]] = float(parts[1])
+        except ValueError:
+            pass
+blocks = vals.get("exact_alloc_blocks", 0)
+if blocks:
+    for name in ("exact_instructions", "exact_branches",
+                 "exact_branch_mispredicts", "exact_d1_read_miss"):
+        if name in vals:
+            per = vals[name] / blocks
+            key = name.replace("exact_", "per_alloc_")
+            print(f"{key}\t{per:.4f}\t{per:.4f}\t{per:.4f}")
+PY
+fi
+
+echo "wrote $OUT"
+column -t -s $'\t' "$OUT"

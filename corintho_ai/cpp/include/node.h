@@ -8,6 +8,7 @@
 
 #include <gsl/gsl>
 
+#include "arena.h"
 #include "game.h"
 #include "util.h"
 
@@ -26,6 +27,8 @@ class alignas(64) Node {
   /// @brief Maximum value of a edge probability weight
   /// @details This is used to scale up the probability weights
   static constexpr float kMaxProbability = 511.0;
+  /// @brief The most legal moves any position has
+  static constexpr int32_t kMaxEdges = 48;
   /// @brief Default constructor constructs a node with the starting position
   /// @details This is used to initialize a Monte Carlo search tree.
   /// The starting position is never terminal.
@@ -51,6 +54,19 @@ class alignas(64) Node {
   /// or 1 more than the depth of parent
   Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
        int32_t depth);
+
+  /// @brief Nodes come from the per-thread arena, not from malloc
+  /// @details Routing allocation here rather than changing every call site
+  /// keeps ownership and the recursive destructor exactly as they were.
+  static void *operator new(size_t bytes) {
+    return Arena::get().allocate(bytes);
+  }
+  static void operator delete(void *p, size_t bytes) noexcept {
+    Arena::get().deallocate(p, bytes);
+  }
+  static void operator delete(void *p) noexcept {
+    Arena::get().deallocate(p, sizeof(Node));
+  }
 
   Game game() const noexcept;
   Node *parent() const noexcept;
@@ -84,14 +100,73 @@ class alignas(64) Node {
   /// @param all_visited Default is true to match other standard set functions
   void set_all_visited(bool all_visited = true) noexcept;
   void set_probability(int32_t i, int32_t probability) noexcept;
+  /// @brief Move the best edge of [first, num_legal_moves) to index first
+  /// @details Best is the highest probability weight, ties going to the
+  /// lowest move ID, which is the order the full selection scan broke ties
+  /// in. Called with first equal to the number of children, so the visited
+  /// edges stay a prefix and every loop that walks the child list alongside
+  /// the edges stays in step. The order of the rest of the tail is arbitrary.
+  void promoteBestEdge(int32_t first) noexcept;
   void increment_visits() noexcept;
   void decrement_visits() noexcept;
+  /// @brief One visit plus an evaluation change, as a descent through this
+  /// node records it: the same as increment_visits then increase_evaluation
+  void add_visit(float evaluation) noexcept;
   void increase_evaluation(float d) noexcept;
   void decrease_evaluation(float d) noexcept;
   void null_parent() noexcept;
   void null_next_sibling() noexcept;
 
   int32_t countNodes() const noexcept;
+
+  /// @brief A legal move and its probability weight, packed in 16 bits
+  /// @details Bits 0-6 hold the move ID (at most 95) and bits 7-15 the
+  /// probability weight (0 to 511). Shifts and masks rather than bitfields:
+  /// GCC does not vectorize loops that read bitfields, and selection scores
+  /// every child's weight in one loop (worklog entry 26).
+  /// Deliberately left uninitialized, as the bitfields were: every edge is
+  /// written before it is read, and zeroing 48 of them per node costs time.
+  struct Edge {
+    uint16_t bits;
+    Edge() = default;
+    Edge(int32_t move_id, int32_t probability)
+        : bits{gsl::narrow_cast<uint16_t>(move_id | (probability << 7))} {}
+    int32_t move_id() const noexcept { return bits & 0x7F; }
+    int32_t probability() const noexcept { return bits >> 7; }
+    void set_probability(int32_t probability) noexcept {
+      bits = gsl::narrow_cast<uint16_t>((bits & 0x7F) | (probability << 7));
+    }
+  };
+
+  /// @brief Selection flags mirrored for each child: skip it entirely (a
+  /// won or lost position, or all_visited), or score it as a known draw
+  static constexpr uint8_t kSkipChild = 1;
+  static constexpr uint8_t kDrawnChild = 2;
+  /// @brief The children's selection statistics, in slot order
+  /// @details Slot i is the child created i-th, which is also edge i and the
+  /// i-th node of the child list (chooseNext keeps visited edges a prefix).
+  /// They exist so that selection reads contiguous arrays in the parent
+  /// instead of chasing the child list through scattered nodes.
+  ///
+  /// Each child keeps its own evaluation and visits too, and every update
+  /// changes the child's field and then stores just that field here. The
+  /// flags are derived from the child's result and all_visited and are
+  /// rewritten only when either changes. Until worklog entry 25 every update
+  /// rewrote all three entries and recomputed the flags, four times per node
+  /// per search; keeping the child's copy (rather than making this the only
+  /// copy) is deliberate, see entry 25.
+  struct ChildStats {
+    Node *const *child;
+    const float *evaluation;
+    const float *visits;
+    const uint8_t *flags;
+    int32_t count;
+    /// @brief This node's edges; edge i leads to child i
+    const Edge *edges;
+    /// @brief Multiplies an edge's probability weight into a probability
+    float denominator;
+  };
+  ChildStats child_stats() const noexcept;
 
   /// @returns If there are lines in the position
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
@@ -106,18 +181,52 @@ class alignas(64) Node {
   void printKnownLines(std::ostream *log_file) const;
 
  private:
-  struct Edge {
-    /// @brief The ID of the move used to reach the child
-    /// @details The maximal move ID is 95, which fits in a 7-bit integer.
-    uint16_t move_id : 7;
-    /// @brief The probability weight of this move
-    /// @details We scale the weights to be between 0 and 511
-    uint16_t probability : 9;
-    Edge() = default;
-    Edge(int32_t move_id, int32_t probability)
-        : move_id{gsl::narrow_cast<uint16_t>(move_id)},
-          probability{gsl::narrow_cast<uint16_t>(probability)} {}
+  /// @brief The edges plus the header of the child-statistics block
+  /// @details One 128-byte arena slot, allocated for every non-terminal node.
+  /// 48 edges take 96 bytes; the header uses the rest of the slot, which
+  /// was previously padding, so Node itself does not grow.
+  struct EdgeBlock {
+    Edge edges[kMaxEdges];
+    /// @brief Child-statistics block, allocated on the first expansion
+    /// @details Laid out as Node *child[capacity], float evaluation[capacity],
+    /// float visits[capacity], uint8_t flags[capacity].
+    unsigned char *stats{nullptr};
+    int8_t num_children{0};
+    int8_t capacity{0};
+
+    static void *operator new(size_t bytes) {
+      (void)bytes;
+      return Arena::get().allocate(Arena::kLarge);
+    }
+    static void operator delete(void *p) noexcept {
+      Arena::get().deallocate(p, Arena::kLarge);
+    }
   };
+  static_assert(sizeof(EdgeBlock) <= Arena::kLarge,
+                "an edge block must fit one large arena slot");
+
+  /// @brief Bytes of a child-statistics block with room for capacity children
+  static constexpr size_t statsBytes(int32_t capacity) noexcept {
+    return static_cast<size_t>(capacity) *
+           (sizeof(Node *) + 2 * sizeof(float) + sizeof(uint8_t));
+  }
+  /// @brief Register a new child, growing the statistics block if needed
+  /// @returns The child's slot
+  int8_t addChild(Node *child);
+  /// @brief This node's entries in its parent's child statistics
+  struct StatsSlot {
+    float *evaluation;
+    float *visits;
+    uint8_t *flags;
+  };
+  /// @pre parent_ is not null
+  StatsSlot statsSlot() const noexcept;
+  /// @brief Selection flags for this node, from its result and all_visited
+  uint8_t selectionFlags() const noexcept;
+  /// @brief Rewrite this node's flags in its parent's statistics, if any
+  void syncFlags() noexcept;
+  /// @brief Fill this node's slot from its own fields when it is created
+  void registerStats() noexcept;
 
   /// @brief Initialize the edges of this node
   void initializeEdges();
@@ -137,13 +246,10 @@ class alignas(64) Node {
   /// @note This would more ideally be a std::shared_ptr, but
   /// that would increase the size of the class over 64 bytes.
   Node *first_child_{nullptr};
-  /// @brief An array of edges to the children of this node
-  /// @details The edges are stored in a variable length array
-  /// so that we only allocate as much memory as we need (num_legal_moves).
-  /// This is an idea taken from the Leela Zero implementation.
-  /// Ideally, this would be a vector, but that would increase the size of the
-  /// class over 64 bytes.
-  Edge *edges_{nullptr};
+  /// @brief The edges to the children of this node, and the child-statistics
+  /// header
+  /// @details Null for terminal positions, which have no legal moves.
+  EdgeBlock *block_{nullptr};
   /// @brief The evaluation of this node
   /// @details This is a sum of the initial evaluation and all the
   /// evaluations propagated from the children.
@@ -184,6 +290,9 @@ class alignas(64) Node {
   /// node. It is set to true when the node is created, as it has no children
   /// and nodes are visited when they are created.
   bool all_visited_{true};
+  /// @brief This node's slot in its parent's child statistics
+  int8_t slot_{0};
 };
+static_assert(sizeof(Node) == 64, "Node must stay one cache line");
 
 #endif

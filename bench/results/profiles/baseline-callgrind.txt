@@ -1,0 +1,41 @@
+# callgrind, 1 thread, 3 games x 1600 searches
+# label:    baseline
+# commit:   88abeae
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T14:37:30-07:00
+
+# Exact and perfectly repeatable. Use to confirm a change removed the
+# instructions it was meant to remove.
+
+--------------------------------------------------------------------------------
+Ir                   
+--------------------------------------------------------------------------------
+961,665,112 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                    file:function
+--------------------------------------------------------------------------------
+339,595,721 (35.31%)  ???:TrainMC::doIteration(float*, float*) [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+271,902,207 (28.27%)  ???:Node::initializeEdges() [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+158,713,294 (16.50%)  ???:main [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+ 38,185,680 ( 3.97%)  ./math/../sysdeps/ieee754/dbl-64/s_llround.c:lround [/usr/lib/x86_64-linux-gnu/libm.so.6]
+ 35,931,453 ( 3.74%)  ???:std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+ 26,482,050 ( 2.75%)  ./malloc/./malloc/malloc.c:_int_malloc [/usr/lib/x86_64-linux-gnu/libc.so.6]
+ 25,619,476 ( 2.66%)  ???:Game::applyRowColLines(std::bitset<96ul>&, bool) const [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+  7,974,898 ( 0.83%)  ./malloc/./malloc/malloc.c:_int_free [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  7,065,422 ( 0.73%)  ./malloc/./malloc/malloc.c:_int_memalign [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  6,441,891 ( 0.67%)  ./malloc/./malloc/malloc.c:malloc_consolidate [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  5,631,973 ( 0.59%)  ./malloc/./malloc/malloc.c:unlink_chunk.isra.0 [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  4,948,730 ( 0.51%)  ./malloc/./malloc/malloc.c:_mid_memalign.isra.0 [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  3,662,594 ( 0.38%)  ./malloc/./malloc/malloc.c:_int_free_merge_chunk [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  3,007,504 ( 0.31%)  ./malloc/./malloc/malloc.c:free [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  2,728,130 ( 0.28%)  ???:0x000000000010a2b0 [???]
+  2,666,723 ( 0.28%)  ./malloc/./malloc/malloc.c:_int_free_maybe_consolidate [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  2,543,997 ( 0.26%)  ???:Game::doMove(int) [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+  2,315,459 ( 0.24%)  ./malloc/./malloc/malloc.c:malloc [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  2,244,984 ( 0.23%)  ???:operator new(unsigned long, std::align_val_t) [/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33]
+  1,977,724 ( 0.21%)  ./malloc/./malloc/malloc.c:posix_memalign [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  1,456,510 ( 0.15%)  ./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:__memcpy_avx_unaligned_erms [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  1,371,825 ( 0.14%)  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:__memset_avx2_unaligned_erms [/usr/lib/x86_64-linux-gnu/libc.so.6]
+

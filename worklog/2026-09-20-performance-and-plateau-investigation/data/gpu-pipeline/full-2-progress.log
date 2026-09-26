@@ -1,0 +1,19 @@
+2026-09-25 09:37:39 new run from /home/max/projects/corintho-ai/pipeline/models/gen_93: {"init": "/home/max/projects/corintho-ai/pipeline/models/gen_93", "init_rating": 5537.14343997563, "games": 25000, "in_flight": 2000, "groups": 2, "test_games": 1600, "searches": 1600, "spe": 16, "c_puct": 3.0, "epsilon": 0.25, "threads": 20, "lr": 5e-06, "epochs": 10, "batch": 2048, "patience": 2, "fit_patience": 2, "anneal": 0.5, "old_gens": 0, "confidence": 0.95, "logged": 10, "seed": 1, "keep_samples": true}
+2026-09-25 09:43:24 gen 1 selfplay done in 345.7 s (package 84 C)
+2026-09-25 09:45:19 gen 1 fit done in 114.5 s (package 82 C)
+2026-09-25 09:45:46 gen 1 test done in 27.8 s (package 91 C)
+2026-09-25 09:45:46 gen 1: new agent: 825W 48D 727L of 1600  decisive win rate 0.5316  95% CI [0.5067, 0.5563]  score(with draws) 0.5306  -> PROMOTE -> PROMOTED; rating 5558, val loss 1.07959, lr 5e-06
+2026-09-25 09:45:46 stopped after gen 1; best gen 1
+2026-09-25 09:54:14 gen 2 selfplay done in 346.9 s (package 92 C)
+2026-09-25 10:00:30 gen 2 fit done in 38.5 s (package 75 C)
+2026-09-25 10:00:57 gen 2 test done in 27.3 s (package 92 C)
+2026-09-25 10:00:57 gen 2: new agent: 769W 65D 766L of 1600  decisive win rate 0.5010  95% CI [0.4760, 0.5260]  score(with draws) 0.5009  -> reject -> kept gen 1; rating 5559, val loss 1.08039, lr 5e-06
+2026-09-25 10:06:43 gen 3 selfplay done in 345.7 s (package 92 C)
+2026-09-25 10:07:24 gen 3 fit done in 41.2 s (package 83 C)
+2026-09-25 10:07:52 gen 3 test done in 28.2 s (package 86 C)
+2026-09-25 10:07:52 gen 3: new agent: 757W 57D 786L of 1600  decisive win rate 0.4906  95% CI [0.4657, 0.5155]  score(with draws) 0.4909  -> reject -> kept gen 1; rating 5552, val loss 1.07951, lr 5e-06
+2026-09-25 10:13:39 gen 4 selfplay done in 346.6 s (package 87 C)
+2026-09-25 10:14:20 gen 4 fit done in 40.7 s (package 81 C)
+2026-09-25 10:14:48 gen 4 test done in 28.3 s (package 89 C)
+2026-09-25 10:14:48 gen 4: new agent: 803W 41D 756L of 1600  decisive win rate 0.5151  95% CI [0.4903, 0.5398]  score(with draws) 0.5147  -> reject -> kept gen 1; rating 5569, val loss 1.08515, lr 5e-06
+2026-09-25 10:14:48 stopped after gen 4; best gen 1

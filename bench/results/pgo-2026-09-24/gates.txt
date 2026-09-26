@@ -1,0 +1,29 @@
+base #METRIC digest_game d8f9bd2d22ee9731
+base #METRIC digest_engine d7581196f9d30591
+base verify PASS
+pgo #METRIC digest_game d8f9bd2d22ee9731
+pgo #METRIC digest_engine d7581196f9d30591
+pgo verify PASS
+engine #METRIC digest_game d8f9bd2d22ee9731
+engine #METRIC digest_engine d7581196f9d30591
+engine verify PASS
+frac #METRIC digest_game d8f9bd2d22ee9731
+frac #METRIC digest_engine d7581196f9d30591
+frac verify PASS
+base sample seed 1 2147e3071a27cc4d 8532 MATCH
+pgo sample seed 1 2147e3071a27cc4d 8532 MATCH
+engine sample seed 1 2147e3071a27cc4d 8532 MATCH
+frac sample seed 1 2147e3071a27cc4d 8532 MATCH
+base sample seed 2 a988f67a0c984be7 8533 MATCH
+pgo sample seed 2 a988f67a0c984be7 8533 MATCH
+engine sample seed 2 a988f67a0c984be7 8533 MATCH
+frac sample seed 2 a988f67a0c984be7 8533 MATCH
+base sample seed 3 dcb1745df12a1ba0 8390 MATCH
+pgo sample seed 3 dcb1745df12a1ba0 8390 MATCH
+engine sample seed 3 dcb1745df12a1ba0 8390 MATCH
+frac sample seed 3 dcb1745df12a1ba0 8390 MATCH
+base sample seed 4 e0db31d1d69b6456 8493 MATCH
+pgo sample seed 4 e0db31d1d69b6456 8493 MATCH
+engine sample seed 4 e0db31d1d69b6456 8493 MATCH
+frac sample seed 4 e0db31d1d69b6456 8493 MATCH
+ALL GATES PASS

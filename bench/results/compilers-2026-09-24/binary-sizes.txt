@@ -1,0 +1,3 @@
+1475112 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/base/selfplay_nn
+773456 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/clang20/selfplay_nn
+1496760 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/bin/gcc14/selfplay_nn

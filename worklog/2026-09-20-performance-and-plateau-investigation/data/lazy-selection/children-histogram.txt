@@ -1,0 +1,46 @@
+# Children per evaluated node at deletion, 20 games x 1600 searches, seed 11.
+# Instrumented Node::~Node (temporary, not committed). "scan compares" is the
+# promoteBestEdge work: eager = first scan in setProbs for every evaluated
+# node; lazy = first scan on first descent only.
+
+=== REAL NETWORK (model_93.tflite)
+evaluated 734772  mean legal moves 26.2
+children  0   66.42%  cum  66.42%
+children  1   18.62%  cum  85.03%
+children  2    5.88%  cum  90.92%
+children  3    2.47%  cum  93.39%
+children  4    1.47%  cum  94.85%
+children  5    0.93%  cum  95.79%
+children  6    0.67%  cum  96.46%
+children  7    0.50%  cum  96.96%
+children  8    0.41%  cum  97.37%
+children  9    0.36%  cum  97.73%
+children 10    0.33%  cum  98.05%
+children 15    0.11%  cum  98.90%
+children 20    0.09%  cum  99.37%
+children 25    0.02%  cum  99.57%
+children 30    0.02%  cum  99.68%
+children 35    0.03%  cum  99.83%
+children 40    0.01%  cum  99.94%
+scan compares: eager 28972822, lazy 16234587
+
+=== STUB
+evaluated 464211  mean legal moves 26.0
+children  0   65.78%  cum  65.78%
+children  1   18.27%  cum  84.05%
+children  2    6.60%  cum  90.65%
+children  3    3.03%  cum  93.68%
+children  4    1.63%  cum  95.31%
+children  5    0.95%  cum  96.26%
+children  6    0.64%  cum  96.90%
+children  7    0.46%  cum  97.36%
+children  8    0.34%  cum  97.70%
+children  9    0.26%  cum  97.96%
+children 10    0.21%  cum  98.17%
+children 15    0.11%  cum  98.89%
+children 20    0.07%  cum  99.33%
+children 25    0.05%  cum  99.60%
+children 30    0.03%  cum  99.79%
+children 35    0.02%  cum  99.91%
+children 40    0.01%  cum  99.98%
+scan compares: eager 18497415, lazy 10879861

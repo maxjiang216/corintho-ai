@@ -1,0 +1,49 @@
+# Step 2 raw outputs, 2026-09-23, i7-12700H, 20 threads, in-process Mlp (model_93.mlp), 1600 searches, 16 per eval
+
+## Scale, HEAD d6c6915 (static schedule): /usr/bin/time selfplay_nn - M <games> 1600 16 20 777
+2000 games: engine 23.164 s  network 37.682 s  turns/game 28.20  requests 71040727   peak_rss_kb 1814880  elapsed 63.67
+8000 games: engine 94.887 s  network 166.037 s  turns/game 28.35  requests 285336011  peak_rss_kb 7351200  elapsed 272.23
+
+## Schedule sweep: trainer.cpp:202 temporarily schedule(runtime), OMP_SCHEDULE varied, 2000 games seed 777
+# columns: rep schedule engine_seconds requests
+1 static: 23.9812 71040727 
+1 dynamic,1: 16.3407 71040727 
+1 dynamic,8: 16.9193 71040727 
+1 dynamic,32: 19.1583 71040727 
+1 guided: 19.8797 71040727 
+2 static: 24.2622 71040727 
+2 dynamic,1: 16.3487 71040727 
+2 dynamic,8: 17.3526 71040727 
+2 dynamic,32: 19.2428 71040727 
+2 guided: 20.1265 71040727 
+
+
+## Paired A/B, a = static (HEAD), b = schedule(dynamic, 1), 1000 games, interleaved
+# columns: arm seed 'game' engine_seconds turns requests (the 'game' column is an awk artifact)
+a 901 game 10.3330 28478 35903101 
+b 901 game 8.2050 28478 35903101 
+a 902 game 10.1605 28572 35992810 
+b 902 game 8.2521 28572 35992810 
+a 903 game 10.3729 28655 36134374 
+b 903 game 8.2968 28655 36134374 
+a 904 game 10.2381 28347 35623989 
+b 904 game 8.1330 28347 35623989 
+a 905 game 10.2910 28275 35404805 
+b 905 game 8.0934 28275 35404805 
+# engine change -20.27% (95% CI -21.44 .. -19.08, t on log ratios, 4 df); turns and requests identical in all 5 pairs
+
+## golden engine digest after the change: d7581196f9d30591 (unchanged; golden is single-threaded)
+
+## Staggered starts on/off, after the dynamic schedule (6591bde). "off" = trainer.cpp start condition replaced by `if (true)`, temporary build
+# /usr/bin/time selfplay_nn - model_93.mlp <games> 1600 16 20 777
+staggered 2000: engine_seconds=15.9716 wall_seconds=59.8023 peak_rss_mb=1400
+staggered 4000: engine_seconds=33.0390 wall_seconds=125.1996 peak_rss_mb=2755
+all-at-once 2000: engine_seconds=16.3640 wall_seconds=62.3858 peak_rss_mb=2006
+all-at-once 4000: engine_seconds=33.0337 wall_seconds=126.1277 peak_rss_mb=3985
+
+## searches_per_eval sweep, 1000 games, 20 threads, seed 901 (engine s, network s on CPU Mlp, requests)
+spe 16: 7.988  21.087  35903101
+spe 8:  9.054  22.282  35685828
+spe 4:  10.167 24.675  35749070
+spe 2:  10.461 25.554  35815462
+spe 1:  12.742 38.461  35762812

@@ -1,5 +1,6 @@
 #include "trainmc.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
@@ -14,6 +15,25 @@
 #include "move.h"
 #include "node.h"
 
+namespace {
+
+/// @brief condition != 0 ? a : b, for floats, with integer bit masks
+/// @details Under GCC's default -ftrapping-math a float ?: stays a branch,
+/// and a branch in a loop stops it from vectorizing. The same selection on
+/// the bit patterns becomes a vector blend (worklog entry 26).
+inline float selectFloat(uint32_t condition, float a, float b) noexcept {
+  const uint32_t mask = 0U - static_cast<uint32_t>(condition != 0);
+  uint32_t ab, bb;
+  std::memcpy(&ab, &a, sizeof(ab));
+  std::memcpy(&bb, &b, sizeof(bb));
+  const uint32_t rb = (ab & mask) | (bb & ~mask);
+  float r;
+  std::memcpy(&r, &rb, sizeof(r));
+  return r;
+}
+
+}  // namespace
+
 TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
                  int32_t searches_per_eval, float c_puct, float epsilon,
                  bool testing)
@@ -27,6 +47,10 @@ TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
   assert(c_puct_ > 0.0);
   assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
   assert(generator_ != nullptr);
+  // Two 32-bit outputs make one 64-bit seed. Two statements, so the order in
+  // which they are drawn is defined.
+  noise_state_ = static_cast<uint64_t>((*generator_)()) << 32;
+  noise_state_ |= (*generator_)();
   // seached_ will only ever need this many elements
   searched_.reserve(searches_per_eval_);
 }
@@ -211,55 +235,77 @@ void TrainMC::createRoot(const Game &game, int32_t depth) {
 
 void TrainMC::getFilteredProbs(float probs[kNumMoves],
                                float filtered_probs[]) const noexcept {
-  // Apply the legal move filter
-  // Legal moves can be deduced from edges
-  int32_t edge_index = 0;
+  // The edges already hold the legal move IDs (still in ascending order here;
+  // setProbs reorders them afterwards), so index them directly instead of
+  // scanning all 96 moves looking for matches.
+  const int32_t num_edges = cur_->num_legal_moves();
   float sum = 0.0;
-  for (int32_t j = 0; j < kNumMoves; ++j) {
-    if (edge_index < cur_->num_legal_moves() &&
-        cur_->move_id(edge_index) == j) {
-      filtered_probs[edge_index] = probs[j];
-      sum += filtered_probs[edge_index];
-      ++edge_index;
-      if (edge_index == cur_->num_legal_moves()) {
-        break;
-      }
-    }
+  for (int32_t i = 0; i < num_edges; ++i) {
+    filtered_probs[i] = probs[cur_->move_id(i)];
+    sum += filtered_probs[i];
   }
   // Factoring this out saves division operations
   float scalar = 1.0 / sum * (1 - epsilon_);
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
-    filtered_probs[j] *= scalar;
+  for (int32_t i = 0; i < num_edges; ++i) {
+    filtered_probs[i] *= scalar;
   }
 }
 
-void TrainMC::generateDirichlet(float dirichlet[]) const noexcept {
+uint64_t TrainMC::nextNoiseBits() noexcept {
+  // splitmix64 (Steele, Lea and Flood; constants from Vigna's reference
+  // implementation). Passes BigCrush; period 2^64.
+  uint64_t z = (noise_state_ += 0x9e3779b97f4a7c15ULL);
+  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+  z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+  return z ^ (z >> 31);
+}
+
+void TrainMC::generateDirichlet(float dirichlet[]) noexcept {
+  const int32_t num_edges = cur_->num_legal_moves();
+  // A bucket index needs 10 bits, so each 64-bit draw supplies six. Leftover
+  // indices at the end of a node are discarded, so the stream consumed
+  // depends only on num_edges and stays reproducible for a seed.
+  constexpr int32_t kGammaBits = 10;
+  constexpr int32_t kIndicesPerDraw = 64 / kGammaBits;
+  static_assert(kNumGammaBuckets == 1 << kGammaBits,
+                "bucket index width must match the gamma table size");
   float sum = 0.0;
-  for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
-    dirichlet[i] = gamma_samples[(*generator_)() % kNumGammaBuckets];
-    sum += dirichlet[i];
+  for (int32_t i = 0; i < num_edges; i += kIndicesPerDraw) {
+    uint64_t bits = nextNoiseBits();
+    const int32_t end = std::min(i + kIndicesPerDraw, num_edges);
+    for (int32_t j = i; j < end; ++j) {
+      dirichlet[j] = gamma_samples[bits & (kNumGammaBuckets - 1)];
+      bits >>= kGammaBits;
+      sum += dirichlet[j];
+    }
   }
   float scalar = 1.0 / sum * epsilon_;
-  for (int32_t i = 0; i < cur_->num_legal_moves(); ++i) {
+  for (int32_t i = 0; i < num_edges; ++i) {
     dirichlet[i] *= scalar;
   }
 }
 
 void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
   // Combine probabilities and Dirichlet noise
-  float weighted_probs[cur_->num_legal_moves()];
+  const int32_t num_edges = cur_->num_legal_moves();
+  float weighted_probs[num_edges];
   float max_prob = 0.0;
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+  for (int32_t j = 0; j < num_edges; ++j) {
     weighted_probs[j] = filtered_probs[j] + dirichlet[j];
     max_prob = std::max(weighted_probs[j], max_prob);
   }
   // Scale up probabilities and convert to integers
   float denom = Node::kMaxProbability / max_prob;
   int32_t final_sum = 0;
-  for (int32_t j = 0; j < cur_->num_legal_moves(); ++j) {
+  for (int32_t j = 0; j < num_edges; ++j) {
     // Make all probabilities positive
-    int32_t prob = std::max(
-        1, gsl::narrow_cast<int32_t>(lround(weighted_probs[j] * denom)));
+    // Round to nearest by adding 0.5 and truncating. This is two inline
+    // instructions; lround is a libm call (~30 instructions) because it must
+    // handle NaN, overflow and negative halves, none of which occur here: the
+    // value is always in (0, 511]. Over every float in (0, 511.5] the result
+    // matches lround except x = 0.49999997, which the clamp to 1 absorbs.
+    int32_t prob =
+        std::max(1, static_cast<int32_t>(weighted_probs[j] * denom + 0.5f));
     cur_->set_probability(j, prob);
     final_sum += prob;
   }
@@ -495,6 +541,10 @@ void TrainMC::moveDown(Node *prev) noexcept {
 }
 
 void TrainMC::propagateTerminal() noexcept {
+  // Results are from the point of view of the player to move. A position is
+  // won if any move leads to a lost position, lost if every move leads to a
+  // won position, and drawn if every move leads to a won or drawn position
+  // and at least one to a drawn one. Otherwise it is unknown.
   // We can only deduce more results from new terminal nodes
   assert(cur_->terminal());
   Node *cur = cur_;
@@ -515,7 +565,9 @@ void TrainMC::propagateTerminal() noexcept {
             !cur_child->known()) {
           return;
         }
-        if (cur->drawn()) {
+        // A lost child would already have made this position won, so a
+        // known child here is either won or drawn
+        if (cur_child->drawn()) {
           has_draw = true;
         }
         cur_child = cur_child->next_sibling();
@@ -538,65 +590,97 @@ void TrainMC::propagateTerminal() noexcept {
 }
 
 TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
+  // An unvisited edge scores prior * c_puct * sqrt(N), in which only the prior
+  // varies, so among unvisited edges only the highest prior can win. The
+  // visited edges are kept as a prefix of the edge array, in the order they
+  // were expanded, and the first edge after them is always the best
+  // unvisited one (promoteBestEdge, below, maintains this). So score the
+  // children, then that one edge; the other unvisited edges cannot win.
+  //
+  // The children are scored from the statistics this node keeps for them
+  // (Node::child_stats), contiguous arrays that each child keeps equal to its
+  // own fields. Walking the child list instead meant one dependent load per
+  // child through nodes scattered across the arena.
   float max_eval = kNegInf;
-  int32_t choice = 0;
-  Node *cur_child = cur_->first_child();
-  int32_t edge_index = 0;
-  // Keep track of previous node to insert into linked list
-  Node *prev = nullptr;
-  Node *best_prev = nullptr;
+  int32_t best = -1;
   // Factor this value out, as it is expense to compute
-  float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
-  while (cur_child != nullptr || edge_index < cur_->num_legal_moves()) {
-    float u = kNegInf;
-    // This node has already been visited
-    if (cur_child != nullptr &&
-        cur_child->child_id() == cur_->move_id(edge_index)) {
-      // Don't all_visited nodes or won or lost positions
-      // We search draws since the number of searches they have
-      // makes a difference in choose_move
-      // as they are not automatically chosen or excluded
-      if ((!cur_child->known() || cur_child->drawn()) &&
-          !cur_child->all_visited()) {
-        // Known draw, use evaluation 0
-        if (cur_child->drawn()) {
-          u = cur_->probability(edge_index) * v_sqrt;
-        } else {
-          u = -1.0 * cur_child->evaluation() /
-                  static_cast<float>(cur_child->visits()) +
-              cur_->probability(edge_index) * v_sqrt /
-                  (static_cast<float>(cur_child->visits()) + 1.0);
-        }
-      }
-      prev = cur_child;
-      cur_child = cur_child->next_sibling();
-      // This node has not been visited, ignore the evaluation term in the
-      // UCB formula This is essentially using a default evaluation of 0
-      // (but we avoid division by 0)
-    } else {
-      u = cur_->probability(edge_index) * v_sqrt;
+  const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+  const Node::ChildStats stats = cur_->child_stats();
+  const int32_t num_children = stats.count;
+  // First descent into this node. The best edge is only put in place now,
+  // not when the priors arrive: two thirds of evaluated nodes never get here.
+  // Every later position is lined up when the edge before it is expanded.
+  if (num_children == 0)
+    cur_->promoteBestEdge(0);
+#ifndef NDEBUG
+  {
+    // The mirrored statistics must match the children, in list order
+    int32_t i = 0;
+    for (Node *child = cur_->first_child(); child != nullptr;
+         child = child->next_sibling(), ++i) {
+      assert(i < num_children && stats.child[i] == child);
+      assert(child->child_id() == cur_->move_id(i));
+      assert(stats.evaluation[i] == child->evaluation());
+      assert(stats.visits[i] == static_cast<float>(child->visits()));
+      assert(((stats.flags[i] & Node::kSkipChild) != 0) ==
+             ((child->known() && !child->drawn()) || child->all_visited()));
+      assert(((stats.flags[i] & Node::kDrawnChild) != 0) == child->drawn());
     }
+    assert(i == num_children);
+  }
+#endif
+  // Score every child without branching, then take the first maximum. The
+  // scores are computed exactly as the previous one-loop form did (the same
+  // expressions, including their promotion to double), so the choice is
+  // bit-identical; taking the first index holding the maximum reproduces its
+  // strict > scan. Without branches the scoring loop vectorizes, and the
+  // flag tests no longer mispredict. Nodes with many children dominate this
+  // loop: 70% of the children scored belong to nodes with 20 or more
+  // (worklog entry 26).
+  float score[Node::kMaxEdges];
+  for (int32_t i = 0; i < num_children; ++i) {
+    // Same as cur_->probability(i) * v_sqrt, read through stats
+    const float weighted = static_cast<float>(stats.edges[i].probability()) *
+                           stats.denominator * v_sqrt;
+    const float visits = stats.visits[i];
+    const float normal =
+        -1.0 * stats.evaluation[i] / visits + weighted / (visits + 1.0);
+    // Known draw, use evaluation 0
+    const float u =
+        selectFloat(stats.flags[i] & Node::kDrawnChild, weighted, normal);
+    // Don't all_visited nodes or won or lost positions
+    // We search draws since the number of searches they have
+    // makes a difference in choose_move
+    // as they are not automatically chosen or excluded
+    score[i] = selectFloat(stats.flags[i] & Node::kSkipChild, kNegInf, u);
+  }
+  for (int32_t i = 0; i < num_children; ++i) {
+    if (score[i] > max_eval) {
+      max_eval = score[i];
+      best = i;
+    }
+  }
+  // The best unvisited edge, if any
+  const int32_t num_edges = cur_->num_legal_moves();
+  if (num_children < num_edges) {
+    const float u = cur_->probability(num_children) * v_sqrt;
     if (u > max_eval) {
-      // If the node has not been visited, prev is the previous node
-      // and can be used to insert the new node
-      // otherwise it is the current node, but if this is the best node,
-      // best_prev is not needed since we don't insert
-      best_prev = prev;
-      max_eval = u;
-      choice = cur_->move_id(edge_index);
+      const int32_t choice = cur_->move_id(num_children);
+      // This edge is about to become a child; line up its successor.
+      if (num_children + 1 < num_edges)
+        cur_->promoteBestEdge(num_children + 1);
+      // A new node is inserted after the last child
+      Node *last = num_children > 0 ? stats.child[num_children - 1] : nullptr;
+      return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, last};
     }
-    ++edge_index;
   }
   // No possible moves
-  if (max_eval == kNegInf) {
+  if (best < 0) {
     return ChooseNextOutput{ChooseNextOutput::Type::kNone, -1, nullptr};
   }
-  // New node
-  if (best_prev == nullptr || best_prev->child_id() != choice) {
-    return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, best_prev};
-  }
   // Existing node
-  return ChooseNextOutput{ChooseNextOutput::Type::kVisited, choice, best_prev};
+  return ChooseNextOutput{ChooseNextOutput::Type::kVisited,
+                          stats.child[best]->child_id(), stats.child[best]};
 }
 
 void TrainMC::search() {
@@ -608,7 +692,7 @@ void TrainMC::search() {
   while (!cur_->terminal()) {
     // Choose the next node to move down to
     ChooseNextOutput res = chooseNext();
-    cur_->increment_visits();
+    // Count the visit and add the default evaluation below in one update.
     // We use a default evaluation of 1.0 before we have a neural net
     // evaluation This helps diversify the searches. In particular, the second
     // player has a large advantage in Corintho, so most positions the first
@@ -622,7 +706,7 @@ void TrainMC::search() {
     // visited gets this default, as opposed to a leaf node getting it and
     // having it propagate the normal way. This ensures that visited nodes are
     // maximally unlikely to get visited again.
-    cur_->increase_evaluation(1.0);
+    cur_->add_visit(1.0);
     // If no nodes were searched, this means all nodes are all_visited
     // or won or lost positions
     // This node is then all_visited

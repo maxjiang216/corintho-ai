@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 
 #include <bitset>
 #include <ostream>
@@ -25,74 +26,174 @@ Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
   }
 }
 
-bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
+  // Compute top/bottom/empty/frozen for every space once. The board cannot
+  // change during this call.
+  SpaceInfo info;
+  computeSpaceInfo(info);
+  // Find the lines on the board. 85% of positions have none, and those skip
+  // the breaking check entirely.
+  PresentLine lines[kNumLineShapes];
+  const int32_t num_lines = findLines(info, lines);
   // First set all moves to legal
-  legal_moves.set();
-  // Filter out moves that don't break lines
-  bool is_lines = applyLines(legal_moves);
-  // Apply other rules
-  for (int32_t i = 0; i < kNumMoves; ++i) {
-    if (legal_moves[i] && !isLegalMove(i)) {
-      legal_moves[i] = false;
-    }
-  }
+  legal_moves = basicLegalMoves(info);
+  // One AND per line, rather than testing every move against every line.
+  if (num_lines > 0)
+    legal_moves &= lineBreakers(info, lines, num_lines);
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
+  return num_lines > 0;
+}
+
+bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+  MoveMask mask;
+  const bool is_lines = getLegalMoves(mask);
+  legal_moves.reset();
+  forEachMove(mask, [&legal_moves](int32_t id) { legal_moves[id] = true; });
   return is_lines;
 }
 
-void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
-  for (int32_t i = 0; i < 4 * kBoardSize; ++i) {
-    if (board_[i]) {
-      game_state[i] = 1.0;
-    } else {
-      game_state[i] = 0.0;
+int32_t Game::findLines(const SpaceInfo &info,
+                        PresentLine *out) const noexcept {
+  int32_t count = 0;
+  for (int32_t type = 0; type < 3; ++type) {
+    const uint32_t p = info.top_plane[type];
+    if (p == 0)
+      continue;
+    // One shifted AND per direction finds every run of that length on the
+    // whole board at once. The start masks stop runs wrapping off an edge.
+    uint32_t run3[4];
+    uint32_t run4[4];
+    uint32_t any = 0;
+    for (int32_t d = 0; d < 4; ++d) {
+      const uint32_t stride = static_cast<uint32_t>(kLineStride[d]);
+      const uint32_t three = p & (p >> stride) & (p >> (2 * stride));
+      run3[d] = three & kRunStart[d][0];
+      run4[d] = three & (p >> (3 * stride)) & kRunStart[d][1];
+      any |= run3[d];
+    }
+    if (any == 0)
+      continue;  // no line of this type; the common case
+    for (int32_t d = 0; d < 4; ++d) {
+      uint32_t w = run3[d];
+      while (w != 0) {
+        const int32_t start = __builtin_ctz(w);
+        w &= w - 1;
+        const int8_t shape = kRunToShape[d][start][0];
+        if (shape >= 0) {
+          out[count].shape = shape;
+          out[count].type = gsl::narrow_cast<int8_t>(type);
+          ++count;
+        }
+      }
+      w = run4[d];
+      while (w != 0) {
+        const int32_t start = __builtin_ctz(w);
+        w &= w - 1;
+        const int8_t shape = kRunToShape[d][start][1];
+        if (shape >= 0) {
+          out[count].shape = shape;
+          out[count].type = gsl::narrow_cast<int8_t>(type);
+          ++count;
+        }
+      }
     }
   }
-  // Canonize the pieces
-  for (int32_t i = 0; i < 6; ++i) {
-    game_state[4 * kBoardSize + i] =
-        static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
-  }
+  return count;
 }
 
-void Game::doMove(int32_t move_id) noexcept {
-  assert(move_id >= 0 && move_id < kNumMoves);
-  // This is not a conclusive check (doesn't factor in lines) but has some use
-  // for debugging
-  assert(isLegalMove(move_id));
-  Move move{move_id};
-  // Reset the frozen space
-  for (int32_t row = 0; row < 4; ++row) {
-    for (int32_t col = 0; col < 4; ++col) {
-      set_frozen(Space{row, col}, false);
-    }
+MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
+  const uint32_t all = 0xFFFFU;
+  const uint32_t unfrozen = ~static_cast<uint32_t>(info.frozen) & all;
+
+  // --- Placements. One expression per piece type, covering all 16 spaces. ---
+  // A base needs an empty space. A column needs a space with no column and no
+  // capital; empty spaces satisfy that too, since an empty space is never
+  // frozen. A capital needs no capital, and not a lone base.
+  uint32_t place[3];
+  place[kBase] = info.empty;
+  place[kColumn] = unfrozen & ~info.has[kColumn] & ~info.has[kCapital] & all;
+  place[kCapital] =
+      unfrozen & ~info.has[kCapital] &
+      (~static_cast<uint32_t>(info.has[kBase]) | info.has[kColumn]) & all;
+  for (int32_t p = 0; p < 3; ++p) {
+    if (pieces_[to_play_ * 3 + p] == 0)
+      place[p] = 0;
   }
-  // Place move
-  if (move.move_type() == Move::MoveType::kPlace) {
-    // Use a piece
-    --pieces_[to_play_ * 3 + move.piece_type()];
-    // Place the piece
-    set_board(move.space_to(), move.piece_type());
-    // Freeze the space
-    set_frozen(move.space_to());
+
+  // --- Moves. canMove needs bottom(from) - top(to) == 1, and with both
+  // spaces occupied each is in {0,1,2}, so only two pairings are possible:
+  // a column-bottomed stack onto a base-topped space, or a capital-bottomed
+  // stack onto a column-topped one. ---
+  const uint32_t src_col =
+      info.has[kColumn] & ~static_cast<uint32_t>(info.has[kBase]) & unfrozen;
+  const uint32_t dst_base = info.top_plane[kBase] & unfrozen;
+  const uint32_t src_cap =
+      info.has[kCapital] & ~static_cast<uint32_t>(info.has[kBase]) &
+      ~static_cast<uint32_t>(info.has[kColumn]) & unfrozen;
+  const uint32_t dst_col = info.top_plane[kColumn] & unfrozen;
+
+  MoveMask legal;
+  // Place IDs are 48 + piece * 16 + space, so each piece's sixteen placements
+  // are contiguous and drop straight in as a shift.
+  legal.lo = static_cast<uint64_t>(place[kBase]) << 48;
+  legal.hi = static_cast<uint64_t>(place[kColumn]) |
+             (static_cast<uint64_t>(place[kCapital]) << 16);
+
+  // For each direction, a source is playable when the matching destination
+  // sits one step away. Shifting the destination set back onto the source set
+  // tests all sixteen spaces at once; the file masks stop a row wrapping.
+  const uint32_t kNotFileD = 0x7777U;  // source may step right
+  const uint32_t kNotFileA = 0xEEEEU;  // source may step left
+  const uint32_t right =
+      (((dst_base >> 1) & src_col) | ((dst_col >> 1) & src_cap)) & kNotFileD;
+  const uint32_t left =
+      (((dst_base << 1) & src_col) | ((dst_col << 1) & src_cap)) & kNotFileA;
+  const uint32_t down =
+      (((dst_base >> 4) & src_col) | ((dst_col >> 4) & src_cap)) & all;
+  const uint32_t up =
+      (((dst_base << 4) & src_col) | ((dst_col << 4) & src_cap)) & all;
+
+  // Down and up land on contiguous ID ranges, so they shift in directly.
+  legal.lo |= static_cast<uint64_t>(down & 0x0FFFU) << 12;
+  legal.lo |= static_cast<uint64_t>((up >> 4) & 0x0FFFU) << 36;
+  // Right and left do not, since each row contributes three IDs rather than
+  // four, so those two walk their set bits.
+  uint32_t w = right;
+  while (w != 0) {
+    const int32_t c = __builtin_ctz(w);
+    w &= w - 1;
+    legal.lo |= 1ULL << ((c >> 2) * 3 + (c & 3));
   }
-  // Move move
-  else {
-    for (PieceType piece_type : kPieceTypes) {  // For each piece type
-      // Add the piece to the new space
-      set_board(move.space_to(), piece_type,
-                board(move.space_from(), piece_type) ||
-                    board(move.space_to(), piece_type));
-      // Remove the piece from the old space
-      set_board(move.space_from(), piece_type, false);
-    }
-    // Freeze the new space
-    set_frozen(move.space_to(), true);
+  w = left;
+  while (w != 0) {
+    const int32_t c = __builtin_ctz(w);
+    w &= w - 1;
+    legal.lo |= 1ULL << (24 + (c >> 2) * 3 + (c & 3) - 1);
   }
-  // Switch player
-  to_play_ = 1 - to_play_;
+  return legal;
+}
+
+MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
+                            int32_t num_lines) const noexcept {
+  MoveMask breakers;
+  breakers.setAll();
+  for (int32_t i = 0; i < num_lines; ++i) {
+    const int32_t shape = lines[i].shape;
+    const int32_t type = lines[i].type;
+    MoveMask mask = kLineBreakTable[shape][type];
+    // The one board-dependent case: a stack moved onto the extending space
+    // completes a four only if its own top matches the line's type. At most
+    // four moves land on any given space, so this walks them directly rather
+    // than building a set of every move starting from a space of each type.
+    forEachMove(kLineExtendMoves[shape], [&](int32_t id) {
+      if (info.top(kMoveTable[id].from) == type)
+        mask.set(id);
+    });
+    breakers &= mask;
+  }
+  return breakers;
 }
 
 std::ostream &operator<<(std::ostream &os, const Game &game) {
@@ -136,6 +237,137 @@ std::ostream &operator<<(std::ostream &os, const Game &game) {
   }
   os << "Player " << game.to_play_ + 1 << " to play";
   return os;
+}
+
+namespace {
+
+/// @brief The four floats a single space expands to, for each nibble value
+/// @details The board stores four bits per space -- base, column, capital,
+/// frozen -- so one space's nibble is exactly one group of four network
+/// inputs. Sixteen possible nibbles, so the whole table is 256 bytes and
+/// stays resident in L1 alongside the rest of the working set. An 8 KB
+/// byte-indexed table is faster under -march=native and slower without it,
+/// and this engine's speed rests on a small cache footprint; see worklog
+/// entry 07.
+/// @note Generated, not transcribed.
+struct NibbleFloats {
+  float value[16][4];
+};
+
+constexpr NibbleFloats makeNibbleFloats() {
+  NibbleFloats table{};
+  for (int32_t nibble = 0; nibble < 16; ++nibble) {
+    for (int32_t bit = 0; bit < 4; ++bit) {
+      table.value[nibble][bit] = static_cast<float>((nibble >> bit) & 1);
+    }
+  }
+  return table;
+}
+
+constexpr NibbleFloats kNibbleFloats = makeNibbleFloats();
+
+}  // namespace
+
+void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
+  // The old loop tested one bit and stored one float, sixty-four times. The
+  // branch is on board contents, so it mispredicts constantly. Expanding a
+  // nibble at a time is branchless and copies sixteen bytes per step.
+  const uint64_t board = board_.to_ullong();
+  for (int32_t space = 0; space < kBoardSize; ++space) {
+    std::memcpy(game_state + space * 4,
+                kNibbleFloats.value[(board >> (space * 4)) & 0xF],
+                4 * sizeof(float));
+  }
+  // Canonize the pieces
+  for (int32_t i = 0; i < 6; ++i) {
+    game_state[4 * kBoardSize + i] =
+        static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
+  }
+}
+
+void Game::doMove(int32_t move_id) noexcept {
+  assert(move_id >= 0 && move_id < kNumMoves);
+  // This is not a conclusive check (doesn't factor in lines) but has some use
+  // for debugging
+  assert(isLegalMove(move_id));
+  // Read the decoded move straight out of the table rather than constructing a
+  // Move. Move's constructor lives in move.cpp, so without LTO the old code
+  // reached it through a PLT call -- visible as `call _ZN4MoveC1Ei@PLT` in the
+  // disassembly of this function -- for what is one array read.
+  const MoveInfo &move = kMoveTable[move_id];
+
+  // The board is four bits per space: three piece bits then a frozen bit, so
+  // space s occupies bits [4s, 4s+4). Everything below is one 64-bit word.
+  uint64_t b = board_.to_ullong();
+  // Clear every frozen bit. (The old sixteen-iteration loop compiled to this
+  // same single AND -- GCC had already reduced it -- so this costs nothing
+  // extra and only removes the source-level noise.)
+  b &= kUnfrozenMask;
+
+  const int32_t to_shift = move.to * 4;
+  if (move.is_place) {
+    // Use a piece
+    --pieces_[to_play_ * 3 + move.piece];
+    b |= UINT64_C(1) << (to_shift + move.piece);
+  } else {
+    const int32_t from_shift = move.from * 4;
+    // Move the whole stack at once. The old code looped over the three piece
+    // types, reading source and destination and OR-ing them per type, which
+    // the compiler unrolled into a chain of test/or/andn/cmove. The stack is
+    // three adjacent bits, so lifting and depositing it is three operations.
+    const uint64_t stack = (b >> from_shift) & kStackMask;
+    b &= ~(kStackMask << from_shift);
+    b |= stack << to_shift;
+  }
+  // Freeze the destination. Both branches do this, so it is hoisted out.
+  b |= UINT64_C(1) << (to_shift + kFrozen);
+
+  board_ = std::bitset<4 * kBoardSize>{b};
+  // Switch player
+  to_play_ = 1 - to_play_;
+}
+
+namespace {
+
+/// @brief Gather bit 0 of every nibble of x into a 16-bit mask: bit 4i of x
+/// becomes bit i of the result
+/// @details The board keeps four bits per space, so shifting the board right
+/// by a piece type and gathering gives that type's plane over all sixteen
+/// spaces. Each step halves the number of groups and doubles their width:
+/// pairs of bits, then nibbles, bytes and finally one 16-bit group. Plain
+/// shifts rather than BMI2 pext, so it needs no particular ISA.
+constexpr uint32_t gatherNibbleBits(uint64_t x) noexcept {
+  x &= 0x1111111111111111ULL;
+  x = (x | (x >> 3)) & 0x0303030303030303ULL;
+  x = (x | (x >> 6)) & 0x000F000F000F000FULL;
+  x = (x | (x >> 12)) & 0x000000FF000000FFULL;
+  x = (x | (x >> 24)) & 0x000000000000FFFFULL;
+  return static_cast<uint32_t>(x);
+}
+
+static_assert(gatherNibbleBits(0x1ULL) == 0x0001U);
+static_assert(gatherNibbleBits(0x10ULL) == 0x0002U);
+static_assert(gatherNibbleBits(0x1000000000000000ULL) == 0x8000U);
+static_assert(gatherNibbleBits(0x1111111111111111ULL) == 0xFFFFU);
+static_assert(gatherNibbleBits(0xEEEEEEEEEEEEEEEEULL) == 0x0000U);
+static_assert(gatherNibbleBits(0x0101010101010101ULL) == 0x5555U);
+
+}  // namespace
+
+void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
+  const uint64_t b = board_.to_ullong();
+  const uint32_t base = gatherNibbleBits(b >> kBase);
+  const uint32_t column = gatherNibbleBits(b >> kColumn);
+  const uint32_t capital = gatherNibbleBits(b >> kCapital);
+  info.has[kBase] = static_cast<uint16_t>(base);
+  info.has[kColumn] = static_cast<uint16_t>(column);
+  info.has[kCapital] = static_cast<uint16_t>(capital);
+  info.frozen = static_cast<uint16_t>(gatherNibbleBits(b >> kFrozen));
+  info.empty = static_cast<uint16_t>(~(base | column | capital) & 0xFFFFU);
+  // The top is the highest piece present: capital over column over base
+  info.top_plane[kCapital] = static_cast<uint16_t>(capital);
+  info.top_plane[kColumn] = static_cast<uint16_t>(column & ~capital);
+  info.top_plane[kBase] = static_cast<uint16_t>(base & ~column & ~capital);
 }
 
 bool Game::board(Space space, PieceType piece_type) const noexcept {
@@ -190,216 +422,63 @@ void Game::set_frozen(Space space, bool state) noexcept {
   board_[space.row * 16 + space.col * 4 + kFrozen] = state;
 }
 
-bool Game::canPlace(const Move &move) const noexcept {
-  assert(move.move_type() == Move::MoveType::kPlace);
+bool Game::canPlace(const MoveInfo &move,
+                    const SpaceInfo &info) const noexcept {
+  assert(move.is_place);
+  const int32_t to = move.to;
   // Check if player has the piece left
-  if (pieces_[to_play_ * 3 + move.piece_type()] == 0)
+  if (pieces_[to_play_ * 3 + move.piece] == 0)
     return false;
   // Check if the space is empty
   // This is more common than frozen spaces, so we check it first
   // An empty space cannot be frozen
-  if (empty(move.space_to()))
+  if ((info.empty >> to) & 1u)
     return true;
   // Check if the space is frozen
-  if (frozen(move.space_to()))
+  if ((info.frozen >> to) & 1u)
     return false;
   // Bases can only be placed on empty spaces
-  if (move.piece_type() == kBase)
+  if (move.piece == kBase)
     return false;
   // Place a column
   // Check for absence of a column or a capital
-  if (move.piece_type() == kColumn) {
-    return !(board(move.space_to(), kColumn) ||
-             board(move.space_to(), kCapital));
-  }
+  if (move.piece == kColumn)
+    return !(board_[to * 4 + kColumn] || board_[to * 4 + kCapital]);
   // Place a capital
   // Check for absence of a base without a column or a capital
-  return !(
-      board(move.space_to(), kCapital) ||
-      (board(move.space_to(), kBase) && !board(move.space_to(), kColumn)));
+  return !(board_[to * 4 + kCapital] ||
+           (board_[to * 4 + kBase] && !board_[to * 4 + kColumn]));
 }
 
-bool Game::canMove(const Move &move) const noexcept {
-  assert(move.move_type() == Move::MoveType::kMove);
+bool Game::canMove(const MoveInfo &move,
+                   const SpaceInfo &info) const noexcept {
+  assert(!move.is_place);
+  const int32_t from = move.from;
+  const int32_t to = move.to;
   // If either space is empty, move moves are not possible
-  if (empty(move.space_from()) || empty(move.space_to()))
+  if (((info.empty >> from) | (info.empty >> to)) & 1u)
     return false;
   // If either space is frozen, move moves are not possible
-  if (frozen(move.space_from()) || frozen(move.space_to()))
+  if (((info.frozen >> from) | (info.frozen >> to)) & 1u)
     return false;
   // The bottom of the first stack must go on the top of the second
-  return bottom(move.space_from()) - top(move.space_to()) == 1;
+  return info.bottom(from) - info.top(to) == 1;
+}
+
+bool Game::isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept {
+  assert(move_id >= 0 && move_id < kNumMoves);
+  // Read the decoded move straight from the table; constructing a Move here
+  // was 10.7% of all instructions once it stopped being inlined.
+  const MoveInfo &move = kMoveTable[move_id];
+  // Place move
+  if (move.is_place)
+    return canPlace(move, info);
+  // Move move
+  return canMove(move, info);
 }
 
 bool Game::isLegalMove(int32_t move_id) const noexcept {
-  assert(move_id >= 0 && move_id < kNumMoves);
-  Move move{move_id};
-  // Place move
-  if (move.move_type() == Move::MoveType::kPlace)
-    return canPlace(move);
-  // Move move
-  return canMove(move);
-}
-
-void Game::applyLine(int32_t line,
-                     std::bitset<kNumMoves> &legal_moves) const noexcept {
-  legal_moves &= line_breakers[line];
-}
-
-bool Game::applyRowColLines(std::bitset<kNumMoves> &legal_moves,
-                            bool isCol) const noexcept {
-  for (int32_t i = 0; i < 4; ++i) {
-    int32_t top0 = top(Space{i, 0, isCol});
-    int32_t top1 = top(Space{i, 1, isCol});
-    int32_t top2 = top(Space{i, 2, isCol});
-    int32_t top3 = top(Space{i, 3, isCol});
-    if (top1 == -1 || top2 == -1)
-      continue;  // Empty space in middle, no line possible
-    // Check for a long line
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (isCol) {
-        applyLine(CB * 12 + i * 3 + top0, legal_moves);
-      } else {
-        applyLine(RB * 12 + i * 3 + top0, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Check for a left/upper short line
-    for (int32_t extend_coord : {3, 0}) {
-      if (top1 == top2 && ((extend_coord == 3 && top0 == top1) ||
-                           (extend_coord == 0 && top2 == top3))) {
-        if (isCol && extend_coord == 0) {  // Lower/down column
-          applyLine(CD * 12 + i * 3 + top1, legal_moves);
-        } else if (isCol && extend_coord == 3) {  // Upper column
-          applyLine(CU * 12 + i * 3 + top1, legal_moves);
-        } else if (extend_coord == 0) {  // Right row
-          applyLine(RR * 12 + i * 3 + top1, legal_moves);
-        } else {  // Left row
-          applyLine(RL * 12 + i * 3 + top1, legal_moves);
-        }
-        if (top1 == 2) {
-          // If the line is a capital line
-          // A capital must be used to extend line when moving
-          // The applyLine function is liberal in this case
-          // So we need to remove the illegal moves
-          // We turn off moving to adjacent rows/columns
-          // if the top is not a capital
-          // It doesn't matter which row/column the line is in
-          // When it is not the correct row/column, the move is illegal anyway
-          if (!board(Space{0, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{0, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{1, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{0, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{1, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{2, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{1, extend_coord, isCol})] = false;
-            legal_moves[encodeMove(Space{2, extend_coord, isCol},
-                                   Space{3, extend_coord, isCol})] = false;
-          }
-          if (!board(Space{3, extend_coord, isCol}, kCapital)) {
-            legal_moves[encodeMove(Space{3, extend_coord, isCol},
-                                   Space{2, extend_coord, isCol})] = false;
-          }
-        }
-        return true;  // No need to check for other lines
-      }
-    }
-  }
-  return false;  // No lines
-}
-
-bool Game::applyLongDiagLines(
-    std::bitset<kNumMoves> &legal_moves) const noexcept {
-  // Checking the upper left to lower right long diagonal
-  // is the same as checking the upper right to lower left long diagonal
-  // except we flip over the y-axis
-  // and use different line numbers
-  for (bool flip : {false, true}) {
-    int32_t top0 = top(Space{0, flip ? 3 : 0});
-    int32_t top1 = top(Space{1, flip ? 2 : 1});
-    int32_t top2 = top(Space{2, flip ? 1 : 2});
-    int32_t top3 = top(Space{3, flip ? 0 : 3});
-    if (top1 == -1 || top2 == -1) {
-      continue;  // Empty space in middle, no line possible
-    }
-    // Long line
-    if (top0 == top1 && top1 == top2 && top2 == top3) {
-      if (flip) {
-        applyLine(72 + D1B * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0B * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Upper line
-    if (top0 == top1 && top1 == top2) {
-      if (flip) {
-        applyLine(72 + D1U * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0U * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-    // Lower/down line
-    if (top1 == top2 && top2 == top3) {
-      if (flip) {
-        applyLine(72 + D1D * 3 + top1, legal_moves);
-      } else {
-        applyLine(72 + D0D * 3 + top1, legal_moves);
-      }
-      return true;  // No need to check for other lines
-    }
-  }
-  return false;  // No lines
-}
-
-bool Game::applyShortDiagLines(
-    std::bitset<kNumMoves> &legal_moves) const noexcept {
-  // Top left short diagonal
-  int32_t top1 = top(Space{1, 1});
-  if (top1 != -1 && top1 == top(Space{0, 2}) && top1 == top(Space{2, 0})) {
-    applyLine(72 + S0 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-  // Top right short diagonal
-  top1 = top(Space{1, 2});
-  if (top1 != -1 && top1 == top(Space{0, 1}) && top1 == top(Space{2, 3})) {
-    applyLine(72 + S1 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-
-  // Bottom right short diagonal
-  top1 = top(Space{2, 2});
-  if (top1 != -1 && top1 == top(Space{1, 3}) && top1 == top(Space{3, 1})) {
-    applyLine(72 + S2 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-
-  // Bottom left short diagonal
-  top1 = top(Space{2, 1});
-  if (top1 != -1 && top1 == top(Space{1, 0}) && top1 == top(Space{3, 2})) {
-    applyLine(72 + S3 * 3 + top1, legal_moves);
-    return true;  // There can only be up to 1 short diagonal line
-  }
-  return false;  // No lines
-}
-
-bool Game::applyLines(std::bitset<kNumMoves> &legal_moves) const noexcept {
-  // Flag for if there are any lines
-  bool is_any_lines = false;
-  // Row lines
-  is_any_lines |= applyRowColLines(legal_moves, false);
-  // Column lines
-  is_any_lines |= applyRowColLines(legal_moves, true);
-  // Long diagonal lines
-  is_any_lines |= applyLongDiagLines(legal_moves);
-  // Short diagonal lines
-  is_any_lines |= applyShortDiagLines(legal_moves);
-  return is_any_lines;
+  SpaceInfo info;
+  computeSpaceInfo(info);
+  return isLegalMove(move_id, info);
 }

@@ -1,0 +1,47 @@
+# In-process Mlp: raw outputs, 2026-09-23, i7-12700H laptop, on AC, browser open
+# (timings noisy at the ~10% level; the conclusions below are 2x+ effects).
+# M = model_93.mlp from: python bench/export_mlp.py corintho_ai/python/model_93.tflite M
+#   -> "input 70, 12 x 100 hidden, 96 moves"
+
+## mlp_bench M 65536 <threads> 10, first kernel (plain C++, fp-contract off, schedule static)
+threads 1   17108.7 ns/row   14.8 GFLOP/s
+threads 6    2993.2 ns/row   84.7 GFLOP/s
+threads 14   1865.6 ns/row  135.8 GFLOP/s
+threads 20   1531.4 ns/row  165.5 GFLOP/s
+
+## AVX2/FMA 4x3 register tile, schedule static
+threads 1   10466.8 ns/row   24.2 GFLOP/s   (unpinned: landed on an E-core)
+threads 6    1779.3 ns/row  142.4 GFLOP/s
+threads 14    929.5 ns/row  272.6 GFLOP/s
+threads 20    703.6 ns/row  360.1 GFLOP/s
+pinned single thread: cpu0 (P) 82.0, cpu12 (E) 24.2, cpu19 (E) 24.2 GFLOP/s
+taskset 6 P-cores (0,2,4,6,8,10), 6 threads: 366.3
+taskset 0-11 (P + HT siblings), 12 threads: 346.4
+taskset 6P+8E, 14 threads: 272.2   <- static split waits on E-cores
+
+## AVX2/FMA tile, schedule(dynamic, 4)  (committed)
+unpinned 6: 308.1   unpinned 14: 459.1   unpinned 20: 443.4
+taskset 6P+8E, 14 threads: 443.2
+rows 4096 / 16384 / 262144 at 20 threads: 420.8 / 426.7 / 437.6
+
+## LiteRT (XNNPACK) same machine, 65536 rows, Interpreter(num_threads=t)
+threads 1:  6509.9 ns/row   38.9 GFLOP/s
+threads 6:   718.0 ns/row  352.9 GFLOP/s
+threads 14:  518.9 ns/row  488.4 GFLOP/s
+threads 20:  464.9 ns/row  545.1 GFLOP/s
+
+## Parity on real search states
+# MLP_CHECK=M ./build/selfplay_nn nnenv/bin/python ../corintho_ai/python/model_93.tflite 100 1600 16 8 4242
+self-play (engine)      1.559 s
+network evaluation     23.318 s     (tflite over the pipe, nn_server default threads)
+turns per game          27.59
+mlp check: max |eval diff| 2.38e-07, max |prob diff| 7.75e-07, policy argmax differs on 0 of 3507507 rows
+
+## In-process, same seed
+# ./build/selfplay_nn - M 100 1600 16 <threads> 4242
+threads 8:  engine 1.106 s  network 3.122 s  turns/game 27.67  requests 3516083
+threads 20: engine 0.722 s  network 2.605 s  turns/game 27.67  requests 3516083
+# 8 and 20 threads play identical games (same requests). They differ slightly
+# from the tflite games (27.59) because outputs differ in the 7th decimal.
+
+## Golden digest after adding mlp.o to CORE: engine d7581196f9d30591 (unchanged)

@@ -54,6 +54,24 @@ const PieceType kCapital = 2;
 const PieceType kPieceTypes[3] = {kBase, kColumn, kCapital};
 const int32_t kFrozen = 3;
 
+// Board bit layout: four bits per space, the three piece bits then the frozen
+// bit, so space s occupies bits [4s, 4s+4) of a single uint64_t. These masks
+// are derived rather than transcribed -- a hand-written constant table is how
+// line_breakers acquired thirteen errors (see worklog entry 04).
+
+/// @brief The three piece bits of one space's nibble
+constexpr uint64_t kStackMask = (UINT64_C(1) << kFrozen) - 1;
+
+constexpr uint64_t makeUnfrozenMask() {
+  uint64_t mask = 0;
+  for (int32_t space = 0; space < kBoardSize; ++space) {
+    mask |= kStackMask << (space * 4);
+  }
+  return mask;
+}
+/// @brief Every board bit except the frozen bit of each space
+constexpr uint64_t kUnfrozenMask = makeUnfrozenMask();
+
 // Results
 const Result kResultNone = 0;
 const Result kResultLoss = 1;
@@ -81,7 +99,202 @@ const int32_t S1 = 7;
 const int32_t S2 = 8;
 const int32_t S3 = 9;
 
+/// @brief A set of moves, one bit per move ID
+/// @details std::bitset gives no portable access to its underlying words, so
+/// the set bits cannot be iterated with a bit-scan instruction and constexpr
+/// tables of move sets cannot be built. Two explicit words fix both.
+/// @note Move IDs 0-47 are move-moves and 48-95 are places, so every move-move
+/// lives in `lo`. The dynamic part of line breaking concerns only move-moves,
+/// and therefore touches one word.
+struct MoveMask {
+  /// @brief Moves 0-63
+  uint64_t lo{0};
+  /// @brief Moves 64-95, in bits 0-31
+  uint64_t hi{0};
+
+  static constexpr uint64_t kHiMask = (1ULL << (kNumMoves - 64)) - 1;
+
+  constexpr void setAll() noexcept {
+    lo = ~0ULL;
+    hi = kHiMask;
+  }
+  constexpr void clear() noexcept {
+    lo = 0;
+    hi = 0;
+  }
+  constexpr bool test(int32_t i) const noexcept {
+    return i < 64 ? ((lo >> i) & 1U) != 0 : ((hi >> (i - 64)) & 1U) != 0;
+  }
+  constexpr void set(int32_t i) noexcept {
+    if (i < 64)
+      lo |= 1ULL << i;
+    else
+      hi |= 1ULL << (i - 64);
+  }
+  constexpr void reset(int32_t i) noexcept {
+    if (i < 64)
+      lo &= ~(1ULL << i);
+    else
+      hi &= ~(1ULL << (i - 64));
+  }
+  constexpr bool any() const noexcept { return (lo | hi) != 0; }
+  int32_t count() const noexcept {
+    return __builtin_popcountll(lo) + __builtin_popcountll(hi);
+  }
+  constexpr MoveMask &operator&=(const MoveMask &o) noexcept {
+    lo &= o.lo;
+    hi &= o.hi;
+    return *this;
+  }
+  constexpr MoveMask &operator|=(const MoveMask &o) noexcept {
+    lo |= o.lo;
+    hi |= o.hi;
+    return *this;
+  }
+};
+
+/// @brief Call `fn(move_id)` for each set bit, lowest first
+/// @details Two instructions per set bit -- a bit scan and a clear-lowest --
+/// with one predictable loop-exit branch. Testing all 96 bits instead costs
+/// one unpredictable branch per set bit, about 26 mispredicts per call.
+template <typename F>
+inline void forEachMove(const MoveMask &mask, F fn) noexcept {
+  uint64_t w = mask.lo;
+  while (w != 0) {
+    fn(static_cast<int32_t>(__builtin_ctzll(w)));
+    w &= w - 1;
+  }
+  w = mask.hi;
+  while (w != 0) {
+    fn(static_cast<int32_t>(__builtin_ctzll(w)) + 64);
+    w &= w - 1;
+  }
+}
+
+/// @brief A straight line of three or four spaces, for win detection
+/// @details 34 shapes: 4 rows and 4 columns with three sub-shapes each
+/// (all-four, and the two threes), the two long diagonals with three each, and
+/// the four short diagonals. A cell belongs to at most one shape per category,
+/// and the two long diagonals are disjoint, as are the four short diagonals.
+struct LineShape {
+  /// @brief Board indices, row * 4 + col; only the first `count` are used
+  int8_t cells[4];
+  int8_t count;
+  /// @brief The space that would extend a three into a four, or -1
+  /// @details A three is legitimately unmade by becoming a four, so this is
+  /// consulted by the breaking rule. Short diagonals are maximal and have
+  /// none.
+  int8_t extend;
+};
+
+/// @brief Every line shape on the board
+/// @note Order is irrelevant; the breaking rule treats them independently. In
+/// particular a four and its two threes are all present and all checked, since
+/// covering one end of a four leaves a three standing.
+const int32_t kNumLineShapes = 34;
+
+inline constexpr LineShape kLineShapes[kNumLineShapes] = {
+    // Rows: all-four, left three (extends right), right three (extends left)
+    {{0, 1, 2, 3}, 4, -1},
+    {{0, 1, 2}, 3, 3},
+    {{1, 2, 3}, 3, 0},
+    {{4, 5, 6, 7}, 4, -1},
+    {{4, 5, 6}, 3, 7},
+    {{5, 6, 7}, 3, 4},
+    {{8, 9, 10, 11}, 4, -1},
+    {{8, 9, 10}, 3, 11},
+    {{9, 10, 11}, 3, 8},
+    {{12, 13, 14, 15}, 4, -1},
+    {{12, 13, 14}, 3, 15},
+    {{13, 14, 15}, 3, 12},
+    // Columns: all-four, upper three (extends down), lower three (extends up)
+    {{0, 4, 8, 12}, 4, -1},
+    {{0, 4, 8}, 3, 12},
+    {{4, 8, 12}, 3, 0},
+    {{1, 5, 9, 13}, 4, -1},
+    {{1, 5, 9}, 3, 13},
+    {{5, 9, 13}, 3, 1},
+    {{2, 6, 10, 14}, 4, -1},
+    {{2, 6, 10}, 3, 14},
+    {{6, 10, 14}, 3, 2},
+    {{3, 7, 11, 15}, 4, -1},
+    {{3, 7, 11}, 3, 15},
+    {{7, 11, 15}, 3, 3},
+    // Long diagonals, a4-d1 then d4-a1
+    {{0, 5, 10, 15}, 4, -1},
+    {{0, 5, 10}, 3, 15},
+    {{5, 10, 15}, 3, 0},
+    {{3, 6, 9, 12}, 4, -1},
+    {{3, 6, 9}, 3, 12},
+    {{6, 9, 12}, 3, 3},
+    // Short diagonals, maximal at three
+    {{5, 2, 8}, 3, -1},
+    {{6, 1, 11}, 3, -1},
+    {{10, 7, 13}, 3, -1},
+    {{9, 4, 14}, 3, -1},
+};
+
+/// @brief Where a run of equal tops starts, and in which direction
+/// @details Every one of the 34 line shapes is a run of 3 or 4 spaces at a
+/// constant stride: 1 across a row, 4 down a column, 5 along the a4-d1
+/// diagonal, 3 along d4-a1. The short diagonals are not special -- SD1
+/// {1,6,11} and SD3 {4,9,14} are stride-5 runs, SD0 {2,5,8} and SD2 {7,10,13}
+/// stride-3. That lets all 34 be found with shift-and-mask instead of a
+/// 34-shape scan.
+enum LineDir { kDirRow = 0, kDirCol = 1, kDirDiagA = 2, kDirDiagB = 3 };
+constexpr int32_t kLineStride[4] = {1, 4, 5, 3};
+
+/// @brief Spaces a run of the given direction and length may start from
+/// @details A stride-5 run of three needs column <= 1 and row <= 1, or it
+/// wraps off the board; stride-3 needs column >= 2. These are the guards that
+/// make the shifted AND correct.
+constexpr uint16_t kRunStart[4][2] = {
+    {0x3333, 0x1111},  // row:    three needs col<=1, four needs col==0
+    {0x00FF, 0x000F},  // column: three needs row<=1, four needs row==0
+    {0x0033, 0x0001},  // diag a4-d1, stride 5
+    {0x00CC, 0x0008},  // diag d4-a1, stride 3
+};
+
+/// @brief Which shape a run corresponds to: [direction][start space][length-3]
+/// @details Generated from kLineShapes by recovering each shape's start and
+/// stride, so it cannot disagree with the shape list.
+constexpr std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4>
+makeRunToShape() {
+  std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4> table{};
+  for (int32_t d = 0; d < 4; ++d)
+    for (int32_t c = 0; c < kBoardSize; ++c)
+      for (int32_t n = 0; n < 2; ++n)
+        table[d][c][n] = -1;
+  for (int32_t s = 0; s < kNumLineShapes; ++s) {
+    const LineShape &shape = kLineShapes[s];
+    int32_t lo = shape.cells[0];
+    for (int32_t k = 1; k < shape.count; ++k)
+      if (shape.cells[k] < lo)
+        lo = shape.cells[k];
+    int32_t second = 64;
+    for (int32_t k = 0; k < shape.count; ++k)
+      if (shape.cells[k] > lo && shape.cells[k] < second)
+        second = shape.cells[k];
+    const int32_t stride = second - lo;
+    for (int32_t d = 0; d < 4; ++d)
+      if (kLineStride[d] == stride)
+        table[d][lo][shape.count - 3] = static_cast<int8_t>(s);
+  }
+  return table;
+}
+inline constexpr std::array<std::array<std::array<int8_t, 2>, kBoardSize>, 4>
+    kRunToShape = makeRunToShape();
+
 // Legal move filter for lines
+//
+// NO LONGER USED BY THE ENGINE. Replaced by the explicit rule in
+// Game::getLegalMoves, because a static table cannot express whether a
+// move-move extends a line to four -- that depends on the moved stack's top
+// type. See worklog/RULES-CHECKLIST.md item 4: 816 of its 9792 cells are
+// top-dependent and unfixable, and 13 are outright transposition errors.
+//
+// Retained only because web/line_breakers.js is generated from it. THE WEB APP
+// STILL CARRIES ALL OF THESE DEFECTS and needs the same fix.
 inline std::array<bitset<kNumMoves>, 102> line_breakers = {
     bitset<kNumMoves>("00000000000000000000000000000111000000000000100000"
                       "0000000111000000000100000000000000000000000000"),

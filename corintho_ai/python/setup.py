@@ -9,6 +9,13 @@ from setuptools.extension import Extension
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
+# clang 20 by default: bit-identical to GCC and faster (worklog entry 28).
+# Needs libomp-20-dev for -fopenmp. CC/CXX in the environment still override.
+# setuptools compiles and links C++ extensions with CC, and derives the
+# shared-library link command from it.
+os.environ.setdefault("CC", "clang-20")
+os.environ.setdefault("CXX", "clang++-20")
+
 setup(
     ext_modules=cythonize(
         [
@@ -28,6 +35,14 @@ setup(
                     "-std=c++17",
                     "-fopenmp",
                     "-DNDEBUG",
+                    # Link-time optimization. The one-line Node accessors
+                    # (move_id, probability, num_legal_moves) are defined in
+                    # node.cpp but called from trainmc.cpp, so without LTO they
+                    # are cross-translation-unit calls that cannot inline.
+                    # chooseNext calls all three per edge. Measured at 10.7% of
+                    # all instructions; enabling LTO is worth 23% engine time.
+                    # See bench/README.md and worklog entry 2026-09-20-03.
+                    "-flto",
                 ],
                 language="c++",
                 include_dirs=[
@@ -35,7 +50,10 @@ setup(
                     os.path.join(current_dir, "../cpp/include"),
                     os.path.join(current_dir, "../../gsl/include"),
                 ],
-                extra_link_args=["-fopenmp"],
+                # -flto and -O3 must both be repeated at link time: with LTO
+                # the optimization happens during linking, so passing the flag
+                # only to the compiler yields none of the benefit.
+                extra_link_args=["-fopenmp", "-flto", "-O3"],
             )
         ],
         nthreads=4,

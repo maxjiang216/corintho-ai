@@ -33,7 +33,19 @@ class Game {
   /// @brief Mutates legal_moves to indicate which moves are legal
   /// @param legal_moves A bitset of size kNumMoves
   /// @return Whether there are any "lines" in the current position
+  bool getLegalMoves(MoveMask &legal_moves) const noexcept;
+  /// @brief Convenience overload for callers outside the hot path
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  /// @brief Reference implementation of getLegalMoves, for differential
+  /// testing
+  /// @details A verbatim copy of the pre-bitboard implementation, with its own
+  /// private copies of every helper so that a bug in a shared helper cannot
+  /// corrupt both sides and hide itself. Defined in game_reference.cpp, which
+  /// is built only by bench/Makefile and does not ship in the training module.
+  /// Delete once the bitboard stages are complete and verified.
+  bool
+  getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
+
   /// @brief Write a representation of the game state to a float array
   /// @param game_state A float array of size kGameStateSize, used for input to
   /// the neural network
@@ -46,6 +58,53 @@ class Game {
   friend std::ostream &operator<<(std::ostream &stream, const Game &game);
 
  private:
+  /// @brief Per-space state, computed once per legal-move generation
+  /// @details top(), bottom(), empty() and frozen() were each recomputed from
+  /// the bitset on every query, and legal move generation queries them roughly
+  /// 150 times per call: once per space in each of the four line detectors,
+  /// and again inside canPlace/canMove for each of the 96 candidate moves. The
+  /// board cannot change during a single generation, so the answers are
+  /// computed once up front and read from here instead.
+  ///
+  /// Everything is a 16-bit plane, bit i for space i, extracted from the
+  /// board word with shifts and masks. The per-space top and bottom are only
+  /// needed on rare paths (line breaking, isLegalMove), so they are derived
+  /// from the planes on demand rather than stored.
+  struct SpaceInfo {
+    /// @brief Bit per space, set when the space holds no pieces
+    uint16_t empty;
+    /// @brief Bit per space, set when the space is frozen
+    uint16_t frozen;
+    /// @brief Bit per space, set when that space CONTAINS this piece type
+    /// @details Distinct from top_plane: a space holding a column and a
+    /// capital contains a column but is topped by the capital. Placement
+    /// rules ask about containment, line detection about topping.
+    uint16_t has[3];
+    /// @brief Bit per space, set when that space's top is this piece type
+    /// @details Line detection works on these directly.
+    uint16_t top_plane[3];
+
+    /// @brief Index of the top piece of the stack on space, or -1 if empty
+    int32_t top(int32_t space) const noexcept {
+      const uint32_t bit = 1U << space;
+      return (has[kCapital] & bit)  ? kCapital
+             : (has[kColumn] & bit) ? kColumn
+             : (has[kBase] & bit)   ? kBase
+                                    : -1;
+    }
+    /// @brief Index of the bottom piece of the stack on space, or 3 if empty
+    int32_t bottom(int32_t space) const noexcept {
+      const uint32_t bit = 1U << space;
+      return (has[kBase] & bit)      ? kBase
+             : (has[kColumn] & bit)  ? kColumn
+             : (has[kCapital] & bit) ? kCapital
+                                     : 3;
+    }
+  };
+
+  /// @brief Fill a SpaceInfo from the current board
+  void computeSpaceInfo(SpaceInfo &info) const noexcept;
+
   /// @brief Private accessor for the board
   /// @details Finds the correct index in the bitset
   /// for a given row, column, and piece type
@@ -82,44 +141,43 @@ class Game {
   /// @brief Checks if a piece can be placed on the space
   /// @param piece_type The type of piece to place
   /// @return Whether the piece can be placed
-  bool canPlace(const Move &move) const noexcept;
+  bool canPlace(const MoveInfo &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a tower can be moved
   /// @return Whether the tower can be moved
-  bool canMove(const Move &move) const noexcept;
+  bool canMove(const MoveInfo &move, const SpaceInfo &info) const noexcept;
   /// @brief Checks if a move is legal according to basic rules
   /// @warning Does not check if the move is legal according to line breaking
   /// @param move_id The ID of the move to check
   /// @return Whether the move is legal
+  bool isLegalMove(int32_t move_id, const SpaceInfo &info) const noexcept;
+  /// @brief Overload that computes its own SpaceInfo, for the doMove assert
   bool isLegalMove(int32_t move_id) const noexcept;
-  /// @brief Applies the line breakers of a given line
-  /// to a bitset of legal moves
-  /// @details Applies a bitwise AND operation to legal_moves
-  /// @param line The ID of the line to apply
-  void applyLine(int32_t line,
-                 std::bitset<kNumMoves> &legal_moves) const noexcept;
-  /// @brief Applies the row or column lines to a bitset of legal moves
-  /// @details The row and column code are identical except for the
-  /// order of the coordinates and the line numbers
-  /// This function is used to avoid code duplication
-  /// All the rows/columns are checked together
-  /// as there can only be up to 1 of each type, so we can return early
-  /// @return Whether there were any lines
-  bool applyRowColLines(std::bitset<kNumMoves> &legal_moves,
-                        bool isCol) const noexcept;
-  /// @brief Applies the long diagonal lines to a bitset of legal moves
-  /// @details We can combine the code for the 2 long diagonals
-  /// There is also only at most one long diagonal line, so we can return early
-  bool applyLongDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
-  /// @brief Applies the short diagonal lines to a bitset of legal moves
-  bool applyShortDiagLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
-  /// @brief Finds lines and moves that break all lines.
-  /// @details legal_moves is a bitset indicating which moves are legal
-  /// based on basic rules See getLegalMoves for more details legal_moves
-  /// will be mutated by applying a bitwise AND operation with the line
-  /// breaking moves
-  /// @param legal_moves A bitset of size kNumMoves
-  /// @return Whether there were any lines
-  bool applyLines(std::bitset<kNumMoves> &legal_moves) const noexcept;
+  /// @brief A line present on the board, as a shape and the type topping it
+  struct PresentLine {
+    int8_t shape;
+    int8_t type;
+  };
+
+  /// @brief Find every line shape currently holding a single top type
+  /// @details No subsumption: a four and both of its threes are all recorded,
+  /// because covering one end of a four leaves a three standing.
+  /// @return The number of lines written to `out`
+  int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
+
+  /// @brief Every move legal by placement and movement rules, ignoring lines
+  /// @details All 48 placements reduce to three mask expressions and all 48
+  /// moves to a shifted AND per direction, replacing 96 per-move calls.
+  MoveMask basicLegalMoves(const SpaceInfo &info) const noexcept;
+
+  /// @brief The set of moves that break every line currently on the board
+  /// @details One mask per line, ANDed together, rather than testing every
+  /// move against every line. Four of the five ways to break a line are
+  /// constant per shape and type and come straight from kLineBreakTable. The
+  /// fifth -- moving a stack onto the extending space -- is the only one that
+  /// depends on the board, and is masked by which moves currently start from a
+  /// space topped by the line's type.
+  MoveMask lineBreakers(const SpaceInfo &info, const PresentLine *lines,
+                        int32_t num_lines) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

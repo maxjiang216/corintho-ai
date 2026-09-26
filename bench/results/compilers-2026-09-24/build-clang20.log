@@ -1,0 +1,381 @@
+make: Entering directory '/home/max/projects/corintho-ai/bench'
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -DBENCH_DIR='"/home/max/projects/corintho-ai/bench"' -c selfplay_nn.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay_nn.o
+In file included from selfplay_nn.cpp:51:
+In file included from ../corintho_ai/cpp/include/trainer.h:11:
+In file included from ../corintho_ai/cpp/include/selfplayer.h:13:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+2 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/util.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/util.o
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/move.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/move.o
+In file included from ../corintho_ai/cpp/src/move.cpp:1:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+2 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/game.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game.o
+In file included from ../corintho_ai/cpp/src/game.cpp:1:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+2 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/node.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/node.o
+In file included from ../corintho_ai/cpp/src/node.cpp:1:
+In file included from ../corintho_ai/cpp/include/node.h:12:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+2 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/trainmc.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainmc.o
+In file included from ../corintho_ai/cpp/src/trainmc.cpp:1:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+In file included from ../corintho_ai/cpp/src/trainmc.cpp:15:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+../corintho_ai/cpp/src/trainmc.cpp:291:24: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  291 |   float weighted_probs[num_edges];
+      |                        ^~~~~~~~~
+../corintho_ai/cpp/src/trainmc.cpp:291:24: note: initializer of 'num_edges' is not a constant expression
+../corintho_ai/cpp/src/trainmc.cpp:290:17: note: declared here
+  290 |   const int32_t num_edges = cur_->num_legal_moves();
+      |                 ^
+../corintho_ai/cpp/src/trainmc.cpp:320:26: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  320 |     float filtered_probs[cur_->num_legal_moves()];
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~
+../corintho_ai/cpp/src/trainmc.cpp:320:26: note: implicit use of 'this' pointer is only allowed within the evaluation of a call to a 'constexpr' member function
+../corintho_ai/cpp/src/trainmc.cpp:323:21: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  323 |     float dirichlet[cur_->num_legal_moves()];
+      |                     ^~~~~~~~~~~~~~~~~~~~~~~
+../corintho_ai/cpp/src/trainmc.cpp:323:21: note: implicit use of 'this' pointer is only allowed within the evaluation of a call to a 'constexpr' member function
+7 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/selfplayer.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplayer.o
+In file included from ../corintho_ai/cpp/src/selfplayer.cpp:1:
+In file included from ../corintho_ai/cpp/include/selfplayer.h:13:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+In file included from ../corintho_ai/cpp/src/selfplayer.cpp:14:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+4 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/trainer.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainer.o
+In file included from ../corintho_ai/cpp/src/trainer.cpp:1:
+In file included from ../corintho_ai/cpp/include/trainer.h:11:
+In file included from ../corintho_ai/cpp/include/selfplayer.h:13:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+In file included from ../corintho_ai/cpp/src/trainer.cpp:13:
+In file included from ../corintho_ai/cpp/include/node.h:12:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+../corintho_ai/cpp/src/trainer.cpp:152:16: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  152 |   float scores[games_.size()];
+      |                ^~~~~~~~~~~~~
+../corintho_ai/cpp/src/trainer.cpp:152:16: note: implicit use of 'this' pointer is only allowed within the evaluation of a call to a 'constexpr' member function
+5 warnings generated.
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/mlp.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/mlp.o
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c ../corintho_ai/cpp/src/game_reference.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game_reference.o
+In file included from ../corintho_ai/cpp/src/game_reference.cpp:24:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+2 warnings generated.
+clang++-20 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay_nn.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/util.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/move.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/node.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainmc.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplayer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/mlp.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game_reference.o -fopenmp -flto -O3 -march=native   -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay_nn
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c selfplay.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay.o
+In file included from selfplay.cpp:19:
+In file included from ../corintho_ai/cpp/include/trainer.h:11:
+In file included from ../corintho_ai/cpp/include/selfplayer.h:13:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+2 warnings generated.
+clang++-20 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/util.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/move.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/node.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainmc.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplayer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/mlp.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game_reference.o -fopenmp -flto -O3 -march=native   -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplay_bench
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c golden.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/golden.o
+In file included from golden.cpp:25:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+In file included from golden.cpp:26:
+In file included from ../corintho_ai/cpp/include/trainer.h:11:
+In file included from ../corintho_ai/cpp/include/selfplayer.h:13:
+../corintho_ai/cpp/include/trainmc.h:23:12: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: copy assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:23:41: note: replace 'default' with 'delete'
+   23 |   TrainMC &operator=(const TrainMC &) = default;
+      |                                         ^~~~~~~
+      |                                         delete
+../corintho_ai/cpp/include/trainmc.h:24:12: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |            ^
+../corintho_ai/cpp/include/trainmc.h:166:17: note: move assignment operator of 'TrainMC' is implicitly deleted because field 'max_searches_' is of const-qualified type 'const int32_t' (aka 'const int')
+  166 |   const int32_t max_searches_{1600};
+      |                 ^
+../corintho_ai/cpp/include/trainmc.h:24:50: note: replace 'default' with 'delete'
+   24 |   TrainMC &operator=(TrainMC &&other) noexcept = default;
+      |                                                  ^~~~~~~
+      |                                                  delete
+4 warnings generated.
+clang++-20 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/golden.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/util.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/move.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/node.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainmc.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplayer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/mlp.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game_reference.o -fopenmp -flto -O3 -march=native   -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/golden
+clang++-20 -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra  -MMD -MP -I../corintho_ai/cpp/include -I../gsl/include -I. -c verify.cpp -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/verify.o
+In file included from verify.cpp:26:
+In file included from ../corintho_ai/cpp/include/game.h:9:
+../corintho_ai/cpp/include/move.h:164:9: warning: explicitly defaulted copy assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: copy assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:164:44: note: replace 'default' with 'delete'
+  164 |   Move &operator=(const Move &) noexcept = default;
+      |                                            ^~~~~~~
+      |                                            delete
+../corintho_ai/cpp/include/move.h:165:9: warning: explicitly defaulted move assignment operator is implicitly deleted [-Wdefaulted-function-deleted]
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |         ^
+../corintho_ai/cpp/include/move.h:192:18: note: move assignment operator of 'Move' is implicitly deleted because field 'move_type_' is of const-qualified type 'const MoveType'
+  192 |   const MoveType move_type_;
+      |                  ^
+../corintho_ai/cpp/include/move.h:165:39: note: replace 'default' with 'delete'
+  165 |   Move &operator=(Move &&) noexcept = default;
+      |                                       ^~~~~~~
+      |                                       delete
+2 warnings generated.
+clang++-20 /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/verify.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/util.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/move.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/node.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainmc.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/selfplayer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/trainer.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/mlp.o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/game_reference.o -fopenmp -flto -O3 -march=native   -o /home/max/projects/corintho-ai/bench/results/compilers-2026-09-24/objs/verify
+make: Leaving directory '/home/max/projects/corintho-ai/bench'

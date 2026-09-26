@@ -1,0 +1,5 @@
+1475016 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/base/selfplay_nn
+1452744 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/engine/selfplay_nn
+1411088 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/frac/selfplay_nn
+2226272 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/gen/selfplay_nn
+1357400 /home/max/projects/corintho-ai/bench/results/pgo-2026-09-24/bin/pgo/selfplay_nn

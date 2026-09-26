@@ -1,0 +1,42 @@
+# gprofng, 1 thread, 300 games x 1600 searches
+# label:    linefix
+# commit:   9616221
+# dirty:    no
+# cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T19:56:59-07:00
+
+# Percentages only -- absolute seconds are unreliable.
+
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+5.474 100.00  5.474 100.00   <Total>
+2.792  51.01  3.342  61.06   TrainMC::doIteration(float*, float*)
+1.381  25.23  1.661  30.35   Node::initializeEdges()
+0.460   8.41  3.943  72.03   main
+0.220   4.02  0.220   4.02   Move::Move(int)
+0.130   2.38  0.240   4.39   <static>@0xaab1b (<libc.so.6>)
+0.110   2.01  0.110   2.01   <static>@0xa8e24 (<libc.so.6>)
+0.090   1.65  0.100   1.83   free
+0.080   1.46  0.080   1.46   std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+0.070   1.28  0.070   1.28   <static>@0x188341 (<libc.so.6>)
+0.060   1.10  0.160   2.93   Node::~Node()
+0.030   0.55  0.190   3.47   <static>@0xada6c (<libc.so.6>)
+0.020   0.37  0.020   0.37   lround
+0.020   0.37  0.150   2.74   operator new(unsigned long, std::align_val_t)
+0.010   0.18  0.130   2.38   posix_memalign
+0.      0.    0.070   1.28   <static>@0x225ae (<libgomp.so.1.0.0>)
+0.      0.    3.943  72.03   <static>@0x2a145 (<libc.so.6>)
+0.      0.    0.070   1.28   <static>@0xc1ce (<libgomp.so.1.0.0>)
+0.      0.    3.412  62.34   GOMP_parallel
+0.      0.    0.110   2.01   SelfPlayer::chooseMove() [clone .part.0]
+0.      0.    0.170   3.11   SelfPlayer::chooseMoveAndContinue()
+0.      0.    0.110   2.01   TrainMC::chooseMove(float*, float*)
+0.      0.    0.110   2.01   TrainMC::moveDown(Node*)
+0.      0.    3.342  61.06   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+0.      0.    3.943  72.03   __libc_start_main
+0.      0.    0.070   1.28   malloc
+0.      0.    0.070   1.28   operator new(unsigned long)
+

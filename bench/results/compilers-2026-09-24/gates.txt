@@ -1,0 +1,22 @@
+base #METRIC digest_game d8f9bd2d22ee9731
+base #METRIC digest_engine d7581196f9d30591
+base verify PASS
+gcc14 #METRIC digest_game d8f9bd2d22ee9731
+gcc14 #METRIC digest_engine d7581196f9d30591
+gcc14 verify PASS
+clang20 #METRIC digest_game d8f9bd2d22ee9731
+clang20 #METRIC digest_engine d7581196f9d30591
+clang20 verify PASS
+base sample seed 1 2147e3071a27cc4d 8532 MATCH
+gcc14 sample seed 1 2147e3071a27cc4d 8532 MATCH
+clang20 sample seed 1 2147e3071a27cc4d 8532 MATCH
+base sample seed 2 a988f67a0c984be7 8533 MATCH
+gcc14 sample seed 2 a988f67a0c984be7 8533 MATCH
+clang20 sample seed 2 a988f67a0c984be7 8533 MATCH
+base sample seed 3 dcb1745df12a1ba0 8390 MATCH
+gcc14 sample seed 3 dcb1745df12a1ba0 8390 MATCH
+clang20 sample seed 3 dcb1745df12a1ba0 8390 MATCH
+base sample seed 4 e0db31d1d69b6456 8493 MATCH
+gcc14 sample seed 4 e0db31d1d69b6456 8493 MATCH
+clang20 sample seed 4 e0db31d1d69b6456 8493 MATCH
+ALL GATES PASS

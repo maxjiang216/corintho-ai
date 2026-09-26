@@ -1,0 +1,40 @@
+#label	before-stage1
+#suite	all
+#date	2026-09-20T16:52:39-07:00
+#commit	ff97beb
+#dirty	no
+#cxxflags	-std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+#ac_power	1
+#governor	powersave
+#loadavg	0.76 0.90 1.08
+#config	pair_games=50 big_games=200 searches=1600 per_eval=16 threads=14 seed=12345 corpus=20000 reps=5
+digest_game	0f82fc99147482e4
+digest_engine	db113d11c95bcedb
+ns_game_getlegalmoves	929.3000	909.4000	950.2000
+ns_game_writegamestate	131.8000	121.0000	137.5000
+ns_game_domove_incl_copy	10.8000	10.7000	11.2000
+ns_node_ctor_dtor_alloc_heavy	1158.8000	1152.7000	1200.6000
+st_engine_seconds	4.0676	4.0056	4.1466
+st_wall_seconds	4.5545	4.4757	4.6396
+st_turns	971.0000	971.0000	971.0000
+st_requests	1248785.0000	1248785.0000	1248785.0000
+st_requests_per_engine_second	307011.0000	301162.0000	311758.0000
+mt_engine_seconds	0.5468	0.5240	0.5565
+mt_wall_seconds	0.9727	0.9313	1.0089
+mt_turns	971.0000	971.0000	971.0000
+mt_requests	1248785.0000	1248785.0000	1248785.0000
+mt_requests_per_engine_second	2283950.0000	2243850.0000	2383294.0000
+big_engine_seconds	2.4148	2.3838	2.4582
+big_wall_seconds	4.0595	4.0133	4.1194
+big_turns	3715.0000	3715.0000	3715.0000
+big_requests	4733369.0000	4733369.0000	4733369.0000
+big_requests_per_engine_second	1960186.0000	1925546.0000	1985677.0000
+speedup_14t	7.4389	7.4389	7.4389
+parallel_efficiency_pct	53.1351	53.1351	53.1351
+exact_instructions	962920514	962920514	962920514
+exact_d1_read_miss	2486611	2486611	2486611
+exact_d1_write_miss	974137	974137	974137
+exact_branches	127525930	127525930	127525930
+exact_branch_mispredicts	11788574	11788574	11788574
+exact_alloc_bytes	9181095	9181095	9181095
+exact_alloc_blocks	87010	87010	87010

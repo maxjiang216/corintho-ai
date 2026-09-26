@@ -6,6 +6,7 @@
 #include <fstream>
 #include <random>
 #include <string>
+#include <vector>
 
 #include <gsl/gsl>
 #include <omp.h>
@@ -53,7 +54,7 @@ void Tourney::writeRequests(float *game_states, int32_t id) noexcept {
 
 void Tourney::doIteration(float eval[], float probs[], int32_t id) {
   int32_t offset = 0;
-  int32_t offsets[matches_.size()] = {0};
+  std::vector<int32_t> offsets(matches_.size(), 0);
   for (size_t i = 1; i < matches_.size(); ++i) {
     if (!is_done_[i] && matches_[i]->to_play() == id) {
       offset += matches_[i - 1]->num_requests();

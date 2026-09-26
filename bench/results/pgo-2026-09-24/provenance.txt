@@ -1,0 +1,13 @@
+date:      2026-09-24T06:55:34-07:00
+commit:    25f8002785593154d0b64ebf2637d13b79cf01c2
+dirty:     no
+compiler:  g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+cxxflags:  -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+ldflags:   -fopenmp -flto -O3 -march=native
+cpu:        12th Gen Intel(R) Core(TM) i7-12700H
+governor:  powersave
+power:     1 0 
+model:     /home/max/projects/corintho-ai/bench/results/long-profile-2026-09-23/model.mlp (0da98eedcec00bbb)
+train:     300 games, 1 threads, seed 777
+arms:      base pgo engine frac
+sizes:     gate 300, mt 16 x 1000, st 16 x 200

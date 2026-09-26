@@ -1,0 +1,15 @@
+# dhat, 1 thread, 2 games x 1600 searches
+# label:    baseline
+# commit:   88abeae
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-20T14:38:07-07:00
+
+# Allocation counts and peak heap. Relevant to the node arena and to
+# the to_eval_ oversizing (PLAN.md 10.2).
+
+==1072069== Total:     9,181,095 bytes in 87,010 blocks
+==1072069== At t-gmax: 1,515,751 bytes in 6,390 blocks
+==1072069== At t-end:  535 bytes in 5 blocks
+==1072069== Reads:     219,470,391 bytes
+==1072069== Writes:    72,284,066 bytes

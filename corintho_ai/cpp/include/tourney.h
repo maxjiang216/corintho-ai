@@ -39,7 +39,7 @@ class Tourney {
 
  private:
   std::vector<std::unique_ptr<Match>> matches_{};
-  std::vector<bool> is_done_{};
+  std::vector<uint8_t> is_done_{};
   std::map<int32_t, Player> players_{};
   std::mt19937 generator_{};
   int32_t num_threads_{1};

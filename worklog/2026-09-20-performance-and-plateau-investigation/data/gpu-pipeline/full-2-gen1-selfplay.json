@@ -1,0 +1,23 @@
+{
+  "backend": "ort-cuda /home/max/projects/corintho-ai/pipeline/runs/full-2/gen_0/model.onnx",
+  "games": 25000,
+  "in_flight": 2000,
+  "groups": 2,
+  "chunks": 13,
+  "searches": 1600,
+  "searches_per_eval": 16,
+  "c_puct": 3,
+  "epsilon": 0.25,
+  "threads": 20,
+  "seed": 100005,
+  "turns": 709085,
+  "sample_rows": 5672680,
+  "first_player_score": 0.5018,
+  "network_calls": 61309,
+  "rows_evaluated": 897879984,
+  "engine_seconds": 208.546,
+  "eval_seconds": 437.718,
+  "eval_wait_seconds": 130.614,
+  "write_seconds": 2.05822,
+  "wall_seconds": 345.061
+}

@@ -1,0 +1,47 @@
+#label	after-optimizations
+#suite	all
+#date	2026-09-20T22:09:45-07:00
+#commit	cb59949
+#dirty	yes
+#cxxflags	-std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+#ac_power	1
+#governor	powersave
+#loadavg	0.90 0.94 1.37
+#pin	taskset -c 0 (max 4600.0000 MHz)
+#topcpu	 at  3.5%
+#counters	games=3 searches=1600 (all counter families share this workload)
+#config	pair_games=50 big_games=200 searches=1600 per_eval=16 threads=14 seed=12345 corpus=20000 reps=5
+digest_game	d8f9bd2d22ee9731
+digest_engine	ad85cefa8bf9abf5
+ns_game_getlegalmoves	180.6000	180.4000	180.8000
+ns_game_writegamestate	120.8000	119.5000	123.3000
+ns_game_domove_incl_copy	10.3000	10.3000	10.3000
+ns_node_ctor_dtor_alloc_heavy	207.5000	207.2000	207.7000
+st_engine_seconds	1.3871	1.3853	1.3948
+st_wall_seconds	1.6519	1.6491	1.6595
+st_turns	1008.0000	1008.0000	1008.0000
+st_requests	1264308.0000	1264308.0000	1264308.0000
+st_requests_per_engine_second	911487.0000	906442.0000	912641.0000
+mt_engine_seconds	0.2701	0.2635	0.2751
+mt_wall_seconds	0.7865	0.7435	0.7912
+mt_turns	1008.0000	1008.0000	1008.0000
+mt_requests	1264308.0000	1264308.0000	1264308.0000
+mt_requests_per_engine_second	4680760.0000	4596311.0000	4798343.0000
+big_engine_seconds	1.1874	1.1560	1.2451
+big_wall_seconds	2.9092	2.8178	3.0175
+big_turns	3645.0000	3645.0000	3645.0000
+big_requests	4607594.0000	4607594.0000	4607594.0000
+big_requests_per_engine_second	3880427.0000	3700583.0000	3985953.0000
+speedup_14t	5.1355	5.1355	5.1355
+parallel_efficiency_pct	36.6822	36.6822	36.6822
+exact_instructions	1027602638	1027602638	1027602638
+exact_d1_read_miss	3796807	3796807	3796807
+exact_d1_write_miss	1741792	1741792	1741792
+exact_branches	111893543	111893543	111893543
+exact_branch_mispredicts	7343254	7343254	7343254
+exact_alloc_bytes	6585367	6585367	6585367
+exact_alloc_blocks	2504	2504	2504
+per_alloc_instructions	410384.4401	410384.4401	410384.4401
+per_alloc_branches	44685.9197	44685.9197	44685.9197
+per_alloc_branch_mispredicts	2932.6094	2932.6094	2932.6094
+per_alloc_d1_read_miss	1516.2967	1516.2967	1516.2967

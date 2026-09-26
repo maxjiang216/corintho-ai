@@ -47,3 +47,20 @@ export check vs torch: onnx_value 3.28e-05, onnx_policy 2.42e-04
 run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
 trt compact    20       30.13     47.67         9.28   40.48   40%
 trt (repeat)   20       30.81     56.67        13.50   45.17   52%
+
+## Same-network match: trt: + compact gen_93 (new) vs CUDA fp32 gen_93 (best), 1600 games each
+seed 1: 810W 62D 728L (Wilson 95% on decisive [0.502, 0.552])
+seed 2: 768W 42D 790L
+seed 3: 752W 49D 799L
+total: 2330W 153D 2317L, decisive win rate 0.501 -- no measurable difference
+
+## Engine float literals (trainmc.cpp: 1.0 -> 1.0F in selection/backup, std::sqrt), interleaved pairs,
+## trt: compact gen_93, 4000 games, groups 2, seed = pair
+pair	arm	engine_s	wait_s	wall_s	turns	first_player_score
+1	base	29.9471	9.36116	40.2622	113571	0.49875
+1	float	29.8871	9.72733	40.6619	113572	0.500125
+2	base	30.902	9.28381	41.0389	113744	0.507125
+2	float	30.3172	9.68858	41.0052	113774	0.5085
+3	base	31.3966	9.40832	41.8695	113860	0.500625
+3	float	30.6875	9.96768	41.7491	113889	0.501125
+engine: -0.2%, -1.9%, -2.3% (mean ~-1.5%); wall unchanged (GPU-bound). 45/45 unit tests pass.

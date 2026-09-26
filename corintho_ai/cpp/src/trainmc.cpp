@@ -245,7 +245,7 @@ void TrainMC::getFilteredProbs(float probs[kNumMoves],
     sum += filtered_probs[i];
   }
   // Factoring this out saves division operations
-  float scalar = 1.0 / sum * (1 - epsilon_);
+  float scalar = 1.0F / sum * (1 - epsilon_);
   for (int32_t i = 0; i < num_edges; ++i) {
     filtered_probs[i] *= scalar;
   }
@@ -279,7 +279,7 @@ void TrainMC::generateDirichlet(float dirichlet[]) noexcept {
       sum += dirichlet[j];
     }
   }
-  float scalar = 1.0 / sum * epsilon_;
+  float scalar = 1.0F / sum * epsilon_;
   for (int32_t i = 0; i < num_edges; ++i) {
     dirichlet[i] *= scalar;
   }
@@ -309,7 +309,7 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
     cur_->set_probability(j, prob);
     final_sum += prob;
   }
-  cur_->set_denominator(1.0 / static_cast<float>(final_sum));
+  cur_->set_denominator(1.0F / static_cast<float>(final_sum));
 }
 
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
@@ -328,14 +328,14 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
     float cur_eval = eval[i];
     while (cur_->parent() != nullptr) {
       // Correct default +1 evaluation
-      cur_->increase_evaluation(cur_eval - 1.0);
+      cur_->increase_evaluation(cur_eval - 1.0F);
       // Reset this marker
       cur_->set_all_visited(false);
-      cur_eval *= -1.0;
+      cur_eval *= -1.0F;
       cur_ = cur_->parent();
     }
     // Propagate to the root
-    cur_->increase_evaluation(cur_eval - 1.0);
+    cur_->increase_evaluation(cur_eval - 1.0F);
   }
   root_->set_all_visited(false);
   searched_.clear();
@@ -423,7 +423,7 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
     }
     cur = cur->next_sibling();
   }
-  float denominator = 1.0 / static_cast<float>(visits);
+  float denominator = 1.0F / static_cast<float>(visits);
   cur = root_->first_child();
   // Write the probability sample
   if (prob_sample != nullptr) {
@@ -604,7 +604,7 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   float max_eval = kNegInf;
   int32_t best = -1;
   // Factor this value out, as it is expense to compute
-  const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+  const float v_sqrt = c_puct_ * std::sqrt(static_cast<float>(cur_->visits()));
   const Node::ChildStats stats = cur_->child_stats();
   const int32_t num_children = stats.count;
   // First descent into this node. The best edge is only put in place now,
@@ -630,13 +630,13 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   }
 #endif
   // Score every child without branching, then take the first maximum. The
-  // scores are computed exactly as the previous one-loop form did (the same
-  // expressions, including their promotion to double), so the choice is
-  // bit-identical; taking the first index holding the maximum reproduces its
-  // strict > scan. Without branches the scoring loop vectorizes, and the
-  // flag tests no longer mispredict. Nodes with many children dominate this
-  // loop: 70% of the children scored belong to nodes with 20 or more
-  // (worklog entry 26).
+  // scores are computed in float throughout: the double literals that used to
+  // promote them are gone (worklog 2026-09-25 entry 02), which doubles the
+  // SIMD width and changes some choices between near-equal children. Taking
+  // the first index holding the maximum reproduces the old strict > scan.
+  // Without branches the scoring loop vectorizes, and the flag tests no longer
+  // mispredict. Nodes with many children dominate this loop: 70% of the
+  // children scored belong to nodes with 20 or more (worklog entry 26).
   float score[Node::kMaxEdges];
   for (int32_t i = 0; i < num_children; ++i) {
     // Same as cur_->probability(i) * v_sqrt, read through stats
@@ -644,7 +644,7 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
                            stats.denominator * v_sqrt;
     const float visits = stats.visits[i];
     const float normal =
-        -1.0 * stats.evaluation[i] / visits + weighted / (visits + 1.0);
+        -1.0F * stats.evaluation[i] / visits + weighted / (visits + 1.0F);
     // Known draw, use evaluation 0
     const float u =
         selectFloat(stats.flags[i] & Node::kDrawnChild, weighted, normal);
@@ -760,8 +760,8 @@ void TrainMC::search() {
     while (cur_->parent() != nullptr) {
       cur_ = cur_->parent();
       // Correct default +1.0 evaluation
-      cur_->increase_evaluation(cur_eval - 1.0);
-      cur_eval *= -1.0;
+      cur_->increase_evaluation(cur_eval - 1.0F);
+      cur_eval *= -1.0F;
     }
   }
   // Otherwise, request an evaluation for the new node

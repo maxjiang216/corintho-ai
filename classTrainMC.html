@@ -72,6 +72,7 @@ $(function() {
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#pri-static-attribs">Static Private Attributes</a> &#124;
@@ -110,6 +111,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a9dfd9c86ca4b692f29d394bb1e9906fe" id="r_a9dfd9c86ca4b692f29d394bb1e9906fe"><td class="memItemLeft" align="right" valign="top"><a id="a9dfd9c86ca4b692f29d394bb1e9906fe" name="a9dfd9c86ca4b692f29d394bb1e9906fe"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>set_node_solver</b> (int32_t max_horizon, uint64_t max_nodes) noexcept</td></tr>
+<tr class="memdesc:a9dfd9c86ca4b692f29d394bb1e9906fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve new leaves with horizon P &lt;= max_horizon exactly instead of asking the network (worklog 2026-09-25-nn-architectures, entry 15); a solve giving up after max_nodes falls back to the network. 0: off. <br /></td></tr>
+<tr class="separator:a9dfd9c86ca4b692f29d394bb1e9906fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3409ca2aac0db430d7527b762422e76" id="r_ab3409ca2aac0db430d7527b762422e76"><td class="memItemLeft" align="right" valign="top"><a id="ab3409ca2aac0db430d7527b762422e76" name="ab3409ca2aac0db430d7527b762422e76"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TrainMC</b> (std::mt19937 *generator, float *to_eval, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, bool testing=false)</td></tr>
 <tr class="memdesc:ab3409ca2aac0db430d7527b762422e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
@@ -189,6 +194,13 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>null_root</b> () noex
 <tr class="memdesc:a680349df19cb86cb3a50af882aa5c4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new root node with the given game and depth.  <br /></td></tr>
 <tr class="separator:a680349df19cb86cb3a50af882aa5c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:acf586782dc648270a59f13f86479e4db" id="r_acf586782dc648270a59f13f86479e4db"><td class="memItemLeft" align="right" valign="top"><a id="acf586782dc648270a59f13f86479e4db" name="acf586782dc648270a59f13f86479e4db"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>nodeSolveStats</b> (uint64_t &amp;attempts, uint64_t &amp;solved, double &amp;seconds) noexcept</td></tr>
+<tr class="memdesc:acf586782dc648270a59f13f86479e4db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Totals over all <a class="el" href="classTrainMC.html" title="Class for Monte Carlo tree search.">TrainMC</a> objects: leaves given to the solver, of which solved, and seconds spent (summed over threads) <br /></td></tr>
+<tr class="separator:acf586782dc648270a59f13f86479e4db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
 <tr class="memitem:a3c2391d09e2966cce0f4acbef32d5856" id="r_a3c2391d09e2966cce0f4acbef32d5856"><td class="memItemLeft" align="right" valign="top"><a id="a3c2391d09e2966cce0f4acbef32d5856" name="a3c2391d09e2966cce0f4acbef32d5856"></a>
@@ -234,6 +246,10 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>chooseMoveNormal</
 <tr class="memitem:ab030e7eca910efd95cc1e39eb3ed8903" id="r_ab030e7eca910efd95cc1e39eb3ed8903"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ab030e7eca910efd95cc1e39eb3ed8903">propagateTerminal</a> () noexcept</td></tr>
 <tr class="memdesc:ab030e7eca910efd95cc1e39eb3ed8903"><td class="mdescLeft">&#160;</td><td class="mdescRight">Propagate results of terminal nodes and deduced results.  <br /></td></tr>
 <tr class="separator:ab030e7eca910efd95cc1e39eb3ed8903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61699793430c9bc0516e326a7763fd0d" id="r_a61699793430c9bc0516e326a7763fd0d"><td class="memItemLeft" align="right" valign="top"><a id="a61699793430c9bc0516e326a7763fd0d" name="a61699793430c9bc0516e326a7763fd0d"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>solveLeaf</b> ()</td></tr>
+<tr class="memdesc:a61699793430c9bc0516e326a7763fd0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve the new leaf cur_ if its horizon is within node_horizon_; true when it was proven and backed up (no evaluation needed) <br /></td></tr>
+<tr class="separator:a61699793430c9bc0516e326a7763fd0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abecc145117f6b2f56f224e75cea01821" id="r_abecc145117f6b2f56f224e75cea01821"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structTrainMC_1_1ChooseNextOutput.html">ChooseNextOutput</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#abecc145117f6b2f56f224e75cea01821">chooseNext</a> () noexcept</td></tr>
 <tr class="memdesc:abecc145117f6b2f56f224e75cea01821"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose the next node in the Monte Carlo search.  <br /></td></tr>
 <tr class="separator:abecc145117f6b2f56f224e75cea01821"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -258,6 +274,12 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>searches_done_</b>
 <tr class="memitem:a783998b5c3c1bbcd5dc22c820b24d3cc" id="r_a783998b5c3c1bbcd5dc22c820b24d3cc"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a783998b5c3c1bbcd5dc22c820b24d3cc">max_searches_</a> {1600}</td></tr>
 <tr class="memdesc:a783998b5c3c1bbcd5dc22c820b24d3cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">The maximum number of searches to do per move.  <br /></td></tr>
 <tr class="separator:a783998b5c3c1bbcd5dc22c820b24d3cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77cf096f50c5bb82630a8cc94a8800f8" id="r_a77cf096f50c5bb82630a8cc94a8800f8"><td class="memItemLeft" align="right" valign="top"><a id="a77cf096f50c5bb82630a8cc94a8800f8" name="a77cf096f50c5bb82630a8cc94a8800f8"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>node_horizon_</b> {0}</td></tr>
+<tr class="separator:a77cf096f50c5bb82630a8cc94a8800f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1458afcd687927db64b806d13c9f04de" id="r_a1458afcd687927db64b806d13c9f04de"><td class="memItemLeft" align="right" valign="top"><a id="a1458afcd687927db64b806d13c9f04de" name="a1458afcd687927db64b806d13c9f04de"></a>
+uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>node_cap_</b> {0}</td></tr>
+<tr class="separator:a1458afcd687927db64b806d13c9f04de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a381cc439e28442f88a44a5aec614aecf" id="r_a381cc439e28442f88a44a5aec614aecf"><td class="memItemLeft" align="right" valign="top">const int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a381cc439e28442f88a44a5aec614aecf">searches_per_eval_</a> {16}</td></tr>
 <tr class="memdesc:a381cc439e28442f88a44a5aec614aecf"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of searches to do per neural network evaluation.  <br /></td></tr>
 <tr class="separator:a381cc439e28442f88a44a5aec614aecf"><td class="memSeparator" colspan="2">&#160;</td></tr>

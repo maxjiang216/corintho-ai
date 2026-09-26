@@ -7,5 +7,6 @@ var searchData=
   ['kmaxprobability_4',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
   ['knumopeningmoves_5',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]],
   ['kskipchild_6',['kSkipChild',['../classNode.html#acc2453def88a76691af735d8d25643ef',1,'Node']]],
-  ['ksmall_7',['kSmall',['../classArena.html#ac6d73e9820a6d12e01a88817ff359eab',1,'Arena']]]
+  ['ksmall_7',['kSmall',['../classArena.html#ac6d73e9820a6d12e01a88817ff359eab',1,'Arena']]],
+  ['kunknown_8',['kUnknown',['../classSolver.html#a9cac0c9cf6dd1d7533db31658095c0fd',1,'Solver']]]
 ];

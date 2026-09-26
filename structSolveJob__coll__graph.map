@@ -1,0 +1,5 @@
+<map id="SolveJob" name="SolveJob">
+<area shape="rect" id="Node000001" title="A position waiting for (or given) an exact result." alt="" coords="5,93,84,119"/>
+<area shape="rect" id="Node000002" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="14,5,75,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="47,45,47,93,42,93,42,45"/>
+</map>

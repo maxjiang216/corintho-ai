@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['game_0',['Game',['../classGame.html',1,'']]]
+  ['edge_0',['Edge',['../structNode_1_1Edge.html',1,'Node']]],
+  ['edgeblock_1',['EdgeBlock',['../structNode_1_1EdgeBlock.html',1,'Node']]],
+  ['entry_2',['Entry',['../structSolver_1_1Entry.html',1,'Solver']]]
 ];

@@ -87,9 +87,9 @@ Collaboration diagram for SelfPlayer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classSelfPlayer__coll__graph.png" border="0" usemap="#aSelfPlayer_coll__map" alt="Collaboration graph"/></div>
 <map name="aSelfPlayer_coll__map" id="aSelfPlayer_coll__map">
-<area shape="rect" title="A training match with 2 TrainMC players." alt="" coords="32,391,120,416"/>
+<area shape="rect" title="A training match with 2 TrainMC players." alt="" coords="85,391,173,416"/>
 <area shape="rect" href="classTrainMC.html" title="Class for Monte Carlo tree search." alt="" coords="39,303,113,328"/>
-<area shape="poly" title=" " alt="" coords="79,342,79,390,73,390,73,342"/>
+<area shape="poly" title=" " alt="" coords="84,340,96,365,117,389,113,392,91,368,80,342"/>
 <area shape="rect" href="classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="48,191,104,216"/>
 <area shape="poly" title=" " alt="" coords="79,230,79,302,73,302,73,230"/>
 <area shape="poly" title=" " alt="" coords="119,192,127,196,131,204,122,214,105,216,104,211,120,209,125,203,123,200,117,197"/>
@@ -99,11 +99,17 @@ Collaboration diagram for SelfPlayer:</div>
 <area shape="poly" title=" " alt="" coords="141,131,88,192,84,189,137,127"/>
 <area shape="rect" href="structNode_1_1Edge.html" title="A legal move and its probability weight, packed in 16 bits." alt="" coords="109,5,205,31"/>
 <area shape="poly" title=" " alt="" coords="160,45,160,93,155,93,155,45"/>
+<area shape="rect" href="classSolverPool.html" title="Threads that solve self&#45;play positions off the engine&#39;s critical path (worklog 2026&#45;09&#45;25&#45;nn&#45;architec..." alt="" coords="137,303,228,328"/>
+<area shape="poly" title=" " alt="" coords="172,342,156,368,140,392,135,389,151,365,167,339"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a1a711fd7d9da651cb6036fdb4bcdcbc8" id="r_a1a711fd7d9da651cb6036fdb4bcdcbc8"><td class="memItemLeft" align="right" valign="top"><a id="a1a711fd7d9da651cb6036fdb4bcdcbc8" name="a1a711fd7d9da651cb6036fdb4bcdcbc8"></a>
+const <a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>searchRoot</b> () const noexcept</td></tr>
+<tr class="memdesc:a1a711fd7d9da651cb6036fdb4bcdcbc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Root of the tree now being searched (the player to move's), or nullptr. For measurements (worklog 2026-09-25-nn-architectures, entry 08). <br /></td></tr>
+<tr class="separator:a1a711fd7d9da651cb6036fdb4bcdcbc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aede91be31ae8122b67b49b2fc9b0173f" id="r_aede91be31ae8122b67b49b2fc9b0173f"><td class="memItemLeft" align="right" valign="top"><a id="aede91be31ae8122b67b49b2fc9b0173f" name="aede91be31ae8122b67b49b2fc9b0173f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>SelfPlayer</b> (int32_t random_seed, int32_t max_searches=1600, int32_t searches_per_eval=16, float c_puct=1.0, float epsilon=0.25, std::unique_ptr&lt; std::ofstream &gt; log_file=nullptr, bool testing=false, int32_t parity=0, float *to_eval=nullptr)</td></tr>
 <tr class="separator:aede91be31ae8122b67b49b2fc9b0173f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,6 +146,19 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>parity</b> () cons
 <tr class="memitem:ac0c870319e63419b551b71b0b2bc228a" id="r_ac0c870319e63419b551b71b0b2bc228a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ac0c870319e63419b551b71b0b2bc228a">doIteration</a> (float eval[]=nullptr, float probs[]=nullptr)</td></tr>
 <tr class="memdesc:ac0c870319e63419b551b71b0b2bc228a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do an iteration of searches for the current player.  <br /></td></tr>
 <tr class="separator:ac0c870319e63419b551b71b0b2bc228a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af42c412124b5435e14d37158eb7e4fd1" id="r_af42c412124b5435e14d37158eb7e4fd1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#af42c412124b5435e14d37158eb7e4fd1">set_solver</a> (<a class="el" href="classSolverPool.html">SolverPool</a> *pool, int32_t max_horizon) noexcept</td></tr>
+<tr class="memdesc:af42c412124b5435e14d37158eb7e4fd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">End games by exact solution once the position's horizon P is at most max_horizon (worklog 2026-09-25-nn-architectures, entry 14)  <br /></td></tr>
+<tr class="separator:af42c412124b5435e14d37158eb7e4fd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a47a2468323d38683caff58d0ec00aaef" id="r_a47a2468323d38683caff58d0ec00aaef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a47a2468323d38683caff58d0ec00aaef">set_node_solver</a> (int32_t max_horizon, uint64_t max_nodes, int32_t model=-1) noexcept</td></tr>
+<tr class="memdesc:a47a2468323d38683caff58d0ec00aaef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve search leaves with horizon P &lt;= max_horizon (entry 15)  <br /></td></tr>
+<tr class="separator:a47a2468323d38683caff58d0ec00aaef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc0946eb6cc475723ad1c02363ee1e7d" id="r_adc0946eb6cc475723ad1c02363ee1e7d"><td class="memItemLeft" align="right" valign="top"><a id="adc0946eb6cc475723ad1c02363ee1e7d" name="adc0946eb6cc475723ad1c02363ee1e7d"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>adjudicated</b> () const noexcept</td></tr>
+<tr class="memdesc:adc0946eb6cc475723ad1c02363ee1e7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the game ended by an exact solution. <br /></td></tr>
+<tr class="separator:adc0946eb6cc475723ad1c02363ee1e7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0e69a28a43c860aa6f2dc80c0939e0d" id="r_ad0e69a28a43c860aa6f2dc80c0939e0d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#ad0e69a28a43c860aa6f2dc80c0939e0d">finalize</a> ()</td></tr>
+<tr class="memdesc:ad0e69a28a43c860aa6f2dc80c0939e0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for a submitted solve and apply its result; call before writeSamples, score and the result counts. A capped solve is retried once with 20x the nodes; still unknown, the game counts as a draw.  <br /></td></tr>
+<tr class="separator:ad0e69a28a43c860aa6f2dc80c0939e0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -162,6 +181,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>writeMoveChoice</b> (
 void&#160;</td><td class="memItemRight" valign="bottom"><b>endGame</b> () noexcept</td></tr>
 <tr class="memdesc:a8a15a66ae5a61d311d368219963cac43"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up when game is complete. <br /></td></tr>
 <tr class="separator:a8a15a66ae5a61d311d368219963cac43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfb3434e7478ce533b102a658f489f64" id="r_abfb3434e7478ce533b102a658f489f64"><td class="memItemLeft" align="right" valign="top"><a id="abfb3434e7478ce533b102a658f489f64" name="abfb3434e7478ce533b102a658f489f64"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>adjudicate</b> (int32_t value, int32_t horizon, const char *how) noexcept</td></tr>
+<tr class="memdesc:abfb3434e7478ce533b102a658f489f64"><td class="mdescLeft">&#160;</td><td class="mdescRight">End the game with the exact result <code>value</code> (1, 0, -1 for the side to move at the current position, at horizon <code>horizon</code>; <code>how</code> for the log: PROVEN or SOLVED) <br /></td></tr>
+<tr class="separator:abfb3434e7478ce533b102a658f489f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50b1bdbc566365673139c5623bd7dfee" id="r_a50b1bdbc566365673139c5623bd7dfee"><td class="memItemLeft" align="right" valign="top"><a id="a50b1bdbc566365673139c5623bd7dfee" name="a50b1bdbc566365673139c5623bd7dfee"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>tryEnd</b> (const <a class="el" href="classNode.html">Node</a> &amp;position)</td></tr>
+<tr class="memdesc:a50b1bdbc566365673139c5623bd7dfee"><td class="mdescLeft">&#160;</td><td class="mdescRight">In solver mode, end the game at <code>position</code> (to_play_ to move) if its outcome is proven or it is within the solve horizon. <br /></td></tr>
+<tr class="separator:a50b1bdbc566365673139c5623bd7dfee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6aeabdba1719a33d39abf9907f85ea2e" id="r_a6aeabdba1719a33d39abf9907f85ea2e"><td class="memItemLeft" align="right" valign="top"><a id="a6aeabdba1719a33d39abf9907f85ea2e" name="a6aeabdba1719a33d39abf9907f85ea2e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>solveStep</b> ()</td></tr>
+<tr class="memdesc:a6aeabdba1719a33d39abf9907f85ea2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">At the start of an iteration: tryEnd on the current position. <br /></td></tr>
+<tr class="separator:a6aeabdba1719a33d39abf9907f85ea2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf3b2bbac13e0ddcdd03ea1ad7991dd4" id="r_adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#adf3b2bbac13e0ddcdd03ea1ad7991dd4">chooseMove</a> ()</td></tr>
 <tr class="memdesc:adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Choose a move and write the training sample.  <br /></td></tr>
 <tr class="separator:adf3b2bbac13e0ddcdd03ea1ad7991dd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,6 +229,22 @@ std::vector&lt; <a class="el" href="structSample.html">Sample</a> &gt;&#160;</td
 Result&#160;</td><td class="memItemRight" valign="bottom"><b>result_</b> {kResultNone}</td></tr>
 <tr class="memdesc:ad64e0f8018c10d4858b205480768ee44"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGame.html" title="Represents a Corintho game state.">Game</a> result for the first player. <br /></td></tr>
 <tr class="separator:ad64e0f8018c10d4858b205480768ee44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18cfe287e7110cb265051e7dff0f31e7" id="r_a18cfe287e7110cb265051e7dff0f31e7"><td class="memItemLeft" align="right" valign="top"><a id="a18cfe287e7110cb265051e7dff0f31e7" name="a18cfe287e7110cb265051e7dff0f31e7"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>last_mover_value_</b> {1.0F}</td></tr>
+<tr class="memdesc:a18cfe287e7110cb265051e7dff0f31e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Value target of the last sample (its player's result): 1 when the last mover won, 0 for a draw, -1 when an adjudicated game was lost. <br /></td></tr>
+<tr class="separator:a18cfe287e7110cb265051e7dff0f31e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4aac0c9d40b37a14ac4b507ee454196a" id="r_a4aac0c9d40b37a14ac4b507ee454196a"><td class="memItemLeft" align="right" valign="top"><a id="a4aac0c9d40b37a14ac4b507ee454196a" name="a4aac0c9d40b37a14ac4b507ee454196a"></a>
+<a class="el" href="classSolverPool.html">SolverPool</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>solver_pool_</b> {nullptr}</td></tr>
+<tr class="separator:a4aac0c9d40b37a14ac4b507ee454196a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a810a715a4b5e60421218a040100ea44f" id="r_a810a715a4b5e60421218a040100ea44f"><td class="memItemLeft" align="right" valign="top"><a id="a810a715a4b5e60421218a040100ea44f" name="a810a715a4b5e60421218a040100ea44f"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>solve_horizon_</b> {0}</td></tr>
+<tr class="separator:a810a715a4b5e60421218a040100ea44f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addc55e9ab72cb22bf5476dd72d80f596" id="r_addc55e9ab72cb22bf5476dd72d80f596"><td class="memItemLeft" align="right" valign="top"><a id="addc55e9ab72cb22bf5476dd72d80f596" name="addc55e9ab72cb22bf5476dd72d80f596"></a>
+std::shared_ptr&lt; <a class="el" href="structSolveJob.html">SolveJob</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>solve_job_</b> {}</td></tr>
+<tr class="separator:addc55e9ab72cb22bf5476dd72d80f596"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6d32c8a035d0e16115bc51e4b830c6a" id="r_ad6d32c8a035d0e16115bc51e4b830c6a"><td class="memItemLeft" align="right" valign="top"><a id="ad6d32c8a035d0e16115bc51e4b830c6a" name="ad6d32c8a035d0e16115bc51e4b830c6a"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>adjudicated_</b> {false}</td></tr>
+<tr class="separator:ad6d32c8a035d0e16115bc51e4b830c6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a431a070708e0f2366d0cb0456eebead8" id="r_a431a070708e0f2366d0cb0456eebead8"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::ofstream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSelfPlayer.html#a431a070708e0f2366d0cb0456eebead8">log_file_</a> {}</td></tr>
 <tr class="memdesc:a431a070708e0f2366d0cb0456eebead8"><td class="mdescLeft">&#160;</td><td class="mdescRight">File where all logs are written to.  <br /></td></tr>
 <tr class="separator:a431a070708e0f2366d0cb0456eebead8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -272,6 +319,26 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>parity_</b> {0}</t
 
 <p>Do an iteration of searches for the current player. </p>
 <dl class="section return"><dt>Returns</dt><dd>If the game is complete </dd></dl>
+
+</div>
+</div>
+<a id="ad0e69a28a43c860aa6f2dc80c0939e0d" name="ad0e69a28a43c860aa6f2dc80c0939e0d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0e69a28a43c860aa6f2dc80c0939e0d">&#9670;&#160;</a></span>finalize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SelfPlayer::finalize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wait for a submitted solve and apply its result; call before writeSamples, score and the result counts. A capped solve is retried once with 20x the nodes; still unknown, the game counts as a draw. </p>
+<dl class="section return"><dt>Returns</dt><dd>false if the result stayed unknown </dd></dl>
 
 </div>
 </div>
@@ -385,6 +452,95 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>parity_</b> {0}</t
 <p>The first player score. </p>
 <dl class="section return"><dt>Returns</dt><dd>The first player score</dd></dl>
 <p>1.0 for a win, 0.0 for a loss, and 0.5 for a draw </p>
+
+</div>
+</div>
+<a id="a47a2468323d38683caff58d0ec00aaef" name="a47a2468323d38683caff58d0ec00aaef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a47a2468323d38683caff58d0ec00aaef">&#9670;&#160;</a></span>set_node_solver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfPlayer::set_node_solver </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>max_horizon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>max_nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>model</em> = <code>-1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Solve search leaves with horizon P &lt;= max_horizon (entry 15) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">model</td><td>In test games, only the player of this model (0 new, 1 best); -1 both </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af42c412124b5435e14d37158eb7e4fd1" name="af42c412124b5435e14d37158eb7e4fd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af42c412124b5435e14d37158eb7e4fd1">&#9670;&#160;</a></span>set_solver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SelfPlayer::set_solver </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classSolverPool.html">SolverPool</a> *&#160;</td>
+          <td class="paramname"><em>pool</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>max_horizon</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>End games by exact solution once the position's horizon P is at most max_horizon (worklog 2026-09-25-nn-architectures, entry 14) </p>
+<p>The position is submitted to <code>pool</code> and the game ends at once (its trees and slot are freed); <a class="el" href="classSelfPlayer.html#ad0e69a28a43c860aa6f2dc80c0939e0d" title="Wait for a submitted solve and apply its result; call before writeSamples, score and the result count...">finalize()</a> collects the result. </p>
 
 </div>
 </div>

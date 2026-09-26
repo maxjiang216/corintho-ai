@@ -15,10 +15,11 @@ var searchData=
   ['choosemovewon_12',['chooseMoveWon',['../classTrainMC.html#a4f19b4bb1f403460587a2830e1a68c07',1,'TrainMC']]],
   ['choosenext_13',['chooseNext',['../classTrainMC.html#abecc145117f6b2f56f224e75cea01821',1,'TrainMC']]],
   ['choosenextoutput_14',['ChooseNextOutput',['../structTrainMC_1_1ChooseNextOutput.html',1,'TrainMC']]],
-  ['col_5ffrom_15',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
-  ['col_5fto_16',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
-  ['computespaceinfo_17',['computeSpaceInfo',['../classGame.html#a5e72c34fc73123625217a2eb2d06b0e3',1,'Game']]],
-  ['corintho_20ai_20documentation_18',['Corintho AI Documentation',['../index.html',1,'']]],
-  ['createroot_19',['createRoot',['../classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4',1,'TrainMC']]],
-  ['cur_5f_20',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
+  ['clear_15',['clear',['../classSolver.html#abfa11cdebeeb351a5221b4c7650b3962',1,'Solver']]],
+  ['col_5ffrom_16',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
+  ['col_5fto_17',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
+  ['computespaceinfo_18',['computeSpaceInfo',['../classGame.html#a5e72c34fc73123625217a2eb2d06b0e3',1,'Game']]],
+  ['corintho_20ai_20documentation_19',['Corintho AI Documentation',['../index.html',1,'']]],
+  ['createroot_20',['createRoot',['../classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4',1,'TrainMC']]],
+  ['cur_5f_21',['cur_',['../classTrainMC.html#a2a99b67ac6ad934087c89ca14969328e',1,'TrainMC']]]
 ];

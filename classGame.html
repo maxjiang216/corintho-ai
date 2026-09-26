@@ -125,6 +125,24 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>getLegalMoves</b> (st
 <tr class="memitem:ac8df4149323e36147539417e251b9e13" id="r_ac8df4149323e36147539417e251b9e13"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ac8df4149323e36147539417e251b9e13">getLegalMovesReference</a> (std::bitset&lt; kNumMoves &gt; &amp;legal_moves) const noexcept</td></tr>
 <tr class="memdesc:ac8df4149323e36147539417e251b9e13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference implementation of getLegalMoves, for differential testing.  <br /></td></tr>
 <tr class="separator:ac8df4149323e36147539417e251b9e13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22f5dddb1e37f6d0236a8d432bdefed1" id="r_a22f5dddb1e37f6d0236a8d432bdefed1"><td class="memItemLeft" align="right" valign="top"><a id="a22f5dddb1e37f6d0236a8d432bdefed1" name="a22f5dddb1e37f6d0236a8d432bdefed1"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>horizon</b> () const noexcept</td></tr>
+<tr class="memdesc:a22f5dddb1e37f6d0236a8d432bdefed1"><td class="mdescLeft">&#160;</td><td class="mdescRight">P = 2 x reserves (both players) + occupied spaces: an upper bound on the plies left, lowered by every move. <br /></td></tr>
+<tr class="separator:a22f5dddb1e37f6d0236a8d432bdefed1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82e50c4cc5f2da201d5240c0062d04e6" id="r_a82e50c4cc5f2da201d5240c0062d04e6"><td class="memItemLeft" align="right" valign="top"><a id="a82e50c4cc5f2da201d5240c0062d04e6" name="a82e50c4cc5f2da201d5240c0062d04e6"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasLine</b> () const noexcept</td></tr>
+<tr class="memdesc:a82e50c4cc5f2da201d5240c0062d04e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a line stands on the board (cheaper than getLegalMoves) <br /></td></tr>
+<tr class="separator:a82e50c4cc5f2da201d5240c0062d04e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19ed5bf7cffb7383140864399f7ce5d6" id="r_a19ed5bf7cffb7383140864399f7ce5d6"><td class="memItemLeft" align="right" valign="top"><a id="a19ed5bf7cffb7383140864399f7ce5d6" name="a19ed5bf7cffb7383140864399f7ce5d6"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>getLegalMovesNoLines</b> (<a class="el" href="structMoveMask.html">MoveMask</a> &amp;legal_moves) const noexcept</td></tr>
+<tr class="memdesc:a19ed5bf7cffb7383140864399f7ce5d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Legal moves when no line stands (the caller knows, e.g. from hasLine): placement and movement rules only, no line search. <br /></td></tr>
+<tr class="separator:a19ed5bf7cffb7383140864399f7ce5d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbaccfe4e91543ff50429ecdcd0e39a8" id="r_afbaccfe4e91543ff50429ecdcd0e39a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#afbaccfe4e91543ff50429ecdcd0e39a8">key</a> (uint64_t &amp;<a class="el" href="classGame.html#a0a231fd714902fc55cd41bfad13db482">board</a>, uint64_t &amp;rest) const noexcept</td></tr>
+<tr class="memdesc:afbaccfe4e91543ff50429ecdcd0e39a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">An exact key for the position (board, both reserves, side to move)  <br /></td></tr>
+<tr class="separator:afbaccfe4e91543ff50429ecdcd0e39a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad39ad3196cb3aa65c8424e6786cfab50" id="r_ad39ad3196cb3aa65c8424e6786cfab50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ad39ad3196cb3aa65c8424e6786cfab50">lineSpaces</a> (uint16_t by_type[3]) const noexcept</td></tr>
+<tr class="memdesc:ad39ad3196cb3aa65c8424e6786cfab50"><td class="mdescLeft">&#160;</td><td class="mdescRight">The spaces that belong to a line on the board, by top type.  <br /></td></tr>
+<tr class="separator:ad39ad3196cb3aa65c8424e6786cfab50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7c12d8e77bd88012278b4f1a3ddf28a" id="r_ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ad7c12d8e77bd88012278b4f1a3ddf28a">writeGameState</a> (float game_state[kGameStateSize]) const noexcept</td></tr>
 <tr class="memdesc:ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a representation of the game state to a float array.  <br /></td></tr>
 <tr class="separator:ad7c12d8e77bd88012278b4f1a3ddf28a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -629,6 +647,45 @@ The game state does not know if it is a terminal state This is deduced by the <a
 
 </div>
 </div>
+<a id="afbaccfe4e91543ff50429ecdcd0e39a8" name="afbaccfe4e91543ff50429ecdcd0e39a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbaccfe4e91543ff50429ecdcd0e39a8">&#9670;&#160;</a></span>key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::key </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t &amp;&#160;</td>
+          <td class="paramname"><em>board</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t &amp;&#160;</td>
+          <td class="paramname"><em>rest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>An exact key for the position (board, both reserves, side to move) </p>
+<p>For transposition tables (<a class="el" href="solver_8h_source.html">solver.h</a>). Two games have equal keys exactly when they are the same position. </p>
+
+</div>
+</div>
 <a id="a20a0418147c59d100695f9152bec9713" name="a20a0418147c59d100695f9152bec9713"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a20a0418147c59d100695f9152bec9713">&#9670;&#160;</a></span>lineBreakers()</h2>
 
@@ -671,6 +728,35 @@ The game state does not know if it is a terminal state This is deduced by the <a
 
 <p>The set of moves that break every line currently on the board. </p>
 <p>One mask per line, ANDed together, rather than testing every move against every line. Four of the five ways to break a line are constant per shape and type and come straight from kLineBreakTable. The fifth &ndash; moving a stack onto the extending space &ndash; is the only one that depends on the board, and is masked by which moves currently start from a space topped by the line's type. </p>
+
+</div>
+</div>
+<a id="ad39ad3196cb3aa65c8424e6786cfab50" name="ad39ad3196cb3aa65c8424e6786cfab50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad39ad3196cb3aa65c8424e6786cfab50">&#9670;&#160;</a></span>lineSpaces()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Game::lineSpaces </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t&#160;</td>
+          <td class="paramname"><em>by_type</em>[3]</td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The spaces that belong to a line on the board, by top type. </p>
+<p>Bit i of by_type[t] is set when space i is part of a line topped by type t (base, column, capital). For network input features (pipeline/arch); the engine does not use it. </p>
 
 </div>
 </div>

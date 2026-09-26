@@ -98,6 +98,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1949e40ff85dbab92525780ac64472a6" id="r_a1949e40ff85dbab92525780ac64472a6"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a1949e40ff85dbab92525780ac64472a6">requests</a> () const noexcept</td></tr>
 <tr class="memdesc:a1949e40ff85dbab92525780ac64472a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The training batch, num_requests(-1) rows, to evaluate in place.  <br /></td></tr>
 <tr class="separator:a1949e40ff85dbab92525780ac64472a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa52a6fcf245c85029c731486cdda0e98" id="r_aa52a6fcf245c85029c731486cdda0e98"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#aa52a6fcf245c85029c731486cdda0e98">gameInSlot</a> (int32_t slot) const noexcept</td></tr>
+<tr class="memdesc:aa52a6fcf245c85029c731486cdda0e98"><td class="mdescLeft">&#160;</td><td class="mdescRight">The game whose rows are in batch slot <code>slot</code> (training only)  <br /></td></tr>
+<tr class="separator:aa52a6fcf245c85029c731486cdda0e98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c26b6ecf73700aaaaf18f05755363d8" id="r_a9c26b6ecf73700aaaaf18f05755363d8"><td class="memItemLeft" align="right" valign="top"><a id="a9c26b6ecf73700aaaaf18f05755363d8" name="a9c26b6ecf73700aaaaf18f05755363d8"></a>
+const <a class="el" href="classNode.html">Node</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>searchRoot</b> (int32_t game) const noexcept</td></tr>
+<tr class="memdesc:a9c26b6ecf73700aaaaf18f05755363d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Root of game <code>game</code>'s current search, or nullptr (measurements) <br /></td></tr>
+<tr class="separator:a9c26b6ecf73700aaaaf18f05755363d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b26e1a3e65d0d60f79ab18cb5676c9c" id="r_a0b26e1a3e65d0d60f79ab18cb5676c9c"><td class="memItemLeft" align="right" valign="top"><a id="a0b26e1a3e65d0d60f79ab18cb5676c9c" name="a0b26e1a3e65d0d60f79ab18cb5676c9c"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_samples</b> () const noexcept</td></tr>
 <tr class="memdesc:a0b26e1a3e65d0d60f79ab18cb5676c9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of training samples. <br /></td></tr>
@@ -109,6 +116,10 @@ float&#160;</td><td class="memItemRight" valign="bottom"><b>score</b> () const n
 <tr class="memitem:a48b44031a72097a72190ff63a032515f" id="r_a48b44031a72097a72190ff63a032515f"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a48b44031a72097a72190ff63a032515f">numWins</a> () const noexcept</td></tr>
 <tr class="memdesc:a48b44031a72097a72190ff63a032515f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of test games the new agent won outright.  <br /></td></tr>
 <tr class="separator:a48b44031a72097a72190ff63a032515f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac10b2bd6bc07f1c68638e151f03a6514" id="r_ac10b2bd6bc07f1c68638e151f03a6514"><td class="memItemLeft" align="right" valign="top"><a id="ac10b2bd6bc07f1c68638e151f03a6514" name="ac10b2bd6bc07f1c68638e151f03a6514"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>newScore</b> (int32_t game) const noexcept</td></tr>
+<tr class="memdesc:ac10b2bd6bc07f1c68638e151f03a6514"><td class="mdescLeft">&#160;</td><td class="mdescRight">The new agent's score (1, 0.5, 0) in test game <code>game</code>; same parity handling as <a class="el" href="classTrainer.html#a48b44031a72097a72190ff63a032515f" title="Number of test games the new agent won outright.">numWins()</a> <br /></td></tr>
+<tr class="separator:ac10b2bd6bc07f1c68638e151f03a6514"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea7c13348ff0f090f8a5dd468b2c2d7b" id="r_aea7c13348ff0f090f8a5dd468b2c2d7b"><td class="memItemLeft" align="right" valign="top"><a id="aea7c13348ff0f090f8a5dd468b2c2d7b" name="aea7c13348ff0f090f8a5dd468b2c2d7b"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>numDraws</b> () const noexcept</td></tr>
 <tr class="memdesc:aea7c13348ff0f090f8a5dd468b2c2d7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of drawn test games. <br /></td></tr>
@@ -135,6 +146,28 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>writeSamples</b> (flo
 void&#160;</td><td class="memItemRight" valign="bottom"><b>set_stagger_iterations</b> (int32_t iterations) noexcept</td></tr>
 <tr class="memdesc:a64a073e60c1f481b2af55dd32cebc559"><td class="mdescLeft">&#160;</td><td class="mdescRight">Spread the training games' starts evenly over this many iterations. 0 (the default) keeps the original rule, one start every max_searches / num_games iterations, which spreads them over max_searches iterations (~16 turns at 16 searches per iteration). <br /></td></tr>
 <tr class="separator:a64a073e60c1f481b2af55dd32cebc559"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf94e125c393a92a4bfb5ae618e6abe4" id="r_adf94e125c393a92a4bfb5ae618e6abe4"><td class="memItemLeft" align="right" valign="top"><a id="adf94e125c393a92a4bfb5ae618e6abe4" name="adf94e125c393a92a4bfb5ae618e6abe4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>enableSolver</b> (int32_t max_horizon, uint64_t max_nodes, int32_t num_threads, int32_t log2_table)</td></tr>
+<tr class="memdesc:adf94e125c393a92a4bfb5ae618e6abe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">End games by exact solution at horizon P &lt;= max_horizon, on num_threads solver threads (each with a 2^log2_table-entry table), giving up on a position after max_nodes (worklog 2026-09-25-nn-architectures, entry 14). Call before the first iteration. <br /></td></tr>
+<tr class="separator:adf94e125c393a92a4bfb5ae618e6abe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3274fd889bc4b39515e0665b402d455a" id="r_a3274fd889bc4b39515e0665b402d455a"><td class="memItemLeft" align="right" valign="top"><a id="a3274fd889bc4b39515e0665b402d455a" name="a3274fd889bc4b39515e0665b402d455a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setSolver</b> (<a class="el" href="classSolverPool.html">SolverPool</a> *pool, int32_t max_horizon)</td></tr>
+<tr class="memdesc:a3274fd889bc4b39515e0665b402d455a"><td class="mdescLeft">&#160;</td><td class="mdescRight">As enableSolver, with a pool the caller owns and may share between Trainers (its tables stay warm across them) <br /></td></tr>
+<tr class="separator:a3274fd889bc4b39515e0665b402d455a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa43ba02827b970d120f88af7e9f1a60f" id="r_aa43ba02827b970d120f88af7e9f1a60f"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#aa43ba02827b970d120f88af7e9f1a60f">finalizeSolves</a> ()</td></tr>
+<tr class="memdesc:aa43ba02827b970d120f88af7e9f1a60f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait for every submitted solve and apply its result; call before writeSamples, score and the result counts.  <br /></td></tr>
+<tr class="separator:aa43ba02827b970d120f88af7e9f1a60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a476bddef21a9088c137e8d94102f5846" id="r_a476bddef21a9088c137e8d94102f5846"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a476bddef21a9088c137e8d94102f5846">setNodeSolver</a> (int32_t max_horizon, uint64_t max_nodes, int32_t model=-1)</td></tr>
+<tr class="memdesc:a476bddef21a9088c137e8d94102f5846"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve search leaves with horizon P &lt;= max_horizon exactly, giving up after max_nodes (entry 15); call before the first iteration.  <br /></td></tr>
+<tr class="separator:a476bddef21a9088c137e8d94102f5846"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d19aa279f1ff5feeba5bd371d414a71" id="r_a2d19aa279f1ff5feeba5bd371d414a71"><td class="memItemLeft" align="right" valign="top"><a id="a2d19aa279f1ff5feeba5bd371d414a71" name="a2d19aa279f1ff5feeba5bd371d414a71"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>numAdjudicated</b> () const noexcept</td></tr>
+<tr class="memdesc:a2d19aa279f1ff5feeba5bd371d414a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Games ended by exact solution so far. <br /></td></tr>
+<tr class="separator:a2d19aa279f1ff5feeba5bd371d414a71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a425b0a972bef303f08431d1500d0f224" id="r_a425b0a972bef303f08431d1500d0f224"><td class="memItemLeft" align="right" valign="top"><a id="a425b0a972bef303f08431d1500d0f224" name="a425b0a972bef303f08431d1500d0f224"></a>
+const <a class="el" href="classSolverPool.html">SolverPool</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>solverPool</b> () const noexcept</td></tr>
+<tr class="memdesc:a425b0a972bef303f08431d1500d0f224"><td class="mdescLeft">&#160;</td><td class="mdescRight">The solver pool, or nullptr (for its statistics) <br /></td></tr>
+<tr class="separator:a425b0a972bef303f08431d1500d0f224"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7012e727c7b84b0a41706bc05fea1e7" id="r_af7012e727c7b84b0a41706bc05fea1e7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#af7012e727c7b84b0a41706bc05fea1e7">doIteration</a> (float eval[], float probs[], int32_t to_play=-1)</td></tr>
 <tr class="memdesc:af7012e727c7b84b0a41706bc05fea1e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">This is the main function that runs the self-play games. It is called by Cython in a loop.  <br /></td></tr>
 <tr class="separator:af7012e727c7b84b0a41706bc05fea1e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,6 +207,9 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>num_started_</b> {
 std::vector&lt; <a class="el" href="classSelfPlayer.html">SelfPlayer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>games_</b> {}</td></tr>
 <tr class="memdesc:aa99a0c1ff977c4f7a9059c25ae780dea"><td class="mdescLeft">&#160;</td><td class="mdescRight">The self-play games. <br /></td></tr>
 <tr class="separator:aa99a0c1ff977c4f7a9059c25ae780dea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc9c5271bc3304a209ba2c776042e04a" id="r_adc9c5271bc3304a209ba2c776042e04a"><td class="memItemLeft" align="right" valign="top"><a id="adc9c5271bc3304a209ba2c776042e04a" name="adc9c5271bc3304a209ba2c776042e04a"></a>
+std::unique_ptr&lt; <a class="el" href="classSolverPool.html">SolverPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>solver_pool_</b> {}</td></tr>
+<tr class="separator:adc9c5271bc3304a209ba2c776042e04a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3de1336deb4966ff104d12dfa0195433" id="r_a3de1336deb4966ff104d12dfa0195433"><td class="memItemLeft" align="right" valign="top"><a id="a3de1336deb4966ff104d12dfa0195433" name="a3de1336deb4966ff104d12dfa0195433"></a>
 std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>is_done_</b> {}</td></tr>
 <tr class="memdesc:a3de1336deb4966ff104d12dfa0195433"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tracks which games are done. <br /></td></tr>
@@ -242,6 +278,55 @@ std::mt19937&#160;</td><td class="memItemRight" valign="bottom"><b>generator_</b
 
 <p>This is the main function that runs the self-play games. It is called by Cython in a loop. </p>
 <dl class="section return"><dt>Returns</dt><dd>If all games are done </dd></dl>
+
+</div>
+</div>
+<a id="aa43ba02827b970d120f88af7e9f1a60f" name="aa43ba02827b970d120f88af7e9f1a60f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa43ba02827b970d120f88af7e9f1a60f">&#9670;&#160;</a></span>finalizeSolves()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Trainer::finalizeSolves </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Wait for every submitted solve and apply its result; call before writeSamples, score and the result counts. </p>
+<dl class="section return"><dt>Returns</dt><dd>Games whose result stayed unknown (counted as draws) </dd></dl>
+
+</div>
+</div>
+<a id="aa52a6fcf245c85029c731486cdda0e98" name="aa52a6fcf245c85029c731486cdda0e98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa52a6fcf245c85029c731486cdda0e98">&#9670;&#160;</a></span>gameInSlot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Trainer::gameInSlot </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>slot</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The game whose rows are in batch slot <code>slot</code> (training only) </p>
+<p>Rows [slot * searches_per_eval, (slot + 1) * searches_per_eval) of <a class="el" href="classTrainer.html#a1949e40ff85dbab92525780ac64472a6" title="The training batch, num_requests(-1) rows, to evaluate in place.">requests()</a> belong to this game. For measurements (worklog 2026-09-25-nn-architectures, entry 07). </p>
 
 </div>
 </div>
@@ -327,6 +412,56 @@ std::mt19937&#160;</td><td class="memItemRight" valign="bottom"><b>generator_</b
 
 <p>The training batch, num_requests(-1) rows, to evaluate in place. </p>
 <p>Each active game owns one slot of searches_per_eval rows and writes them during search, so nothing is copied. Results go back to doIteration in the same row layout. Training only. </p>
+
+</div>
+</div>
+<a id="a476bddef21a9088c137e8d94102f5846" name="a476bddef21a9088c137e8d94102f5846"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a476bddef21a9088c137e8d94102f5846">&#9670;&#160;</a></span>setNodeSolver()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Trainer::setNodeSolver </td>
+          <td>(</td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>max_horizon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>max_nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>model</em> = <code>-1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Solve search leaves with horizon P &lt;= max_horizon exactly, giving up after max_nodes (entry 15); call before the first iteration. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">model</td><td>In test games, only this model's side (0 new, 1 best); -1 both </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

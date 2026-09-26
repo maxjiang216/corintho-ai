@@ -905,59 +905,64 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>    {15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0},</div>
 <div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span>};</div>
 <div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span> </div>
-<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span><span class="comment">// Move mappings for board symmetries.</span></div>
-<div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span><span class="keyword">const</span> int32_t move_symmetries[kNumSymmetries][kNumMoves] = {</div>
-<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>    {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,</div>
-<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,</div>
-<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>     32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,</div>
-<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>     48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,</div>
-<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>     64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,</div>
-<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>     80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95},</div>
-<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>    {26, 25, 24, 29, 28, 27, 32, 31, 30, 35, 34, 33, 15, 14, 13, 12,</div>
-<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>     19, 18, 17, 16, 23, 22, 21, 20, 2,  1,  0,  5,  4,  3,  8,  7,</div>
-<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>     6,  11, 10, 9,  39, 38, 37, 36, 43, 42, 41, 40, 47, 46, 45, 44,</div>
-<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>     51, 50, 49, 48, 55, 54, 53, 52, 59, 58, 57, 56, 63, 62, 61, 60,</div>
-<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>     67, 66, 65, 64, 71, 70, 69, 68, 75, 74, 73, 72, 79, 78, 77, 76,</div>
-<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>     83, 82, 81, 80, 87, 86, 85, 84, 91, 90, 89, 88, 95, 94, 93, 92},</div>
-<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>    {15, 19, 23, 14, 18, 22, 13, 17, 21, 12, 16, 20, 26, 29, 32, 35,</div>
-<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>     25, 28, 31, 34, 24, 27, 30, 33, 39, 43, 47, 38, 42, 46, 37, 41,</div>
-<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>     45, 36, 40, 44, 2,  5,  8,  11, 1,  4,  7,  10, 0,  3,  6,  9,</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>     51, 55, 59, 63, 50, 54, 58, 62, 49, 53, 57, 61, 48, 52, 56, 60,</div>
-<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>     67, 71, 75, 79, 66, 70, 74, 78, 65, 69, 73, 77, 64, 68, 72, 76,</div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>     83, 87, 91, 95, 82, 86, 90, 94, 81, 85, 89, 93, 80, 84, 88, 92},</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    {12, 16, 20, 13, 17, 21, 14, 18, 22, 15, 19, 23, 0,  3,  6,  9,</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>     1,  4,  7,  10, 2,  5,  8,  11, 36, 40, 44, 37, 41, 45, 38, 42,</div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>     46, 39, 43, 47, 24, 27, 30, 33, 25, 28, 31, 34, 26, 29, 32, 35,</div>
-<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>     48, 52, 56, 60, 49, 53, 57, 61, 50, 54, 58, 62, 51, 55, 59, 63,</div>
-<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>     64, 68, 72, 76, 65, 69, 73, 77, 66, 70, 74, 78, 67, 71, 75, 79,</div>
-<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>     80, 84, 88, 92, 81, 85, 89, 93, 82, 86, 90, 94, 83, 87, 91, 95},</div>
-<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>    {35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 47, 46, 45, 44,</div>
-<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>     43, 42, 41, 40, 39, 38, 37, 36, 11, 10, 9,  8,  7,  6,  5,  4,</div>
-<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>     3,  2,  1,  0,  23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,</div>
-<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>     63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,</div>
-<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>     79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64,</div>
-<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>     95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80},</div>
-<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>    {9,  10, 11, 6,  7,  8,  3,  4,  5,  0,  1,  2,  44, 45, 46, 47,</div>
-<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>     40, 41, 42, 43, 36, 37, 38, 39, 33, 34, 35, 30, 31, 32, 27, 28,</div>
-<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>     29, 24, 25, 26, 20, 21, 22, 23, 16, 17, 18, 19, 12, 13, 14, 15,</div>
-<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>     60, 61, 62, 63, 56, 57, 58, 59, 52, 53, 54, 55, 48, 49, 50, 51,</div>
-<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>     76, 77, 78, 79, 72, 73, 74, 75, 68, 69, 70, 71, 64, 65, 66, 67,</div>
-<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>     92, 93, 94, 95, 88, 89, 90, 91, 84, 85, 86, 87, 80, 81, 82, 83},</div>
-<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>    {44, 40, 36, 45, 41, 37, 46, 42, 38, 47, 43, 39, 9,  6,  3,  0,</div>
-<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>     10, 7,  4,  1,  11, 8,  5,  2,  20, 16, 12, 21, 17, 13, 22, 18,</div>
-<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>     14, 23, 19, 15, 33, 30, 27, 24, 34, 31, 28, 25, 35, 32, 29, 26,</div>
-<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>     60, 56, 52, 48, 61, 57, 53, 49, 62, 58, 54, 50, 63, 59, 55, 51,</div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>     76, 72, 68, 64, 77, 73, 69, 65, 78, 74, 70, 66, 79, 75, 71, 67,</div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>     92, 88, 84, 80, 93, 89, 85, 81, 94, 90, 86, 82, 95, 91, 87, 83},</div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>    {47, 43, 39, 46, 42, 38, 45, 41, 37, 44, 40, 36, 35, 32, 29, 26,</div>
-<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>     34, 31, 28, 25, 33, 30, 27, 24, 23, 19, 15, 22, 18, 14, 21, 17,</div>
-<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>     13, 20, 16, 12, 11, 8,  5,  2,  10, 7,  4,  1,  9,  6,  3,  0,</div>
-<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>     63, 59, 55, 51, 62, 58, 54, 50, 61, 57, 53, 49, 60, 56, 52, 48,</div>
-<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>     79, 75, 71, 67, 78, 74, 70, 66, 77, 73, 69, 65, 76, 72, 68, 64,</div>
-<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>     95, 91, 87, 83, 94, 90, 86, 82, 93, 89, 85, 81, 92, 88, 84, 80},</div>
-<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>};</div>
-<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span> </div>
-<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span><span class="comment">// Move mappings for board symmetries. Row k maps moves the same way row k of</span></div>
+<div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span><span class="comment">// space_symmetries maps spaces: a sample&#39;s symmetric copy k takes move</span></div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span><span class="comment">// move_symmetries[k][j] as its move j. Rows 2 and 6 (the two quarter turns)</span></div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span><span class="comment">// were swapped until 2026-09-25, so those two copies of every sample carried</span></div>
+<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span><span class="comment">// their policy targets rotated the wrong way (worklog 2026-09-25-nn-</span></div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span><span class="comment">// architectures, entry 03; checked by GameTest.SymmetryTablesAgree).</span></div>
+<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span><span class="keyword">const</span> int32_t move_symmetries[kNumSymmetries][kNumMoves] = {</div>
+<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>    {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,</div>
+<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>     32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,</div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>     48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,</div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>     64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,</div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>     80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95},</div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    {26, 25, 24, 29, 28, 27, 32, 31, 30, 35, 34, 33, 15, 14, 13, 12,</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>     19, 18, 17, 16, 23, 22, 21, 20, 2,  1,  0,  5,  4,  3,  8,  7,</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>     6,  11, 10, 9,  39, 38, 37, 36, 43, 42, 41, 40, 47, 46, 45, 44,</div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>     51, 50, 49, 48, 55, 54, 53, 52, 59, 58, 57, 56, 63, 62, 61, 60,</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>     67, 66, 65, 64, 71, 70, 69, 68, 75, 74, 73, 72, 79, 78, 77, 76,</div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>     83, 82, 81, 80, 87, 86, 85, 84, 91, 90, 89, 88, 95, 94, 93, 92},</div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>    {44, 40, 36, 45, 41, 37, 46, 42, 38, 47, 43, 39, 9,  6,  3,  0,</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>     10, 7,  4,  1,  11, 8,  5,  2,  20, 16, 12, 21, 17, 13, 22, 18,</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>     14, 23, 19, 15, 33, 30, 27, 24, 34, 31, 28, 25, 35, 32, 29, 26,</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>     60, 56, 52, 48, 61, 57, 53, 49, 62, 58, 54, 50, 63, 59, 55, 51,</div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>     76, 72, 68, 64, 77, 73, 69, 65, 78, 74, 70, 66, 79, 75, 71, 67,</div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>     92, 88, 84, 80, 93, 89, 85, 81, 94, 90, 86, 82, 95, 91, 87, 83},</div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>    {12, 16, 20, 13, 17, 21, 14, 18, 22, 15, 19, 23, 0,  3,  6,  9,</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>     1,  4,  7,  10, 2,  5,  8,  11, 36, 40, 44, 37, 41, 45, 38, 42,</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>     46, 39, 43, 47, 24, 27, 30, 33, 25, 28, 31, 34, 26, 29, 32, 35,</div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>     48, 52, 56, 60, 49, 53, 57, 61, 50, 54, 58, 62, 51, 55, 59, 63,</div>
+<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>     64, 68, 72, 76, 65, 69, 73, 77, 66, 70, 74, 78, 67, 71, 75, 79,</div>
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>     80, 84, 88, 92, 81, 85, 89, 93, 82, 86, 90, 94, 83, 87, 91, 95},</div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>    {35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 47, 46, 45, 44,</div>
+<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>     43, 42, 41, 40, 39, 38, 37, 36, 11, 10, 9,  8,  7,  6,  5,  4,</div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>     3,  2,  1,  0,  23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,</div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>     63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48,</div>
+<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>     79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64,</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>     95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80},</div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>    {9,  10, 11, 6,  7,  8,  3,  4,  5,  0,  1,  2,  44, 45, 46, 47,</div>
+<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>     40, 41, 42, 43, 36, 37, 38, 39, 33, 34, 35, 30, 31, 32, 27, 28,</div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>     29, 24, 25, 26, 20, 21, 22, 23, 16, 17, 18, 19, 12, 13, 14, 15,</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>     60, 61, 62, 63, 56, 57, 58, 59, 52, 53, 54, 55, 48, 49, 50, 51,</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>     76, 77, 78, 79, 72, 73, 74, 75, 68, 69, 70, 71, 64, 65, 66, 67,</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>     92, 93, 94, 95, 88, 89, 90, 91, 84, 85, 86, 87, 80, 81, 82, 83},</div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>    {15, 19, 23, 14, 18, 22, 13, 17, 21, 12, 16, 20, 26, 29, 32, 35,</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>     25, 28, 31, 34, 24, 27, 30, 33, 39, 43, 47, 38, 42, 46, 37, 41,</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>     45, 36, 40, 44, 2,  5,  8,  11, 1,  4,  7,  10, 0,  3,  6,  9,</div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>     51, 55, 59, 63, 50, 54, 58, 62, 49, 53, 57, 61, 48, 52, 56, 60,</div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>     67, 71, 75, 79, 66, 70, 74, 78, 65, 69, 73, 77, 64, 68, 72, 76,</div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>     83, 87, 91, 95, 82, 86, 90, 94, 81, 85, 89, 93, 80, 84, 88, 92},</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>    {47, 43, 39, 46, 42, 38, 45, 41, 37, 44, 40, 36, 35, 32, 29, 26,</div>
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>     34, 31, 28, 25, 33, 30, 27, 24, 23, 19, 15, 22, 18, 14, 21, 17,</div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>     13, 20, 16, 12, 11, 8,  5,  2,  10, 7,  4,  1,  9,  6,  3,  0,</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>     63, 59, 55, 51, 62, 58, 54, 50, 61, 57, 53, 49, 60, 56, 52, 48,</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>     79, 75, 71, 67, 78, 74, 70, 66, 77, 73, 69, 65, 76, 72, 68, 64,</div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>     95, 91, 87, 83, 94, 90, 86, 82, 93, 89, 85, 81, 92, 88, 84, 80},</div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>};</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span> </div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="astructLineShape_html"><div class="ttname"><a href="structLineShape.html">LineShape</a></div><div class="ttdoc">A straight line of three or four spaces, for win detection.</div><div class="ttdef"><b>Definition</b> util.h:179</div></div>
 <div class="ttc" id="astructLineShape_html_a59b95e44e6adcc4b87dab446e0bed87f"><div class="ttname"><a href="structLineShape.html#a59b95e44e6adcc4b87dab446e0bed87f">LineShape::cells</a></div><div class="ttdeci">int8_t cells[4]</div><div class="ttdoc">Board indices, row * 4 + col; only the first count are used.</div><div class="ttdef"><b>Definition</b> util.h:181</div></div>
 <div class="ttc" id="astructLineShape_html_a9206688dd138d9f66dd30ab9388c6f5d"><div class="ttname"><a href="structLineShape.html#a9206688dd138d9f66dd30ab9388c6f5d">LineShape::extend</a></div><div class="ttdeci">int8_t extend</div><div class="ttdoc">The space that would extend a three into a four, or -1.</div><div class="ttdef"><b>Definition</b> util.h:187</div></div>

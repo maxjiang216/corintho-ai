@@ -10,8 +10,9 @@ var searchData=
   ['choosemoveopening_7',['chooseMoveOpening',['../classTrainMC.html#ac7620abbf4812e189778d4038cdbd318',1,'TrainMC']]],
   ['choosemovewon_8',['chooseMoveWon',['../classTrainMC.html#a4f19b4bb1f403460587a2830e1a68c07',1,'TrainMC']]],
   ['choosenext_9',['chooseNext',['../classTrainMC.html#abecc145117f6b2f56f224e75cea01821',1,'TrainMC']]],
-  ['col_5ffrom_10',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
-  ['col_5fto_11',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
-  ['computespaceinfo_12',['computeSpaceInfo',['../classGame.html#a5e72c34fc73123625217a2eb2d06b0e3',1,'Game']]],
-  ['createroot_13',['createRoot',['../classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4',1,'TrainMC']]]
+  ['clear_10',['clear',['../classSolver.html#abfa11cdebeeb351a5221b4c7650b3962',1,'Solver']]],
+  ['col_5ffrom_11',['col_from',['../classMove.html#a4ec1a8db9c8f5dfbf976a88207910f45',1,'Move']]],
+  ['col_5fto_12',['col_to',['../classMove.html#aaff7232938ef62c4c6a196e4b59e6d53',1,'Move']]],
+  ['computespaceinfo_13',['computeSpaceInfo',['../classGame.html#a5e72c34fc73123625217a2eb2d06b0e3',1,'Game']]],
+  ['createroot_14',['createRoot',['../classTrainMC.html#a680349df19cb86cb3a50af882aa5c4e4',1,'TrainMC']]]
 ];

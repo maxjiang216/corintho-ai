@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['sample_0',['Sample',['../structSample.html',1,'']]],
-  ['selfplayer_1',['SelfPlayer',['../classSelfPlayer.html',1,'']]],
-  ['space_2',['Space',['../structSpace.html',1,'']]],
-  ['spaceinfo_3',['SpaceInfo',['../structGame_1_1SpaceInfo.html',1,'Game']]],
-  ['statsslot_4',['StatsSlot',['../structNode_1_1StatsSlot.html',1,'Node']]]
+  ['player_0',['Player',['../structPlayer.html',1,'']]],
+  ['pool_1',['Pool',['../structArena_1_1Pool.html',1,'Arena']]],
+  ['presentline_2',['PresentLine',['../structGame_1_1PresentLine.html',1,'Game']]]
 ];

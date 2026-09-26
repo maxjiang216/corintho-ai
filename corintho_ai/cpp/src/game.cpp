@@ -114,9 +114,9 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   uint32_t place[3];
   place[kBase] = info.empty;
   place[kColumn] = unfrozen & ~info.has[kColumn] & ~info.has[kCapital] & all;
-  place[kCapital] = unfrozen & ~info.has[kCapital] &
-                    (~static_cast<uint32_t>(info.has[kBase]) |
-                     info.has[kColumn]) & all;
+  place[kCapital] =
+      unfrozen & ~info.has[kCapital] &
+      (~static_cast<uint32_t>(info.has[kBase]) | info.has[kColumn]) & all;
   for (int32_t p = 0; p < 3; ++p) {
     if (pieces_[to_play_ * 3 + p] == 0)
       place[p] = 0;
@@ -126,12 +126,12 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   // spaces occupied each is in {0,1,2}, so only two pairings are possible:
   // a column-bottomed stack onto a base-topped space, or a capital-bottomed
   // stack onto a column-topped one. ---
-  const uint32_t src_col = info.has[kColumn] &
-                           ~static_cast<uint32_t>(info.has[kBase]) & unfrozen;
+  const uint32_t src_col =
+      info.has[kColumn] & ~static_cast<uint32_t>(info.has[kBase]) & unfrozen;
   const uint32_t dst_base = info.top_plane[kBase] & unfrozen;
-  const uint32_t src_cap = info.has[kCapital] &
-                           ~static_cast<uint32_t>(info.has[kBase]) &
-                           ~static_cast<uint32_t>(info.has[kColumn]) & unfrozen;
+  const uint32_t src_cap =
+      info.has[kCapital] & ~static_cast<uint32_t>(info.has[kBase]) &
+      ~static_cast<uint32_t>(info.has[kColumn]) & unfrozen;
   const uint32_t dst_col = info.top_plane[kColumn] & unfrozen;
 
   MoveMask legal;
@@ -146,14 +146,14 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   // tests all sixteen spaces at once; the file masks stop a row wrapping.
   const uint32_t kNotFileD = 0x7777U;  // source may step right
   const uint32_t kNotFileA = 0xEEEEU;  // source may step left
-  const uint32_t right = (((dst_base >> 1) & src_col) |
-                        ((dst_col >> 1) & src_cap)) & kNotFileD;
-  const uint32_t left = (((dst_base << 1) & src_col) |
-                        ((dst_col << 1) & src_cap)) & kNotFileA;
-  const uint32_t down = (((dst_base >> 4) & src_col) |
-                        ((dst_col >> 4) & src_cap)) & all;
-  const uint32_t up = (((dst_base << 4) & src_col) |
-                       ((dst_col << 4) & src_cap)) & all;
+  const uint32_t right =
+      (((dst_base >> 1) & src_col) | ((dst_col >> 1) & src_cap)) & kNotFileD;
+  const uint32_t left =
+      (((dst_base << 1) & src_col) | ((dst_col << 1) & src_cap)) & kNotFileA;
+  const uint32_t down =
+      (((dst_base >> 4) & src_col) | ((dst_col >> 4) & src_cap)) & all;
+  const uint32_t up =
+      (((dst_base << 4) & src_col) | ((dst_col << 4) & src_cap)) & all;
 
   // Down and up land on contiguous ID ranges, so they shift in directly.
   legal.lo |= static_cast<uint64_t>(down & 0x0FFFU) << 12;
@@ -422,7 +422,8 @@ void Game::set_frozen(Space space, bool state) noexcept {
   board_[space.row * 16 + space.col * 4 + kFrozen] = state;
 }
 
-bool Game::canPlace(const MoveInfo &move, const SpaceInfo &info) const noexcept {
+bool Game::canPlace(const MoveInfo &move,
+                    const SpaceInfo &info) const noexcept {
   assert(move.is_place);
   const int32_t to = move.to;
   // Check if player has the piece left
@@ -449,7 +450,8 @@ bool Game::canPlace(const MoveInfo &move, const SpaceInfo &info) const noexcept 
            (board_[to * 4 + kBase] && !board_[to * 4 + kColumn]));
 }
 
-bool Game::canMove(const MoveInfo &move, const SpaceInfo &info) const noexcept {
+bool Game::canMove(const MoveInfo &move,
+                   const SpaceInfo &info) const noexcept {
   assert(!move.is_place);
   const int32_t from = move.from;
   const int32_t to = move.to;

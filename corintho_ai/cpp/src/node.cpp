@@ -247,8 +247,9 @@ Node::ChildStats Node::child_stats() const noexcept {
   auto *evaluation = reinterpret_cast<float *>(child + cap);
   auto *visits = evaluation + cap;
   auto *flags = reinterpret_cast<uint8_t *>(visits + cap);
-  return ChildStats{child,      evaluation,  visits,      flags,
-                    block_->num_children, block_->edges, denominator_};
+  return ChildStats{child,       evaluation,           visits,
+                    flags,       block_->num_children, block_->edges,
+                    denominator_};
 }
 
 int8_t Node::addChild(Node *child) {
@@ -265,12 +266,12 @@ int8_t Node::addChild(Node *child) {
     static_assert(statsBytes(15) <= 2 * Arena::kLarge);
     static_assert(statsBytes(kMaxEdges) <= Arena::kMaxBlock);
     const int32_t old_cap = b.capacity;
-    const int32_t new_cap = std::min<int32_t>(
-        old_cap == 0   ? 3
-        : old_cap == 3 ? 7
-        : old_cap == 7 ? 15
-                       : num_legal_moves_,
-        num_legal_moves_);
+    const int32_t new_cap =
+        std::min<int32_t>(old_cap == 0   ? 3
+                          : old_cap == 3 ? 7
+                          : old_cap == 7 ? 15
+                                         : num_legal_moves_,
+                          num_legal_moves_);
     assert(new_cap > old_cap);
     auto *fresh = static_cast<unsigned char *>(
         Arena::get().allocate(statsBytes(new_cap)));

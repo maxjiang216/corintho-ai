@@ -23,11 +23,10 @@ import copy
 import json
 import time
 
+import model as M
 import numpy as np
 import torch
 import torch.nn.functional as F
-
-import model as M
 
 VALUE_WEIGHT, POLICY_WEIGHT = 1.0, 0.25
 
@@ -41,8 +40,11 @@ def load_samples(dirs, device):
         states.append(torch.from_numpy(q.astype(np.uint8)))
         values.append(torch.from_numpy(np.load(f"{d}/values.npy").reshape(-1)))
         policies.append(torch.from_numpy(np.load(f"{d}/policies.npy")))
-    return (torch.cat(states).to(device), torch.cat(values).to(device),
-            torch.cat(policies).to(device))
+    return (
+        torch.cat(states).to(device),
+        torch.cat(values).to(device),
+        torch.cat(policies).to(device),
+    )
 
 
 def losses(net, states_u8, values, policies):
@@ -71,8 +73,10 @@ class GraphStep:
         params = list(net.parameters()) + list(net.buffers())
         saved = [t.detach().clone() for t in params]
         had_state = len(opt.state) > 0
-        saved_opt = {id(p): {k: v.clone() for k, v in st.items() if torch.is_tensor(v)}
-                     for p, st in opt.state.items()}
+        saved_opt = {
+            id(p): {k: v.clone() for k, v in st.items() if torch.is_tensor(v)}
+            for p, st in opt.state.items()
+        }
 
         def step():
             vl, pl = losses(net, *(t[self.idx] for t in train))
@@ -117,17 +121,26 @@ def evaluate(net, data, batch):
     n = data[0].shape[0]
     with torch.no_grad():
         for i in range(0, n, batch):
-            vl, pl = losses(net, *(t[i:i + batch] for t in data))
+            vl, pl = losses(net, *(t[i : i + batch] for t in data))
             k = min(batch, n - i)
-            totals += k * np.array([VALUE_WEIGHT * vl.item() + POLICY_WEIGHT * pl.item(),
-                                    vl.item(), pl.item()])
+            totals += k * np.array(
+                [
+                    VALUE_WEIGHT * vl.item() + POLICY_WEIGHT * pl.item(),
+                    vl.item(),
+                    pl.item(),
+                ]
+            )
     return totals / n
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--init", required=True, help="model prefix to start from (.pt)")
-    ap.add_argument("--samples", required=True, nargs="+", help="sample directories")
+    ap.add_argument(
+        "--init", required=True, help="model prefix to start from (.pt)"
+    )
+    ap.add_argument(
+        "--samples", required=True, nargs="+", help="sample directories"
+    )
     ap.add_argument("--out", required=True, help="output model prefix")
     ap.add_argument("--lr", type=float, default=5e-6)
     ap.add_argument("--epochs", type=int, default=10)
@@ -136,8 +149,12 @@ def main():
     ap.add_argument("--patience", type=int, default=2)
     ap.add_argument("--anneal", type=float, default=0.5)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--no-graph", dest="graph", action="store_false",
-                    help="plain eager steps instead of a CUDA graph (checks)")
+    ap.add_argument(
+        "--no-graph",
+        dest="graph",
+        action="store_false",
+        help="plain eager steps instead of a CUDA graph (checks)",
+    )
     args = ap.parse_args()
 
     t0 = time.perf_counter()
@@ -151,8 +168,13 @@ def main():
     # fused: one kernel for the whole update instead of several per tensor
     # capturable: the update reads the step count and learning rate from GPU
     # tensors, so it can be recorded in a CUDA graph
-    opt = torch.optim.Adam(net.parameters(), lr=torch.tensor(args.lr, device=device),
-                           eps=1e-7, fused=True, capturable=True)
+    opt = torch.optim.Adam(
+        net.parameters(),
+        lr=torch.tensor(args.lr, device=device),
+        eps=1e-7,
+        fused=True,
+        capturable=True,
+    )
     if "optimizer" in state:
         opt.load_state_dict(state["optimizer"])
         # load_state_dict also restores the saved param_group flags, and a
@@ -163,20 +185,24 @@ def main():
         for st in opt.state.values():
             for k, v in st.items():
                 if torch.is_tensor(v):
-                    st[k] = v.to(device=device, dtype=torch.float32 if k == "step" else v.dtype)
+                    st[k] = v.to(
+                        device=device,
+                        dtype=torch.float32 if k == "step" else v.dtype,
+                    )
     for group in opt.param_groups:  # the run's schedule sets the rate
         if torch.is_tensor(group["lr"]):
             group["lr"].fill_(args.lr)
         else:  # state saved before the optimizer was capturable
             group["lr"] = torch.tensor(args.lr, device=device)
     sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        opt, factor=args.anneal, patience=args.patience)
+        opt, factor=args.anneal, patience=args.patience
+    )
 
     data = load_samples(args.samples, device)
     n = data[0].shape[0]
     n_val = int(n * args.val_split)
-    train = tuple(t[:n - n_val] for t in data)
-    val = tuple(t[n - n_val:] for t in data)
+    train = tuple(t[: n - n_val] for t in data)
+    val = tuple(t[n - n_val :] for t in data)
     t_loaded = time.perf_counter()
     net.train()
     graph = GraphStep(net, opt, train, args.batch) if args.graph else None
@@ -191,7 +217,7 @@ def main():
         total = torch.zeros((), device=device, dtype=torch.float64)
         count = 0
         for i in range(0, perm.numel(), args.batch):
-            idx = perm[i:i + args.batch]
+            idx = perm[i : i + args.batch]
             if graph is not None and idx.numel() == args.batch:
                 loss = graph(idx)  # zeroing grads is part of the graph's pool
             else:
@@ -212,16 +238,27 @@ def main():
         val_loss, val_value, val_policy = evaluate(net, val, 8192)
         lr = float(opt.param_groups[0]["lr"])
         sched.step(val_loss)
-        rows.append({"epoch": epoch, "loss": total / count, "val_loss": val_loss,
-                     "val_value_loss": val_value, "val_policy_loss": val_policy,
-                     "lr": lr})
+        rows.append(
+            {
+                "epoch": epoch,
+                "loss": total / count,
+                "val_loss": val_loss,
+                "val_value_loss": val_value,
+                "val_policy_loss": val_policy,
+                "lr": lr,
+            }
+        )
         if best is None or val_loss < best["val_loss"]:
             best = dict(rows[-1])
-            best_state = {k: v.detach().clone() for k, v in net.state_dict().items()}
+            best_state = {
+                k: v.detach().clone() for k, v in net.state_dict().items()
+            }
             best_opt = copy.deepcopy(opt.state_dict())
-        print(f"epoch {epoch}: loss {total / count:.5f}  val {val_loss:.5f} "
-              f"(value {val_value:.5f}, policy {val_policy:.5f})  lr {lr:.3g}",
-              flush=True)
+        print(
+            f"epoch {epoch}: loss {total / count:.5f}  val {val_loss:.5f} "
+            f"(value {val_value:.5f}, policy {val_policy:.5f})  lr {lr:.3g}",
+            flush=True,
+        )
     t_fit = time.perf_counter()
 
     net.load_state_dict(best_state)
@@ -230,15 +267,35 @@ def main():
     with open(f"{args.out}_loss.csv", "w") as f:
         f.write("epoch\tloss\tval_loss\tval_value_loss\tval_policy_loss\tlr\n")
         for r in rows:
-            f.write("\t".join(str(r[k]) for k in
-                              ("epoch", "loss", "val_loss", "val_value_loss",
-                               "val_policy_loss", "lr")) + "\n")
-    info = {"samples": n, "train_rows": n - n_val, "val_rows": n_val,
-            "epochs": args.epochs, "batch": args.batch, "lr": args.lr,
-            "best_epoch": best["epoch"], "best_val_loss": best["val_loss"],
-            "load_seconds": t_loaded - t0, "fit_seconds": t_fit - t_loaded,
-            "total_seconds": time.perf_counter() - t0, "init": args.init,
-            "sample_dirs": args.samples}
+            f.write(
+                "\t".join(
+                    str(r[k])
+                    for k in (
+                        "epoch",
+                        "loss",
+                        "val_loss",
+                        "val_value_loss",
+                        "val_policy_loss",
+                        "lr",
+                    )
+                )
+                + "\n"
+            )
+    info = {
+        "samples": n,
+        "train_rows": n - n_val,
+        "val_rows": n_val,
+        "epochs": args.epochs,
+        "batch": args.batch,
+        "lr": args.lr,
+        "best_epoch": best["epoch"],
+        "best_val_loss": best["val_loss"],
+        "load_seconds": t_loaded - t0,
+        "fit_seconds": t_fit - t_loaded,
+        "total_seconds": time.perf_counter() - t0,
+        "init": args.init,
+        "sample_dirs": args.samples,
+    }
     with open(f"{args.out}_fit.json", "w") as f:
         json.dump(info, f, indent=2)
     print(json.dumps(info))

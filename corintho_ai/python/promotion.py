@@ -27,11 +27,13 @@ import math
 
 # Two-sided z for a few common confidence levels. Avoids a scipy dependency;
 # the training image already carries enough.
-_Z = {0.80: 1.2815515655446004,
-      0.90: 1.6448536269514722,
-      0.95: 1.9599639845400545,
-      0.98: 2.3263478740408408,
-      0.99: 2.5758293035489004}
+_Z = {
+    0.80: 1.2815515655446004,
+    0.90: 1.6448536269514722,
+    0.95: 1.9599639845400545,
+    0.98: 2.3263478740408408,
+    0.99: 2.5758293035489004,
+}
 
 
 def z_for(confidence):
@@ -83,7 +85,9 @@ def should_promote(wins, draws, games, confidence=0.95):
         "losses": losses,
         "decisive": decisive,
         "win_rate_decisive": (wins / decisive) if decisive else float("nan"),
-        "score_with_draws": ((wins + 0.5 * draws) / games) if games else float("nan"),
+        "score_with_draws": ((wins + 0.5 * draws) / games)
+        if games
+        else float("nan"),
         "ci_low": low,
         "ci_high": high,
         "confidence": confidence,
@@ -98,6 +102,7 @@ def describe(info):
         "decisive win rate {win_rate_decisive:.4f}  "
         "{confidence:.0%} CI [{ci_low:.4f}, {ci_high:.4f}]  "
         "score(with draws) {score_with_draws:.4f}  "
-        "-> {verdict}".format(verdict="PROMOTE" if info["promote"] else "reject",
-                              **info)
+        "-> {verdict}".format(
+            verdict="PROMOTE" if info["promote"] else "reject", **info
+        )
     )

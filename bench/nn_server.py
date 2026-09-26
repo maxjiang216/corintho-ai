@@ -35,7 +35,9 @@ def read_exact(stream, size):
 def main():
     interpreter = Interpreter(model_path=sys.argv[1])
     inp = interpreter.get_input_details()[0]["index"]
-    outs = {d["shape"][-1]: d["index"] for d in interpreter.get_output_details()}
+    outs = {
+        d["shape"][-1]: d["index"] for d in interpreter.get_output_details()
+    }
     value_idx, prob_idx = outs[1], outs[MOVES]
     size = 0
     stdin, stdout = sys.stdin.buffer, sys.stdout.buffer

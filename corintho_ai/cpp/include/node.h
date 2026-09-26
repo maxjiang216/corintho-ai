@@ -58,7 +58,9 @@ class alignas(64) Node {
   /// @brief Nodes come from the per-thread arena, not from malloc
   /// @details Routing allocation here rather than changing every call site
   /// keeps ownership and the recursive destructor exactly as they were.
-  static void *operator new(size_t bytes) { return Arena::get().allocate(bytes); }
+  static void *operator new(size_t bytes) {
+    return Arena::get().allocate(bytes);
+  }
   static void operator delete(void *p, size_t bytes) noexcept {
     Arena::get().deallocate(p, bytes);
   }
@@ -179,7 +181,6 @@ class alignas(64) Node {
   void printKnownLines(std::ostream *log_file) const;
 
  private:
-
   /// @brief The edges plus the header of the child-statistics block
   /// @details One 128-byte arena slot, allocated for every non-terminal node.
   /// 48 edges take 96 bytes; the header uses the rest of the slot, which

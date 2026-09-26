@@ -213,11 +213,11 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     // chooses the span; the games themselves are the same either way.
     size_t due_count;
     if (stagger_iterations_ > 0) {
-      due_count = std::min(
-          games_.size(),
-          ((static_cast<size_t>(searches_done_) + 1) * games_.size() +
-           static_cast<size_t>(stagger_iterations_) - 1) /
-              static_cast<size_t>(stagger_iterations_));
+      due_count =
+          std::min(games_.size(),
+                   ((static_cast<size_t>(searches_done_) + 1) * games_.size() +
+                    static_cast<size_t>(stagger_iterations_) - 1) /
+                       static_cast<size_t>(stagger_iterations_));
     } else {
       const size_t stride =
           std::max(games_.size() / max_searches_, static_cast<size_t>(1));

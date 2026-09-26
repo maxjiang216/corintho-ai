@@ -51,8 +51,8 @@ constexpr RefShape kRefShapes[34] = {
     {{3, 7, 11, 15}, 4, -1},   {{3, 7, 11}, 3, 15},   {{7, 11, 15}, 3, 3},
     {{0, 5, 10, 15}, 4, -1},   {{0, 5, 10}, 3, 15},   {{5, 10, 15}, 3, 0},
     {{3, 6, 9, 12}, 4, -1},    {{3, 6, 9}, 3, 12},    {{6, 9, 12}, 3, 3},
-    {{5, 2, 8}, 3, -1},        {{6, 1, 11}, 3, -1},
-    {{10, 7, 13}, 3, -1},      {{9, 4, 14}, 3, -1},
+    {{5, 2, 8}, 3, -1},        {{6, 1, 11}, 3, -1},   {{10, 7, 13}, 3, -1},
+    {{9, 4, 14}, 3, -1},
 };
 
 // --- Private copies of the board accessors. ---
@@ -67,7 +67,8 @@ bool refFrozen(const std::bitset<4 * kBoardSize> &board,
   return board[cell * 4 + kFrozen];
 }
 
-bool refEmpty(const std::bitset<4 * kBoardSize> &board, int32_t cell) noexcept {
+bool refEmpty(const std::bitset<4 * kBoardSize> &board,
+              int32_t cell) noexcept {
   return !(refBoard(board, cell, kBase) || refBoard(board, cell, kColumn) ||
            refBoard(board, cell, kCapital));
 }

@@ -51,7 +51,9 @@ def load_mlp(path):
     with open(path, "rb") as f:
         data = f.read()
     assert data[:4] == b"CMLP"
-    version, input_size, width, depth, moves = struct.unpack_from("<5I", data, 4)
+    version, input_size, width, depth, moves = struct.unpack_from(
+        "<5I", data, 4
+    )
     assert version == 1
     floats = np.frombuffer(data, dtype="<f4", offset=24)
     net = Net(input_size, width, depth, moves)
@@ -104,13 +106,17 @@ def main():
     net16 = Net(input_size, net.value.in_features, len(net.hidden), moves)
     net16.load_state_dict(net.state_dict())
     net16 = net16.to(dev).half().eval()
-    print(f"{torch.cuda.get_device_name(0)}, torch {torch.__version__}, "
-          f"CUDA {torch.version.cuda}")
+    print(
+        f"{torch.cuda.get_device_name(0)}, torch {torch.__version__}, "
+        f"CUDA {torch.version.cuda}"
+    )
 
     rng = np.random.default_rng(1)
     modes = ["fp32", "tf32", "fp16"]
-    print(f"{'rows':>7} {'mode':>5} {'compute ns/row':>15} {'e2e ns/row':>11} "
-          f"{'e2e Mrows/s':>12} {'max diff v/p vs fp32':>21}")
+    print(
+        f"{'rows':>7} {'mode':>5} {'compute ns/row':>15} {'e2e ns/row':>11} "
+        f"{'e2e Mrows/s':>12} {'max diff v/p vs fp32':>21}"
+    )
     for batch in BATCHES:
         host_in = torch.from_numpy(
             rng.integers(0, 2, (batch, input_size)).astype(np.float32)
@@ -149,9 +155,11 @@ def main():
                     dv = (v.float() - ref_v).abs().max().item()
                     dp = (p.float() - ref_p).abs().max().item()
                     diff = f"{dv:.1e} / {dp:.1e}"
-            print(f"{batch:>7} {mode:>5} {t_compute / batch * 1e9:>15.2f} "
-                  f"{t_e2e / batch * 1e9:>11.2f} "
-                  f"{batch / t_e2e / 1e6:>12.1f} {diff:>21}")
+            print(
+                f"{batch:>7} {mode:>5} {t_compute / batch * 1e9:>15.2f} "
+                f"{t_e2e / batch * 1e9:>11.2f} "
+                f"{batch / t_e2e / 1e6:>12.1f} {diff:>21}"
+            )
 
     if args.onnx:
         import onnxruntime as ort
@@ -159,18 +167,27 @@ def main():
         torch.backends.cuda.matmul.allow_tf32 = False
         dummy = torch.zeros(1, input_size, device=dev)
         torch.onnx.export(
-            net, dummy, args.onnx, input_names=["state"],
+            net,
+            dummy,
+            args.onnx,
+            input_names=["state"],
             output_names=["value", "policy"],
-            dynamic_axes={"state": {0: "n"}, "value": {0: "n"},
-                          "policy": {0: "n"}},
-            opset_version=17, dynamo=False,
+            dynamic_axes={
+                "state": {0: "n"},
+                "value": {0: "n"},
+                "policy": {0: "n"},
+            },
+            opset_version=17,
+            dynamo=False,
         )
         sess = ort.InferenceSession(
             args.onnx, providers=["CUDAExecutionProvider"]
         )
         assert "CUDAExecutionProvider" in sess.get_providers()
-        print(f"\nONNX Runtime {ort.__version__} CUDA provider, end to end "
-              "(numpy in, numpy out)")
+        print(
+            f"\nONNX Runtime {ort.__version__} CUDA provider, end to end "
+            "(numpy in, numpy out)"
+        )
         for batch in BATCHES:
             x = rng.integers(0, 2, (batch, input_size)).astype(np.float32)
 
@@ -178,8 +195,10 @@ def main():
                 sess.run(None, {"state": x})
 
             t = median_time(run, reps_for(batch))
-            print(f"{batch:>7}  ort  e2e {t / batch * 1e9:>8.2f} ns/row  "
-                  f"{batch / t / 1e6:>7.1f} Mrows/s")
+            print(
+                f"{batch:>7}  ort  e2e {t / batch * 1e9:>8.2f} ns/row  "
+                f"{batch / t / 1e6:>7.1f} Mrows/s"
+            )
 
 
 if __name__ == "__main__":

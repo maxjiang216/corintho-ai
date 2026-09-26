@@ -304,8 +304,8 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
     // handle NaN, overflow and negative halves, none of which occur here: the
     // value is always in (0, 511]. Over every float in (0, 511.5] the result
     // matches lround except x = 0.49999997, which the clamp to 1 absorbs.
-    int32_t prob = std::max(
-        1, static_cast<int32_t>(weighted_probs[j] * denom + 0.5f));
+    int32_t prob =
+        std::max(1, static_cast<int32_t>(weighted_probs[j] * denom + 0.5f));
     cur_->set_probability(j, prob);
     final_sum += prob;
   }
@@ -640,15 +640,14 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   float score[Node::kMaxEdges];
   for (int32_t i = 0; i < num_children; ++i) {
     // Same as cur_->probability(i) * v_sqrt, read through stats
-    const float weighted =
-        static_cast<float>(stats.edges[i].probability()) * stats.denominator *
-        v_sqrt;
+    const float weighted = static_cast<float>(stats.edges[i].probability()) *
+                           stats.denominator * v_sqrt;
     const float visits = stats.visits[i];
     const float normal =
         -1.0 * stats.evaluation[i] / visits + weighted / (visits + 1.0);
     // Known draw, use evaluation 0
-    const float u = selectFloat(stats.flags[i] & Node::kDrawnChild, weighted,
-                                normal);
+    const float u =
+        selectFloat(stats.flags[i] & Node::kDrawnChild, weighted, normal);
     // Don't all_visited nodes or won or lost positions
     // We search draws since the number of searches they have
     // makes a difference in choose_move

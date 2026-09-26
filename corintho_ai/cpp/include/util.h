@@ -182,7 +182,8 @@ struct LineShape {
   int8_t count;
   /// @brief The space that would extend a three into a four, or -1
   /// @details A three is legitimately unmade by becoming a four, so this is
-  /// consulted by the breaking rule. Short diagonals are maximal and have none.
+  /// consulted by the breaking rule. Short diagonals are maximal and have
+  /// none.
   int8_t extend;
 };
 
@@ -194,29 +195,52 @@ const int32_t kNumLineShapes = 34;
 
 inline constexpr LineShape kLineShapes[kNumLineShapes] = {
     // Rows: all-four, left three (extends right), right three (extends left)
-    {{0, 1, 2, 3}, 4, -1},   {{0, 1, 2}, 3, 3},     {{1, 2, 3}, 3, 0},
-    {{4, 5, 6, 7}, 4, -1},   {{4, 5, 6}, 3, 7},     {{5, 6, 7}, 3, 4},
-    {{8, 9, 10, 11}, 4, -1}, {{8, 9, 10}, 3, 11},   {{9, 10, 11}, 3, 8},
-    {{12, 13, 14, 15}, 4, -1}, {{12, 13, 14}, 3, 15}, {{13, 14, 15}, 3, 12},
+    {{0, 1, 2, 3}, 4, -1},
+    {{0, 1, 2}, 3, 3},
+    {{1, 2, 3}, 3, 0},
+    {{4, 5, 6, 7}, 4, -1},
+    {{4, 5, 6}, 3, 7},
+    {{5, 6, 7}, 3, 4},
+    {{8, 9, 10, 11}, 4, -1},
+    {{8, 9, 10}, 3, 11},
+    {{9, 10, 11}, 3, 8},
+    {{12, 13, 14, 15}, 4, -1},
+    {{12, 13, 14}, 3, 15},
+    {{13, 14, 15}, 3, 12},
     // Columns: all-four, upper three (extends down), lower three (extends up)
-    {{0, 4, 8, 12}, 4, -1},  {{0, 4, 8}, 3, 12},    {{4, 8, 12}, 3, 0},
-    {{1, 5, 9, 13}, 4, -1},  {{1, 5, 9}, 3, 13},    {{5, 9, 13}, 3, 1},
-    {{2, 6, 10, 14}, 4, -1}, {{2, 6, 10}, 3, 14},   {{6, 10, 14}, 3, 2},
-    {{3, 7, 11, 15}, 4, -1}, {{3, 7, 11}, 3, 15},   {{7, 11, 15}, 3, 3},
+    {{0, 4, 8, 12}, 4, -1},
+    {{0, 4, 8}, 3, 12},
+    {{4, 8, 12}, 3, 0},
+    {{1, 5, 9, 13}, 4, -1},
+    {{1, 5, 9}, 3, 13},
+    {{5, 9, 13}, 3, 1},
+    {{2, 6, 10, 14}, 4, -1},
+    {{2, 6, 10}, 3, 14},
+    {{6, 10, 14}, 3, 2},
+    {{3, 7, 11, 15}, 4, -1},
+    {{3, 7, 11}, 3, 15},
+    {{7, 11, 15}, 3, 3},
     // Long diagonals, a4-d1 then d4-a1
-    {{0, 5, 10, 15}, 4, -1}, {{0, 5, 10}, 3, 15},   {{5, 10, 15}, 3, 0},
-    {{3, 6, 9, 12}, 4, -1},  {{3, 6, 9}, 3, 12},    {{6, 9, 12}, 3, 3},
+    {{0, 5, 10, 15}, 4, -1},
+    {{0, 5, 10}, 3, 15},
+    {{5, 10, 15}, 3, 0},
+    {{3, 6, 9, 12}, 4, -1},
+    {{3, 6, 9}, 3, 12},
+    {{6, 9, 12}, 3, 3},
     // Short diagonals, maximal at three
-    {{5, 2, 8}, 3, -1},      {{6, 1, 11}, 3, -1},
-    {{10, 7, 13}, 3, -1},    {{9, 4, 14}, 3, -1},
+    {{5, 2, 8}, 3, -1},
+    {{6, 1, 11}, 3, -1},
+    {{10, 7, 13}, 3, -1},
+    {{9, 4, 14}, 3, -1},
 };
 
 /// @brief Where a run of equal tops starts, and in which direction
 /// @details Every one of the 34 line shapes is a run of 3 or 4 spaces at a
 /// constant stride: 1 across a row, 4 down a column, 5 along the a4-d1
-/// diagonal, 3 along d4-a1. The short diagonals are not special -- SD1 {1,6,11}
-/// and SD3 {4,9,14} are stride-5 runs, SD0 {2,5,8} and SD2 {7,10,13} stride-3.
-/// That lets all 34 be found with shift-and-mask instead of a 34-shape scan.
+/// diagonal, 3 along d4-a1. The short diagonals are not special -- SD1
+/// {1,6,11} and SD3 {4,9,14} are stride-5 runs, SD0 {2,5,8} and SD2 {7,10,13}
+/// stride-3. That lets all 34 be found with shift-and-mask instead of a
+/// 34-shape scan.
 enum LineDir { kDirRow = 0, kDirCol = 1, kDirDiagA = 2, kDirDiagB = 3 };
 constexpr int32_t kLineStride[4] = {1, 4, 5, 3};
 

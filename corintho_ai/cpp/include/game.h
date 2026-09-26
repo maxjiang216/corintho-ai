@@ -36,14 +36,15 @@ class Game {
   bool getLegalMoves(MoveMask &legal_moves) const noexcept;
   /// @brief Convenience overload for callers outside the hot path
   bool getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept;
-  /// @brief Reference implementation of getLegalMoves, for differential testing
+  /// @brief Reference implementation of getLegalMoves, for differential
+  /// testing
   /// @details A verbatim copy of the pre-bitboard implementation, with its own
   /// private copies of every helper so that a bug in a shared helper cannot
   /// corrupt both sides and hide itself. Defined in game_reference.cpp, which
   /// is built only by bench/Makefile and does not ship in the training module.
   /// Delete once the bitboard stages are complete and verified.
-  bool getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const
-      noexcept;
+  bool
+  getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
   /// @brief Write a representation of the game state to a float array
   /// @param game_state A float array of size kGameStateSize, used for input to
@@ -60,9 +61,9 @@ class Game {
   /// @brief Per-space state, computed once per legal-move generation
   /// @details top(), bottom(), empty() and frozen() were each recomputed from
   /// the bitset on every query, and legal move generation queries them roughly
-  /// 150 times per call: once per space in each of the four line detectors, and
-  /// again inside canPlace/canMove for each of the 96 candidate moves.
-  /// The board cannot change during a single generation, so the answers are
+  /// 150 times per call: once per space in each of the four line detectors,
+  /// and again inside canPlace/canMove for each of the 96 candidate moves. The
+  /// board cannot change during a single generation, so the answers are
   /// computed once up front and read from here instead.
   ///
   /// Everything is a 16-bit plane, bit i for space i, extracted from the

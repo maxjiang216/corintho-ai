@@ -97,9 +97,12 @@ def step(run_dir, g, name, fn):
     try:
         fn()
     except subprocess.CalledProcessError as e:
-        log(run_dir, f"gen {g} {name} FAILED (exit {e.returncode}); see "
-                     f"gen_{g}/{'fit' if name == 'fit' else 'play'}.log. "
-                     "Rerun the same command to retry from this step.")
+        log(
+            run_dir,
+            f"gen {g} {name} FAILED (exit {e.returncode}); see "
+            f"gen_{g}/{'fit' if name == 'fit' else 'play'}.log. "
+            "Rerun the same command to retry from this step.",
+        )
         raise SystemExit(1)
     seconds = time.perf_counter() - t
     times_path = os.path.join(run_dir, f"gen_{g}", "timing.json")
@@ -107,7 +110,10 @@ def step(run_dir, g, name, fn):
     times[name] = seconds
     save_json(times_path, times)
     open(marker, "w").close()
-    log(run_dir, f"gen {g} {name} done in {seconds:.1f} s (package {pkg_temp()} C)")
+    log(
+        run_dir,
+        f"gen {g} {name} done in {seconds:.1f} s (package {pkg_temp()} C)",
+    )
 
 
 def generation(run_dir, cfg, state, g):
@@ -117,38 +123,95 @@ def generation(run_dir, cfg, state, g):
     test_dir = os.path.join(gen_dir, "test")
     best = state["best_gen"]
     play_log = os.path.join(gen_dir, "play.log")
-    common = ["--searches", str(cfg["searches"]), "--spe", str(cfg["spe"]),
-              "--c-puct", str(cfg["c_puct"]), "--epsilon", str(cfg["epsilon"]),
-              "--threads", str(cfg["threads"])]
+    common = [
+        "--searches",
+        str(cfg["searches"]),
+        "--spe",
+        str(cfg["spe"]),
+        "--c-puct",
+        str(cfg["c_puct"]),
+        "--epsilon",
+        str(cfg["epsilon"]),
+        "--threads",
+        str(cfg["threads"]),
+    ]
 
     def selfplay():
         os.makedirs(samples, exist_ok=True)
-        sh([PLAY, "train", "--model", model_prefix(run_dir, best) + ".onnx",
-            "--games", str(cfg["games"]), "--in-flight", str(cfg["in_flight"]),
-            "--groups", str(cfg.get("groups", 1)),
-            "--seed", str(cfg["seed"] * 100003 + 2 * g), "--out", samples,
-            "--logged", str(cfg["logged"])] + common, play_log)
+        sh(
+            [
+                PLAY,
+                "train",
+                "--model",
+                model_prefix(run_dir, best) + ".onnx",
+                "--games",
+                str(cfg["games"]),
+                "--in-flight",
+                str(cfg["in_flight"]),
+                "--groups",
+                str(cfg.get("groups", 1)),
+                "--seed",
+                str(cfg["seed"] * 100003 + 2 * g),
+                "--out",
+                samples,
+                "--logged",
+                str(cfg["logged"]),
+            ]
+            + common,
+            play_log,
+        )
 
     def fit():
         dirs = [samples] + [
             os.path.join(run_dir, f"gen_{h}", "samples")
-            for h in range(max(1, g - cfg["old_gens"]), g)]
-        sh([PYTHON, os.path.join(HERE, "fit.py"),
-            "--init", model_prefix(run_dir, g - 1),
-            "--samples", *[d for d in dirs if os.path.isdir(d)],
-            "--out", model_prefix(run_dir, g),
-            "--lr", repr(state["lr"]), "--epochs", str(cfg["epochs"]),
-            "--batch", str(cfg["batch"]), "--patience", str(cfg["fit_patience"]),
-            "--anneal", str(cfg["anneal"]), "--seed", str(g)],
-           os.path.join(gen_dir, "fit.log"))
+            for h in range(max(1, g - cfg["old_gens"]), g)
+        ]
+        sh(
+            [
+                PYTHON,
+                os.path.join(HERE, "fit.py"),
+                "--init",
+                model_prefix(run_dir, g - 1),
+                "--samples",
+                *[d for d in dirs if os.path.isdir(d)],
+                "--out",
+                model_prefix(run_dir, g),
+                "--lr",
+                repr(state["lr"]),
+                "--epochs",
+                str(cfg["epochs"]),
+                "--batch",
+                str(cfg["batch"]),
+                "--patience",
+                str(cfg["fit_patience"]),
+                "--anneal",
+                str(cfg["anneal"]),
+                "--seed",
+                str(g),
+            ],
+            os.path.join(gen_dir, "fit.log"),
+        )
 
     def test():
         os.makedirs(test_dir, exist_ok=True)
-        sh([PLAY, "test", "--new", model_prefix(run_dir, g) + ".onnx",
-            "--best", model_prefix(run_dir, best) + ".onnx",
-            "--games", str(cfg["test_games"]),
-            "--seed", str(cfg["seed"] * 100003 + 2 * g + 1), "--out", test_dir]
-           + common, play_log)
+        sh(
+            [
+                PLAY,
+                "test",
+                "--new",
+                model_prefix(run_dir, g) + ".onnx",
+                "--best",
+                model_prefix(run_dir, best) + ".onnx",
+                "--games",
+                str(cfg["test_games"]),
+                "--seed",
+                str(cfg["seed"] * 100003 + 2 * g + 1),
+                "--out",
+                test_dir,
+            ]
+            + common,
+            play_log,
+        )
 
     step(run_dir, g, "selfplay", selfplay)
     step(run_dir, g, "fit", fit)
@@ -159,13 +222,17 @@ def generation(run_dir, cfg, state, g):
     # Update: promotion, rating, learning rate. Runs once per generation;
     # state.json is written atomically at the end.
     res = load_json(os.path.join(test_dir, "test.json"))
-    promote, gate = should_promote(res["wins"], res["draws"], res["games"],
-                                   cfg["confidence"])
+    promote, gate = should_promote(
+        res["wins"], res["draws"], res["games"], cfg["confidence"]
+    )
     score = res["score"]
     best_rating = state["ratings"][str(best)]
     # main.pyx update_rating, unchanged
-    rating = (best_rating - 400 * math.log10(1 / score - 1) if 0 < score < 1
-              else best_rating + (400 if score >= 1 else -400))
+    rating = (
+        best_rating - 400 * math.log10(1 / score - 1)
+        if 0 < score < 1
+        else best_rating + (400 if score >= 1 else -400)
+    )
     state["ratings"][str(g)] = rating
     fit_info = load_json(model_prefix(run_dir, g) + "_fit.json")
     state["val_losses"].append(fit_info["best_val_loss"])
@@ -185,15 +252,23 @@ def generation(run_dir, cfg, state, g):
         f.write(describe(gate) + "\n")
     times = load_json(os.path.join(gen_dir, "timing.json"), {})
     sp = load_json(os.path.join(samples, "selfplay.json"), {})
-    row = {"gen": g, "best_before": best, "promoted": promote,
-           "wins": res["wins"], "draws": res["draws"], "losses": res["losses"],
-           "ci_low": round(gate["ci_low"], 4), "rating": round(rating, 1),
-           "val_loss": round(fit_info["best_val_loss"], 5),
-           "lr": lr_before, "turns_per_game": round(sp.get("turns", 0) / cfg["games"], 2),
-           "first_player_score": round(sp.get("first_player_score", 0), 4),
-           "selfplay_s": round(times.get("selfplay", 0), 1),
-           "fit_s": round(times.get("fit", 0), 1),
-           "test_s": round(times.get("test", 0), 1)}
+    row = {
+        "gen": g,
+        "best_before": best,
+        "promoted": promote,
+        "wins": res["wins"],
+        "draws": res["draws"],
+        "losses": res["losses"],
+        "ci_low": round(gate["ci_low"], 4),
+        "rating": round(rating, 1),
+        "val_loss": round(fit_info["best_val_loss"], 5),
+        "lr": lr_before,
+        "turns_per_game": round(sp.get("turns", 0) / cfg["games"], 2),
+        "first_player_score": round(sp.get("first_player_score", 0), 4),
+        "selfplay_s": round(times.get("selfplay", 0), 1),
+        "fit_s": round(times.get("fit", 0), 1),
+        "test_s": round(times.get("test", 0), 1),
+    }
     tsv = os.path.join(run_dir, "generations.tsv")
     new = not os.path.exists(tsv)
     with open(tsv, "a") as f:
@@ -201,10 +276,13 @@ def generation(run_dir, cfg, state, g):
             f.write("\t".join(row) + "\n")
         f.write("\t".join(str(v) for v in row.values()) + "\n")
     save_json(os.path.join(run_dir, "state.json"), state)
-    log(run_dir, f"gen {g}: {describe(gate)} -> "
-                 f"{'PROMOTED' if promote else 'kept gen ' + str(best)}; "
-                 f"rating {rating:.0f}, val loss {fit_info['best_val_loss']:.5f}, "
-                 f"lr {state['lr']:.3g}")
+    log(
+        run_dir,
+        f"gen {g}: {describe(gate)} -> "
+        f"{'PROMOTED' if promote else 'kept gen ' + str(best)}; "
+        f"rating {rating:.0f}, val loss {fit_info['best_val_loss']:.5f}, "
+        f"lr {state['lr']:.3g}",
+    )
 
     # Samples no later fit will read
     for h in range(1, g - cfg["old_gens"] + 1):
@@ -216,14 +294,24 @@ def generation(run_dir, cfg, state, g):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     ap.add_argument("--name", required=True)
-    ap.add_argument("--generations", type=int, default=1,
-                    help="generations to run in this invocation")
+    ap.add_argument(
+        "--generations",
+        type=int,
+        default=1,
+        help="generations to run in this invocation",
+    )
     ap.add_argument("--init", default=os.path.join(HERE, "models", "gen_93"))
-    ap.add_argument("--init-rating", type=float, default=5537.14343997563,
-                    help="rating of --init (gen_93's)")
+    ap.add_argument(
+        "--init-rating",
+        type=float,
+        default=5537.14343997563,
+        help="rating of --init (gen_93's)",
+    )
     # Defaults: gen_93's metadata.txt
     ap.add_argument("--games", type=int, default=25000)
     # Two groups of 2,000 games: the engine searches one while the GPU
@@ -257,19 +345,34 @@ def main():
         cfg = load_json(cfg_path)  # an existing run keeps its settings
     else:
         os.makedirs(os.path.join(run_dir, "gen_0"), exist_ok=True)
-        cfg = {k: v for k, v in vars(args).items() if k not in ("name", "generations")}
+        cfg = {
+            k: v
+            for k, v in vars(args).items()
+            if k not in ("name", "generations")
+        }
         for ext in (".pt", ".onnx", ".mlp"):
             shutil.copy(args.init + ext, model_prefix(run_dir, 0) + ext)
         save_json(cfg_path, cfg)
-        save_json(state_path, {"best_gen": 0, "done_gen": 0, "lr": args.lr,
-                               "fails": 0, "val_losses": [],
-                               "ratings": {"0": args.init_rating}})
+        save_json(
+            state_path,
+            {
+                "best_gen": 0,
+                "done_gen": 0,
+                "lr": args.lr,
+                "fails": 0,
+                "val_losses": [],
+                "ratings": {"0": args.init_rating},
+            },
+        )
         log(run_dir, f"new run from {args.init}: {json.dumps(cfg)}")
     state = load_json(state_path)
     start = state["done_gen"] + 1
     for g in range(start, start + args.generations):
         generation(run_dir, cfg, state, g)
-    log(run_dir, f"stopped after gen {state['done_gen']}; best gen {state['best_gen']}")
+    log(
+        run_dir,
+        f"stopped after gen {state['done_gen']}; best gen {state['best_gen']}",
+    )
 
 
 if __name__ == "__main__":

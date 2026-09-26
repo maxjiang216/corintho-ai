@@ -54,7 +54,11 @@ def main():
     # Check the structure is the one described above before trusting it
     names = [op["op_name"] for op in ops if op["op_name"] != "DELEGATE"]
     n = len(layers)
-    expected = ["FULLY_CONNECTED"] * (n + 1) + ["TANH", "FULLY_CONNECTED", "SOFTMAX"]
+    expected = ["FULLY_CONNECTED"] * (n + 1) + [
+        "TANH",
+        "FULLY_CONNECTED",
+        "SOFTMAX",
+    ]
     if names != expected:
         sys.exit(f"unexpected op sequence: {names}")
     input_size = layers[0][0].shape[1]

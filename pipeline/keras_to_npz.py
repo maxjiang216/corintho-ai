@@ -47,18 +47,24 @@ def main():
     for d in heads:
         w, b = d.get_weights()
         name = "value" if d.units == 1 else "policy"
-        assert d.activation.__name__ == ("tanh" if name == "value" else "softmax")
+        assert d.activation.__name__ == (
+            "tanh" if name == "value" else "softmax"
+        )
         out[f"{name}_w"], out[f"{name}_b"] = w, b
     out["bn_epsilon"] = np.float32(eps)
     out["learning_rate"] = np.float32(
-        keras.backend.get_value(model.optimizer.learning_rate))
+        keras.backend.get_value(model.optimizer.learning_rate)
+    )
 
     # Reference outputs for model.py to check its reconstruction against
     rng = np.random.default_rng(0)
     x = (rng.random((256, 70)) < 0.3).astype(np.float32)
     value, policy = model(x, training=False)
     out["check_x"], out["check_value"], out["check_policy"] = (
-        x, np.asarray(value), np.asarray(policy))
+        x,
+        np.asarray(value),
+        np.asarray(policy),
+    )
     np.savez(dst, **out)
     print(f"{dst}: 12 x 100 hidden, bn eps {eps}, lr {out['learning_rate']}")
 

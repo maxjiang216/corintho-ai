@@ -37,8 +37,11 @@ class CorinthoNet(nn.Module):
         layers = []
         prev = GAME_STATE_SIZE
         for _ in range(depth):
-            layers += [nn.Linear(prev, width), nn.ReLU(),
-                       nn.BatchNorm1d(width, eps=bn_eps, momentum=0.01)]
+            layers += [
+                nn.Linear(prev, width),
+                nn.ReLU(),
+                nn.BatchNorm1d(width, eps=bn_eps, momentum=0.01),
+            ]
             prev = width
         self.body = nn.Sequential(*layers)
         self.value = nn.Linear(width, 1)
@@ -84,7 +87,9 @@ def from_npz(path):
             v, p = net(t(z["check_x"]))
         dv = np.abs(v.numpy() - z["check_value"]).max()
         dp = np.abs(p.numpy() - z["check_policy"]).max()
-        print(f"{path}: max |value - keras| {dv:.2e}, max |policy - keras| {dp:.2e}")
+        print(
+            f"{path}: max |value - keras| {dv:.2e}, max |policy - keras| {dp:.2e}"
+        )
         assert dv < 1e-4 and dp < 1e-4, "conversion does not match Keras"
     return net
 
@@ -107,7 +112,9 @@ def folded(net):
                 b = b + w @ shift
                 w = w * scale
             out.append((w, b))
-            a = bn.weight.double() / torch.sqrt(bn.running_var.double() + bn.eps)
+            a = bn.weight.double() / torch.sqrt(
+                bn.running_var.double() + bn.eps
+            )
             scale, shift = a, bn.bias.double() - bn.running_mean.double() * a
         for head in (net.value, net.policy):
             w, b = head.weight.double(), head.bias.double()
@@ -119,8 +126,11 @@ def export_mlp(net, path):
     layers = folded(net)
     with open(path, "wb") as f:
         f.write(b"CMLP")
-        f.write(struct.pack("<5I", 1, GAME_STATE_SIZE, WIDTH, len(layers) - 2,
-                            NUM_MOVES))
+        f.write(
+            struct.pack(
+                "<5I", 1, GAME_STATE_SIZE, WIDTH, len(layers) - 2, NUM_MOVES
+            )
+        )
         for w, b in layers:
             f.write(np.ascontiguousarray(w, dtype="<f4").tobytes())
             f.write(np.ascontiguousarray(b, dtype="<f4").tobytes())
@@ -155,7 +165,9 @@ class FoldedNet(nn.Module):
             lin = nn.Linear(w.shape[1], w.shape[0])
             lin.weight.data, lin.bias.data = t(w), t(b)
             self.hidden.append(lin)
-        self.value, self.policy = nn.Linear(WIDTH, 1), nn.Linear(WIDTH, NUM_MOVES)
+        self.value, self.policy = nn.Linear(WIDTH, 1), nn.Linear(
+            WIDTH, NUM_MOVES
+        )
         for head, (w, b) in zip((self.value, self.policy), layers[-2:]):
             head.weight.data, head.bias.data = t(w), t(b)
 
@@ -169,26 +181,45 @@ class FoldedNet(nn.Module):
 def export_onnx(net, path):
     folded_net = FoldedNet(folded(net.eval().float().cpu())).eval()
     torch.onnx.export(
-        folded_net, (torch.zeros(16, GAME_STATE_SIZE),), path,
-        input_names=["states"], output_names=["value", "policy"],
-        dynamic_axes={"states": {0: "n"}, "value": {0: "n"}, "policy": {0: "n"}},
-        opset_version=17, dynamo=False)
+        folded_net,
+        (torch.zeros(16, GAME_STATE_SIZE),),
+        path,
+        input_names=["states"],
+        output_names=["value", "policy"],
+        dynamic_axes={
+            "states": {0: "n"},
+            "value": {0: "n"},
+            "policy": {0: "n"},
+        },
+        opset_version=17,
+        dynamo=False,
+    )
 
 
 def check_exports(net, prefix):
     """Folded .mlp maths and the ONNX file both match the PyTorch model."""
     import onnxruntime as ort
+
     rng = np.random.default_rng(1)
     x = (rng.random((512, GAME_STATE_SIZE)) < 0.3).astype(np.float32)
     with torch.no_grad():
         v, p = net.eval()(torch.from_numpy(x))
     v, p = v.numpy(), p.numpy()
     mv, mp = mlp_forward(folded(net), x)
-    sess = ort.InferenceSession(f"{prefix}.onnx", providers=["CPUExecutionProvider"])
+    sess = ort.InferenceSession(
+        f"{prefix}.onnx", providers=["CPUExecutionProvider"]
+    )
     ov, op = sess.run(None, {"states": x})
-    diffs = {"mlp_value": np.abs(mv - v).max(), "mlp_policy": np.abs(mp - p).max(),
-             "onnx_value": np.abs(ov - v).max(), "onnx_policy": np.abs(op - p).max()}
-    print("export check vs torch: " + ", ".join(f"{k} {d:.2e}" for k, d in diffs.items()))
+    diffs = {
+        "mlp_value": np.abs(mv - v).max(),
+        "mlp_policy": np.abs(mp - p).max(),
+        "onnx_value": np.abs(ov - v).max(),
+        "onnx_policy": np.abs(op - p).max(),
+    }
+    print(
+        "export check vs torch: "
+        + ", ".join(f"{k} {d:.2e}" for k, d in diffs.items())
+    )
     assert max(diffs.values()) < 1e-4, "an export does not match the model"
 
 

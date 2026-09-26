@@ -43,7 +43,9 @@ cdef extern from "../cpp/src/trainer.cpp":
 # Plain Python module so the gate's statistics can be tested without building
 # the extension. It sits next to this file and next to wrapper.py, which is
 # what imports the built module, so it is on sys.path.
-from promotion import should_promote, describe
+
+from promotion import describe, should_promote
+
 
 cdef int _NUM_MOVES = 96
 cdef int _GAME_STATE_SIZE = 70

@@ -42,12 +42,16 @@ def main():
     before_meta, before_dig, before_met = load(sys.argv[1])
     after_meta, after_dig, after_met = load(sys.argv[2])
 
-    print(f"before: {before_meta.get('label','?')}  "
-          f"(commit {before_meta.get('commit','?')}, "
-          f"dirty={before_meta.get('dirty','?')})")
-    print(f"after:  {after_meta.get('label','?')}  "
-          f"(commit {after_meta.get('commit','?')}, "
-          f"dirty={after_meta.get('dirty','?')})")
+    print(
+        f"before: {before_meta.get('label','?')}  "
+        f"(commit {before_meta.get('commit','?')}, "
+        f"dirty={before_meta.get('dirty','?')})"
+    )
+    print(
+        f"after:  {after_meta.get('label','?')}  "
+        f"(commit {after_meta.get('commit','?')}, "
+        f"dirty={after_meta.get('dirty','?')})"
+    )
     print()
 
     # --- Digests ---
@@ -68,14 +72,19 @@ def main():
     print()
 
     # --- Exact counters first: deterministic, so any delta is real ---
-    exact = [k for k in before_met
-             if k in after_met
-             and before_met[k][1] == before_met[k][2]
-             and after_met[k][1] == after_met[k][2]]
+    exact = [
+        k
+        for k in before_met
+        if k in after_met
+        and before_met[k][1] == before_met[k][2]
+        and after_met[k][1] == after_met[k][2]
+    ]
     noisy = [k for k in before_met if k in after_met and k not in exact]
 
     if exact:
-        print("Exact counters (deterministic to ~0.01% -- deltas above that are real)")
+        print(
+            "Exact counters (deterministic to ~0.01% -- deltas above that are real)"
+        )
         header = f"  {'metric':<34} {'before':>14} {'after':>14} {'delta':>10}"
         print(header)
         print("  " + "-" * (len(header) - 2))
@@ -113,8 +122,12 @@ def main():
         print(f"  {key:<34} {b_med:>11.1f} {a_med:>11.1f} {verdict:>10}")
     print()
     print("  Lower is better for ns_* and *_seconds; higher is better for")
-    print("  requests_per_engine_second. 'noise' means the change is within the")
-    print("  observed run-to-run spread and should not be claimed as a result.")
+    print(
+        "  requests_per_engine_second. 'noise' means the change is within the"
+    )
+    print(
+        "  observed run-to-run spread and should not be claimed as a result."
+    )
     return 1 if failed else 0
 
 

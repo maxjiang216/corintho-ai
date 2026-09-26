@@ -136,7 +136,8 @@ class Arena {
       const size_t give = mine.size() - keep;
       Pool &p = pool();
       std::lock_guard<std::mutex> lock{p.mutex};
-      p.batches[c].insert(p.batches[c].end(), mine.begin(), mine.begin() + give);
+      p.batches[c].insert(p.batches[c].end(), mine.begin(),
+                          mine.begin() + give);
       p.available[c].store(static_cast<int32_t>(p.batches[c].size()),
                            std::memory_order_relaxed);
       mine.erase(mine.begin(), mine.begin() + give);
@@ -183,7 +184,8 @@ class Arena {
     if (bytes <= kSmall)
       return 0;
     // Bit length of bytes - 1, minus 6: 65..128 -> 1, 129..256 -> 2, ...
-    return 64 - __builtin_clzll(static_cast<unsigned long long>(bytes - 1)) - 6;
+    return 64 - __builtin_clzll(static_cast<unsigned long long>(bytes - 1)) -
+           6;
   }
 
   unsigned char *cur_{nullptr};

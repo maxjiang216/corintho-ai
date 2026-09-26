@@ -120,7 +120,9 @@ def main():
     for e in show:
         j = events.index(e)
         print(f"\n## By source line (self cost), top 60 by {e}")
-        for (fl, p, fname), c in sorted(by_line.items(), key=lambda kv: -kv[1][j])[:60]:
+        for (fl, p, fname), c in sorted(
+            by_line.items(), key=lambda kv: -kv[1][j]
+        )[:60]:
             print(row(c, f"{fl}:{p}  [{fname}]"))
 
 

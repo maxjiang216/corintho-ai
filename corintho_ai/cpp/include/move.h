@@ -38,15 +38,15 @@ struct MoveInfo {
 /// @brief Build the move table by running the ID arithmetic at compile time
 /// @details Deliberately NOT hand-written. A transcribed constant table is how
 /// line_breakers acquired thirteen transposition errors (see
-/// worklog/RULES-CHECKLIST.md item 4); generating it from the same formulas the
-/// decoder uses means it cannot disagree with the encoding.
+/// worklog/RULES-CHECKLIST.md item 4); generating it from the same formulas
+/// the decoder uses means it cannot disagree with the encoding.
 constexpr std::array<MoveInfo, kNumMoves> makeMoveTable() {
   std::array<MoveInfo, kNumMoves> table{};
   for (int32_t id = 0; id < kNumMoves; ++id) {
     if (id >= 48) {  // Place
-      table[id] = MoveInfo{-1,
-                           static_cast<int8_t>(((id % 16) / 4) * 4 + id % 4),
-                           static_cast<int8_t>((id - 48) / 16), true};
+      table[id] =
+          MoveInfo{-1, static_cast<int8_t>(((id % 16) / 4) * 4 + id % 4),
+                   static_cast<int8_t>((id - 48) / 16), true};
     } else if (id < 12) {  // Right
       const int32_t r = id / 3, c = id % 3;
       table[id] = MoveInfo{static_cast<int8_t>(r * 4 + c),
@@ -94,8 +94,8 @@ inline constexpr std::array<MoveMask, kBoardSize> kMovesFromCell =
 ///     line's type, so `top(from) >= type + 1` and the arriving top can never
 ///     equal it. Verified over 315,385 such moves with zero exceptions.
 ///   - place a piece of `type` onto the extending space, making four
-/// The fifth -- moving a stack onto the extending space -- is the only one that
-/// depends on the board, and lives in kLineExtendMoves.
+/// The fifth -- moving a stack onto the extending space -- is the only one
+/// that depends on the board, and lives in kLineExtendMoves.
 /// @note Generated, never transcribed. line_breakers acquired thirteen
 /// transposition errors by hand; see worklog/RULES-CHECKLIST.md item 4.
 constexpr std::array<std::array<MoveMask, 3>, kNumLineShapes>

@@ -29,6 +29,8 @@ setup(
                     os.path.join(current_dir, "../cpp/src/game.cpp"),
                     os.path.join(current_dir, "../cpp/src/move.cpp"),
                     os.path.join(current_dir, "../cpp/src/util.cpp"),
+                    os.path.join(current_dir, "../cpp/src/solver.cpp"),
+                    os.path.join(current_dir, "../cpp/src/solver_pool.cpp"),
                 ],
                 extra_compile_args=[
                     "-O3",

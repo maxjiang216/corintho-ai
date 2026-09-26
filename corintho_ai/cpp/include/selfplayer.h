@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "solver_pool.h"
 #include "trainmc.h"
 #include "util.h"
 
@@ -75,6 +76,18 @@ class SelfPlayer {
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
 
+  /// @brief End games by exact solution once the position's horizon P is at
+  /// most max_horizon (worklog 2026-09-25-nn-architectures, entry 14)
+  /// @details The position is submitted to `pool` and the game pauses (its
+  /// iterations do nothing) until the result arrives: solved, the game ends
+  /// with that result; capped, it resumes and retries at its next position.
+  void set_solver(SolverPool *pool, int32_t max_horizon) noexcept {
+    solver_pool_ = pool;
+    solve_horizon_ = max_horizon;
+  }
+  /// @brief Whether the game ended by an exact solution
+  bool adjudicated() const noexcept { return adjudicated_; }
+
  private:
   /// @brief Write the evaluation of the given node
   void writeEval(Node *node) const noexcept;
@@ -87,6 +100,12 @@ class SelfPlayer {
   void writeMoveChoice(int32_t choice) const noexcept;
   /// @brief Clean up when game is complete
   void endGame() noexcept;
+  /// @brief End the game with the exact result `value` (1, 0, -1 for the
+  /// side to move at the current position)
+  void adjudicate(int32_t value) noexcept;
+  /// @brief Solve handling at the start of an iteration: true when the game
+  /// should skip the iteration (paused), with `done` set when it ended
+  bool solveStep(bool &done);
   /// @brief Choose a move and write the training sample
   /// @return The ID of the chosen move
   int32_t chooseMove();
@@ -110,6 +129,16 @@ class SelfPlayer {
   std::vector<Sample> samples_{};
   /// @brief Game result for the first player
   Result result_{kResultNone};
+  /// @brief Value target of the last sample (its player's result): 1 when
+  /// the last mover won, 0 for a draw, -1 when an adjudicated game was lost
+  float last_mover_value_{1.0F};
+  SolverPool *solver_pool_{nullptr};
+  int32_t solve_horizon_{0};
+  std::shared_ptr<SolveJob> solve_job_{};
+  /// @brief Root depth (moves played) when a solve was last submitted, so a
+  /// capped solve is not resubmitted for the same position
+  int32_t solve_submitted_at_{-1};
+  bool adjudicated_{false};
   /// @brief File where all logs are written to
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).

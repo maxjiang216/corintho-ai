@@ -1,5 +1,7 @@
 #include "selfplayer.h"
 
+#include "solver.h"
+
 #include <cassert>
 #include <cstdint>
 
@@ -99,11 +101,9 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   assert(eval_samples != nullptr);
   assert(prob_samples != nullptr);
   assert(!testing_);
-  // The last player to play a move is the winner, except in a draw
-  float evaluation = 1.0;
-  if (result_ == kResultDraw) {
-    evaluation = 0.0;
-  }
+  // The last sample's player: the winner of a finished game (or 0 for a
+  // draw); for an adjudicated game, whatever the solver proved for them
+  float evaluation = last_mover_value_;
   // Start from end of the game to get evaluations more easily
   for (int32_t i = samples_.size() - 1; i >= 0; --i) {
     // Apply symmetries
@@ -129,7 +129,70 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   }
 }
 
+bool SelfPlayer::solveStep(bool &done) {
+  done = false;
+  if (solve_job_) {
+    const int8_t r = solve_job_->result.load(std::memory_order_acquire);
+    if (r == SolveJob::kWaiting)
+      return true;  // paused: the rows in this game's slot are re-evaluated
+    solve_job_.reset();
+    if (r != Solver::kUnknown) {
+      adjudicate(r);
+      done = true;
+      return true;
+    }
+    return false;  // capped: resume; the next position retries
+  }
+  const Node *root = players_[to_play_].root();
+  if (root == nullptr)
+    return false;
+  // The root's depth identifies the position within the game (samples are
+  // not kept in testing, so their count cannot)
+  const int32_t played = root->depth();
+  if (played != solve_submitted_at_ &&
+      root->get_game().horizon() <= solve_horizon_) {
+    solve_submitted_at_ = played;
+    solve_job_ = solver_pool_->submit(root->get_game());
+    return true;
+  }
+  return false;
+}
+
+void SelfPlayer::adjudicate(int32_t value) noexcept {
+  // `value` is for the side to move; the last sample is the other side's
+  last_mover_value_ = static_cast<float>(-value);
+  if (value == 0) {
+    result_ = kResultDraw;
+  } else {
+    const bool first_player_wins = (value > 0) == (to_play_ == 0);
+    result_ = first_player_wins ? kResultWin : kResultLoss;
+  }
+  adjudicated_ = true;
+  if (log_file_ != nullptr) {
+    *log_file_ << "SOLVED at horizon "
+               << players_[to_play_].root()->get_game().horizon() << ": "
+               << (value == 0  ? "DRAW"
+                   : value > 0 ? "WIN"
+                               : "LOSS")
+               << " for PLAYER " << to_play_ + 1 << ".\n";
+    if (result_ == kResultDraw)
+      *log_file_ << "GAME IS DRAWN.\n";
+    else
+      *log_file_ << "PLAYER " << (result_ == kResultWin ? 1 : 2) << " WON!\n";
+  }
+  players_[0].null_root();
+  players_[1].null_root();
+  owned_to_eval_.reset();
+  to_eval_ = nullptr;
+  log_file_.reset();
+}
+
 bool SelfPlayer::doIteration(float eval[], float probs[]) {
+  if (solver_pool_ != nullptr) {
+    bool done = false;
+    if (solveStep(done))
+      return done;
+  }
   bool done = players_[to_play_].doIteration(eval, probs);
   // If we have completed a turn, we can choose a move
   if (done)
@@ -225,6 +288,7 @@ void SelfPlayer::endGame() noexcept {
   // Set result
   if (players_[to_play_].root()->result() == kResultDraw) {
     result_ = kResultDraw;
+    last_mover_value_ = 0.0F;
     // Second player win (to_play is not updated yet so it is opposite)
   } else if (to_play_ == 1) {
     result_ = kResultLoss;

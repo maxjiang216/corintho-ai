@@ -25,6 +25,11 @@
 //   --groups 1      train: sets of --in-flight games whose searches alternate,
 //                   so that with 2 the engine searches one group while the
 //                   GPU evaluates the other
+//   --solve-p 0     end games by exact solution once the position's horizon
+//                   P (2 x reserves + occupied spaces) is at most this; 0:
+//                   off (entry 14). --solve-cap 5000000 (positions per
+//                   attempt; a capped game retries at its next move),
+//                   --solve-threads 4, --solve-table 22 (log2 entries)
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
@@ -60,6 +65,7 @@
 #include "eval_cache.h"
 #include "node.h"
 #include "npy.h"
+#include "solver_pool.h"
 #include "trainer.h"
 #include "util.h"
 
@@ -98,6 +104,10 @@ struct Args {
   int32_t i32(const std::string &k, int32_t def) const {
     auto it = kv.find(k);
     return it == kv.end() ? def : std::atoi(it->second.c_str());
+  }
+  int64_t i64(const std::string &k, int64_t def) const {
+    auto it = kv.find(k);
+    return it == kv.end() ? def : std::atoll(it->second.c_str());
   }
   float f32(const std::string &k, float def) const {
     auto it = kv.find(k);
@@ -252,6 +262,15 @@ int runTrain(const Args &a) {
   // spreads the games over a turn's phases without leaving the batch mostly
   // empty while they ramp up (entry 29).
   const int32_t stagger = a.i32("stagger", 0);
+  // Exact solutions from horizon --solve-p down (entry 14): one pool for
+  // the whole run, so its tables stay warm across chunks and groups
+  const int32_t solve_p = a.i32("solve-p", 0);
+  std::unique_ptr<SolverPool> solver_pool;
+  if (solve_p > 0)
+    solver_pool = std::make_unique<SolverPool>(
+        a.i32("solve-threads", 4), a.i32("solve-table", 22),
+        static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
+  int64_t adjudicated = 0;
   const int32_t cache_log2 = a.i32("cache", 0);
   // CORINTHO_CACHE_VERIFY=1 (with --groups 1): also evaluate every batch in
   // full and compare the rows served from the cache. [0]: rows whose own
@@ -346,6 +365,8 @@ int runTrain(const Args &a) {
         g.games, out, seed + chunks_started, searches, spe, c_puct, epsilon,
         chunks_started == 0 ? logged : 0, threads, false);
     g.trainer->set_stagger_iterations(stagger);
+    if (solver_pool)
+      g.trainer->setSolver(solver_pool.get(), solve_p);
     g.values.assign(static_cast<size_t>(g.games) * spe, 0.0F);
     g.probs.assign(static_cast<size_t>(g.games) * spe * kNumMoves, 0.0F);
     games_started += g.games;
@@ -354,6 +375,7 @@ int runTrain(const Args &a) {
   auto finishChunk = [&](Group &g) {
     const auto t = Clock::now();
     Trainer &trainer = *g.trainer;
+    adjudicated += trainer.numAdjudicated();
     const int32_t turns = trainer.num_samples();
     const size_t sample_rows = static_cast<size_t>(turns) * kNumSymmetries;
     st.resize(sample_rows * kGameStateSize);
@@ -549,6 +571,15 @@ int runTrain(const Args &a) {
      << "  \"cache_hits\": " << (cache ? cache->hits() : 0) << ",\n"
      << "  \"cache_seconds\": " << cache_s << ",\n"
      << "  \"write_seconds\": " << write_s << ",\n"
+     << "  \"solve_horizon\": " << solve_p << ",\n"
+     << "  \"adjudicated_games\": " << adjudicated << ",\n"
+     << "  \"solves\": " << (solver_pool ? solver_pool->solves() : 0) << ",\n"
+     << "  \"solves_capped\": " << (solver_pool ? solver_pool->capped() : 0)
+     << ",\n"
+     << "  \"solve_seconds\": " << (solver_pool ? solver_pool->seconds() : 0.0)
+     << ",\n"
+     << "  \"solve_max_seconds\": "
+     << (solver_pool ? solver_pool->max_seconds() : 0.0) << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";
   std::printf("#METRIC engine_seconds %.4f\n", engine_s);
@@ -601,6 +632,13 @@ int runTest(const Args &a) {
 
   Trainer trainer{games,  out,     seed,   searches, spe,
                   c_puct, epsilon, logged, threads,  true};
+  // Matches end games by exact solution the same way (entry 14): both
+  // players alike, as deployment would
+  const int32_t solve_p = a.i32("solve-p", 0);
+  if (solve_p > 0)
+    trainer.enableSolver(solve_p,
+                         static_cast<uint64_t>(a.i64("solve-cap", 5000000)),
+                         a.i32("solve-threads", 4), a.i32("solve-table", 22));
   const size_t cap = static_cast<size_t>(games) * spe;
   std::vector<float> states(cap * kGameStateSize), values(cap),
       probs(cap * kNumMoves);
@@ -647,6 +685,8 @@ int runTest(const Args &a) {
      << "  \"rows_evaluated\": " << rows_evaluated << ",\n"
      << "  \"engine_seconds\": " << engine_s << ",\n"
      << "  \"eval_seconds\": " << eval_s << ",\n"
+     << "  \"solve_horizon\": " << solve_p << ",\n"
+     << "  \"adjudicated_games\": " << trainer.numAdjudicated() << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";
   std::printf("#METRIC wins %d\n#METRIC draws %d\n#METRIC games %d\n", wins,

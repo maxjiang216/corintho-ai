@@ -87,6 +87,21 @@ class Trainer {
     stagger_iterations_ = iterations;
   }
 
+  /// @brief End games by exact solution at horizon P <= max_horizon, on
+  /// num_threads solver threads (each with a 2^log2_table-entry table),
+  /// giving up on a position after max_nodes (worklog
+  /// 2026-09-25-nn-architectures, entry 14). Call before the first
+  /// iteration.
+  void enableSolver(int32_t max_horizon, uint64_t max_nodes,
+                    int32_t num_threads, int32_t log2_table);
+  /// @brief As enableSolver, with a pool the caller owns and may share
+  /// between Trainers (its tables stay warm across them)
+  void setSolver(SolverPool *pool, int32_t max_horizon);
+  /// @brief Games ended by exact solution so far
+  int32_t numAdjudicated() const noexcept;
+  /// @brief The solver pool, or nullptr (for its statistics)
+  const SolverPool *solverPool() const noexcept { return solver_pool_.get(); }
+
   /// @brief This is the main function that runs the self-play games. It is
   /// called by Cython in a loop.
   /// @return If all games are done
@@ -123,6 +138,7 @@ class Trainer {
   int32_t num_started_{0};
   /// @brief The self-play games
   std::vector<SelfPlayer> games_{};
+  std::unique_ptr<SolverPool> solver_pool_{};
   /// @brief Tracks which games are done
   // uint8_t, not bool: std::vector<bool> packs 64 flags per word, so the
   // parallel writes in doIteration() are read-modify-writes of a shared word

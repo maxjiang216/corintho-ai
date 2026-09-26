@@ -63,6 +63,15 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+int32_t Game::horizon() const noexcept {
+  const uint64_t b = board_.to_ullong();
+  int32_t reserves = 0;
+  for (int32_t i = 0; i < 6; ++i)
+    reserves += pieces_[i];
+  return 2 * reserves +
+         __builtin_popcountll((b | b >> 1 | b >> 2) & 0x1111111111111111ULL);
+}
+
 void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   board = board_.to_ullong();
   rest = static_cast<uint64_t>(to_play_);

@@ -26,7 +26,7 @@ LDFLAGS  := -fopenmp -flto -O3 -march=native -L$(ORT)/lib -lonnxruntime \
             -Wl,--disable-new-dtags $(foreach p,$(RPATHS),-Wl,-rpath,$(p))
 
 BUILD := build
-CORE  := util move game node trainmc selfplayer trainer mlp
+CORE  := util move game node trainmc selfplayer trainer mlp solver solver_pool
 OBJS  := $(CORE:%=$(BUILD)/%.o) $(BUILD)/backend.o $(BUILD)/corintho_play.o
 
 .PHONY: all clean

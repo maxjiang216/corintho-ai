@@ -46,6 +46,9 @@ class Game {
   bool
   getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
+  /// @brief P = 2 x reserves (both players) + occupied spaces: an upper
+  /// bound on the plies left, lowered by every move
+  int32_t horizon() const noexcept;
   /// @brief Whether a line stands on the board (cheaper than getLegalMoves)
   bool hasLine() const noexcept;
   /// @brief Legal moves when no line stands (the caller knows, e.g. from

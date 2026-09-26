@@ -23,6 +23,8 @@
 //   --groups 1      train: sets of --in-flight games whose searches alternate,
 //                   so that with 2 the engine searches one group while the
 //                   GPU evaluates the other
+//   --stagger 0     train: iterations over which a chunk's games start (0:
+//                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
 //   --check M2      train only: also evaluate every batch with M2 and report
 //                   the largest differences (games follow --model)
@@ -144,6 +146,11 @@ int runTrain(const Args &a) {
   const int32_t threads = a.i32("threads", 20);
   const int32_t seed = a.i32("seed", 1);
   const int32_t logged = a.i32("logged", 0);
+  // Iterations over which a chunk's games start; 0 keeps the Trainer's
+  // original rule (~16 turns). One turn, max_searches / spe iterations,
+  // spreads the games over a turn's phases without leaving the batch mostly
+  // empty while they ramp up (entry 29).
+  const int32_t stagger = a.i32("stagger", 0);
 
   auto backend = makeBackend(model, threads);
   std::unique_ptr<Backend> check;
@@ -180,6 +187,7 @@ int runTrain(const Args &a) {
     g.trainer = std::make_unique<Trainer>(
         g.games, out, seed + chunks_started, searches, spe, c_puct, epsilon,
         chunks_started == 0 ? logged : 0, threads, false);
+    g.trainer->set_stagger_iterations(stagger);
     g.values.assign(static_cast<size_t>(g.games) * spe, 0.0F);
     g.probs.assign(static_cast<size_t>(g.games) * spe * kNumMoves, 0.0F);
     games_started += g.games;

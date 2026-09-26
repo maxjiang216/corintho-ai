@@ -215,3 +215,48 @@ Where the time goes now:
   whether to keep samples.
 - **A match harness** for the strength questions (entry 21's open threads).
   Colour balance can now be measured directly from `generations.tsv`.
+
+## Addendum: the stagger, threads, and the developer's questions
+
+**Gen 1 was not trained from scratch.** Gen 0 of a run is gen_93, the last
+cloud model, converted. Gen 1 fine-tunes it on 25k fresh games from the fixed
+engine. The first attempt (`full-1`) failed the gate (lower bound 0.487); the
+second (`full-2`) passed narrowly (0.507), with decisive win rates of 51–53%
+in both. If the two models were equally strong, the gate would pass by chance
+~2.5% of the time per test. A small real gain is plausible (gen_93 trained on
+data from the old rules and the entry-17 draw bug), but it is weak evidence.
+
+**The staggered start spans ~16 turns, not one.** `Trainer` starts
+`games / max_searches` games per iteration. But an iteration is 16
+searches, so a turn is 100 iterations, and a 2,000-game chunk ramps up over
+2,000 iterations. GPU calls averaged 46% full.
+
+- **`Trainer::set_stagger_iterations`** is new (default: the original rule).
+  With it, `corintho_play --stagger 100` spreads a chunk's starts over one
+  turn: calls are 74% full.
+- **The wall time does not change** (152.4 against 153.1 s, 12k games). With
+  more games alive at once, the memory-bound engine slows ~13%, cancelling
+  the GPU gain, and memory rises 25%. The long ramp acts as throttling that
+  suits this engine.
+- The driver keeps the original rule.
+- Start times do not change the games: the digests are identical.
+
+**Engine threads and OpenMP spinning:** `KMP_BLOCKTIME=0` and 19 engine
+threads show nothing beyond thermal drift. The same configuration drifted
++15% over the 10-minute series. At this point self-play tuning is below the
+laptop's thermal noise, so it stopped here. Raw data:
+`data/gpu-pipeline/stagger-and-threads.txt`.
+
+**The developer asked whether fit and test could overlap self-play.**
+
+- **Pipelining generations** means starting gen g+1's self-play with the
+  current best while gen g fits and tests, and switching models at a chunk
+  boundary if gen g is promoted.
+  - At most ~16% (fit + test is ~68 s of ~415 s), realistically ~5–10%:
+    fit competes for the GPU and test for the CPU.
+  - After a promotion, the first 1–2 chunks would be played by the previous
+    best (AlphaZero-style staleness). That is a behaviour change, so it is
+    the developer's decision.
+- **Fitting chunk by chunk** is not equivalent to the current 10-epoch fit
+  with the last 30% held out, and fit is only ~33 s. Not worth it except as
+  a deliberate move to continuous training.

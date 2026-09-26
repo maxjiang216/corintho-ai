@@ -205,10 +205,26 @@ bool Trainer::doIteration(float eval[], float probs[], int32_t to_play) {
     // total number of nodes will be more even. This reduces peak memory
     // usage. Avoid division by 0 in the rare case that games_.size() <
     // max_searches_. Games start in index order, each taking the next slot.
-    const size_t stride =
-        std::max(games_.size() / max_searches_, static_cast<size_t>(1));
-    const auto due = gsl::narrow_cast<int32_t>(std::min(
-        games_.size(), (static_cast<size_t>(searches_done_) + 1) * stride));
+    //
+    // searches_done_ counts iterations, and one turn is max_searches_ /
+    // searches_per_eval_ of them (100 by default), so by default the starts
+    // spread over max_searches_ iterations, ~16 turns, not one. That is the
+    // stagger entry 19 measured (-30% peak memory). set_stagger_iterations()
+    // chooses the span; the games themselves are the same either way.
+    size_t due_count;
+    if (stagger_iterations_ > 0) {
+      due_count = std::min(
+          games_.size(),
+          ((static_cast<size_t>(searches_done_) + 1) * games_.size() +
+           static_cast<size_t>(stagger_iterations_) - 1) /
+              static_cast<size_t>(stagger_iterations_));
+    } else {
+      const size_t stride =
+          std::max(games_.size() / max_searches_, static_cast<size_t>(1));
+      due_count = std::min(games_.size(),
+                           (static_cast<size_t>(searches_done_) + 1) * stride);
+    }
+    const auto due = gsl::narrow_cast<int32_t>(due_count);
     for (; num_started_ < due; ++num_started_) {
       slot_of_[num_started_] = num_active_;
       game_in_slot_[num_active_] = num_started_;

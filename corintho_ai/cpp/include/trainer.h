@@ -68,6 +68,14 @@ class Trainer {
   /// determine if a generation improved
   void writeScores(const std::string &file) const;
 
+  /// @brief Spread the training games' starts evenly over this many
+  /// iterations. 0 (the default) keeps the original rule, one start every
+  /// max_searches / num_games iterations, which spreads them over
+  /// max_searches iterations (~16 turns at 16 searches per iteration).
+  void set_stagger_iterations(int32_t iterations) noexcept {
+    stagger_iterations_ = iterations;
+  }
+
   /// @brief This is the main function that runs the self-play games. It is
   /// called by Cython in a loop.
   /// @return If all games are done
@@ -125,6 +133,8 @@ class Trainer {
   /// @brief The number of searches done so far
   /// TODO: Is this searches or evaluations?
   int32_t searches_done_{0};
+  /// @brief Span of the staggered start, in iterations; 0 for the original
+  std::int32_t stagger_iterations_{0};
   /// @brief Random number generator
   std::mt19937 generator_{};
 };

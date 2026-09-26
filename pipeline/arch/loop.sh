@@ -36,10 +36,14 @@ DEPTH=${DEPTH:-4}
 MATCH_EVERY=${MATCH_EVERY:-5}
 MATCH=${MATCH:-1600}
 # End self-play games by exact solution at horizon P <= SOLVE_P (entry 14;
-# 0: off). Matches are played out as before. Off by default: at 27 the
-# network got much weaker in 5 generations (entry 18).
+# 0: off). Off by default: when games simply ended there, the network got
+# much weaker in 5 generations (entry 18); the solver now plays them out for
+# samples (entry 19).
 SOLVE_P=${SOLVE_P:-0}
 SOLVE_THREADS=${SOLVE_THREADS:-6}
+# Matches adjudicated by exact solution at P <= MATCH_SOLVE_P, both sides
+# alike (0: played out), as a user-facing engine with the solver would play
+MATCH_SOLVE_P=${MATCH_SOLVE_P:-0}
 INIT=${INIT:-runs/night-2/it1/net.pt}
 # Compact data files standing in for the generations before gen 1
 SEED_DATA=${SEED_DATA:-}
@@ -52,7 +56,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS INIT SEED_DATA ANCHORS; do
+  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS MATCH_SOLVE_P INIT SEED_DATA ANCHORS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -84,7 +88,8 @@ match() {  # match NEW_GEN OPPONENT_NAME OPPONENT_MODEL
   rm -rf "$M"
   mkdir -p "$M"
   "$PLAY" test --new "trt16:$R/gen_$1/model.onnx" --best "$3" --games "$MATCH" \
-    --threads "$THREADS" --seed $((7000 + $1)) --out "$M" > "$M.log" 2>&1
+    --threads "$THREADS" --seed $((7000 + $1)) --solve-p "$MATCH_SOLVE_P" \
+    --solve-threads "$SOLVE_THREADS" --out "$M" > "$M.log" 2>&1
   local row
   row=$($PY -c "
 import json; t = json.load(open('$M/test.json')); w, d, g = t['wins'], t['draws'], t['games']

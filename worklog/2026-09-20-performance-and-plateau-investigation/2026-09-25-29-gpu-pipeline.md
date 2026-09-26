@@ -260,3 +260,11 @@ laptop's thermal noise, so it stopped here. Raw data:
 - **Fitting chunk by chunk** is not equivalent to the current 10-epoch fit
   with the last 30% held out, and fit is only ~33 s. Not worth it except as
   a deliberate move to continuous training.
+
+**Thermal mode.** Under sustained load the CPU ran at ~2.6 GHz and 91–94 C,
+against a ~4.1 GHz all-core turbo, and throughput drifted +15% within 10
+minutes. The developer switched Dell's `AWThermalManagement` BIOS attribute
+(exposed by `dell-wmi-sysman`) from Balanced to Performance. The same 5-run
+series then went 101.7 → 107.3 s (+5.5% drift): 88 C mean, ~2.7 GHz, fans
+~3,800–4,300 rpm. That is ~10% faster once hot, approximate because the
+comparison is not interleaved. Keep Performance mode for long runs.

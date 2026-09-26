@@ -69,6 +69,12 @@ Frontier (5M-node cap, 20 threads, so per-solve times are pessimistic;
 Profiles (callgrind summaries, instructions, mispredicted branches, L1
 misses) after steps 1, 4, 6 and 8 are in `data/solver/profile-*.txt`.
 
+Later (after entry 09): **history heuristic** (`4408971`): quiet cutoffs
+credited with P^2 per side and move, quiet moves ordered by it within each
+rank group: nodes 0.86x at P <= 24, 0.80x at P <= 27 (summed time 9.62 ->
+7.99 s). Letting history override the rank groups instead: 1.36x / 1.47x
+more nodes than that; the fixed order is the stronger signal.
+
 Tried and dropped: an AVX2 version classifying four children at once
 (child boards as word arithmetic, top pieces in nibble space): +3%
 instructions, no time gain (lane setup cost ~ savings; classification was

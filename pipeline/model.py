@@ -181,7 +181,9 @@ class FoldedNet(nn.Module):
 
 
 class CompactIo(nn.Module):
-    """The driver's compact interface (entry 30) around an inference network.
+    """The driver's compact interface around an inference network.
+
+    See worklog/2026-09-25-nn-architectures, entry 01.
 
     States arrive as uint8, 4x the engine's values (all multiples of 0.25, so
     exact), and the policy leaves as fp16: 70 + 192 bytes a row cross the bus

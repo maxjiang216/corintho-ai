@@ -64,20 +64,23 @@ class OrtBackend : public Backend {
       const std::string cache = cacheDir(path);
       OrtTensorRTProviderOptionsV2 *opts = nullptr;
       Ort::ThrowOnError(Ort::GetApi().CreateTensorRTProviderOptions(&opts));
-      const std::array<const char *, 8> keys{
-          "device_id",               "trt_fp16_enable",
-          "trt_engine_cache_enable", "trt_engine_cache_path",
-          "trt_timing_cache_enable", "trt_profile_min_shapes",
-          "trt_profile_opt_shapes",  "trt_profile_max_shapes"};
-      const std::array<const char *, 8> vals{
-          device.c_str(),
-          trt == TensorRt::kFp16 ? "True" : "False",
-          "True",
-          cache.c_str(),
-          "True",
-          "states:1x70",
-          "states:16000x70",
-          "states:65536x70"};
+      const std::array<const char *, 8> keys{"device_id",
+                                             "trt_fp16_enable",
+                                             "trt_engine_cache_enable",
+                                             "trt_engine_cache_path",
+                                             "trt_timing_cache_enable",
+                                             "trt_profile_min_shapes",
+                                             "trt_profile_opt_shapes",
+                                             "trt_profile_max_shapes"};
+      const std::array<const char *, 8> vals{device.c_str(),
+                                             trt == TensorRt::kFp16 ? "True"
+                                                                    : "False",
+                                             "True",
+                                             cache.c_str(),
+                                             "True",
+                                             "states:1x70",
+                                             "states:16000x70",
+                                             "states:65536x70"};
       Ort::ThrowOnError(Ort::GetApi().UpdateTensorRTProviderOptions(
           opts, keys.data(), vals.data(), keys.size()));
       options.AppendExecutionProvider_TensorRT_V2(*opts);
@@ -116,30 +119,34 @@ class OrtBackend : public Backend {
     Ort::IoBinding binding{*session_};
     if (compact_) {
       // Every input is a multiple of 0.25 in [0, 1], so 4x fits a byte
-      // exactly; the model multiplies by 0.25 itself (entry 30)
+      // exactly; the model multiplies by 0.25 itself
+      // (worklog/2026-09-25-nn-architectures, entry 01)
       auto *in = static_cast<uint8_t *>(pinned_in_);
       for (size_t i = 0; i < in_n; ++i)
         in[i] = static_cast<uint8_t>(states[i] * 4.0F + 0.5F);
-      binding.BindInput("states", Ort::Value::CreateTensor<uint8_t>(
-                                      cpu_info_, in, in_n, in_shape.data(), 2));
-      binding.BindOutput(
-          "policy", Ort::Value::CreateTensor<Ort::Float16_t>(
-                        cpu_info_, static_cast<Ort::Float16_t *>(pinned_policy_),
-                        policy_n, policy_shape.data(), 2));
+      binding.BindInput("states",
+                        Ort::Value::CreateTensor<uint8_t>(cpu_info_, in, in_n,
+                                                          in_shape.data(), 2));
+      binding.BindOutput("policy",
+                         Ort::Value::CreateTensor<Ort::Float16_t>(
+                             cpu_info_,
+                             static_cast<Ort::Float16_t *>(pinned_policy_),
+                             policy_n, policy_shape.data(), 2));
     } else {
       auto *in = static_cast<float *>(pinned_in_);
       std::copy(states, states + in_n, in);
-      binding.BindInput("states", Ort::Value::CreateTensor<float>(
-                                      cpu_info_, in, in_n, in_shape.data(), 2));
-      binding.BindOutput("policy", Ort::Value::CreateTensor<float>(
-                                       cpu_info_,
-                                       static_cast<float *>(pinned_policy_),
-                                       policy_n, policy_shape.data(), 2));
+      binding.BindInput("states",
+                        Ort::Value::CreateTensor<float>(cpu_info_, in, in_n,
+                                                        in_shape.data(), 2));
+      binding.BindOutput("policy",
+                         Ort::Value::CreateTensor<float>(
+                             cpu_info_, static_cast<float *>(pinned_policy_),
+                             policy_n, policy_shape.data(), 2));
     }
-    binding.BindOutput("value", Ort::Value::CreateTensor<float>(
-                                    cpu_info_, pinned_value_,
-                                    static_cast<size_t>(rows),
-                                    value_shape.data(), 2));
+    binding.BindOutput(
+        "value", Ort::Value::CreateTensor<float>(cpu_info_, pinned_value_,
+                                                 static_cast<size_t>(rows),
+                                                 value_shape.data(), 2));
     session_->Run(Ort::RunOptions{nullptr}, binding);
     std::copy(pinned_value_, pinned_value_ + rows, values);
     if (compact_) {
@@ -180,8 +187,8 @@ class OrtBackend : public Backend {
     pinned_policy_ = get(static_cast<size_t>(capacity_) * kNumMoves);
   }
   void release() {
-    for (void *p : {pinned_in_, static_cast<void *>(pinned_value_),
-                    pinned_policy_})
+    for (void *p :
+         {pinned_in_, static_cast<void *>(pinned_value_), pinned_policy_})
       if (p != nullptr)
         pinned_->Free(p);
     pinned_in_ = pinned_policy_ = nullptr;
@@ -236,8 +243,8 @@ std::unique_ptr<Backend> makeBackend(const std::string &path,
                                      int32_t num_threads) {
   if (endsWith(path, ".mlp"))
     return makeCpuBackend(path, num_threads);
-  for (const auto &[prefix, trt] :
-       {std::pair{"trt16:", TensorRt::kFp16}, std::pair{"trt:", TensorRt::kFp32}})
+  for (const auto &[prefix, trt] : {std::pair{"trt16:", TensorRt::kFp16},
+                                    std::pair{"trt:", TensorRt::kFp32}})
     if (path.rfind(prefix, 0) == 0 && endsWith(path, ".onnx"))
       return makeOrtBackend(path.substr(std::string{prefix}.size()), 0, trt);
   if (endsWith(path, ".onnx"))

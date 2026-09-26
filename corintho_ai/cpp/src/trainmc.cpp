@@ -630,11 +630,11 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   }
 #endif
   // Score every child without branching, then take the first maximum. The
-  // scores are computed in float throughout: the double literals that used to
-  // promote them are gone (worklog 2026-09-25 entry 02), which doubles the
-  // SIMD width and changes some choices between near-equal children. Taking
-  // the first index holding the maximum reproduces the old strict > scan.
-  // Without branches the scoring loop vectorizes, and the flag tests no longer
+  // scores are computed in float throughout; double literals used to promote
+  // them (removed in worklog/2026-09-25-nn-architectures, entry 02, which
+  // changes some choices between near-equal children). Taking the first
+  // index holding the maximum reproduces the old strict > scan. Without
+  // branches the scoring loop vectorizes, and the flag tests no longer
   // mispredict. Nodes with many children dominate this loop: 70% of the
   // children scored belong to nodes with 20 or more (worklog entry 26).
   float score[Node::kMaxEdges];

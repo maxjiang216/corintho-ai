@@ -347,7 +347,8 @@ def main():
         choices=("trt", "cuda"),
         default="trt",
         help="ONNX Runtime provider for self-play and tests: TensorRT "
-        "(~22%% faster self-play with compact models, entry 30) or CUDA",
+        "(~22%% faster self-play with compact models; worklog "
+        "2026-09-25-nn-architectures, entry 01) or CUDA",
     )
     args = ap.parse_args()
 

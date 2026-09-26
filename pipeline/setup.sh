@@ -3,7 +3,8 @@
 #   .venv/         PyTorch, ONNX Runtime (Python), numpy, onnx; the pip wheels
 #                  also bring the CUDA 13 and cuDNN 9 libraries, so no system
 #                  CUDA toolkit is needed, only the NVIDIA driver
-#                  and TensorRT 10 (4.3 GB), for trt: models (entry 30)
+#                  and TensorRT 10 (4.3 GB), for trt: models
+#                  (worklog/2026-09-25-nn-architectures, entry 01)
 #   third_party/   the ONNX Runtime C++ release, CUDA 13 build, for the driver
 # Then builds build/corintho_play. Needs uv, clang-20 and libomp-20-dev.
 set -euo pipefail

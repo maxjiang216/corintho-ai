@@ -47,14 +47,17 @@ class Solver {
                 int32_t beta, int32_t best_move);
 
   enum Bound : int8_t { kExact = 0, kLower = 1, kUpper = 2 };
+  /// @brief 16 bytes: the board word, and one word packing the rest of the
+  /// key (side to move, 6 reserve counts in 3 bits each: bits 0-18), score
+  /// + 1 (19-20), bound (21-22), best move + 1 (23-29; 0 for none), the
+  /// position's horizon P (30-35) and the epoch (36-63; valid only when
+  /// equal to epoch_). Entry 13.
   struct Entry {
     uint64_t board{0};
-    uint64_t rest{0};
-    uint32_t epoch{0};  // valid only when equal to epoch_
-    int8_t score{0};
-    int8_t bound{0};
-    int8_t move{-1};
+    uint64_t meta{0};
   };
+  static constexpr uint32_t kEpochBits = 28;
+  static_assert(sizeof(Entry) == 16);
 
   std::vector<Entry> table_;
   uint64_t mask_;

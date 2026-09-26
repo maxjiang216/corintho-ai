@@ -27,6 +27,16 @@ constexpr std::array<int32_t, kNumMoves> makeQuietRank() {
 }
 constexpr std::array<int32_t, kNumMoves> kQuietRank = makeQuietRank();
 
+// The rest of a Game::key (side to move in bit 0, reserve i in bits
+// 4 + 4i, each 0-4) in 19 bits: side to move, then 3 bits per reserve
+uint64_t packRest(uint64_t rest) {
+  uint64_t out = rest & 1;
+  for (int32_t i = 0; i < 6; ++i)
+    out |= ((rest >> (4 + 4 * i)) & 7) << (1 + 3 * i);
+  return out;
+}
+constexpr uint64_t kRestMask = (uint64_t{1} << 19) - 1;
+
 uint64_t mix(uint64_t board, uint64_t rest) {
   uint64_t x = board * 0x9E3779B97F4A7C15ULL ^ (rest + 0x632BE59BD9B4E019ULL);
   x ^= x >> 29;
@@ -42,7 +52,7 @@ Solver::Solver(int32_t log2_entries)
       mask_((uint64_t{1} << log2_entries) - 1) {}
 
 void Solver::clear() noexcept {
-  if (++epoch_ == 0) {  // wrapped: really clear, once every 2^32 clears
+  if (++epoch_ == (1U << kEpochBits)) {  // wrapped: really clear, rarely
     std::fill(table_.begin(), table_.end(), Entry{});
     epoch_ = 1;
   }
@@ -143,19 +153,21 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     return lines ? -1 : 0;  // no moves: lost if a line stands, else drawn
   uint64_t board, rest;
   game.key(board, rest);
-  Entry &slot = table_[mix(board, rest) & mask_];
+  const Entry &slot = table_[mix(board, rest) & mask_];
   const int32_t alpha0 = alpha;
   int32_t table_move = -1;
-  if (slot.epoch == epoch_ && slot.board == board && slot.rest == rest) {
-    const int32_t s = slot.score;
-    if (slot.bound == kExact || (slot.bound == kLower && s >= beta) ||
-        (slot.bound == kUpper && s <= alpha))
+  if (slot.board == board && (slot.meta & kRestMask) == packRest(rest) &&
+      (slot.meta >> 36) == epoch_) {
+    const int32_t s = static_cast<int32_t>((slot.meta >> 19) & 3) - 1;
+    const int32_t bound = static_cast<int32_t>((slot.meta >> 21) & 3);
+    if (bound == kExact || (bound == kLower && s >= beta) ||
+        (bound == kUpper && s <= alpha))
       return s;
-    if (slot.bound == kLower)
+    if (bound == kLower)
       alpha = std::max(alpha, s);
     else
       beta = std::min(beta, s);
-    table_move = slot.move;
+    table_move = static_cast<int32_t>((slot.meta >> 23) & 127) - 1;
   }
   int32_t best = -2, best_move = -1;
   // The table's move alone first: when it refutes, the other children are
@@ -290,15 +302,20 @@ void Solver::recordCutoff(uint64_t board, uint64_t rest, int32_t move) {
 int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,
                       int32_t alpha0, int32_t beta, int32_t best_move) {
   // The search may have overwritten this position's slot; store afresh
+  const int32_t bound = best <= alpha0 ? kUpper
+                        : best >= beta ? kLower
+                                       : kExact;
+  uint64_t reserves = 0;
+  for (int32_t i = 0; i < 6; ++i)
+    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const uint64_t p = 2 * reserves + static_cast<uint64_t>(__builtin_popcountll(
+                                        (board | board >> 1 | board >> 2) &
+                                        0x1111111111111111ULL));
   table_[mix(board, rest) & mask_] =
-      Entry{board,
-            rest,
-            epoch_,
-            static_cast<int8_t>(best),
-            static_cast<int8_t>(best <= alpha0 ? kUpper
-                                : best >= beta ? kLower
-                                               : kExact),
-            static_cast<int8_t>(best_move)};
+      Entry{board, packRest(rest) | static_cast<uint64_t>(best + 1) << 19 |
+                       static_cast<uint64_t>(bound) << 21 |
+                       static_cast<uint64_t>(best_move + 1) << 23 |
+                       (p & 63) << 30 | static_cast<uint64_t>(epoch_) << 36};
   return best;
 }
 

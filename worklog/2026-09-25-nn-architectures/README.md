@@ -63,8 +63,9 @@ kept no samples.
 - Self-play with the solver: `--solve-p 27` (entries 14-15); `--node-p`
   stays off. Not yet measured: a paired **training** run with and without
   `--solve-p 27` (queued driver, TensorRT, wider window).
-- Rebuild the main driver (`pipeline/build`) to adopt the queued network
-  calls (entry 09, -7 to -11% self-play) and the solver.
+- `pipeline/build/corintho_play` is rebuilt (queued calls, solver), and
+  `arch/loop.sh` passes `--solve-p 27` by default (`SOLVE_P=0` turns it
+  off). PR #169.
 - Strength comparisons: paired matches (`game_scores.txt`,
   `arch/paired.py`, entry 15); the second player wins ~91% of test games,
   so plain totals are noisy.

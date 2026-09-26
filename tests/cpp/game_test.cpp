@@ -2,6 +2,8 @@
 #include "util.h"
 #include "gtest/gtest.h"
 #include <bitset>
+#include <random>
+#include <vector>
 
 TEST(GameTest, DefaultConstructor) {
   // Test that the default constructor creates a game in the starting position
@@ -524,4 +526,48 @@ TEST(GameTest, TwoLines) {
       }
     }
   }
+}
+// Every board symmetry must map moves the way it maps spaces: the legal moves
+// of a transformed position are the transformed legal moves. Positions come
+// from seeded random play. Rows 2 and 6 of move_symmetries were swapped until
+// 2026-09-25, which this catches in almost every position.
+TEST(GameTest, SymmetryTablesAgree) {
+  std::mt19937 rng{12345};
+  int32_t checked = 0;
+  for (int32_t g = 0; g < 50; ++g) {
+    Game game;
+    for (int32_t ply = 0; ply < 40; ++ply) {
+      std::bitset<kNumMoves> legal;
+      game.getLegalMoves(legal);
+      if (legal.none())
+        break;
+      float state[kGameStateSize];
+      game.writeGameState(state);
+      for (int32_t k = 0; k < kNumSymmetries; ++k) {
+        // Build the transformed position as writeSamples transforms states;
+        // reserves are canonized, so player 0 is to move
+        int32_t board[4 * kBoardSize];
+        for (int32_t j = 0; j < 4 * kBoardSize; ++j)
+          board[j] = state[space_symmetries[k][j / 4] * 4 + j % 4] != 0.0F;
+        int32_t pieces[6];
+        for (int32_t i = 0; i < 6; ++i)
+          pieces[i] =
+              static_cast<int32_t>(state[4 * kBoardSize + i] * 4.0F + 0.5F);
+        const Game transformed{board, 0, pieces};
+        std::bitset<kNumMoves> expected;
+        transformed.getLegalMoves(expected);
+        for (int32_t j = 0; j < kNumMoves; ++j)
+          ASSERT_EQ(expected[j], legal[move_symmetries[k][j]])
+              << "symmetry " << k << " move " << j << " game " << g << " ply "
+              << ply;
+        ++checked;
+      }
+      std::vector<int32_t> moves;
+      for (int32_t j = 0; j < kNumMoves; ++j)
+        if (legal[j])
+          moves.push_back(j);
+      game.doMove(moves[rng() % moves.size()]);
+    }
+  }
+  EXPECT_GT(checked, 1000);
 }

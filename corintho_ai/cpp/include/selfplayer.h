@@ -82,7 +82,10 @@ class SelfPlayer {
   /// @brief End games by exact solution once the position's horizon P is at
   /// most max_horizon (worklog 2026-09-25-nn-architectures, entry 14)
   /// @details The position is submitted to `pool` and the game ends at once
-  /// (its trees and slot are freed); finalize() collects the result.
+  /// (its trees and slot are freed); finalize() collects the result. In
+  /// training, the solver also plays the game out from there and its
+  /// positions become samples (entry 19); so do positions the search has
+  /// proven.
   void set_solver(SolverPool *pool, int32_t max_horizon) noexcept {
     solver_pool_ = pool;
     solve_horizon_ = max_horizon;
@@ -167,6 +170,9 @@ class SelfPlayer {
   SolverPool *solver_pool_{nullptr};
   int32_t solve_horizon_{0};
   std::shared_ptr<SolveJob> solve_job_{};
+  /// @brief In training, the value the search proved for the position sent
+  /// to the solver for its line, else Solver::kUnknown
+  int32_t proven_value_{Solver::kUnknown};
 
   bool adjudicated_{false};
   /// @brief File where all logs are written to

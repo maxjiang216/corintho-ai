@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "game.h"
+#include "solver.h"
 
 /// @brief A position waiting for (or given) an exact result
 /// @details result is kWaiting until a pool thread stores 1, 0, -1 (for
@@ -19,6 +20,10 @@ struct SolveJob {
   static constexpr int8_t kWaiting = 3;
   Game game;
   uint64_t max_nodes{0};  // 0: the pool's default
+  /// @brief Also play the position out with exact values (entry 19); an
+  /// empty line after a known result means the playout was capped
+  bool play_out{false};
+  std::vector<Solver::LineStep> line{};
   std::atomic<int8_t> result{kWaiting};
 };
 
@@ -37,7 +42,8 @@ class SolverPool {
   SolverPool(const SolverPool &) = delete;
   SolverPool &operator=(const SolverPool &) = delete;
 
-  std::shared_ptr<SolveJob> submit(const Game &game, uint64_t max_nodes = 0);
+  std::shared_ptr<SolveJob> submit(const Game &game, uint64_t max_nodes = 0,
+                                   bool play_out = false);
   /// @brief Block until the job has a result; returns it
   static int32_t wait(const SolveJob &job);
   uint64_t max_nodes() const noexcept { return max_nodes_; }

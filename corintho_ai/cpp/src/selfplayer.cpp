@@ -138,13 +138,20 @@ bool SelfPlayer::tryEnd(const Node &position) {
   // `position` is the current position, to_play_ to move. In solver mode a
   // game ends as soon as its outcome is known (entry 15): proven by the
   // search (exact: deduced from terminal and solved positions), or at the
-  // solve horizon. Playing a known outcome out adds nothing to learn.
+  // solve horizon. In training the rest of the game is still played, by the
+  // solver, for its samples (entry 19).
   const Game &game = position.get_game();
   if (position.known() && !position.terminal()) {
     const int32_t value = position.won() ? 1 : position.lost() ? -1 : 0;
-    adjudicate(value, game.horizon(), "PROVEN");
+    if (testing_) {
+      adjudicate(value, game.horizon(), "PROVEN");
+    } else {
+      proven_value_ = value;
+      solve_job_ = solver_pool_->submit(game, 0, true);
+    }
   } else if (game.horizon() <= solve_horizon_) {
-    solve_job_ = solver_pool_->submit(game);  // result in finalize()
+    // Result in finalize(); in training, also the line played out from here
+    solve_job_ = solver_pool_->submit(game, 0, !testing_);
   } else {
     return false;
   }
@@ -159,13 +166,36 @@ bool SelfPlayer::finalize() {
   if (!solve_job_)
     return true;
   int32_t r = SolverPool::wait(*solve_job_);
+  // A position the search proved keeps its proven value if the solve is
+  // capped; no retry, since only its line is lost
+  assert(proven_value_ == Solver::kUnknown || r == Solver::kUnknown ||
+         r == proven_value_);
+  if (r == Solver::kUnknown && proven_value_ != Solver::kUnknown)
+    r = proven_value_;
   if (r == Solver::kUnknown) {
-    solve_job_ =
-        solver_pool_->submit(solve_job_->game, 20 * solver_pool_->max_nodes());
+    solve_job_ = solver_pool_->submit(
+        solve_job_->game, 20 * solver_pool_->max_nodes(), !testing_);
     r = SolverPool::wait(*solve_job_);
   }
   const bool known = r != Solver::kUnknown;
-  adjudicate(known ? r : 0, solve_job_->game.horizon(), "SOLVED");
+  adjudicate(known ? r : 0, solve_job_->game.horizon(),
+             proven_value_ != Solver::kUnknown ? "PROVEN" : "SOLVED");
+  // The solved line's positions become samples like any other (entry 19):
+  // the network still evaluates positions below the solve horizon inside
+  // its searches, and without data there its values collapse (entry 18).
+  // Policy target: the move played. The game now ends with the line's last
+  // move, whose mover gets the line's last value.
+  const std::vector<Solver::LineStep> &line = solve_job_->line;
+  if (!line.empty()) {
+    for (const Solver::LineStep &step : line) {
+      std::array<float, kGameStateSize> game_state;
+      std::array<float, kNumMoves> prob_sample{};
+      step.game.writeGameState(game_state.data());
+      prob_sample[step.move] = 1.0F;
+      samples_.emplace_back(game_state, prob_sample);
+    }
+    last_mover_value_ = static_cast<float>(line.back().value);
+  }
   solve_job_.reset();
   return known;
 }

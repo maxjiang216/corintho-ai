@@ -30,7 +30,13 @@ def load(d, sym_state, sym_move):
     out_s = np.empty((n, 70), np.uint8)
     out_v = np.empty(n, np.float32)
     out_p = np.empty((n, 96), np.float16)
-    bad_sym = 0
+    # Mismatches per symmetry, against the (fixed) tables and against the
+    # tables as they were before the quarter-turn fix (rows 2 and 6 of the
+    # move table swapped; worklog 2026-09-25-nn-architectures, entry 03)
+    old_move = sym_move.copy()
+    old_move[[2, 6]] = sym_move[[6, 2]]
+    bad = np.zeros(8, np.int64)
+    bad_old = np.zeros(8, np.int64)
     for a in range(0, n, CHUNK):
         b = min(n, a + CHUNK)
         s = np.asarray(states[8 * a : 8 * b]).reshape(b - a, 8, 70)
@@ -38,10 +44,14 @@ def load(d, sym_state, sym_move):
         p = np.asarray(policies[8 * a : 8 * b]).reshape(b - a, 8, 96)
         base_s, base_p = s[:, 0], p[:, 0]
         for k in range(8):
-            bad_sym += int(
-                (s[:, k] != base_s[:, sym_state[k]]).any(1).sum()
-                + (p[:, k] != base_p[:, sym_move[k]]).any(1).sum()
-                + (v[:, k] != v[:, 0]).sum()
+            same = (s[:, k] == base_s[:, sym_state[k]]).all(1) & (
+                v[:, k] == v[:, 0]
+            )
+            bad[k] += int(
+                (~same | (p[:, k] != base_p[:, sym_move[k]]).any(1)).sum()
+            )
+            bad_old[k] += int(
+                (~same | (p[:, k] != base_p[:, old_move[k]]).any(1)).sum()
             )
         q = np.rint(base_s * 4)
         assert np.array_equal(q / 4, base_s), "state not a multiple of 0.25"
@@ -52,14 +62,23 @@ def load(d, sym_state, sym_move):
     legal, lines = features(first)
     visited_illegal = int(((out_p > 0) & ~legal).any(1).sum())
     no_legal = int((~legal.any(1)).sum())
+    if bad.sum() == 0:
+        tables = "current"
+    elif bad_old.sum() == 0:
+        tables = (
+            "pre-fix (quarter turns swapped; identity copy kept, unaffected)"
+        )
+    else:
+        tables = f"NEITHER: mismatches {bad.tolist()} / old {bad_old.tolist()}"
     print(
-        f"{d}: {n} positions; symmetry mismatches {bad_sym}; positions with "
+        f"{d}: {n} positions; symmetry tables {tables}; positions with "
         f"visits on an illegal move {visited_illegal}; with no legal move "
         f"{no_legal}; legal moves mean {legal.sum(1).mean():.1f}; "
         f"positions with a line {(lines.any(1)).mean():.3f}",
         flush=True,
     )
-    assert bad_sym == 0 and visited_illegal == 0 and no_legal == 0
+    assert not tables.startswith("NEITHER"), "copies match neither table"
+    assert visited_illegal == 0 and no_legal == 0
     return out_s, out_v, out_p, np.packbits(legal, 1, "little"), lines
 
 

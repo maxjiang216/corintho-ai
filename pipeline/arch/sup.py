@@ -59,8 +59,12 @@ class Data:
         self.policies = t(z["policies"])
         legal = np.unpackbits(z["legal"], 1, bitorder="little")[:, :M]
         self.legal = t(legal.astype(bool))
-        bits = (z["lines"][:, :, None].astype(np.int32) >> np.arange(16)) & 1
-        self.lines = t(bits.astype(np.uint8))  # [n, 3 types, 16 spaces]
+        if lines is not None:  # [n, 3 types, 16 spaces]; skipped when
+            # unused, to leave GPU memory for larger datasets
+            bits = (
+                z["lines"][:, :, None].astype(np.int32) >> np.arange(16)
+            ) & 1
+            self.lines = t(bits.astype(np.uint8))
         self.source = t(z["source"])
         self.dirs = [str(d) for d in z["dirs"]]
         st, mv, sp = symmetries()
@@ -240,6 +244,7 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--reference", help="evaluate this model prefix only")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--models", default="runs/sup/models")
     ap.add_argument("--out", default="runs/sup/results.jsonl")
     a = ap.parse_args()
 
@@ -281,7 +286,7 @@ def main():
     )
     steps_per_epoch = train_rows.numel() // a.batch
     total = steps_per_epoch * a.epochs
-    warm = min(500, total // 20)
+    warm = max(1, min(500, total // 20))
     sched = torch.optim.lr_scheduler.LambdaLR(
         opt,
         lambda s: min(1.0, (s + 1) / warm)
@@ -338,11 +343,11 @@ def main():
     )
     with open(a.out, "a") as f:
         f.write(json.dumps(record) + "\n")
-    os.makedirs("runs/sup/models", exist_ok=True)
+    os.makedirs(a.models, exist_ok=True)
     name = a.tag or f"{a.model}_w{a.width}_d{a.depth}"
     torch.save(
         {"model": net.state_dict(), "args": vars(a)},
-        f"runs/sup/models/{name}.pt",
+        f"{a.models}/{name}.pt",
     )
 
 

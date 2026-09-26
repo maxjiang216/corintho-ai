@@ -38,13 +38,19 @@ threads), the cache cannot pay. Parked; `--cache` off by default. The
 worker-thread driver is in the source; the loop runs on a build from
 before it.
 
-Unverified observation, check pending: with the cache off, the
-worker-thread binary ran 49.1 / 49.2 s (GPU wait 9.7 s) where the older
-binary (a std::async thread per network call, so the two groups' calls
-could overlap on the GPU) had run 57-60 s (wait ~17.5 s), but on a
-different network (gen 5 vs gen 4). If it holds with the same network,
-serializing the groups' GPU calls is itself a ~15% self-play speed-up. The
-A/B (same network, both binaries, cache off) was interrupted.
+Driver check (was an unverified observation; `data/driver-groups-ab.txt`):
+same network, 8000 games, 4000 in flight. The old driver (a thread per
+network call, so the two groups' calls overlap on the GPU) took 112.8 /
+122.2 s; the worker-thread driver (calls one at a time, cache off) 105.2 /
+108.8 s: -7% / -11%. Summed call time fell 140-151 s -> 102-104 s: the
+concurrent calls slowed each other. More groups (3, 4; same total in
+flight) do not help: the worker is busy ~97% of the wall time (GPU side
+saturated) and the engine gets slower with smaller groups (87-93 -> 96-100
+s; per-group synchronization). The developer's framework (engine threads
+feed per-thread queues, one GPU thread batches) would remove engine-side
+waits but cannot beat the GPU side while it is saturated; the lever there
+is overlapping each call's copies and conversions with compute (CUDA
+streams, double buffering): calls are ~1.9 ms of which compute ~0.8.
 
 Better route: merging transpositions inside the search (a graph instead of
 a tree; KataGo's graph search) avoids the repeats at the source and shares

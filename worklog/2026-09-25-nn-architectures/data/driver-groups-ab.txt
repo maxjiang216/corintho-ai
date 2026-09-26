@@ -1,0 +1,11 @@
+# 2026-09-26. corintho_play train, loop-1 gen_15 network (trt16), 8000 games, 14 threads, 4000 games in flight in total.
+# old: build before a9512ad (a std::async thread per network call; groups can overlap on the GPU); new: a9512ad worker thread
+# (all calls one at a time), cache off. gpu = summed call durations.
+round 1 old groups 2 in-flight 2000: wall 112.8 engine 79.9 wait 30.9 gpu 139.5 calls 19103 turns/game 29.86
+round 1 new groups 2 in-flight 2000: wall 105.2 engine 86.6 wait 17.3 gpu 102.3 calls 19103 turns/game 29.86
+round 1 new groups 3 in-flight 1333: wall 112.4 engine 97.2 wait 14.1 gpu 108.6 calls 27151 turns/game 29.88
+round 1 new groups 4 in-flight 1000: wall 111.9 engine 100.3 wait 10.5 gpu 105.8 calls 30487 turns/game 29.93
+round 2 old groups 2 in-flight 2000: wall 122.2 engine 86.7 wait 33.4 gpu 150.9 calls 19140 turns/game 29.9
+round 2 new groups 2 in-flight 2000: wall 108.8 engine 92.7 wait 15.0 gpu 104.4 calls 19140 turns/game 29.9
+round 2 new groups 3 in-flight 1333: wall 110.1 engine 99.1 wait 9.9 gpu 104.6 calls 27063 turns/game 29.95
+round 2 new groups 4 in-flight 1000: wall 108.5 engine 96.3 wait 11.1 gpu 104.9 calls 30567 turns/game 29.95

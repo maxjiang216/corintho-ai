@@ -1,6 +1,7 @@
 #include "solver.h"
 
 #include <algorithm>
+#include <array>
 #include <new>
 #include <type_traits>
 
@@ -8,6 +9,21 @@
 #include "util.h"
 
 namespace {
+
+// Rank of a quiet (non-line-making) move, searched in increasing order:
+// move a stack, then place a base, a column, a capital. This is the order
+// the move IDs happen to have; made explicit because it matters: placing
+// capitals first instead (the reverse) visits 7.5x as many positions at
+// P <= 24 (entry 08).
+constexpr std::array<int32_t, kNumMoves> makeQuietRank() {
+  std::array<int32_t, kNumMoves> rank{};
+  for (int32_t m = 0; m < kNumMoves; ++m) {
+    const MoveInfo &info = kMoveTable[m];
+    rank[m] = info.is_place ? 1 + info.piece : 0;  // base 0, capital 2
+  }
+  return rank;
+}
+constexpr std::array<int32_t, kNumMoves> kQuietRank = makeQuietRank();
 
 uint64_t mix(uint64_t board, uint64_t rest) {
   uint64_t x = board * 0x9E3779B97F4A7C15ULL ^ (rest + 0x632BE59BD9B4E019ULL);
@@ -109,7 +125,8 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   forEachMove(legal, [&](int32_t m) {
     if (win || m == table_move)
       return;
-    Child &c = *new (&children[n]) Child{game, {}, m, kNumMoves + 1, false};
+    Child &c = *new (&children[n])
+                   Child{game, {}, m, kNumMoves + 1 + kQuietRank[m], false};
     c.game.doMove(m);
     if (c.game.hasLine()) {
       c.lines = c.game.getLegalMoves(c.legal);

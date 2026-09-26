@@ -1,7 +1,7 @@
 // Endgame solver benchmark and correctness gate (worklog
 // 2026-09-25-nn-architectures, entry 08).
 //
-//   solver_bench POSITIONS.bin MAX_P CAP THREADS [RESULTS.tsv]
+//   solver_bench POSITIONS.bin MAX_P CAP THREADS [RESULTS.tsv] [LOG2_TABLE]
 //
 // POSITIONS.bin: rows of 71 bytes, the 70 network inputs x 4 (uint8) and a
 // value target (bench/results/solver-positions.bin: 9171 self-play positions,
@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 #include <vector>
 
 #include "game.h"
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
   const auto t_all = std::chrono::steady_clock::now();
 #pragma omp parallel
   {
-    Solver solver{20};
+    Solver solver{argc > 6 ? std::atoi(argv[6]) : 20};
 #pragma omp for schedule(dynamic, 1)
     for (size_t i = 0; i < rows.size(); ++i) {
       solver.clear();
@@ -118,7 +119,7 @@ int main(int argc, char **argv) {
   std::printf("positions %zu, solved %lu, nodes %lu, solve time %.2f s "
               "(summed), wall %.2f s\n",
               rows.size(), solved_all, total_nodes, total_us / 1e6, wall);
-  if (argc > 5) {
+  if (argc > 5 && std::string(argv[5]) != "-") {
     FILE *o = std::fopen(argv[5], "w");
     std::fprintf(o, "index\tP\tresult\tnodes\tus\n");
     for (const Row &r : rows)

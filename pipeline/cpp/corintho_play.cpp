@@ -30,7 +30,8 @@
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
 //   --cache L       train only: cache network results for 2^L positions (0,
 //                   the default: off), shared by all games and keyed up to
-//                   board symmetry (eval_cache.h); ~208 bytes per entry
+//                   board symmetry (eval_cache.h); ~216 bytes per entry
+//   --cache-sym 1   0: key positions exactly, never serving a rotated copy
 //   --check M2      train only: also evaluate every batch with M2 and report
 //                   the largest differences (games follow --model)
 
@@ -194,7 +195,7 @@ int runTrain(const Args &a) {
   int32_t verify_printed = 0;
   std::unique_ptr<EvalCache> cache;
   if (cache_log2 > 0)
-    cache = std::make_unique<EvalCache>(cache_log2);
+    cache = std::make_unique<EvalCache>(cache_log2, a.i32("cache-sym", 1) != 0);
   // After a call's misses come back: put them in the batch's row layout and
   // remember them
   auto finishCached = [&cache](Group &g) {

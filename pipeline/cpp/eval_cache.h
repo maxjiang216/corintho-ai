@@ -43,10 +43,12 @@ class EvalCache {
     std::vector<int32_t> misses;
   };
 
-  // 2^log2_entries entries in sets of kWays
-  explicit EvalCache(int32_t log2_entries)
+  // 2^log2_entries entries in sets of kWays. With symmetric false, keys are
+  // the rows as they are (exact results only; no frame is ever rotated).
+  explicit EvalCache(int32_t log2_entries, bool symmetric = true)
       : sets_(size_t{1} << std::max(0, log2_entries - 2)),
-        mask_(sets_.size() - 1) {
+        mask_(sets_.size() - 1),
+        frames_(symmetric ? kNumSymmetries : 1) {
     for (int32_t k = 0; k < kNumSymmetries; ++k)
       for (int32_t j = 0; j < kBoardSize; ++j)
         shuffle_[k][j] = static_cast<int8_t>(space_symmetries[k][j]);
@@ -178,7 +180,7 @@ class EvalCache {
     const __m128i v = _mm_load_si128(reinterpret_cast<const __m128i *>(bytes));
     uint64_t best_hi = ~uint64_t{0}, best_lo = ~uint64_t{0};
     frame = 0;
-    for (int32_t k = 0; k < kNumSymmetries; ++k) {
+    for (int32_t k = 0; k < frames_; ++k) {
       const __m128i c = _mm_shuffle_epi8(
           v, _mm_loadu_si128(reinterpret_cast<const __m128i *>(shuffle_[k])));
       const uint64_t lo = static_cast<uint64_t>(_mm_cvtsi128_si64(c));
@@ -209,6 +211,7 @@ class EvalCache {
 
   std::vector<Set> sets_;
   uint64_t mask_;
+  int32_t frames_;
   alignas(16) int8_t shuffle_[kNumSymmetries][16];
   uint32_t clock_{0};
   uint64_t lookups_{0};

@@ -58,6 +58,7 @@
 
 #include "backend.h"
 #include "eval_cache.h"
+#include "node.h"
 #include "npy.h"
 #include "trainer.h"
 #include "util.h"
@@ -207,7 +208,18 @@ class SerialWorker {
 struct DupRecord {
   uint32_t game, call;
   uint64_t hash, canonical;  // canonical: least hash over the 8 symmetries
+  uint8_t root_p, leaf_p;    // horizon P of the search root and of the row
+  uint8_t pad[6];
 };
+// P = 2 * reserves + occupied spaces, from network inputs
+uint8_t horizonOf(const float *row) {
+  int32_t p = 0;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    p += (row[4 * s] + row[4 * s + 1] + row[4 * s + 2]) > 0.0F;
+  for (int32_t i = 0; i < 6; ++i)
+    p += 2 * static_cast<int32_t>(row[4 * kBoardSize + i] * 4.0F + 0.5F);
+  return static_cast<uint8_t>(p);
+}
 uint64_t rowHash(const float *row, const int32_t *perm = nullptr) {
   uint64_t h = 1469598103934665603ULL;  // FNV-1a over the inputs x 4
   for (int32_t i = 0; i < kGameStateSize; ++i) {
@@ -416,8 +428,17 @@ int runTrain(const Args &a) {
           uint64_t canonical = rowHash(row);
           for (int32_t k = 1; k < kNumSymmetries; ++k)
             canonical = std::min(canonical, rowHash(row, space_symmetries[k]));
+          const int32_t slot_game = g.trainer->gameInSlot(r / spe);
+          const Node *root = g.trainer->searchRoot(slot_game);
+          float root_state[kGameStateSize];
+          uint8_t root_p = 255;
+          if (root != nullptr) {
+            root->get_game().writeGameState(root_state);
+            root_p = horizonOf(root_state);
+          }
           dup_buf[static_cast<size_t>(r)] = {
-              game, static_cast<uint32_t>(calls), rowHash(row), canonical};
+              game,     static_cast<uint32_t>(calls), rowHash(row), canonical,
+              root_p,   horizonOf(row),               {}};
         }
         std::fwrite(dup_buf.data(), sizeof(DupRecord), dup_buf.size(),
                     dup_file);

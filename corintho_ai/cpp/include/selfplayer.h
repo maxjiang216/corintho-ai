@@ -27,6 +27,10 @@ struct Sample {
 /// @brief A training match with 2 TrainMC players
 class SelfPlayer {
  public:
+  /// @brief Root of the tree now being searched (the player to move's),
+  /// or nullptr. For measurements (worklog 2026-09-25-nn-architectures,
+  /// entry 08).
+  const Node *searchRoot() const noexcept { return players_[to_play_].root(); }
   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,

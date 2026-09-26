@@ -43,6 +43,10 @@ class Trainer {
   int32_t gameInSlot(int32_t slot) const noexcept {
     return game_in_slot_[static_cast<size_t>(slot)];
   }
+  /// @brief Root of game `game`'s current search, or nullptr (measurements)
+  const Node *searchRoot(int32_t game) const noexcept {
+    return games_[static_cast<size_t>(game)].searchRoot();
+  }
   /// @brief Return the number of training samples
   int32_t num_samples() const noexcept;
   /// @brief Average score of first player

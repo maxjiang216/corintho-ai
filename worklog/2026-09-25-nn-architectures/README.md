@@ -23,6 +23,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 10 | [solver move ordering study](2026-09-26-10-solver-move-ordering-study.md) | History heuristic (0.80x nodes at P <= 27). Per-move statistics (the developer's idea): 89% first-move cutoffs; every statistics-suggested reordering lost in controlled tests (observational bias). |
 | 11 | [legal-move generation](2026-09-26-11-legal-move-generation.md) | pext in computeSpaceInfo and basicLegalMoves, branch-free lineBreakers: -13.5% instructions, bit-identical (digests, rulecheck, verify). Engine-wide. |
 | 12 | [null-window solves](2026-09-26-12-null-window-solves.md) | "Win?" then "at least a draw?": 0.91-0.93x nodes at P <= 27-30, neutral at P <= 24. |
+| 13 | [the solver's table](2026-09-26-13-solver-table.md) | 16-byte entries, 4-way buckets with one AVX2 compare, prefetching every child: P <= 30 -25%, P <= 27 -14%. |
 
 ## The developer's ideas (2026-09-25), to work through
 

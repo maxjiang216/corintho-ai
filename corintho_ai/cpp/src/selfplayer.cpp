@@ -156,7 +156,8 @@ bool SelfPlayer::tryEnd(const Node &position) {
     return false;
   }
   players_[0].null_root();
-  players_[1].null_root();
+  if (!shared_tree_)  // a shared tree is players_[0] only
+    players_[1].null_root();
   owned_to_eval_.reset();
   to_eval_ = nullptr;
   return true;
@@ -344,7 +345,8 @@ void SelfPlayer::endGame() noexcept {
   // We cannot delete the SelfPlayer yet as it contains training samples
   // and results which will be collected at the end
   players_[0].null_root();
-  players_[1].null_root();
+  if (!shared_tree_)  // a shared tree is players_[0] only
+    players_[1].null_root();
   // Frees nothing when the rows live in a caller's slot
   owned_to_eval_.reset();
   to_eval_ = nullptr;

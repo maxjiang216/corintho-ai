@@ -19,6 +19,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 06 | [wide window, small generations](2026-09-26-06-wide-window-and-small-generations.md) | A 4-iteration window broke night-1's plateau (70% vs gen 1). loop-1 (25k-game generations, warm starts): fast early gains, then cycling again (4-generation window). |
 | 07 | [repeated evaluations, the cache](2026-09-26-07-repeated-evaluations-and-the-cache.md) | 50% of network rows repeat (33% within a game; 56/38% up to symmetry). An evaluation cache cannot pay while GPU wait is ~20%: parked. Graph search later. |
 | 08 | [the endgame solver](2026-09-26-08-endgame-solver.md) | Exact solver module; 70x faster than the probe at P <= 24 (line-making moves first, branch-free bit tricks). P_game ~26-27, P_node ~19. |
+| 09 | [network calls: queueing, groups, pipelining](2026-09-26-09-driver-queueing-and-pipelining.md) | One call at a time: self-play -7 to -11%. More groups: no gain. Copy/compute pipelining: correct but 9% slower (copies are only ~15% of a 512x4 call). |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -53,6 +54,8 @@ kept no samples.
 
 - No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
   night-2 after it1; all resumable, all data kept).
+- Rebuild the main driver (`pipeline/build`) to adopt the queued network
+  calls (entry 09, -7 to -11% self-play).
 - Next (entry 08): the game-level solver in self-play (P_game ~26-27; end
   the game, exact labels for earlier positions, samples along the proven
   line), then the node solver with a warm table (measure its cost first).

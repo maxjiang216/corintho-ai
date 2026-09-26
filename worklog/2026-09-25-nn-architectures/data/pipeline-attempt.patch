@@ -1,0 +1,468 @@
+diff --git a/pipeline/Makefile b/pipeline/Makefile
+index 85d2980..0d7005c 100644
+--- a/pipeline/Makefile
++++ b/pipeline/Makefile
+@@ -23,6 +23,7 @@ DEPFLAGS := -MMD -MP
+ RPATHS   := $(abspath $(ORT)/lib) $(NVIDIA)/cu13/lib $(NVIDIA)/cudnn/lib \
+             $(abspath .venv/lib/python3.12/site-packages/tensorrt_libs)
+ LDFLAGS  := -fopenmp -flto -O3 -march=native -L$(ORT)/lib -lonnxruntime \
++            -L$(NVIDIA)/cu13/lib -l:libcudart.so.13 \
+             -Wl,--disable-new-dtags $(foreach p,$(RPATHS),-Wl,-rpath,$(p))
+ 
+ BUILD := build
+diff --git a/pipeline/cpp/backend.cpp b/pipeline/cpp/backend.cpp
+index 51f40e8..9366f74 100644
+--- a/pipeline/cpp/backend.cpp
++++ b/pipeline/cpp/backend.cpp
+@@ -1,8 +1,12 @@
+ #include "backend.h"
+ 
++#include "cuda_min.h"
+ #include <immintrin.h>
+ 
+ #include <algorithm>
++#include <cstdlib>
++#include <cstdio>
++#include <chrono>
+ #include <array>
+ #include <stdexcept>
+ #include <utility>
+@@ -44,8 +48,17 @@ Ort::Env &ortEnv() {
+ 
+ class OrtBackend : public Backend {
+  public:
+-  OrtBackend(const std::string &path, int32_t device_id, TensorRt trt)
++  OrtBackend(const std::string &path, int32_t device_id, TensorRt trt,
++             bool async)
+       : path_{path}, trt_{trt} {
++    // Asynchronous mode: the session runs on a stream of ours, so copies
++    // and the network can be queued on it without waiting (entry 09)
++    if (async) {
++      check(cudaSetDevice(device_id));
++      check(cudaStreamCreateWithFlags(&stream_, cudaStreamNonBlocking));
++      check(cudaEventCreateWithFlags(&compute_done_, cudaEventDisableTiming));
++      check(cudaEventCreateWithFlags(&all_done_, cudaEventDisableTiming));
++    }
+     // The environment (and its logger) must exist before any other ORT call
+     Ort::Env &env = ortEnv();
+     Ort::SessionOptions options;
+@@ -83,6 +96,9 @@ class OrtBackend : public Backend {
+                                              "states:65536x70"};
+       Ort::ThrowOnError(Ort::GetApi().UpdateTensorRTProviderOptions(
+           opts, keys.data(), vals.data(), keys.size()));
++      if (stream_ != nullptr)
++        Ort::ThrowOnError(Ort::GetApi().UpdateTensorRTProviderOptionsWithValue(
++            opts, "user_compute_stream", stream_));
+       options.AppendExecutionProvider_TensorRT_V2(*opts);
+       Ort::GetApi().ReleaseTensorRTProviderOptions(opts);
+     }
+@@ -92,6 +108,9 @@ class OrtBackend : public Backend {
+     const std::array<const char *, 2> vals{device.c_str(), "0"};
+     Ort::ThrowOnError(Ort::GetApi().UpdateCUDAProviderOptions(
+         cuda, keys.data(), vals.data(), keys.size()));
++    if (stream_ != nullptr)
++      Ort::ThrowOnError(Ort::GetApi().UpdateCUDAProviderOptionsWithValue(
++          cuda, "user_compute_stream", stream_));
+     options.AppendExecutionProvider_CUDA_V2(*cuda);
+     Ort::GetApi().ReleaseCUDAProviderOptions(cuda);
+     session_ = std::make_unique<Ort::Session>(env, path.c_str(), options);
+@@ -163,7 +182,83 @@ class OrtBackend : public Backend {
+     }
+   }
+ 
+-  ~OrtBackend() override { release(); }
++  bool supportsAsync() const override { return stream_ != nullptr && compact_; }
++
++  void *enqueue(const float *states, int32_t rows, void *after) override {
++    reserveAsync(rows);
++    rows_ = rows;
++    const size_t in_n = static_cast<size_t>(rows) * kGameStateSize;
++    const size_t policy_n = static_cast<size_t>(rows) * kNumMoves;
++    auto *in = static_cast<uint8_t *>(host_in_);
++    for (size_t i = 0; i < in_n; ++i)
++      in[i] = static_cast<uint8_t>(states[i] * 4.0F + 0.5F);
++    check(cudaMemcpyAsync(dev_in_, host_in_, in_n, cudaMemcpyHostToDevice,
++                          stream_));
++    if (after != nullptr)
++      check(cudaStreamWaitEvent(stream_, static_cast<cudaEvent_t>(after), 0));
++    const std::array<int64_t, 2> in_shape{rows, kGameStateSize};
++    const std::array<int64_t, 2> value_shape{rows, 1};
++    const std::array<int64_t, 2> policy_shape{rows, kNumMoves};
++    Ort::IoBinding binding{*session_};
++    binding.BindInput("states", Ort::Value::CreateTensor<uint8_t>(
++                                    cuda_info_, static_cast<uint8_t *>(dev_in_),
++                                    in_n, in_shape.data(), 2));
++    binding.BindOutput("value", Ort::Value::CreateTensor<float>(
++                                    cuda_info_, static_cast<float *>(dev_value_),
++                                    static_cast<size_t>(rows),
++                                    value_shape.data(), 2));
++    binding.BindOutput("policy",
++                       Ort::Value::CreateTensor<Ort::Float16_t>(
++                           cuda_info_, static_cast<Ort::Float16_t *>(dev_policy_),
++                           policy_n, policy_shape.data(), 2));
++    const auto t_run = std::chrono::steady_clock::now();
++    session_->Run(async_run_, binding);
++    run_seconds_ += std::chrono::duration<double>(
++                        std::chrono::steady_clock::now() - t_run)
++                        .count();
++    ++batches_;
++    check(cudaEventRecord(compute_done_, stream_));
++    check(cudaMemcpyAsync(host_value_, dev_value_,
++                          static_cast<size_t>(rows) * sizeof(float),
++                          cudaMemcpyDeviceToHost, stream_));
++    check(cudaMemcpyAsync(host_policy_, dev_policy_, policy_n * 2,
++                          cudaMemcpyDeviceToHost, stream_));
++    check(cudaEventRecord(all_done_, stream_));
++    return compute_done_;
++  }
++
++  void finish(float *values, float *probs) override {
++    const auto t_wait = std::chrono::steady_clock::now();
++    check(cudaEventSynchronize(all_done_));
++    finish_wait_seconds_ += std::chrono::duration<double>(
++                                std::chrono::steady_clock::now() - t_wait)
++                                .count();
++    const float *v = static_cast<const float *>(host_value_);
++    std::copy(v, v + rows_, values);
++    const size_t policy_n = static_cast<size_t>(rows_) * kNumMoves;
++    const auto *half = static_cast<const uint16_t *>(host_policy_);
++    for (size_t i = 0; i < policy_n; i += 8)
++      _mm256_storeu_ps(probs + i,
++                       _mm256_cvtph_ps(_mm_loadu_si128(
++                           reinterpret_cast<const __m128i *>(half + i))));
++  }
++
++  ~OrtBackend() override {
++    // CORINTHO_PIPE_TIMING=1: how long Run takes to return when queued, and
++    // how long finish waits (entry 09: does the session really run async?)
++    if (batches_ > 0 && std::getenv("CORINTHO_PIPE_TIMING") != nullptr)
++      std::fprintf(stderr,
++                   "pipe timing: %ld batches, Run returns in %.3f ms, "
++                   "finish waits %.3f ms (means)\n",
++                   batches_, 1e3 * run_seconds_ / batches_,
++                   1e3 * finish_wait_seconds_ / batches_);
++    release();
++    if (stream_ != nullptr) {
++      // Freed buffers first; the stream and events live as long as ORT's
++      // session might use them, which ends with the process (as the Env)
++      releaseAsync();
++    }
++  }
+ 
+   std::string describe() const override {
+     const char *kind = trt_ == TensorRt::kFp16   ? "ort-trt-fp16 "
+@@ -196,6 +291,36 @@ class OrtBackend : public Backend {
+     capacity_ = 0;
+   }
+ 
++  static void check(cudaError_t e) {
++    if (e != cudaSuccess)
++      throw std::runtime_error(std::string{"CUDA: "} + cudaGetErrorString(e));
++  }
++  void reserveAsync(int32_t rows) {
++    if (rows <= async_capacity_)
++      return;
++    releaseAsync();
++    async_capacity_ = std::max(rows, 2 * async_capacity_);
++    const size_t n = static_cast<size_t>(async_capacity_);
++    check(cudaMallocHost(&host_in_, n * kGameStateSize));
++    check(cudaMallocHost(&host_value_, n * sizeof(float)));
++    check(cudaMallocHost(&host_policy_, n * kNumMoves * 2));
++    check(cudaMalloc(&dev_in_, n * kGameStateSize));
++    check(cudaMalloc(&dev_value_, n * sizeof(float)));
++    check(cudaMalloc(&dev_policy_, n * kNumMoves * 2));
++  }
++  void releaseAsync() {
++    if (async_capacity_ == 0)
++      return;
++    cudaStreamSynchronize(stream_);
++    cudaFreeHost(host_in_);
++    cudaFreeHost(host_value_);
++    cudaFreeHost(host_policy_);
++    cudaFree(dev_in_);
++    cudaFree(dev_value_);
++    cudaFree(dev_policy_);
++    async_capacity_ = 0;
++  }
++
+   static std::string cacheDir(const std::string &model) {
+     const size_t slash = model.find_last_of('/');
+     return (slash == std::string::npos ? std::string{"."}
+@@ -220,6 +345,21 @@ class OrtBackend : public Backend {
+   void *pinned_policy_{nullptr};
+   int32_t capacity_{0};
+   bool compact_{false};
++  // Asynchronous mode (entry 09)
++  cudaStream_t stream_{nullptr};
++  cudaEvent_t compute_done_{nullptr}, all_done_{nullptr};
++  void *host_in_{nullptr}, *host_value_{nullptr}, *host_policy_{nullptr};
++  void *dev_in_{nullptr}, *dev_value_{nullptr}, *dev_policy_{nullptr};
++  int32_t async_capacity_{0};
++  int32_t rows_{0};
++  double run_seconds_{0}, finish_wait_seconds_{0};
++  long batches_{0};
++  Ort::MemoryInfo cuda_info_{"Cuda", OrtDeviceAllocator, 0, OrtMemTypeDefault};
++  Ort::RunOptions async_run_ = [] {
++    Ort::RunOptions o;
++    o.AddConfigEntry("disable_synchronize_execution_providers", "1");
++    return o;
++  }();
+ };
+ 
+ bool endsWith(const std::string &s, const std::string &suffix) {
+@@ -235,19 +375,21 @@ std::unique_ptr<Backend> makeCpuBackend(const std::string &mlp_path,
+ }
+ 
+ std::unique_ptr<Backend> makeOrtBackend(const std::string &onnx_path,
+-                                        int32_t device_id, TensorRt trt) {
+-  return std::make_unique<OrtBackend>(onnx_path, device_id, trt);
++                                        int32_t device_id, TensorRt trt,
++                                        bool async) {
++  return std::make_unique<OrtBackend>(onnx_path, device_id, trt, async);
+ }
+ 
+ std::unique_ptr<Backend> makeBackend(const std::string &path,
+-                                     int32_t num_threads) {
++                                     int32_t num_threads, bool async) {
+   if (endsWith(path, ".mlp"))
+     return makeCpuBackend(path, num_threads);
+   for (const auto &[prefix, trt] : {std::pair{"trt16:", TensorRt::kFp16},
+                                     std::pair{"trt:", TensorRt::kFp32}})
+     if (path.rfind(prefix, 0) == 0 && endsWith(path, ".onnx"))
+-      return makeOrtBackend(path.substr(std::string{prefix}.size()), 0, trt);
++      return makeOrtBackend(path.substr(std::string{prefix}.size()), 0, trt,
++                            async);
+   if (endsWith(path, ".onnx"))
+-    return makeOrtBackend(path, 0, TensorRt::kOff);
++    return makeOrtBackend(path, 0, TensorRt::kOff, async);
+   throw std::runtime_error("unknown model type (want .mlp or .onnx): " + path);
+ }
+diff --git a/pipeline/cpp/backend.h b/pipeline/cpp/backend.h
+index e5be556..b2d3e80 100644
+--- a/pipeline/cpp/backend.h
++++ b/pipeline/cpp/backend.h
+@@ -17,6 +17,20 @@ class Backend {
+   virtual void evaluate(const float *states, int32_t rows, float *values,
+                         float *probs) = 0;
+   virtual std::string describe() const = 0;
++
++  // Asynchronous use (worklog 2026-09-25-nn-architectures, entry 09): one
++  // batch at a time per backend. enqueue() reads `states` before returning,
++  // queues the copy in, the network (after the event `after`, if any, so two
++  // backends' computations never overlap) and the copy out on the backend's
++  // own CUDA stream, and returns an event marking the end of its compute;
++  // finish() waits for the batch and writes the outputs. Only compact ONNX
++  // models support it.
++  virtual bool supportsAsync() const { return false; }
++  virtual void *enqueue(const float *states, int32_t rows, void *after) {
++    (void)states, (void)rows, (void)after;
++    return nullptr;
++  }
++  virtual void finish(float *values, float *probs) { (void)values, (void)probs; }
+ };
+ 
+ /// @brief The in-process CPU network (corintho_ai/cpp/include/mlp.h), from a
+@@ -32,10 +46,12 @@ std::unique_ptr<Backend> makeCpuBackend(const std::string &mlp_path,
+ enum class TensorRt { kOff, kFp32, kFp16 };
+ 
+ std::unique_ptr<Backend> makeOrtBackend(const std::string &onnx_path,
+-                                        int32_t device_id, TensorRt trt);
++                                        int32_t device_id, TensorRt trt,
++                                        bool async = false);
+ 
+ /// @brief Pick by file extension: .mlp -> CPU, .onnx -> ONNX Runtime CUDA
+ std::unique_ptr<Backend> makeBackend(const std::string &path,
+-                                     int32_t num_threads);
++                                     int32_t num_threads,
++                                     bool async = false);
+ 
+ #endif
+diff --git a/pipeline/cpp/corintho_play.cpp b/pipeline/cpp/corintho_play.cpp
+index 0460494..a166376 100644
+--- a/pipeline/cpp/corintho_play.cpp
++++ b/pipeline/cpp/corintho_play.cpp
+@@ -201,6 +201,88 @@ class SerialWorker {
+   std::thread thread_;
+ };
+ 
++// --pipeline: network calls pipelined on one thread (entry 09). Each batch
++// is enqueued on its group's backend as soon as it arrives (input converted
++// and copied, network, output copied, all queued on the backend's CUDA
++// stream), at most two in flight, each computing only after the previous
++// batch's compute; then the oldest is finished (waited for, outputs
++// converted) and handed back. One batch's copies overlap the other's
++// compute.
++class PipelineWorker {
++ public:
++  using Result = std::pair<double, double>;
++  PipelineWorker() : thread_([this] { run(); }) {}
++  ~PipelineWorker() {
++    {
++      std::lock_guard<std::mutex> lock(mutex_);
++      stop_ = true;
++    }
++    wake_.notify_one();
++    thread_.join();
++  }
++  std::future<Result> submit(Backend *backend, const float *batch, int32_t rows,
++                             float *values, float *probs) {
++    Job job{backend, batch, rows, values, probs, {}, {}};
++    std::future<Result> result = job.done.get_future();
++    {
++      std::lock_guard<std::mutex> lock(mutex_);
++      queue_.push_back(std::move(job));
++    }
++    wake_.notify_one();
++    return result;
++  }
++
++ private:
++  struct Job {
++    Backend *backend;
++    const float *batch;
++    int32_t rows;
++    float *values, *probs;
++    std::promise<Result> done;
++    std::chrono::steady_clock::time_point start;
++  };
++  void run() {
++    std::deque<Job> in_flight;
++    void *last_compute = nullptr;
++    for (;;) {
++      Job job;
++      bool have_new = false;
++      {
++        std::unique_lock<std::mutex> lock(mutex_);
++        wake_.wait(lock, [&] {
++          return stop_ || !queue_.empty() || !in_flight.empty();
++        });
++        if (!queue_.empty() && in_flight.size() < 2) {
++          job = std::move(queue_.front());
++          queue_.pop_front();
++          have_new = true;
++        } else if (in_flight.empty()) {
++          return;  // stopping, nothing left
++        }
++      }
++      if (have_new) {
++        job.start = std::chrono::steady_clock::now();
++        last_compute = job.backend->enqueue(job.batch, job.rows, last_compute);
++        in_flight.push_back(std::move(job));
++        continue;  // enqueue whatever else is waiting before blocking
++      }
++      Job &oldest = in_flight.front();
++      oldest.backend->finish(oldest.values, oldest.probs);
++      oldest.done.set_value(
++          {std::chrono::duration<double>(std::chrono::steady_clock::now() -
++                                         oldest.start)
++               .count(),
++           0.0});
++      in_flight.pop_front();
++    }
++  }
++  std::mutex mutex_;
++  std::condition_variable wake_;
++  std::deque<Job> queue_;
++  bool stop_{false};
++  std::thread thread_;
++};
++
+ // Optional measurement (worklog 2026-09-25-nn-architectures, entry 07): with
+ // CORINTHO_DUP_DUMP=FILE, every row sent to the network is recorded as
+ // {game id, call index, 64-bit hash of the 70 inputs}, to count how often a
+@@ -253,6 +335,9 @@ int runTrain(const Args &a) {
+   // empty while they ramp up (entry 29).
+   const int32_t stagger = a.i32("stagger", 0);
+   const int32_t cache_log2 = a.i32("cache", 0);
++  const bool pipeline = a.i32("pipeline", 0) != 0;
++  if (pipeline && cache_log2 > 0)
++    throw std::runtime_error("--pipeline does not support --cache");
+   // CORINTHO_CACHE_VERIFY=1 (with --groups 1): also evaluate every batch in
+   // full and compare the rows served from the cache. [0]: rows whose own
+   // frame is canonical, [1]: the others; {rows, top move differs, max |dp|,
+@@ -302,8 +387,13 @@ int runTrain(const Args &a) {
+     return {network_seconds, cache_seconds};
+   };
+   SerialWorker worker;
++  std::unique_ptr<PipelineWorker> pipeline_worker;
++  if (pipeline)
++    pipeline_worker = std::make_unique<PipelineWorker>();
+ 
+-  auto backend = makeBackend(model, threads);
++  auto backend = makeBackend(model, threads, pipeline);
++  if (pipeline && !backend->supportsAsync())
++    throw std::runtime_error("--pipeline needs a compact .onnx model");
+   std::unique_ptr<Backend> check;
+   if (a.kv.count("check")) {
+     if (num_groups != 1)
+@@ -386,7 +476,8 @@ int runTrain(const Args &a) {
+ 
+   std::vector<Group> groups(static_cast<size_t>(num_groups));
+   for (size_t i = 0; i < groups.size(); ++i) {
+-    groups[i].backend = i == 0 ? std::move(backend) : makeBackend(model, threads);
++    groups[i].backend =
++        i == 0 ? std::move(backend) : makeBackend(model, threads, pipeline);
+     startChunk(groups[i]);
+   }
+   const std::string backend_name = groups[0].backend->describe();
+@@ -494,7 +585,11 @@ int runTrain(const Args &a) {
+         }
+       } else {
+         Group *gp = &g;
+-        g.pending = worker.submit(
++        if (pipeline_worker)
++          g.pending = pipeline_worker->submit(g.backend.get(), batch, rows,
++                                              g.values.data(), g.probs.data());
++        else
++          g.pending = worker.submit(
+             [&runCall, gp, batch, rows] { return runCall(*gp, batch, rows); });
+       }
+       if (check) {
+diff --git a/pipeline/cpp/cuda_min.h b/pipeline/cpp/cuda_min.h
+new file mode 100644
+index 0000000..ae20781
+--- /dev/null
++++ b/pipeline/cpp/cuda_min.h
+@@ -0,0 +1,42 @@
++// The few CUDA runtime functions the driver's asynchronous backend uses
++// (worklog 2026-09-25-nn-architectures, entry 09), declared here: the pip
++// wheels that bring libcudart.so.13 ship an incomplete include tree
++// (cuda_runtime_api.h needs crt/host_defines.h, which is missing). These
++// declarations match the CUDA runtime's stable C interface; the constants
++// are the runtime's documented values.
++
++#ifndef PIPELINE_CUDA_MIN_H
++#define PIPELINE_CUDA_MIN_H
++
++#include <cstddef>
++
++extern "C" {
++typedef struct CUstream_st *cudaStream_t;
++typedef struct CUevent_st *cudaEvent_t;
++typedef int cudaError_t;  // enum cudaError; 0 is cudaSuccess
++enum cudaMemcpyKind {
++  cudaMemcpyHostToDevice = 1,
++  cudaMemcpyDeviceToHost = 2,
++};
++constexpr cudaError_t cudaSuccess = 0;
++constexpr unsigned int cudaStreamNonBlocking = 0x01;
++constexpr unsigned int cudaEventDisableTiming = 0x02;
++
++cudaError_t cudaSetDevice(int device);
++cudaError_t cudaStreamCreateWithFlags(cudaStream_t *stream, unsigned int flags);
++cudaError_t cudaStreamSynchronize(cudaStream_t stream);
++cudaError_t cudaStreamWaitEvent(cudaStream_t stream, cudaEvent_t event,
++                                unsigned int flags);
++cudaError_t cudaEventCreateWithFlags(cudaEvent_t *event, unsigned int flags);
++cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
++cudaError_t cudaEventSynchronize(cudaEvent_t event);
++cudaError_t cudaMalloc(void **ptr, size_t size);
++cudaError_t cudaFree(void *ptr);
++cudaError_t cudaMallocHost(void **ptr, size_t size);
++cudaError_t cudaFreeHost(void *ptr);
++cudaError_t cudaMemcpyAsync(void *dst, const void *src, size_t count,
++                            cudaMemcpyKind kind, cudaStream_t stream);
++const char *cudaGetErrorString(cudaError_t error);
++}
++
++#endif

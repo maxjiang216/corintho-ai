@@ -76,6 +76,18 @@ identity copy, which is unaffected.
 After the fix (20 epochs, masked): baseline 0.5886 / 1.7579 / 51.0% / loss
 1.0281; residual 256x4 BN 0.5558 / **1.4587 / 60.2% / 0.9205**.
 
+## Sweep 2 (after the fix; `data/sweep2-fixed-symmetries.log`)
+
+All masked, 20 epochs, lr 2e-3, pre-activation order. Loss (value MSE /
+policy CE / top-1): baseline 12x100 1.0281 (0.5886 / 1.7579 / 51.0%); +16
+line inputs 1.0157; +48 line inputs by type 1.0158; +96 legal-mask inputs
+0.9969 (policy 1.6990); MLP 64x6 1.0773; MLP 256x6 0.9370; residual 256x4
+BN 0.9205, LN 0.9341, no norm 0.9397. Train = val everywhere: the networks
+are too small to overfit 2.1M positions. The developer's reading: extra
+inputs matter less than size; line inputs are cheap and plausible, the
+legal mask as input is not needed conceptually (it adds computation, not
+information) — see entry 04 for the decision.
+
 ## Open: orientation carries value information
 
 With the fix, "no random symmetries" still has the lower loss (0.9799),

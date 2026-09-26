@@ -53,5 +53,9 @@ pattern again, likely because 4 generations x 25k games (100k games) is a
 narrow window again (night-2's was ~1M games, subsampled). Next time: a
 window of ~20-40 generations, subsampled.
 
+From gen 2, each generation writes 50 full game logs (`LOGGED`; the
+developer asked for 10-100 per run for insight into play, e.g. how far
+from the end results are proven), in `runs/loop-1/gen_N/samples/`.
+
 Stopped at gen 15 (the developer: no ongoing run while the engine keeps
 changing). All per-generation data and networks are kept.

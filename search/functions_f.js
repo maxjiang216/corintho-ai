@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['score_0',['score',['../classSelfPlayer.html#af66611ac4f38d1094e6b016ea47d378c',1,'SelfPlayer::score()'],['../classTrainer.html#acf184a040a7ded72f4bf9ab32efa36e8',1,'Trainer::score()'],['../classMatch.html#ac9a242079623d439a8b11550b3760ed4',1,'Match::score()']]],
+  ['search_1',['search',['../classTrainMC.html#a3b32bfe59187ae6cc4d41e5c1945a332',1,'TrainMC']]],
+  ['selectionflags_2',['selectionFlags',['../classNode.html#a8da8c09c040a344ae2c4623d7299066d',1,'Node']]],
+  ['set_5fall_5fvisited_3',['set_all_visited',['../classNode.html#aea85fe8b2132cece691d483b522f84f8',1,'Node']]],
+  ['set_5fboard_4',['set_board',['../classGame.html#aae0471818c9ff556426bd85d0aff4dc5',1,'Game']]],
+  ['set_5ffrozen_5',['set_frozen',['../classGame.html#a9a9290fa4221cfba16024df1877ad506',1,'Game']]],
+  ['set_5fstagger_5fiterations_6',['set_stagger_iterations',['../classTrainer.html#a64a073e60c1f481b2af55dd32cebc559',1,'Trainer']]],
+  ['set_5fto_5feval_7',['set_to_eval',['../classTrainMC.html#af2da56e38e16dec198690e3899309867',1,'TrainMC::set_to_eval()'],['../classSelfPlayer.html#a66ace11fe16d3b3b52063e510911a8bd',1,'SelfPlayer::set_to_eval()']]],
+  ['setprobs_8',['setProbs',['../classTrainMC.html#a1c15a74f6dce448146cffd9f02d7c38f',1,'TrainMC']]],
+  ['sizeclass_9',['sizeClass',['../classArena.html#a678ed7e0706254d3ae8836e7129ce9c3',1,'Arena']]],
+  ['slotrows_10',['slotRows',['../classTrainer.html#afc2738cb3919294119c2698ba90e1f51',1,'Trainer']]],
+  ['space_11',['Space',['../structSpace.html#a664748240bc72eca77461ccf028450ac',1,'Space']]],
+  ['space_5ffrom_12',['space_from',['../classMove.html#a7cf39e595edbc60c3800f1b2504875a3',1,'Move']]],
+  ['space_5fto_13',['space_to',['../classMove.html#a3070b0038ab745d6fbae8420ecde2ecf',1,'Move']]],
+  ['spill_14',['spill',['../classArena.html#a57c29f56c607814c7397d4f44cc4a2f9',1,'Arena']]],
+  ['statsbytes_15',['statsBytes',['../classNode.html#ae227d2d0d620e8b84c91e263c7a8e892',1,'Node']]],
+  ['statsslot_16',['statsSlot',['../classNode.html#aa07d91c16a9d23715887b5045c016ba4',1,'Node']]],
+  ['syncflags_17',['syncFlags',['../classNode.html#aa32b90a57a87c02a17a4e0245242a7f6',1,'Node']]]
+];

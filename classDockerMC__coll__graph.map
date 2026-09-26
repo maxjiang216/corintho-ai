@@ -1,0 +1,14 @@
+<map id="DockerMC" name="DockerMC">
+<area shape="rect" id="Node000001" title="A wrapper for TrainMC that is used in the web app." alt="" coords="32,391,120,416"/>
+<area shape="rect" id="Node000002" href="$classTrainMC.html" title="Class for Monte Carlo tree search." alt="" coords="39,303,113,328"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,342,79,390,73,390,73,342"/>
+<area shape="rect" id="Node000003" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="48,191,104,216"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,230,79,302,73,302,73,230"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="119,192,127,196,131,204,122,214,105,216,104,211,120,209,125,203,123,200,117,197"/>
+<area shape="rect" id="Node000004" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="5,93,67,119"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="49,130,74,189,69,191,44,132"/>
+<area shape="rect" id="Node000005" href="$structNode_1_1EdgeBlock.html" title="The edges plus the header of the child&#45;statistics block." alt="" coords="91,93,223,119"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="141,131,88,192,84,189,137,127"/>
+<area shape="rect" id="Node000006" href="$structNode_1_1Edge.html" title="A legal move and its probability weight, packed in 16 bits." alt="" coords="109,5,205,31"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="160,45,160,93,155,93,155,45"/>
+</map>

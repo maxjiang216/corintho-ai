@@ -1,0 +1,5 @@
+<map id="Mlp" name="Mlp">
+<area shape="rect" id="Node000001" title="CPU forward pass of the policy/value network, in&#45;process." alt="" coords="27,108,74,133"/>
+<area shape="rect" id="Node000002" href="$structMlp_1_1Layer.html" title="A fully connected layer, stored transposed as [in][out_pad]." alt="" coords="5,5,96,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="53,45,53,108,48,108,48,45"/>
+</map>

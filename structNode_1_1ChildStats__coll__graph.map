@@ -1,0 +1,13 @@
+<map id="Node::ChildStats" name="Node::ChildStats">
+<area shape="rect" id="Node000001" title="The children&#39;s selection statistics, in slot order." alt="" coords="108,288,239,313"/>
+<area shape="rect" id="Node000002" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="57,191,113,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,225,164,286,161,289,104,228"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="128,192,136,196,140,204,131,214,114,216,113,211,129,209,135,203,133,200,126,197"/>
+<area shape="rect" id="Node000003" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="5,93,67,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="49,131,61,156,80,189,76,192,56,159,44,133"/>
+<area shape="rect" id="Node000004" href="$structNode_1_1EdgeBlock.html" title="The edges plus the header of the child&#45;statistics block." alt="" coords="91,93,223,119"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="142,131,96,192,92,189,138,128"/>
+<area shape="rect" id="Node000005" href="$structNode_1_1Edge.html" title="A legal move and its probability weight, packed in 16 bits." alt="" coords="161,5,257,31"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="232,41,238,54,252,101,257,140,253,179,238,226,216,263,190,289,186,286,212,260,234,224,248,178,252,140,247,102,234,56,227,43"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="197,44,167,94,162,91,193,41"/>
+</map>

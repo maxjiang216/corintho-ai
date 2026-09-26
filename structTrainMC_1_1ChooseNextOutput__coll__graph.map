@@ -1,0 +1,12 @@
+<map id="TrainMC::ChooseNextOutput" name="TrainMC::ChooseNextOutput">
+<area shape="rect" id="Node000001" title="The output of chooseNext." alt="" coords="5,288,211,313"/>
+<area shape="rect" id="Node000002" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="80,191,136,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,230,111,288,105,288,105,230"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="151,192,159,196,163,204,154,214,137,216,136,211,152,209,157,203,155,200,149,197"/>
+<area shape="rect" id="Node000003" href="$classGame.html" title="Represents a Corintho game state." alt="" coords="37,93,99,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,130,106,189,101,191,76,132"/>
+<area shape="rect" id="Node000004" href="$structNode_1_1EdgeBlock.html" title="The edges plus the header of the child&#45;statistics block." alt="" coords="123,93,255,119"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="173,131,120,192,116,189,169,127"/>
+<area shape="rect" id="Node000005" href="$structNode_1_1Edge.html" title="A legal move and its probability weight, packed in 16 bits." alt="" coords="141,5,237,31"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="192,45,192,93,187,93,187,45"/>
+</map>

@@ -16,6 +16,9 @@ on fixed data first (supervised), then confirm the best by matches.
 | 03 | [supervised bench, masking, the symmetry bug](2026-09-25-03-supervised-bench-masking-symmetry-bug.md) | **`move_symmetries` rows 2 and 6 were swapped since 2023: 25% of every generation's policy targets were wrong.** Fixed. Masking helps; residual 256x4 is best so far. |
 | 04 | [recipe, size, first matches, overnight loop](2026-09-25-04-recipe-size-first-matches-overnight.md) | lr 3.2e-2 (16x) is the big lever; width beats depth; residual 512x4 (fp16) beats gen 1 65% after 20 epochs. Overnight loop `runs/night-1`. |
 | 05 | [night-1: plateau and cycling](2026-09-26-05-night-1-plateau-and-cycling.md) | One real step (it1), then flat: each iteration beats the last 55-57% but not fixed anchors. Narrow window suspected; night-2 tests a 4-iteration window. |
+| 06 | [wide window, small generations](2026-09-26-06-wide-window-and-small-generations.md) | A 4-iteration window broke night-1's plateau (70% vs gen 1). loop-1 (25k-game generations, warm starts): fast early gains, then cycling again (4-generation window). |
+| 07 | [repeated evaluations, the cache](2026-09-26-07-repeated-evaluations-and-the-cache.md) | 50% of network rows repeat (33% within a game; 56/38% up to symmetry). An evaluation cache cannot pay while GPU wait is ~20%: parked. Graph search later. |
+| 08 | [the endgame solver](2026-09-26-08-endgame-solver.md) | Exact solver module; 70x faster than the probe at P <= 24 (line-making moves first, branch-free bit tricks). P_game ~26-27, P_node ~19. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -48,13 +51,13 @@ kept no samples.
 
 ## Where to resume
 
-- **Read entry 05, then `pipeline/runs/night-2/summary.tsv` and
-  `extra/anchors.tsv`** (the wider-window run): does it break night-1's
-  plateau? Judge by the fixed anchors, not the Elo chain.
-- The symmetry fix `873988e` should go to `main` on its own (small PR).
-- Then put the 512x4 and the recipe into the real pipeline (`model.py`,
-  `fit.py`, `run.py`): steady learning rate, sliding window, weight
-  averaging, matches as monitoring instead of a gate (see
-  `research-other-games.md`), 14 engine threads.
-- Open: equal-wall-time matches (the 512x4 costs +40% self-play time);
-  distillation; the orientation/value quirk.
+- No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
+  night-2 after it1; all resumable, all data kept).
+- Next (entry 08): the game-level solver in self-play (P_game ~26-27; end
+  the game, exact labels for earlier positions, samples along the proven
+  line), then the node solver with a warm table (measure its cost first).
+- Then: a wider window (20-40 generations, subsampled) for the
+  small-generation loop; the training-loop fixes in the real pipeline.
+- Parked: graph search (transpositions), evaluation cache, symmetry
+  variance, solver SIMD.
+- The symmetry fix `873988e` should reach `main` (small PR).

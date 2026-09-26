@@ -3,6 +3,8 @@
 #   .venv/         PyTorch, ONNX Runtime (Python), numpy, onnx; the pip wheels
 #                  also bring the CUDA 13 and cuDNN 9 libraries, so no system
 #                  CUDA toolkit is needed, only the NVIDIA driver
+#                  and TensorRT 10 (4.3 GB), for trt: models
+#                  (worklog/2026-09-25-nn-architectures, entry 01)
 #   third_party/   the ONNX Runtime C++ release, CUDA 13 build, for the driver
 # Then builds build/corintho_play. Needs uv, clang-20 and libomp-20-dev.
 set -euo pipefail
@@ -16,7 +18,8 @@ if [ ! -x .venv/bin/python ]; then
   uv venv --python 3.12 .venv
 fi
 # Versions verified together on 2026-09-25 (torch 2.14.0+cu130)
-VIRTUAL_ENV=.venv uv pip install torch numpy onnx onnxscript "onnxruntime-gpu==$ORT_VERSION"
+VIRTUAL_ENV=.venv uv pip install torch numpy onnx onnxscript "onnxruntime-gpu==$ORT_VERSION" \
+  "tensorrt-cu13==10.16.1.11"  # ORT 1.30's TensorRT provider needs TensorRT 10
 
 if [ ! -d "third_party/$ORT_NAME" ]; then
   mkdir -p third_party

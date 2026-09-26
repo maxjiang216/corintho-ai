@@ -1,5 +1,7 @@
 #include "selfplayer.h"
 
+#include "solver.h"
+
 #include <cassert>
 #include <cstdint>
 
@@ -99,11 +101,9 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   assert(eval_samples != nullptr);
   assert(prob_samples != nullptr);
   assert(!testing_);
-  // The last player to play a move is the winner, except in a draw
-  float evaluation = 1.0;
-  if (result_ == kResultDraw) {
-    evaluation = 0.0;
-  }
+  // The last sample's player: the winner of a finished game (or 0 for a
+  // draw); for an adjudicated game, whatever the solver proved for them
+  float evaluation = last_mover_value_;
   // Start from end of the game to get evaluations more easily
   for (int32_t i = samples_.size() - 1; i >= 0; --i) {
     // Apply symmetries
@@ -129,7 +129,76 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   }
 }
 
+bool SelfPlayer::solveStep() {
+  return players_[to_play_].root() != nullptr &&
+         tryEnd(*players_[to_play_].root());
+}
+
+bool SelfPlayer::tryEnd(const Node &position) {
+  // `position` is the current position, to_play_ to move. In solver mode a
+  // game ends as soon as its outcome is known (entry 15): proven by the
+  // search (exact: deduced from terminal and solved positions), or at the
+  // solve horizon. Playing a known outcome out adds nothing to learn.
+  const Game &game = position.get_game();
+  if (position.known() && !position.terminal()) {
+    const int32_t value = position.won() ? 1 : position.lost() ? -1 : 0;
+    adjudicate(value, game.horizon(), "PROVEN");
+  } else if (game.horizon() <= solve_horizon_) {
+    solve_job_ = solver_pool_->submit(game);  // result in finalize()
+  } else {
+    return false;
+  }
+  players_[0].null_root();
+  players_[1].null_root();
+  owned_to_eval_.reset();
+  to_eval_ = nullptr;
+  return true;
+}
+
+bool SelfPlayer::finalize() {
+  if (!solve_job_)
+    return true;
+  int32_t r = SolverPool::wait(*solve_job_);
+  if (r == Solver::kUnknown) {
+    solve_job_ =
+        solver_pool_->submit(solve_job_->game, 20 * solver_pool_->max_nodes());
+    r = SolverPool::wait(*solve_job_);
+  }
+  const bool known = r != Solver::kUnknown;
+  adjudicate(known ? r : 0, solve_job_->game.horizon(), "SOLVED");
+  solve_job_.reset();
+  return known;
+}
+
+void SelfPlayer::adjudicate(int32_t value, int32_t horizon,
+                            const char *how) noexcept {
+  // `value` is for the side to move at the solved position (to_play_ has
+  // not changed since); the last sample is the other side's
+  last_mover_value_ = static_cast<float>(-value);
+  if (value == 0) {
+    result_ = kResultDraw;
+  } else {
+    const bool first_player_wins = (value > 0) == (to_play_ == 0);
+    result_ = first_player_wins ? kResultWin : kResultLoss;
+  }
+  adjudicated_ = true;
+  if (log_file_ != nullptr) {
+    *log_file_ << how << " at horizon " << horizon << ": "
+               << (value == 0  ? "DRAW"
+                   : value > 0 ? "WIN"
+                               : "LOSS")
+               << " for PLAYER " << to_play_ + 1 << ".\n";
+    if (result_ == kResultDraw)
+      *log_file_ << "GAME IS DRAWN.\n";
+    else
+      *log_file_ << "PLAYER " << (result_ == kResultWin ? 1 : 2) << " WON!\n";
+  }
+  log_file_.reset();
+}
+
 bool SelfPlayer::doIteration(float eval[], float probs[]) {
+  if (solver_pool_ != nullptr && solveStep())
+    return true;
   bool done = players_[to_play_].doIteration(eval, probs);
   // If we have completed a turn, we can choose a move
   if (done)
@@ -225,6 +294,7 @@ void SelfPlayer::endGame() noexcept {
   // Set result
   if (players_[to_play_].root()->result() == kResultDraw) {
     result_ = kResultDraw;
+    last_mover_value_ = 0.0F;
     // Second player win (to_play is not updated yet so it is opposite)
   } else if (to_play_ == 1) {
     result_ = kResultLoss;
@@ -286,6 +356,11 @@ bool SelfPlayer::chooseMoveAndContinue() {
     }
     // Go to next player
     to_play_ = 1 - to_play_;
+    // Checked after every move, not only at the start of an iteration:
+    // known results used to be played out move after move within this loop
+    // (entry 15). The new position is the root of the mover's tree.
+    if (solver_pool_ != nullptr && tryEnd(*players_[1 - to_play_].root()))
+      return true;
     // First time iterating the second player
     if (players_[to_play_].uninitialized()) {
       players_[to_play_].createRoot(players_[1 - to_play_].root()->game(),

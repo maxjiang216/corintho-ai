@@ -1,0 +1,66 @@
+# 2026-09-25, RTX 3060 Laptop, ORT 1.30 CUDA, gen_93 (folded, fp32) unless noted
+
+## One 16,000-row call, parts measured separately (pipeline/arch/gpu_limits.py)
+h2d states fp32                      0.398 ms     24.9 ns/row   11.26 GB/s
+h2d states uint8                     0.102 ms      6.3 ns/row   11.03 GB/s
+h2d states bits (12 B)               0.027 ms      1.7 ns/row    7.12 GB/s
+d2h value+policy fp32                0.612 ms     38.3 ns/row   10.14 GB/s
+d2h value+policy fp16                0.313 ms     19.6 ns/row    9.90 GB/s
+compute (all on GPU)                 1.975 ms    123.4 ns/row
+run bound to host (pageable, python) 2.705 ms    169.1 ns/row
+host memcpy in+out                   0.424 ms     26.5 ns/row   50.39 GB/s
+driver (corintho_play bench)         4.022 ms    251.4 ns/row
+fp16 copy of gen_93, driver bench    3.391 ms    211.9 ns/row
+
+## Self-play in situ: 4000 games, in-flight 2000, groups 2, 1600 searches, seed 1
+## (9,614 calls, ~14.9k rows/call; sm util = nvidia-smi dmon mean)
+run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
+fp32           20       29.58     70.02        20.69   51.14   66%
+fp32           18       30.32     67.64        19.16   50.36   67%
+fp32           16       32.43     66.95        17.68   51.13   63%
+fp32 (repeat)  20       30.63     68.93        19.63   51.26   63%
+fp16           20       30.50     61.13        15.80   47.35   56%
+
+## TensorRT provider (tensorrt-cu13 10.16.1.11), gen_93, 16000 real states from runs/full-2/gen_1
+## (pipeline/arch/trt_test.py; differences against the CUDA provider in fp32)
+cuda   compute  1.981 ms (123.8 ns/row)  host-bound  2.728 ms (170.5 ns/row)
+cuda   compute  1.975 ms (123.4 ns/row)  host-bound  2.734 ms (170.9 ns/row)  |dv| max 0 (deterministic)
+trt32  compute  0.862 ms ( 53.9 ns/row)  host-bound  1.727 ms (107.9 ns/row)  |dv| max 2.5e-02 mean 1.1e-03  |dp| max 1.6e-02  top-move differs 0.64%
+trt16  compute  0.774 ms ( 48.4 ns/row)  host-bound  1.746 ms (109.1 ns/row)  |dv| max 9.6e-02 mean 2.3e-03  |dp| max 4.1e-02  top-move differs 5.04%
+
+## Driver bench (corintho_play bench, a3fe0ae)
+ort-cuda      16000 rows 3.971 ms (248.2 ns/row)   32000 rows 8.283 ms (258.8 ns/row)
+ort-trt       16000 rows 2.773 ms (173.3 ns/row)   32000 rows 5.876 ms (183.6 ns/row)
+ort-trt-fp16  16000 rows 2.670 ms (166.8 ns/row)   32000 rows 5.538 ms (173.1 ns/row)
+
+## Self-play in situ, same settings as above
+run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
+trt            20       30.16     56.15        13.59   44.71   54%
+trt16          20       30.71     55.21        12.78   44.57   50%
+cuda           20       31.83     72.14        20.63   53.38   65%
+
+## Compact I/O (uint8 states in, fp16 policy out, fp32 value), gen_93
+driver bench 16000 rows: ort-cuda compact 3.116 ms (194.8 ns/row); ort-trt compact 1.937 ms (121.1 ns/row)
+export check vs torch: onnx_value 3.28e-05, onnx_policy 2.42e-04
+--check, 400 games, CUDA compact vs CUDA fp32 (14.4M rows): max value diff 9.9e-06,
+  max prob diff 2.5e-04, top move differs on 10,139 rows (0.07%)
+run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
+trt compact    20       30.13     47.67         9.28   40.48   40%
+trt (repeat)   20       30.81     56.67        13.50   45.17   52%
+
+## Same-network match: trt: + compact gen_93 (new) vs CUDA fp32 gen_93 (best), 1600 games each
+seed 1: 810W 62D 728L (Wilson 95% on decisive [0.502, 0.552])
+seed 2: 768W 42D 790L
+seed 3: 752W 49D 799L
+total: 2330W 153D 2317L, decisive win rate 0.501 -- no measurable difference
+
+## Engine float literals (trainmc.cpp: 1.0 -> 1.0F in selection/backup, std::sqrt), interleaved pairs,
+## trt: compact gen_93, 4000 games, groups 2, seed = pair
+pair	arm	engine_s	wait_s	wall_s	turns	first_player_score
+1	base	29.9471	9.36116	40.2622	113571	0.49875
+1	float	29.8871	9.72733	40.6619	113572	0.500125
+2	base	30.902	9.28381	41.0389	113744	0.507125
+2	float	30.3172	9.68858	41.0052	113774	0.5085
+3	base	31.3966	9.40832	41.8695	113860	0.500625
+3	float	30.6875	9.96768	41.7491	113889	0.501125
+engine: -0.2%, -1.9%, -2.3% (mean ~-1.5%); wall unchanged (GPU-bound). 45/45 unit tests pass.

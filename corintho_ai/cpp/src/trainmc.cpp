@@ -1,4 +1,7 @@
 #include "trainmc.h"
+#include "solver.h"
+#include <atomic>
+#include <chrono>
 
 #include <algorithm>
 #include <cassert>
@@ -207,13 +210,18 @@ bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
   Node *prev = nullptr;
   while (cur != nullptr) {
     if (cur->child_id() == move_choice) {
+      // A leaf the node solver proved has no children and was never given
+      // network priors, so it cannot serve as a root; rebuild it below
+      // like an unsearched move (entry 15)
+      if (cur->known() && !cur->terminal() && cur->first_child() == nullptr)
+        break;
       moveDown(prev);
       return false;
     }
     prev = cur;
     cur = cur->next_sibling();
   }
-  // Haven't searched this move yet
+  // Haven't searched this move yet (or it was a proven leaf)
   // The current tree is not needed
   delete root_;
   // Copy opponent game state into our root
@@ -245,7 +253,7 @@ void TrainMC::getFilteredProbs(float probs[kNumMoves],
     sum += filtered_probs[i];
   }
   // Factoring this out saves division operations
-  float scalar = 1.0 / sum * (1 - epsilon_);
+  float scalar = 1.0F / sum * (1 - epsilon_);
   for (int32_t i = 0; i < num_edges; ++i) {
     filtered_probs[i] *= scalar;
   }
@@ -279,7 +287,7 @@ void TrainMC::generateDirichlet(float dirichlet[]) noexcept {
       sum += dirichlet[j];
     }
   }
-  float scalar = 1.0 / sum * epsilon_;
+  float scalar = 1.0F / sum * epsilon_;
   for (int32_t i = 0; i < num_edges; ++i) {
     dirichlet[i] *= scalar;
   }
@@ -309,7 +317,7 @@ void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
     cur_->set_probability(j, prob);
     final_sum += prob;
   }
-  cur_->set_denominator(1.0 / static_cast<float>(final_sum));
+  cur_->set_denominator(1.0F / static_cast<float>(final_sum));
 }
 
 void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
@@ -328,14 +336,14 @@ void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
     float cur_eval = eval[i];
     while (cur_->parent() != nullptr) {
       // Correct default +1 evaluation
-      cur_->increase_evaluation(cur_eval - 1.0);
+      cur_->increase_evaluation(cur_eval - 1.0F);
       // Reset this marker
       cur_->set_all_visited(false);
-      cur_eval *= -1.0;
+      cur_eval *= -1.0F;
       cur_ = cur_->parent();
     }
     // Propagate to the root
-    cur_->increase_evaluation(cur_eval - 1.0);
+    cur_->increase_evaluation(cur_eval - 1.0F);
   }
   root_->set_all_visited(false);
   searched_.clear();
@@ -423,7 +431,7 @@ int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
     }
     cur = cur->next_sibling();
   }
-  float denominator = 1.0 / static_cast<float>(visits);
+  float denominator = 1.0F / static_cast<float>(visits);
   cur = root_->first_child();
   // Write the probability sample
   if (prob_sample != nullptr) {
@@ -545,8 +553,9 @@ void TrainMC::propagateTerminal() noexcept {
   // won if any move leads to a lost position, lost if every move leads to a
   // won position, and drawn if every move leads to a won or drawn position
   // and at least one to a drawn one. Otherwise it is unknown.
-  // We can only deduce more results from new terminal nodes
-  assert(cur_->terminal());
+  // We can only deduce more results from new terminal nodes, or from new
+  // leaves the node solver proved (entry 15)
+  assert(cur_->known());
   Node *cur = cur_;
   while (cur != root_) {
     // We only need one loss to deduce a win
@@ -604,7 +613,7 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   float max_eval = kNegInf;
   int32_t best = -1;
   // Factor this value out, as it is expense to compute
-  const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+  const float v_sqrt = c_puct_ * std::sqrt(static_cast<float>(cur_->visits()));
   const Node::ChildStats stats = cur_->child_stats();
   const int32_t num_children = stats.count;
   // First descent into this node. The best edge is only put in place now,
@@ -630,13 +639,13 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
   }
 #endif
   // Score every child without branching, then take the first maximum. The
-  // scores are computed exactly as the previous one-loop form did (the same
-  // expressions, including their promotion to double), so the choice is
-  // bit-identical; taking the first index holding the maximum reproduces its
-  // strict > scan. Without branches the scoring loop vectorizes, and the
-  // flag tests no longer mispredict. Nodes with many children dominate this
-  // loop: 70% of the children scored belong to nodes with 20 or more
-  // (worklog entry 26).
+  // scores are computed in float throughout; double literals used to promote
+  // them (removed in worklog/2026-09-25-nn-architectures, entry 02, which
+  // changes some choices between near-equal children). Taking the first
+  // index holding the maximum reproduces the old strict > scan. Without
+  // branches the scoring loop vectorizes, and the flag tests no longer
+  // mispredict. Nodes with many children dominate this loop: 70% of the
+  // children scored belong to nodes with 20 or more (worklog entry 26).
   float score[Node::kMaxEdges];
   for (int32_t i = 0; i < num_children; ++i) {
     // Same as cur_->probability(i) * v_sqrt, read through stats
@@ -644,7 +653,7 @@ TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
                            stats.denominator * v_sqrt;
     const float visits = stats.visits[i];
     const float normal =
-        -1.0 * stats.evaluation[i] / visits + weighted / (visits + 1.0);
+        -1.0F * stats.evaluation[i] / visits + weighted / (visits + 1.0F);
     // Known draw, use evaluation 0
     const float u =
         selectFloat(stats.flags[i] & Node::kDrawnChild, weighted, normal);
@@ -760,9 +769,12 @@ void TrainMC::search() {
     while (cur_->parent() != nullptr) {
       cur_ = cur_->parent();
       // Correct default +1.0 evaluation
-      cur_->increase_evaluation(cur_eval - 1.0);
-      cur_eval *= -1.0;
+      cur_->increase_evaluation(cur_eval - 1.0F);
+      cur_eval *= -1.0F;
     }
+  }
+  // A new leaf near the end of the game: solve it exactly (entry 15)
+  else if (node_horizon_ > 0 && solveLeaf()) {
   }
   // Otherwise, request an evaluation for the new node
   else {
@@ -777,4 +789,49 @@ void TrainMC::search() {
   // Reset cur for next search
   // Try not doing this?
   cur_ = root_;
+}
+
+namespace {
+std::atomic<uint64_t> g_node_attempts{0}, g_node_solved{0}, g_node_nanos{0};
+}  // namespace
+
+void TrainMC::nodeSolveStats(uint64_t &attempts, uint64_t &solved,
+                             double &seconds) noexcept {
+  attempts = g_node_attempts.load();
+  solved = g_node_solved.load();
+  seconds = static_cast<double>(g_node_nanos.load()) * 1e-9;
+}
+
+bool TrainMC::solveLeaf() {
+  const Game &game = cur_->get_game();
+  if (game.horizon() > node_horizon_)
+    return false;
+  // One solver per engine thread; its table is never cleared (results and
+  // bounds are facts about positions), so it stays warm across searches and
+  // games
+  thread_local Solver solver{20};
+  const auto t0 = std::chrono::steady_clock::now();
+  const int32_t r = solver.solve(game, node_cap_);
+  g_node_nanos.fetch_add(
+      static_cast<uint64_t>(
+          std::chrono::duration_cast<std::chrono::nanoseconds>(
+              std::chrono::steady_clock::now() - t0)
+              .count()),
+      std::memory_order_relaxed);
+  g_node_attempts.fetch_add(1, std::memory_order_relaxed);
+  if (r == Solver::kUnknown)
+    return false;
+  g_node_solved.fetch_add(1, std::memory_order_relaxed);
+  // Proven: known like a terminal node, and backed up with its exact value
+  // instead of a network evaluation (as the terminal branch above)
+  cur_->set_result(r > 0 ? kDeducedWin : r == 0 ? kDeducedDraw : kDeducedLoss);
+  propagateTerminal();
+  float cur_eval = static_cast<float>(r);
+  cur_->set_evaluation(cur_eval);
+  while (cur_->parent() != nullptr) {
+    cur_ = cur_->parent();
+    cur_->increase_evaluation(cur_eval - 1.0F);
+    cur_eval *= -1.0F;
+  }
+  return true;
 }

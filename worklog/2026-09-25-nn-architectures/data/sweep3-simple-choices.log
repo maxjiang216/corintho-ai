@@ -1,0 +1,24 @@
+res w256 d4 norm bn block pre lr 0.002 wd 0.0001 seed 1 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5535 p 1.4660  val v 0.5550 p 1.4571 top1 0.6049 loss 0.9193  65 s
+res w256 d4 norm bn block pre lr 0.002 wd 0.0001 seed 2 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5537 p 1.4632  val v 0.5549 p 1.4554 top1 0.6083 loss 0.9187  67 s
+res w256 d4 norm bn block post lr 0.002 wd 0.0001 seed 0 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5573 p 1.4740  val v 0.5584 p 1.4649 top1 0.6014 loss 0.9246  69 s
+res w256 d4 norm bn block pre lr 0.001 wd 0.0001 seed 0 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5600 p 1.5029  val v 0.5613 p 1.4931 top1 0.5939 loss 0.9345  70 s
+res w256 d4 norm bn block pre lr 0.004 wd 0.0001 seed 0 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5486 p 1.4405  val v 0.5506 p 1.4315 top1 0.6098 loss 0.9085  70 s
+res w256 d4 norm bn block pre lr 0.002 wd 0.001 seed 0 mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5540 p 1.4652  val v 0.5552 p 1.4556 top1 0.6013 loss 0.9191  71 s
+post lr 4e-3: epoch 19  train v 0.5519 p 1.4472  val v 0.5535 p 1.4386 top1 0.6049 loss 0.9132  69 s
+post lr 8e-3: epoch 19  train v 0.5467 p 1.4264  val v 0.5477 p 1.4182 top1 0.6149 loss 0.9022  70 s
+post lr 1.6e-2: epoch 19  train v 0.5414 p 1.4094  val v 0.5426 p 1.4006 top1 0.6162 loss 0.8928  70 s
+post lr 3.2e-2: epoch 19  train v 0.5381 p 1.3955  val v 0.5394 p 1.3867 top1 0.6209 loss 0.8861  71 s
+post lr 6.4e-2: epoch 19  train v 0.5374 p 1.4032  val v 0.5385 p 1.3940 top1 0.6196 loss 0.8871  70 s 
+post lr 1.28e-1: epoch 19  train v 0.5406 p 1.4283  val v 0.5423 p 1.4190 top1 0.6097 loss 0.8970  71 s 
+epoch  9  train v 0.5845 p 1.5864  val v 0.5830 p 1.5710 top1 0.5627 loss 0.9758  36 s
+epoch 19  train v 0.5619 p 1.5007  val v 0.5636 p 1.4841 top1 0.5875 loss 0.9346  70 s
+epoch 29  train v 0.5403 p 1.4311  val v 0.5403 p 1.4148 top1 0.6075 loss 0.8940  104 s
+epoch 39  train v 0.5201 p 1.3777  val v 0.5191 p 1.3644 top1 0.6273 loss 0.8602  139 s
+epoch 49  train v 0.5027 p 1.3449  val v 0.5035 p 1.3339 top1 0.6338 loss 0.8370  173 s
+epoch 59  train v 0.4963 p 1.3340  val v 0.4989 p 1.3258 top1 0.6326 loss 0.8303  207 s

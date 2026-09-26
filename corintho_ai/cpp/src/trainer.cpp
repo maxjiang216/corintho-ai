@@ -350,3 +350,29 @@ void Trainer::initialize(int32_t num_games, const std::string &log_folder,
                         epsilon, nullptr, testing, i % 2, slot(i));
   }
 }
+
+void Trainer::enableSolver(int32_t max_horizon, uint64_t max_nodes,
+                           int32_t num_threads, int32_t log2_table) {
+  solver_pool_ =
+      std::make_unique<SolverPool>(num_threads, log2_table, max_nodes);
+  setSolver(solver_pool_.get(), max_horizon);
+}
+
+void Trainer::setSolver(SolverPool *pool, int32_t max_horizon) {
+  for (SelfPlayer &game : games_)
+    game.set_solver(pool, max_horizon);
+}
+
+int32_t Trainer::numAdjudicated() const noexcept {
+  int32_t n = 0;
+  for (const SelfPlayer &game : games_)
+    n += game.adjudicated();
+  return n;
+}
+
+int32_t Trainer::finalizeSolves() {
+  int32_t unknown = 0;
+  for (SelfPlayer &game : games_)
+    unknown += !game.finalize();
+  return unknown;
+}

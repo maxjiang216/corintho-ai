@@ -1,0 +1,8 @@
+node-p 15: games 8000: better 540 worse 531 same 6929; sign test z +0.28
+node-p 17: games 8000: better 548 worse 608 same 6844; sign test z -1.76
+node-p 19: games 8000: better 582 worse 636 same 6782; sign test z -1.55
+sanity base vs base: games 1600: better 0 worse 0 same 1600; sign test z +0.00
+base 7015 804 12 784
+base 7016 780 12 808
+
+[exited with code 0]

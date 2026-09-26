@@ -14,6 +14,17 @@ class Node;
 /// @brief Class for Monte Carlo tree search
 class TrainMC {
  public:
+  /// @brief Solve new leaves with horizon P <= max_horizon exactly instead
+  /// of asking the network (worklog 2026-09-25-nn-architectures, entry 15);
+  /// a solve giving up after max_nodes falls back to the network. 0: off.
+  void set_node_solver(int32_t max_horizon, uint64_t max_nodes) noexcept {
+    node_horizon_ = max_horizon;
+    node_cap_ = max_nodes;
+  }
+  /// @brief Totals over all TrainMC objects: leaves given to the solver, of
+  /// which solved, and seconds spent (summed over threads)
+  static void nodeSolveStats(uint64_t &attempts, uint64_t &solved,
+                             double &seconds) noexcept;
   /// @brief Constructor
   TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches = 1600,
           int32_t searches_per_eval = 16, float c_puct = 1.0,
@@ -135,6 +146,9 @@ class TrainMC {
   /// network evaluations. We use elementary game theory to deduce the results
   /// of nodes that are not terminal.
   void propagateTerminal() noexcept;
+  /// @brief Solve the new leaf cur_ if its horizon is within node_horizon_;
+  /// true when it was proven and backed up (no evaluation needed)
+  bool solveLeaf();
   /// @brief Choose the next node in the Monte Carlo search
   /// @return The ID of the move to take or -1 if no move is available
   /// @details Sets cur_ to a child node of cur_.
@@ -164,6 +178,8 @@ class TrainMC {
   /// @brief The maximum number of searches to do per move.
   /// @details 1600 was used during training.
   const int32_t max_searches_{1600};
+  int32_t node_horizon_{0};
+  uint64_t node_cap_{0};
   /// @brief The number of searches to do per neural network evaluation
   /// @details The actual number of searches done can be greater than this
   /// since some searches do not require an evaluation and are not counted.

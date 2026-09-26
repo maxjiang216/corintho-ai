@@ -46,6 +46,23 @@ class Game {
   bool
   getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
+  /// @brief P = 2 x reserves (both players) + occupied spaces: an upper
+  /// bound on the plies left, lowered by every move
+  int32_t horizon() const noexcept;
+  /// @brief Whether a line stands on the board (cheaper than getLegalMoves)
+  bool hasLine() const noexcept;
+  /// @brief Legal moves when no line stands (the caller knows, e.g. from
+  /// hasLine): placement and movement rules only, no line search
+  void getLegalMovesNoLines(MoveMask &legal_moves) const noexcept;
+  /// @brief An exact key for the position (board, both reserves, side to move)
+  /// @details For transposition tables (solver.h). Two games have equal keys
+  /// exactly when they are the same position.
+  void key(uint64_t &board, uint64_t &rest) const noexcept;
+  /// @brief The spaces that belong to a line on the board, by top type
+  /// @details Bit i of by_type[t] is set when space i is part of a line
+  /// topped by type t (base, column, capital). For network input features
+  /// (pipeline/arch); the engine does not use it.
+  void lineSpaces(uint16_t by_type[3]) const noexcept;
   /// @brief Write a representation of the game state to a float array
   /// @param game_state A float array of size kGameStateSize, used for input to
   /// the neural network

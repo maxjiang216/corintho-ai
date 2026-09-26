@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 
+#include "solver_pool.h"
 #include "trainmc.h"
 #include "util.h"
 
@@ -27,6 +28,10 @@ struct Sample {
 /// @brief A training match with 2 TrainMC players
 class SelfPlayer {
  public:
+  /// @brief Root of the tree now being searched (the player to move's),
+  /// or nullptr. For measurements (worklog 2026-09-25-nn-architectures,
+  /// entry 08).
+  const Node *searchRoot() const noexcept { return players_[to_play_].root(); }
   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,
@@ -71,6 +76,31 @@ class SelfPlayer {
   /// @return If the game is complete
   bool doIteration(float eval[] = nullptr, float probs[] = nullptr);
 
+  /// @brief End games by exact solution once the position's horizon P is at
+  /// most max_horizon (worklog 2026-09-25-nn-architectures, entry 14)
+  /// @details The position is submitted to `pool` and the game ends at once
+  /// (its trees and slot are freed); finalize() collects the result.
+  void set_solver(SolverPool *pool, int32_t max_horizon) noexcept {
+    solver_pool_ = pool;
+    solve_horizon_ = max_horizon;
+  }
+  /// @brief Solve search leaves with horizon P <= max_horizon (entry 15)
+  /// @param model In test games, only the player of this model (0 new, 1
+  /// best); -1 both
+  void set_node_solver(int32_t max_horizon, uint64_t max_nodes,
+                       int32_t model = -1) noexcept {
+    for (int32_t p = 0; p < 2; ++p)
+      if (model < 0 || p == (model + parity_) % 2)
+        players_[p].set_node_solver(max_horizon, max_nodes);
+  }
+  /// @brief Whether the game ended by an exact solution
+  bool adjudicated() const noexcept { return adjudicated_; }
+  /// @brief Wait for a submitted solve and apply its result; call before
+  /// writeSamples, score and the result counts. A capped solve is retried
+  /// once with 20x the nodes; still unknown, the game counts as a draw.
+  /// @return false if the result stayed unknown
+  bool finalize();
+
  private:
   /// @brief Write the evaluation of the given node
   void writeEval(Node *node) const noexcept;
@@ -83,6 +113,15 @@ class SelfPlayer {
   void writeMoveChoice(int32_t choice) const noexcept;
   /// @brief Clean up when game is complete
   void endGame() noexcept;
+  /// @brief End the game with the exact result `value` (1, 0, -1 for the
+  /// side to move at the current position, at horizon `horizon`; `how`
+  /// for the log: PROVEN or SOLVED)
+  void adjudicate(int32_t value, int32_t horizon, const char *how) noexcept;
+  /// @brief In solver mode, end the game at `position` (to_play_ to move) if
+  /// its outcome is proven or it is within the solve horizon
+  bool tryEnd(const Node &position);
+  /// @brief At the start of an iteration: tryEnd on the current position
+  bool solveStep();
   /// @brief Choose a move and write the training sample
   /// @return The ID of the chosen move
   int32_t chooseMove();
@@ -106,6 +145,14 @@ class SelfPlayer {
   std::vector<Sample> samples_{};
   /// @brief Game result for the first player
   Result result_{kResultNone};
+  /// @brief Value target of the last sample (its player's result): 1 when
+  /// the last mover won, 0 for a draw, -1 when an adjudicated game was lost
+  float last_mover_value_{1.0F};
+  SolverPool *solver_pool_{nullptr};
+  int32_t solve_horizon_{0};
+  std::shared_ptr<SolveJob> solve_job_{};
+
+  bool adjudicated_{false};
   /// @brief File where all logs are written to
   /// @details We use a pointer so that no memory is allocated if there is no
   /// logging file (which is true most of the time).

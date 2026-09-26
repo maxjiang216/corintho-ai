@@ -1,0 +1,2 @@
+iter	selfplay_s	positions	val_value_mse	val_policy_ce	val_top1	train_s	vs_prev	vs_it0	vs_gen1	elo_chain
+1	3678	7143558	0.4019	1.2792	0.6484	1256	0.624	0.624	0.708	+88

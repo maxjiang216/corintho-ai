@@ -34,6 +34,7 @@ LDFLAGS  := -fopenmp -flto -O3 -march=native
 
 BUILD := build
 CORE  := $(BUILD)/util.o $(BUILD)/move.o $(BUILD)/game.o $(BUILD)/node.o \
+         $(BUILD)/solver.o $(BUILD)/solver_pool.o \
          $(BUILD)/trainmc.o $(BUILD)/selfplayer.o $(BUILD)/trainer.o \
          $(BUILD)/mlp.o
 # Built here only; not listed in corintho_ai/python/setup.py, so it never

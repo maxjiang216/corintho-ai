@@ -11,8 +11,10 @@ momentum 0.01), so a model converted from Keras behaves the same.
 
 Exports:
   .pt    state dict plus optimizer state, for continuing training
-  .onnx  input "states" [N, 70], outputs "value" [N, 1], "policy" [N, 96];
-         read by the driver's ONNX Runtime backend (pipeline/cpp/backend.h)
+  .onnx  input "states" [N, 70] uint8 (4x the engine's values), outputs
+         "value" [N, 1] float32 and "policy" [N, 96] float16 (CompactIo);
+         read by the driver's ONNX Runtime backend (pipeline/cpp/backend.h),
+         which also still takes all-float32 files
   .mlp   BatchNorm folded into the following layer, for the CPU network
          (corintho_ai/cpp/include/mlp.h), the driver's fallback and reference
 
@@ -178,11 +180,34 @@ class FoldedNet(nn.Module):
         return torch.tanh(self.value(h)), torch.softmax(self.policy(h), dim=1)
 
 
-def export_onnx(net, path):
+class CompactIo(nn.Module):
+    """The driver's compact interface around an inference network.
+
+    See worklog/2026-09-25-nn-architectures, entry 01.
+
+    States arrive as uint8, 4x the engine's values (all multiples of 0.25, so
+    exact), and the policy leaves as fp16: 70 + 192 bytes a row cross the bus
+    instead of 280 + 384. The value stays fp32. The network inside is fp32.
+    """
+
+    def __init__(self, net):
+        super().__init__()
+        self.net = net
+
+    def forward(self, states_u8):
+        value, policy = self.net(states_u8.float() * 0.25)
+        return value, policy.half()
+
+
+def export_onnx(net, path, compact=False):
     folded_net = FoldedNet(folded(net.eval().float().cpu())).eval()
+    example = torch.zeros(16, GAME_STATE_SIZE)
+    if compact:
+        folded_net = CompactIo(folded_net).eval()
+        example = example.to(torch.uint8)
     torch.onnx.export(
         folded_net,
-        (torch.zeros(16, GAME_STATE_SIZE),),
+        (example,),
         path,
         input_names=["states"],
         output_names=["value", "policy"],
@@ -209,7 +234,10 @@ def check_exports(net, prefix):
     sess = ort.InferenceSession(
         f"{prefix}.onnx", providers=["CPUExecutionProvider"]
     )
-    ov, op = sess.run(None, {"states": x})
+    compact = sess.get_inputs()[0].type == "tensor(uint8)"
+    feed = np.rint(x * 4).astype(np.uint8) if compact else x
+    ov, op = sess.run(None, {"states": feed})
+    op = op.astype(np.float32)
     diffs = {
         "mlp_value": np.abs(mv - v).max(),
         "mlp_policy": np.abs(mp - p).max(),
@@ -220,7 +248,11 @@ def check_exports(net, prefix):
         "export check vs torch: "
         + ", ".join(f"{k} {d:.2e}" for k, d in diffs.items())
     )
-    assert max(diffs.values()) < 1e-4, "an export does not match the model"
+    # fp16 policy: relative error up to 2^-11, so up to ~5e-4 absolute
+    tol = {"onnx_policy": 1e-3 if compact else 1e-4}
+    assert all(
+        d < tol.get(k, 1e-4) for k, d in diffs.items()
+    ), "an export does not match the model"
 
 
 def save(net, prefix, optimizer=None, extra=None):
@@ -231,7 +263,7 @@ def save(net, prefix, optimizer=None, extra=None):
     if extra:
         state.update(extra)
     torch.save(state, f"{prefix}.pt")
-    export_onnx(net, f"{prefix}.onnx")
+    export_onnx(net, f"{prefix}.onnx", compact=True)
     export_mlp(net, f"{prefix}.mlp")
     check_exports(net, prefix)
 

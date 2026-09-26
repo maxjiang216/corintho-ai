@@ -1,0 +1,18 @@
+mlp w100 d12 norm bn mask True sym False lines None legal_input False: 130397 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5434 p 1.7540  val v 0.5455 p 1.7376 top1 0.5407 loss 0.9799  61 s
+mlp w100 d12 norm bn mask True sym True lines any legal_input False: 131997 params, 86 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5780 p 1.7615  val v 0.5782 p 1.7497 top1 0.5126 loss 1.0157  70 s
+mlp w100 d12 norm bn mask True sym True lines type legal_input False: 135197 params, 118 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5790 p 1.7546  val v 0.5801 p 1.7429 top1 0.5192 loss 1.0158  71 s
+mlp w100 d12 norm bn mask True sym True lines None legal_input True: 139997 params, 166 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5708 p 1.7111  val v 0.5721 p 1.6990 top1 0.5324 loss 0.9969  70 s
+res w256 d4 norm bn mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5540 p 1.4667  val v 0.5558 p 1.4587 top1 0.6020 loss 0.9205  69 s
+res w256 d4 norm ln mask True sym True lines None legal_input False: 574049 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5610 p 1.4920  val v 0.5629 p 1.4846 top1 0.5974 loss 0.9341  69 s
+res w256 d4 norm none mask True sym True lines None legal_input False: 569441 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5611 p 1.5147  val v 0.5628 p 1.5074 top1 0.5898 loss 0.9397  56 s
+mlp w64 d6 norm bn mask True sym True lines None legal_input False: 32417 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.6075 p 1.8847  val v 0.6088 p 1.8744 top1 0.4791 loss 1.0773  46 s
+mlp w256 d6 norm bn mask True sym True lines None legal_input False: 375137 params, 70 inputs, 2131101 train, 711036 val positions
+epoch 19  train v 0.5622 p 1.5033  val v 0.5635 p 1.4941 top1 0.5943 loss 0.9370  49 s

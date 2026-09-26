@@ -36,6 +36,17 @@ class Trainer {
   /// writes them during search, so nothing is copied. Results go back to
   /// doIteration in the same row layout. Training only.
   const float *requests() const noexcept;
+  /// @brief The game whose rows are in batch slot `slot` (training only)
+  /// @details Rows [slot * searches_per_eval, (slot + 1) * searches_per_eval)
+  /// of requests() belong to this game. For measurements (worklog
+  /// 2026-09-25-nn-architectures, entry 07).
+  int32_t gameInSlot(int32_t slot) const noexcept {
+    return game_in_slot_[static_cast<size_t>(slot)];
+  }
+  /// @brief Root of game `game`'s current search, or nullptr (measurements)
+  const Node *searchRoot(int32_t game) const noexcept {
+    return games_[static_cast<size_t>(game)].searchRoot();
+  }
   /// @brief Return the number of training samples
   int32_t num_samples() const noexcept;
   /// @brief Average score of first player
@@ -47,6 +58,12 @@ class Trainer {
   /// gate, which tests the decisive-game win rate and so needs counts rather
   /// than an averaged score.
   int32_t numWins() const noexcept;
+  /// @brief The new agent's score (1, 0.5, 0) in test game `game`; same
+  /// parity handling as numWins()
+  float newScore(int32_t game) const noexcept {
+    const float s = games_[static_cast<size_t>(game)].score();
+    return game % 2 == 0 ? s : 1.0F - s;
+  }
   /// @brief Number of drawn test games
   int32_t numDraws() const noexcept;
   /// @brief Number of games in this Trainer
@@ -75,6 +92,34 @@ class Trainer {
   void set_stagger_iterations(int32_t iterations) noexcept {
     stagger_iterations_ = iterations;
   }
+
+  /// @brief End games by exact solution at horizon P <= max_horizon, on
+  /// num_threads solver threads (each with a 2^log2_table-entry table),
+  /// giving up on a position after max_nodes (worklog
+  /// 2026-09-25-nn-architectures, entry 14). Call before the first
+  /// iteration.
+  void enableSolver(int32_t max_horizon, uint64_t max_nodes,
+                    int32_t num_threads, int32_t log2_table);
+  /// @brief As enableSolver, with a pool the caller owns and may share
+  /// between Trainers (its tables stay warm across them)
+  void setSolver(SolverPool *pool, int32_t max_horizon);
+  /// @brief Wait for every submitted solve and apply its result; call before
+  /// writeSamples, score and the result counts
+  /// @return Games whose result stayed unknown (counted as draws)
+  int32_t finalizeSolves();
+  /// @brief Solve search leaves with horizon P <= max_horizon exactly,
+  /// giving up after max_nodes (entry 15); call before the first iteration
+  /// @param model In test games, only this model's side (0 new, 1 best);
+  /// -1 both
+  void setNodeSolver(int32_t max_horizon, uint64_t max_nodes,
+                     int32_t model = -1) {
+    for (SelfPlayer &game : games_)
+      game.set_node_solver(max_horizon, max_nodes, model);
+  }
+  /// @brief Games ended by exact solution so far
+  int32_t numAdjudicated() const noexcept;
+  /// @brief The solver pool, or nullptr (for its statistics)
+  const SolverPool *solverPool() const noexcept { return solver_pool_.get(); }
 
   /// @brief This is the main function that runs the self-play games. It is
   /// called by Cython in a loop.
@@ -112,6 +157,7 @@ class Trainer {
   int32_t num_started_{0};
   /// @brief The self-play games
   std::vector<SelfPlayer> games_{};
+  std::unique_ptr<SolverPool> solver_pool_{};
   /// @brief Tracks which games are done
   // uint8_t, not bool: std::vector<bool> packs 64 flags per word, so the
   // parallel writes in doIteration() are read-modify-writes of a shared word

@@ -5,6 +5,8 @@
 //   corintho_play bench --model M [--rows 1000,4000,16000] [--reps 50]
 //
 // M is a .onnx file (ONNX Runtime, CUDA) or a .mlp file (the CPU network).
+// Prefix a .onnx path with trt: or trt16: for the TensorRT provider (fp32
+// with TF32, or fp16); engines are cached in trt_cache/ beside the model.
 //
 // train plays N games, at most --in-flight at a time, and writes the samples
 // as DIR/states.npy (rows x 70), DIR/values.npy (rows) and DIR/policies.npy
@@ -23,9 +25,23 @@
 //   --groups 1      train: sets of --in-flight games whose searches alternate,
 //                   so that with 2 the engine searches one group while the
 //                   GPU evaluates the other
+//   --solve-p 0     end games by exact solution once the position's horizon
+//                   P (2 x reserves + occupied spaces) is at most this; 0:
+//                   off (entry 14). --solve-cap 5000000 (positions per
+//                   solve; a capped solve is retried once at 20x, then
+//                   counts as a draw),
+//                   --solve-threads 4, --solve-table 22 (log2 entries)
+//   --node-p 0      solve search leaves with horizon P <= this exactly
+//                   instead of asking the network (entry 15); --node-cap
+//                   20000 positions per leaf, then the network
+//   --node-side both  test only: which side uses the node solver (new, best)
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
+//   --cache L       train only: cache network results for 2^L positions (0,
+//                   the default: off), shared by all games and keyed up to
+//                   board symmetry (eval_cache.h); ~216 bytes per entry
+//   --cache-sym 1   0: key positions exactly, never serving a rotated copy
 //   --check M2      train only: also evaluate every batch with M2 and report
 //                   the largest differences (games follow --model)
 
@@ -37,7 +53,13 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <condition_variable>
+#include <deque>
+#include <functional>
 #include <future>
+#include <mutex>
+#include <thread>
+#include <utility>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -45,7 +67,10 @@
 #include <vector>
 
 #include "backend.h"
+#include "eval_cache.h"
+#include "node.h"
 #include "npy.h"
+#include "solver_pool.h"
 #include "trainer.h"
 #include "util.h"
 
@@ -84,6 +109,10 @@ struct Args {
   int32_t i32(const std::string &k, int32_t def) const {
     auto it = kv.find(k);
     return it == kv.end() ? def : std::atoi(it->second.c_str());
+  }
+  int64_t i64(const std::string &k, int64_t def) const {
+    auto it = kv.find(k);
+    return it == kv.end() ? def : std::atoll(it->second.c_str());
   }
   float f32(const std::string &k, float def) const {
     auto it = kv.find(k);
@@ -129,9 +158,96 @@ struct Group {
   // groups' network calls can run at the same time
   std::unique_ptr<Backend> backend;
   std::vector<float> values, probs;
-  std::future<double> pending;  // seconds the network call took
+  // The network call in flight: {seconds on the network, seconds in the cache}
+  std::future<std::pair<double, double>> pending;
   int32_t games{0};
+  int32_t chunk{0};  // index of the chunk being played
+  // With --cache: this call's rows, and the misses sent to the network
+  EvalCache::Call cache_call;
+  std::vector<float> miss_states, miss_values, miss_probs;
 };
+
+// Runs submitted jobs one at a time, in order, on its own thread. The
+// network calls of both groups go through it: with --cache every lookup and
+// insert then happens on this one thread (no locking), off the engine's
+// critical path while the main thread searches the other group.
+class SerialWorker {
+ public:
+  using Result = std::pair<double, double>;
+  SerialWorker() : thread_([this] { run(); }) {}
+  ~SerialWorker() {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      stop_ = true;
+    }
+    wake_.notify_one();
+    thread_.join();
+  }
+  std::future<Result> submit(std::function<Result()> job) {
+    std::packaged_task<Result()> task(std::move(job));
+    std::future<Result> result = task.get_future();
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      jobs_.push_back(std::move(task));
+    }
+    wake_.notify_one();
+    return result;
+  }
+
+ private:
+  void run() {
+    for (;;) {
+      std::packaged_task<Result()> task;
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        wake_.wait(lock, [this] { return stop_ || !jobs_.empty(); });
+        if (jobs_.empty())
+          return;
+        task = std::move(jobs_.front());
+        jobs_.pop_front();
+      }
+      task();
+    }
+  }
+  std::mutex mutex_;
+  std::condition_variable wake_;
+  std::deque<std::packaged_task<Result()>> jobs_;
+  bool stop_{false};
+  std::thread thread_;
+};
+
+// Optional measurement (worklog 2026-09-25-nn-architectures, entry 07): with
+// CORINTHO_DUP_DUMP=FILE, every row sent to the network is recorded as
+// {game id, call index, 64-bit hash of the 70 inputs}, to count how often a
+// position is evaluated more than once, within a game or across games.
+struct DupRecord {
+  uint32_t game, call;
+  uint64_t hash, canonical;  // canonical: least hash over the 8 symmetries
+  uint8_t root_p, leaf_p;    // horizon P of the search root and of the row
+  uint8_t pad[6];
+};
+// P = 2 * reserves + occupied spaces, from network inputs
+uint8_t horizonOf(const float *row) {
+  int32_t p = 0;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    p += (row[4 * s] + row[4 * s + 1] + row[4 * s + 2]) > 0.0F;
+  for (int32_t i = 0; i < 6; ++i)
+    p += 2 * static_cast<int32_t>(row[4 * kBoardSize + i] * 4.0F + 0.5F);
+  return static_cast<uint8_t>(p);
+}
+uint64_t rowHash(const float *row, const int32_t *perm = nullptr) {
+  uint64_t h = 1469598103934665603ULL;  // FNV-1a over the inputs x 4
+  for (int32_t i = 0; i < kGameStateSize; ++i) {
+    const int32_t j =
+        perm == nullptr || i >= 4 * kBoardSize ? i
+                                               : perm[i / 4] * 4 + i % 4;
+    h ^= static_cast<uint64_t>(row[j] * 4.0F + 0.5F);
+    h *= 1099511628211ULL;
+  }
+  h ^= h >> 31;  // final mix; FNV's low bits alone are weak
+  h *= 0x9E3779B97F4A7C15ULL;
+  return h ^ (h >> 29);
+}
 
 int runTrain(const Args &a) {
   const std::string model = a.str("model");
@@ -151,12 +267,77 @@ int runTrain(const Args &a) {
   // spreads the games over a turn's phases without leaving the batch mostly
   // empty while they ramp up (entry 29).
   const int32_t stagger = a.i32("stagger", 0);
+  // Exact solutions from horizon --solve-p down (entry 14): one pool for
+  // the whole run, so its tables stay warm across chunks and groups
+  const int32_t solve_p = a.i32("solve-p", 0);
+  std::unique_ptr<SolverPool> solver_pool;
+  if (solve_p > 0)
+    solver_pool = std::make_unique<SolverPool>(
+        a.i32("solve-threads", 4), a.i32("solve-table", 22),
+        static_cast<uint64_t>(a.i64("solve-cap", 5000000)));
+  // Search leaves solved exactly from horizon --node-p down (entry 15)
+  const int32_t node_p = a.i32("node-p", 0);
+  const uint64_t node_cap = static_cast<uint64_t>(a.i64("node-cap", 20000));
+  int64_t adjudicated = 0, solve_unknown = 0;
+  double solve_wait_s = 0;  // waiting for solves at chunk ends
+  const int32_t cache_log2 = a.i32("cache", 0);
+  // CORINTHO_CACHE_VERIFY=1 (with --groups 1): also evaluate every batch in
+  // full and compare the rows served from the cache. [0]: rows whose own
+  // frame is canonical, [1]: the others; {rows, top move differs, max |dp|,
+  // max |dv|}
+  const bool verify = std::getenv("CORINTHO_CACHE_VERIFY") != nullptr;
+  std::vector<float> verify_values, verify_probs;
+  double verify_stats[2][4] = {};
+  int32_t verify_printed = 0;
+  std::unique_ptr<EvalCache> cache;
+  if (cache_log2 > 0)
+    cache = std::make_unique<EvalCache>(cache_log2, a.i32("cache-sym", 1) != 0);
+  // One network call for group g's batch: with the cache, the lookup fills
+  // the hits, only the misses go to the network, and their results are
+  // scattered back and stored. Returns {network seconds, cache seconds}.
+  auto runCall = [&cache](Group &g, const float *batch,
+                          int32_t rows) -> std::pair<double, double> {
+    if (!cache) {
+      const auto t0 = Clock::now();
+      g.backend->evaluate(batch, rows, g.values.data(), g.probs.data());
+      return {since(t0), 0.0};
+    }
+    auto t0 = Clock::now();
+    cache->lookup(batch, rows, g.values.data(), g.probs.data(), g.cache_call);
+    const auto &misses = g.cache_call.misses;
+    const size_t n = misses.size();
+    g.miss_states.resize(n * kGameStateSize);
+    g.miss_values.resize(n);
+    g.miss_probs.resize(n * kNumMoves);
+    for (size_t i = 0; i < n; ++i)
+      std::copy_n(batch + static_cast<size_t>(misses[i]) * kGameStateSize,
+                  kGameStateSize, g.miss_states.data() + i * kGameStateSize);
+    double cache_seconds = since(t0);
+    t0 = Clock::now();
+    if (n > 0)
+      g.backend->evaluate(g.miss_states.data(), static_cast<int32_t>(n),
+                          g.miss_values.data(), g.miss_probs.data());
+    const double network_seconds = since(t0);
+    t0 = Clock::now();
+    for (size_t i = 0; i < n; ++i) {
+      const size_t r = static_cast<size_t>(misses[i]);
+      g.values[r] = g.miss_values[i];
+      std::copy_n(g.miss_probs.data() + i * kNumMoves, kNumMoves,
+                  g.probs.data() + r * kNumMoves);
+    }
+    cache->insert(g.cache_call, g.values.data(), g.probs.data());
+    cache_seconds += since(t0);
+    return {network_seconds, cache_seconds};
+  };
+  SerialWorker worker;
 
   auto backend = makeBackend(model, threads);
   std::unique_ptr<Backend> check;
   if (a.kv.count("check")) {
     if (num_groups != 1)
       throw std::runtime_error("--check needs --groups 1");
+    if (cache_log2 > 0)
+      throw std::runtime_error("--check compares whole batches: not with --cache");
     check = makeBackend(a.str("check"), threads);
   }
   std::vector<float> check_values, check_probs;
@@ -166,7 +347,7 @@ int runTrain(const Args &a) {
   NpyWriter values_out{out + "/values.npy", 1};
   NpyWriter policies_out{out + "/policies.npy", kNumMoves};
 
-  double engine_s = 0, eval_s = 0, wait_s = 0, write_s = 0;
+  double engine_s = 0, eval_s = 0, wait_s = 0, write_s = 0, cache_s = 0;
   uint64_t rows_evaluated = 0, calls = 0;
   int64_t turns_total = 0;
   double score_sum = 0;
@@ -174,6 +355,10 @@ int runTrain(const Args &a) {
   const auto wall_start = Clock::now();
   std::vector<float> st, vs, ps;
   int32_t chunks_started = 0, chunks_done = 0, games_started = 0;
+  FILE *dup_file = nullptr;
+  if (const char *dup = std::getenv("CORINTHO_DUP_DUMP"))
+    dup_file = std::fopen(dup, "wb");
+  std::vector<DupRecord> dup_buf;
 
   // Chunk c gets seed + c, and chunks are numbered in the order they start,
   // so a run is deterministic for a given --groups and --in-flight
@@ -183,11 +368,16 @@ int runTrain(const Args &a) {
       return;
     }
     g.games = std::min(in_flight, games - games_started);
+    g.chunk = chunks_started;
     // Only the first chunk logs games
     g.trainer = std::make_unique<Trainer>(
         g.games, out, seed + chunks_started, searches, spe, c_puct, epsilon,
         chunks_started == 0 ? logged : 0, threads, false);
     g.trainer->set_stagger_iterations(stagger);
+    if (solver_pool)
+      g.trainer->setSolver(solver_pool.get(), solve_p);
+    if (node_p > 0)
+      g.trainer->setNodeSolver(node_p, node_cap);
     g.values.assign(static_cast<size_t>(g.games) * spe, 0.0F);
     g.probs.assign(static_cast<size_t>(g.games) * spe * kNumMoves, 0.0F);
     games_started += g.games;
@@ -196,6 +386,10 @@ int runTrain(const Args &a) {
   auto finishChunk = [&](Group &g) {
     const auto t = Clock::now();
     Trainer &trainer = *g.trainer;
+    const auto t_solves = Clock::now();
+    solve_unknown += trainer.finalizeSolves();
+    solve_wait_s += since(t_solves);
+    adjudicated += trainer.numAdjudicated();
     const int32_t turns = trainer.num_samples();
     const size_t sample_rows = static_cast<size_t>(turns) * kNumSymmetries;
     st.resize(sample_rows * kGameStateSize);
@@ -244,7 +438,9 @@ int runTrain(const Args &a) {
       any = true;
       if (g.pending.valid()) {
         const auto t = Clock::now();
-        eval_s += g.pending.get();
+        const auto [network_seconds, cache_seconds] = g.pending.get();
+        eval_s += network_seconds;
+        cache_s += cache_seconds;
         wait_s += since(t);
       }
       auto t = Clock::now();
@@ -259,23 +455,83 @@ int runTrain(const Args &a) {
       const int32_t rows = g.trainer->num_requests(-1);
       const float *batch = g.trainer->requests();
       rows_evaluated += static_cast<uint64_t>(rows);
+      if (dup_file != nullptr) {
+        dup_buf.resize(static_cast<size_t>(rows));
+        for (int32_t r = 0; r < rows; ++r) {
+          const uint32_t game = static_cast<uint32_t>(
+              g.chunk * in_flight + g.trainer->gameInSlot(r / spe));
+          const float *row = batch + static_cast<size_t>(r) * kGameStateSize;
+          uint64_t canonical = rowHash(row);
+          for (int32_t k = 1; k < kNumSymmetries; ++k)
+            canonical = std::min(canonical, rowHash(row, space_symmetries[k]));
+          const int32_t slot_game = g.trainer->gameInSlot(r / spe);
+          const Node *root = g.trainer->searchRoot(slot_game);
+          float root_state[kGameStateSize];
+          uint8_t root_p = 255;
+          if (root != nullptr) {
+            root->get_game().writeGameState(root_state);
+            root_p = horizonOf(root_state);
+          }
+          dup_buf[static_cast<size_t>(r)] = {
+              game,     static_cast<uint32_t>(calls), rowHash(row), canonical,
+              root_p,   horizonOf(row),               {}};
+        }
+        std::fwrite(dup_buf.data(), sizeof(DupRecord), dup_buf.size(),
+                    dup_file);
+      }
       ++calls;
       if (num_groups == 1) {
         t = Clock::now();
-        g.backend->evaluate(batch, rows, g.values.data(), g.probs.data());
-        const double s = since(t);
-        eval_s += s;
-        wait_s += s;
+        const auto [network_seconds, cache_seconds] = runCall(g, batch, rows);
+        eval_s += network_seconds;
+        cache_s += cache_seconds;
+        wait_s += since(t);
+        if (cache && verify) {
+          // Evaluate everything directly and compare the cached rows
+          verify_values.resize(static_cast<size_t>(rows));
+          verify_probs.resize(static_cast<size_t>(rows) * kNumMoves);
+          g.backend->evaluate(batch, rows, verify_values.data(),
+                              verify_probs.data());
+          std::vector<uint8_t> missed(static_cast<size_t>(rows));
+          for (const int32_t r : g.cache_call.misses)
+            missed[static_cast<size_t>(r)] = 1;
+          for (int32_t r = 0; r < rows; ++r) {
+            if (missed[static_cast<size_t>(r)])
+              continue;
+            const bool same_frame =
+                g.cache_call.frame[static_cast<size_t>(r)] ==
+                g.cache_call.stored_frame[static_cast<size_t>(r)];
+            const float *p = g.probs.data() + static_cast<size_t>(r) * kNumMoves;
+            const float *q =
+                verify_probs.data() + static_cast<size_t>(r) * kNumMoves;
+            int32_t bp = 0, bq = 0;
+            float dp = 0;
+            for (int32_t m = 0; m < kNumMoves; ++m) {
+              dp = std::max(dp, std::fabs(p[m] - q[m]));
+              bp = p[m] > p[bp] ? m : bp;
+              bq = q[m] > q[bq] ? m : bq;
+            }
+            if (same_frame && bp != bq && verify_printed < 5) {
+              ++verify_printed;
+              std::printf("#MISMATCH call %lld row %d frame %d: cached v %.4f "
+                          "top %d (%.3f); direct v %.4f top %d (%.3f)\n",
+                          static_cast<long long>(calls), r,
+                          g.cache_call.frame[static_cast<size_t>(r)],
+                          g.values[r], bp, p[bp],
+                          verify_values[static_cast<size_t>(r)], bq, q[bq]);
+            }
+            auto &st = verify_stats[same_frame ? 0 : 1];
+            st[0] += 1;
+            st[1] += bp != bq;
+            st[2] = std::max(st[2], static_cast<double>(dp));
+            st[3] = std::max(st[3], static_cast<double>(std::fabs(
+                g.values[r] - verify_values[static_cast<size_t>(r)])));
+          }
+        }
       } else {
-        Backend *b = g.backend.get();
-        float *values = g.values.data();
-        float *probs = g.probs.data();
-        g.pending = std::async(std::launch::async, [b, batch, rows, values,
-                                                    probs] {
-          const auto t0 = Clock::now();
-          b->evaluate(batch, rows, values, probs);
-          return since(t0);
-        });
+        Group *gp = &g;
+        g.pending = worker.submit(
+            [&runCall, gp, batch, rows] { return runCall(*gp, batch, rows); });
       }
       if (check) {
         check_values.resize(g.values.size());
@@ -303,6 +559,9 @@ int runTrain(const Args &a) {
   policies_out.close();
   const double wall = since(wall_start);
 
+  uint64_t node_attempts = 0, node_solved = 0;
+  double node_seconds = 0;
+  TrainMC::nodeSolveStats(node_attempts, node_solved, node_seconds);
   std::ofstream js{out + "/selfplay.json"};
   js << "{\n"
      << "  \"backend\": \"" << backend_name << "\",\n"
@@ -324,12 +583,46 @@ int runTrain(const Args &a) {
      << "  \"engine_seconds\": " << engine_s << ",\n"
      << "  \"eval_seconds\": " << eval_s << ",\n"
      << "  \"eval_wait_seconds\": " << wait_s << ",\n"
+     << "  \"cache_log2\": " << cache_log2 << ",\n"
+     << "  \"cache_lookups\": " << (cache ? cache->lookups() : 0) << ",\n"
+     << "  \"cache_hits\": " << (cache ? cache->hits() : 0) << ",\n"
+     << "  \"cache_seconds\": " << cache_s << ",\n"
      << "  \"write_seconds\": " << write_s << ",\n"
+     << "  \"solve_horizon\": " << solve_p << ",\n"
+     << "  \"adjudicated_games\": " << adjudicated << ",\n"
+     << "  \"solve_unknown_games\": " << solve_unknown << ",\n"
+     << "  \"node_horizon\": " << node_p << ",\n"
+     << "  \"node_solve_attempts\": " << node_attempts << ",\n"
+     << "  \"node_solved\": " << node_solved << ",\n"
+     << "  \"node_solve_seconds\": " << node_seconds << ",\n"
+     << "  \"solve_wait_seconds\": " << solve_wait_s << ",\n"
+     << "  \"solves\": " << (solver_pool ? solver_pool->solves() : 0) << ",\n"
+     << "  \"solves_capped\": " << (solver_pool ? solver_pool->capped() : 0)
+     << ",\n"
+     << "  \"solve_seconds\": " << (solver_pool ? solver_pool->seconds() : 0.0)
+     << ",\n"
+     << "  \"solve_max_seconds\": "
+     << (solver_pool ? solver_pool->max_seconds() : 0.0) << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";
   std::printf("#METRIC engine_seconds %.4f\n", engine_s);
   std::printf("#METRIC eval_seconds %.4f\n", eval_s);
   std::printf("#METRIC eval_wait_seconds %.4f\n", wait_s);
+  if (cache)
+    std::printf("#METRIC cache_hit_rate %.4f\n#METRIC cache_seconds %.4f\n",
+                static_cast<double>(cache->hits()) /
+                    static_cast<double>(std::max<uint64_t>(1, cache->lookups())),
+                cache_s);
+  if (dup_file != nullptr)
+    std::fclose(dup_file);
+  if (verify)
+    for (int32_t i = 0; i < 2; ++i)
+      std::printf("#VERIFY %s: %.0f cached rows, top move differs %.0f "
+                  "(%.4f%%), max |dp| %.2e, max |dv| %.2e\n",
+                  i == 0 ? "stored from the same frame" : "from another frame",
+                  verify_stats[i][0], verify_stats[i][1],
+                  100 * verify_stats[i][1] / std::max(1.0, verify_stats[i][0]),
+                  verify_stats[i][2], verify_stats[i][3]);
   std::printf("#METRIC wall_seconds %.4f\n", wall);
   std::printf("#METRIC turns %lld\n", static_cast<long long>(turns_total));
   std::printf("#METRIC rows_evaluated %llu\n",
@@ -362,6 +655,21 @@ int runTest(const Args &a) {
 
   Trainer trainer{games,  out,     seed,   searches, spe,
                   c_puct, epsilon, logged, threads,  true};
+  // Matches end games by exact solution the same way (entry 14): both
+  // players alike, as deployment would. The node solver can be given to one
+  // side only (--node-side new|best), to measure what it is worth
+  const std::string node_side = a.str("node-side", "both");
+  if (node_side != "both" && node_side != "new" && node_side != "best")
+    throw std::runtime_error("--node-side: both, new or best");
+  if (a.i32("node-p", 0) > 0)
+    trainer.setNodeSolver(a.i32("node-p", 0),
+                          static_cast<uint64_t>(a.i64("node-cap", 20000)),
+                          node_side == "both" ? -1 : node_side == "new" ? 0 : 1);
+  const int32_t solve_p = a.i32("solve-p", 0);
+  if (solve_p > 0)
+    trainer.enableSolver(solve_p,
+                         static_cast<uint64_t>(a.i64("solve-cap", 5000000)),
+                         a.i32("solve-threads", 4), a.i32("solve-table", 22));
   const size_t cap = static_cast<size_t>(games) * spe;
   std::vector<float> states(cap * kGameStateSize), values(cap),
       probs(cap * kNumMoves);
@@ -391,7 +699,15 @@ int runTest(const Args &a) {
     ++calls;
   }
   const double wall = since(wall_start);
+  trainer.finalizeSolves();  // exact results of games ended by solution
   trainer.writeScores(out + "/score_verbose.txt");
+  // The new agent's score in every game, in game order: the same seed plays
+  // the same games, so two matches can be compared game by game
+  {
+    std::ofstream per_game{out + "/game_scores.txt"};
+    for (int32_t i = 0; i < trainer.numGames(); ++i)
+      per_game << trainer.newScore(i) << '\n';
+  }
   const int32_t wins = trainer.numWins();
   const int32_t draws = trainer.numDraws();
   std::ofstream js{out + "/test.json"};
@@ -408,6 +724,10 @@ int runTest(const Args &a) {
      << "  \"rows_evaluated\": " << rows_evaluated << ",\n"
      << "  \"engine_seconds\": " << engine_s << ",\n"
      << "  \"eval_seconds\": " << eval_s << ",\n"
+     << "  \"solve_horizon\": " << solve_p << ",\n"
+     << "  \"node_horizon\": " << a.i32("node-p", 0) << ",\n"
+     << "  \"node_side\": \"" << node_side << "\",\n"
+     << "  \"adjudicated_games\": " << trainer.numAdjudicated() << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";
   std::printf("#METRIC wins %d\n#METRIC draws %d\n#METRIC games %d\n", wins,

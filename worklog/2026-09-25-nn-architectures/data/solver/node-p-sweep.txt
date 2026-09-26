@@ -1,0 +1,7 @@
+node-p 17 (200 games): 103 9 88
+P27 node-p 0: wall 81.7 engine 68.3 wait 12.7 rows/game 30137 turns/game 19.62 node solved 0 of 0 node_s 0 game_solve_s 81.3 chunk_wait 0.1
+P27 node-p 15: wall 86.2 engine 71.7 wait 13.6 rows/game 30027 turns/game 19.61 node solved 1477559 of 1477559 node_s 2.3 game_solve_s 88.0 chunk_wait 0.1
+P27 node-p 17: wall 92.9 engine 77.9 wait 13.6 rows/game 29861 turns/game 19.61 node solved 3511051 of 3511051 node_s 13.3 game_solve_s 108.8 chunk_wait 0.6
+P27 node-p 19: wall 96.4 engine 83.5 wait 12.1 rows/game 29471 turns/game 19.62 node solved 7034967 of 7034967 node_s 76.3 game_solve_s 113.9 chunk_wait 0.2
+
+[exited with code 0]

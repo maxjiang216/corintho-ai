@@ -24,6 +24,8 @@ on fixed data first (supervised), then confirm the best by matches.
 | 11 | [legal-move generation](2026-09-26-11-legal-move-generation.md) | pext in computeSpaceInfo and basicLegalMoves, branch-free lineBreakers: -13.5% instructions, bit-identical (digests, rulecheck, verify). Engine-wide. |
 | 12 | [null-window solves](2026-09-26-12-null-window-solves.md) | "Win?" then "at least a draw?": 0.91-0.93x nodes at P <= 27-30, neutral at P <= 24. |
 | 13 | [the solver's table](2026-09-26-13-solver-table.md) | 16-byte entries, 4-way buckets with one AVX2 compare, prefetching every child: P <= 30 -25%, P <= 27 -14%. |
+| 14 | [the game solver in self-play](2026-09-26-14-game-solver-in-self-play.md) | A game at P <= 27 ends at once and is solved on spare threads (pausing it was 36-55% slower). P_game 27: self-play wall -7%, turns per game 29.9 -> 19.6; 28-29 cost wall time. |
+| 15 | [node solver; games end when known](2026-09-26-15-node-solver-and-proven-endings.md) | Games end once proven or at P 27, checked every move. Node solver (P_node 15-19): slower, and paired matches (per-game, same seeds) show no gain, mild harm at 17-19: off. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -58,13 +60,17 @@ kept no samples.
 
 - No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
   night-2 after it1; all resumable, all data kept).
+- Self-play with the solver: `--solve-p 27` (entries 14-15); `--node-p`
+  stays off. Not yet measured: a paired **training** run with and without
+  `--solve-p 27` (queued driver, TensorRT, wider window).
 - Rebuild the main driver (`pipeline/build`) to adopt the queued network
-  calls (entry 09, -7 to -11% self-play).
-- Next (entry 08): the game-level solver in self-play (P_game ~26-27; end
-  the game, exact labels for earlier positions, samples along the proven
-  line), then the node solver with a warm table (measure its cost first).
-- Then: a wider window (20-40 generations, subsampled) for the
-  small-generation loop; the training-loop fixes in the real pipeline.
+  calls (entry 09, -7 to -11% self-play) and the solver.
+- Strength comparisons: paired matches (`game_scores.txt`,
+  `arch/paired.py`, entry 15); the second player wins ~91% of test games,
+  so plain totals are noisy.
+- Open (entry 15): the network gets no data at P <= 27 but still evaluates
+  search leaves at P 18-27 (value-only solver-labelled samples, or measure
+  its error there first); shortest-win / longest-loss lines if ever needed.
 - Parked: graph search (transpositions), evaluation cache, symmetry
-  variance, solver SIMD.
+  variance, solver SIMD, NNUE move ordering, proof-number search.
 - The symmetry fix `873988e` should reach `main` (small PR).

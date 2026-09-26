@@ -118,28 +118,48 @@ class Mlp(nn.Module):
 
 
 class ResMlp(nn.Module):
-    """Residual blocks: norm -> ReLU -> Linear, twice, added to the stream."""
+    """Residual blocks of two Linear layers, added to the stream.
 
-    def __init__(self, inputs, width, depth, norm):
+    block "pre" (pre-activation): norm -> ReLU -> Linear, twice, then add;
+    one norm -> ReLU before the heads.
+    block "post" (the original ResNet order): Linear -> norm -> ReLU ->
+    Linear -> norm, add, then ReLU; the input layer is Linear -> norm -> ReLU.
+    """
+
+    def __init__(self, inputs, width, depth, norm, block="pre"):
         super().__init__()
         make_norm = {
             "bn": lambda: nn.BatchNorm1d(width),
             "ln": lambda: nn.LayerNorm(width),
             "none": lambda: nn.Identity(),
         }[norm]
-        self.inp = nn.Linear(inputs, width)
-        self.blocks = nn.ModuleList(
-            nn.Sequential(
-                make_norm(),
-                nn.ReLU(),
-                nn.Linear(width, width),
-                make_norm(),
-                nn.ReLU(),
-                nn.Linear(width, width),
+        self.post = block == "post"
+        if self.post:
+            self.inp = nn.Sequential(
+                nn.Linear(inputs, width), make_norm(), nn.ReLU()
             )
-            for _ in range(depth)
+            layers = lambda: [
+                nn.Linear(width, width),
+                make_norm(),
+                nn.ReLU(),
+                nn.Linear(width, width),
+                make_norm(),
+            ]
+            self.out = nn.Identity()
+        else:
+            self.inp = nn.Linear(inputs, width)
+            layers = lambda: [
+                make_norm(),
+                nn.ReLU(),
+                nn.Linear(width, width),
+                make_norm(),
+                nn.ReLU(),
+                nn.Linear(width, width),
+            ]
+            self.out = nn.Sequential(make_norm(), nn.ReLU())
+        self.blocks = nn.ModuleList(
+            nn.Sequential(*layers()) for _ in range(depth)
         )
-        self.out = nn.Sequential(make_norm(), nn.ReLU())
         self.value = nn.Linear(width, 1)
         self.policy = nn.Linear(width, M)
 
@@ -147,6 +167,8 @@ class ResMlp(nn.Module):
         h = self.inp(x)
         for b in self.blocks:
             h = h + b(h)
+            if self.post:
+                h = torch.relu(h)
         h = self.out(h)
         return torch.tanh(self.value(h)).squeeze(1), self.policy(h)
 
@@ -204,6 +226,7 @@ def main():
     ap.add_argument("--width", type=int, default=100)
     ap.add_argument("--depth", type=int, default=12)
     ap.add_argument("--norm", choices=("bn", "ln", "none"), default="bn")
+    ap.add_argument("--block", choices=("pre", "post"), default="pre")
     ap.add_argument("--mask", action="store_true")
     ap.add_argument("--no-sym", dest="sym", action="store_false")
     ap.add_argument("--lines", choices=("any", "type"))
@@ -250,7 +273,7 @@ def main():
     if a.model == "mlp":
         net = Mlp(data.inputs, a.width, a.depth)
     else:
-        net = ResMlp(data.inputs, a.width, a.depth, a.norm)
+        net = ResMlp(data.inputs, a.width, a.depth, a.norm, a.block)
     net = net.to(dev)
     params = sum(p.numel() for p in net.parameters())
     opt = torch.optim.AdamW(
@@ -266,7 +289,8 @@ def main():
         * (1 + math.cos(math.pi * min(s, total) / total)),
     )
     print(
-        f"{a.model} w{a.width} d{a.depth} norm {a.norm} mask {a.mask} "
+        f"{a.model} w{a.width} d{a.depth} norm {a.norm} block {a.block} "
+        f"lr {a.lr} wd {a.wd} seed {a.seed} mask {a.mask} "
         f"sym {a.sym} lines {a.lines} legal_input {a.legal_input}: "
         f"{params} params, {data.inputs} inputs, {train_rows.numel()} train, "
         f"{val_rows.numel()} val positions",

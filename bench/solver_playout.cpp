@@ -25,9 +25,8 @@
 
 int main(int argc, char **argv) {
   if (argc < 5) {
-    std::fprintf(stderr,
-                 "usage: solver_playout POSITIONS.bin P CAP THREADS "
-                 "[LOG2_TABLE]\n");
+    std::fprintf(stderr, "usage: solver_playout POSITIONS.bin P CAP THREADS "
+                         "[LOG2_TABLE]\n");
     return 1;
   }
   FILE *f = std::fopen(argv[1], "rb");
@@ -68,7 +67,8 @@ int main(int argc, char **argv) {
       const auto t0 = std::chrono::steady_clock::now();
       const int32_t v = solver.solve(games[i], cap);
       const auto t1 = std::chrono::steady_clock::now();
-      const bool ok = v != Solver::kUnknown && solver.playOut(games[i], cap, line);
+      const bool ok =
+          v != Solver::kUnknown && solver.playOut(games[i], cap, line);
       const auto t2 = std::chrono::steady_clock::now();
       Out &o = out[i];
       o.solve_s = std::chrono::duration<double>(t1 - t0).count();
@@ -133,10 +133,9 @@ int main(int argc, char **argv) {
               1e3 * q(play_s, 1.0));
   const char *names[3] = {"lost", "drawn", "won"};
   for (int32_t k = 0; k < 3; ++k)
-    std::printf("%s: %d positions, mean line %.2f plies\n", names[k],
-                counts[k],
-                counts[k] ? static_cast<double>(length_sum[k]) / counts[k]
-                          : 0.0);
+    std::printf(
+        "%s: %d positions, mean line %.2f plies\n", names[k], counts[k],
+        counts[k] ? static_cast<double>(length_sum[k]) / counts[k] : 0.0);
   std::printf("wall %.2f s\n", wall);
   return 0;
 }

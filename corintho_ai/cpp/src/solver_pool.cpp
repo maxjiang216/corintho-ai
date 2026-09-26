@@ -21,9 +21,8 @@ SolverPool::~SolverPool() {
     t.join();
 }
 
-std::shared_ptr<SolveJob> SolverPool::submit(const Game &game,
-                                             uint64_t max_nodes,
-                                             bool play_out) {
+std::shared_ptr<SolveJob>
+SolverPool::submit(const Game &game, uint64_t max_nodes, bool play_out) {
   auto job = std::make_shared<SolveJob>();
   job->game = game;
   job->max_nodes = max_nodes;

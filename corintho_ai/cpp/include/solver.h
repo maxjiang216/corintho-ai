@@ -17,6 +17,14 @@
 /// Worklog 2026-09-25-nn-architectures, entry 08.
 class Solver {
  public:
+  /// @brief Four entries sharing one cache line; a store replaces the same
+  /// position, else a stale entry, else the one with the smallest P (the
+  /// cheapest to recompute). Entry 13.
+  struct alignas(64) Bucket {
+    uint64_t board[4];  // the four boards together: one AVX2 compare
+    uint64_t meta[4];
+  };
+
   /// @brief Returned when the node cap was reached before a result
   static constexpr int32_t kUnknown = 2;
 
@@ -59,7 +67,7 @@ class Solver {
   static constexpr uint32_t kEpochBits = 28;
   static_assert(sizeof(Entry) == 16);
 
-  std::vector<Entry> table_;
+  std::vector<Bucket> table_;
   uint64_t mask_;
   uint32_t epoch_{1};
   /// @brief History heuristic: per side to move and move, how much quiet

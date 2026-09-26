@@ -1,5 +1,7 @@
 #include "solver.h"
 
+#include <immintrin.h>
+
 #include <algorithm>
 #include <array>
 #include <cstdlib>
@@ -37,6 +39,22 @@ uint64_t packRest(uint64_t rest) {
 }
 constexpr uint64_t kRestMask = (uint64_t{1} << 19) - 1;
 
+// Which of a bucket's four boards equal `board`, as bits 0-3
+uint32_t boardMatches(const Solver::Bucket &bucket, uint64_t board) {
+#if defined(__AVX2__)
+  const __m256i boards =
+      _mm256_load_si256(reinterpret_cast<const __m256i *>(bucket.board));
+  const __m256i eq = _mm256_cmpeq_epi64(
+      boards, _mm256_set1_epi64x(static_cast<int64_t>(board)));
+  return static_cast<uint32_t>(_mm256_movemask_pd(_mm256_castsi256_pd(eq)));
+#else
+  uint32_t m = 0;
+  for (int32_t w = 0; w < 4; ++w)
+    m |= static_cast<uint32_t>(bucket.board[w] == board) << w;
+  return m;
+#endif
+}
+
 uint64_t mix(uint64_t board, uint64_t rest) {
   uint64_t x = board * 0x9E3779B97F4A7C15ULL ^ (rest + 0x632BE59BD9B4E019ULL);
   x ^= x >> 29;
@@ -48,12 +66,12 @@ uint64_t mix(uint64_t board, uint64_t rest) {
 }  // namespace
 
 Solver::Solver(int32_t log2_entries)
-    : table_(size_t{1} << log2_entries),
-      mask_((uint64_t{1} << log2_entries) - 1) {}
+    : table_(size_t{1} << std::max(0, log2_entries - 2)),
+      mask_(table_.size() - 1) {}
 
 void Solver::clear() noexcept {
   if (++epoch_ == (1U << kEpochBits)) {  // wrapped: really clear, rarely
-    std::fill(table_.begin(), table_.end(), Entry{});
+    std::fill(table_.begin(), table_.end(), Bucket{});
     epoch_ = 1;
   }
 }
@@ -153,11 +171,21 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     return lines ? -1 : 0;  // no moves: lost if a line stands, else drawn
   uint64_t board, rest;
   game.key(board, rest);
-  const Entry &slot = table_[mix(board, rest) & mask_];
+  const Bucket &bucket = table_[mix(board, rest) & mask_];
+  const uint64_t key_rest = packRest(rest);
+  uint32_t matches = boardMatches(bucket, board);
+  const uint64_t *found = nullptr;
+  while (matches != 0) {
+    const int32_t w = __builtin_ctz(matches);
+    matches &= matches - 1;
+    const uint64_t meta = bucket.meta[w];
+    if ((meta & kRestMask) == key_rest && (meta >> 36) == epoch_)
+      found = &bucket.meta[w];
+  }
   const int32_t alpha0 = alpha;
   int32_t table_move = -1;
-  if (slot.board == board && (slot.meta & kRestMask) == packRest(rest) &&
-      (slot.meta >> 36) == epoch_) {
+  if (found != nullptr) {
+    const Entry slot{board, *found};
     const int32_t s = static_cast<int32_t>((slot.meta >> 19) & 3) - 1;
     const int32_t bound = static_cast<int32_t>((slot.meta >> 21) & 3);
     if (bound == kExact || (bound == kLower && s >= beta) ||
@@ -311,11 +339,35 @@ int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,
   const uint64_t p = 2 * reserves + static_cast<uint64_t>(__builtin_popcountll(
                                         (board | board >> 1 | board >> 2) &
                                         0x1111111111111111ULL));
-  table_[mix(board, rest) & mask_] =
-      Entry{board, packRest(rest) | static_cast<uint64_t>(best + 1) << 19 |
-                       static_cast<uint64_t>(bound) << 21 |
-                       static_cast<uint64_t>(best_move + 1) << 23 |
-                       (p & 63) << 30 | static_cast<uint64_t>(epoch_) << 36};
+  Bucket &bucket = table_[mix(board, rest) & mask_];
+  const uint64_t key_rest = packRest(rest);
+  int32_t slot = -1;
+  uint32_t matches = boardMatches(bucket, board);
+  while (matches != 0 && slot < 0) {
+    const int32_t w = __builtin_ctz(matches);
+    matches &= matches - 1;
+    if ((bucket.meta[w] & kRestMask) == key_rest)
+      slot = w;  // the same position (from this epoch or an old one)
+  }
+  if (slot < 0) {
+    // Else a stale or empty way, else the one nearest the end of the game;
+    // stale ways rank below every current one
+    uint64_t lowest = UINT64_MAX;
+    for (int32_t w = 0; w < 4; ++w) {
+      const uint64_t meta = bucket.meta[w];
+      const uint64_t rank =
+          (meta >> 36) != epoch_ ? 0 : 1 + ((meta >> 30) & 63);
+      if (rank < lowest) {
+        lowest = rank;
+        slot = w;
+      }
+    }
+  }
+  bucket.board[slot] = board;
+  bucket.meta[slot] = key_rest | static_cast<uint64_t>(best + 1) << 19 |
+                      static_cast<uint64_t>(bound) << 21 |
+                      static_cast<uint64_t>(best_move + 1) << 23 |
+                      (p & 63) << 30 | static_cast<uint64_t>(epoch_) << 36;
   return best;
 }
 

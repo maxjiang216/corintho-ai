@@ -48,6 +48,7 @@ void Solver::clear() noexcept {
 
 int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
   nodes_ = 0;
+  std::fill(&history_[0][0], &history_[0][0] + 2 * kNumMoves, 0U);
   max_nodes_ = max_nodes;
   aborted_ = false;
   MoveMask legal;
@@ -143,14 +144,25 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     best = 1;
     best_move = win_move;
   } else {
-    // Line-making children by fewest replies, then the others in move
-    // order; an insertion sort, stable, with no allocation
+    // Line-making children by fewest replies, then the quiet ones by rank
+    // group and, within a group, by history (most cutoffs first); an
+    // insertion sort, stable, with no allocation
+    const uint32_t *history = history_[rest & 1];
+    auto before = [&](int32_t x, int32_t y) {
+      const Child &a = children[x], &b = children[y];
+      if (a.replies != b.replies)
+        return a.replies < b.replies;
+#ifdef SOLVER_NO_HISTORY
+      return false;
+#else
+      return a.replies > kNumMoves && history[a.move] > history[b.move];
+#endif
+    };
     int32_t order[kNumMoves];
     for (int32_t i = 0; i < n; ++i) {
       const int32_t x = i;
       int32_t j = i;
-      for (; j > 0 && children[x].replies < children[order[j - 1]].replies;
-           --j)
+      for (; j > 0 && before(x, order[j - 1]); --j)
         order[j] = order[j - 1];
       order[j] = x;
     }
@@ -169,11 +181,27 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
         best_move = c.move;
       }
       alpha = std::max(alpha, s);
-      if (alpha >= beta)
+      if (alpha >= beta) {
+        if (c.replies > kNumMoves)
+          recordCutoff(board, rest, c.move);
         break;
+      }
     }
   }
   return store(board, rest, best, alpha0, beta, best_move);
+}
+
+void Solver::recordCutoff(uint64_t board, uint64_t rest, int32_t move) {
+  // Weight by the horizon P = 2 x reserves + occupied spaces squared, so
+  // cutoffs high in the tree count most
+  uint64_t reserves = 0;
+  for (int32_t i = 0; i < 6; ++i)
+    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const uint64_t occupied = static_cast<uint64_t>(__builtin_popcountll(
+      (board | board >> 1 | board >> 2) & 0x1111111111111111ULL));
+  const uint64_t p = 2 * reserves + occupied;
+  uint32_t &h = history_[rest & 1][move];
+  h = static_cast<uint32_t>(std::min<uint64_t>(h + p * p, UINT32_MAX / 2));
 }
 
 int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,

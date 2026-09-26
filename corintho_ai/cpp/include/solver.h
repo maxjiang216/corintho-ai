@@ -40,6 +40,8 @@ class Solver {
   int32_t search(const Game &game, const MoveMask &legal, bool lines,
                  int32_t alpha, int32_t beta);
 
+  /// @brief A quiet move cut off: credit it in the history table
+  void recordCutoff(uint64_t board, uint64_t rest, int32_t move);
   /// @brief Store a result with its bound and best move; returns best
   int32_t store(uint64_t board, uint64_t rest, int32_t best, int32_t alpha0,
                 int32_t beta, int32_t best_move);
@@ -57,6 +59,9 @@ class Solver {
   std::vector<Entry> table_;
   uint64_t mask_;
   uint32_t epoch_{1};
+  /// @brief History heuristic: per side to move and move, how much quiet
+  /// cutoffs it produced this solve (weight P^2), to order quiet moves
+  uint32_t history_[2][kNumMoves]{};
   uint64_t nodes_{0};
   uint64_t max_nodes_{0};
   bool aborted_{false};

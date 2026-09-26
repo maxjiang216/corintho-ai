@@ -27,6 +27,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 14 | [the game solver in self-play](2026-09-26-14-game-solver-in-self-play.md) | A game at P <= 27 ends at once and is solved on spare threads (pausing it was 36-55% slower). P_game 27: self-play wall -7%, turns per game 29.9 -> 19.6; 28-29 cost wall time. |
 | 15 | [node solver; games end when known](2026-09-26-15-node-solver-and-proven-endings.md) | Games end once proven or at P 27, checked every move. Node solver (P_node 15-19): slower, and paired matches (per-game, same seeds) show no gain, mild harm at 17-19: off. |
 | 16 | [solver in self-play: a first training comparison (loss only)](2026-09-26-16-solver-in-training-loss-comparison.md) | `solve-27` vs `solve-0`, 3 generations each, same init. Value/policy loss higher with the solver, but not from label extremity (checked: ~97-99% \|v\|=1 either way) — data-volume and a widening gen-over-gen gap in `solve-27`'s val_value_mse are unexplained. No strength comparison yet (`paired.py` next). |
+| 17 | [where repeats come from; one self-play tree](2026-09-26-17-shared-self-play-tree.md) | Repeated rows: 20.6% repeat the *other player's* tree, only 6% are transpositions within a search. `--shared-tree 1`: rows new to the game 69 -> 87% at the same cost (1600 new searches per move), root visits ~1.8x. Root visits now capped at 32,000 (int16_t). Training effect not yet measured. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -73,6 +74,11 @@ kept no samples.
 - Open (entry 15): the network gets no data at P <= 27 but still evaluates
   search leaves at P 18-27 (value-only solver-labelled samples, or measure
   its error there first); shortest-win / longest-loss lines if ever needed.
-- Parked: graph search (transpositions), evaluation cache, symmetry
+- Paired training run going (`arch/paired_loop.sh`): solve-27 vs solve-0 from
+  night-2 it1, alternating generations to 20 each. Compare gen_N networks
+  with paired matches.
+- `--shared-tree 1` (entry 17) is built and checked but off; loop.sh does
+  not pass it. Next: its own paired training run.
+- Parked: graph search (6% of rows, entry 17), evaluation cache, symmetry
   variance, solver SIMD, NNUE move ordering, proof-number search.
 - The symmetry fix `873988e` should reach `main` (small PR).

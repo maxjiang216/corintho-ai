@@ -1,7 +1,7 @@
 #include "trainmc.h"
 #include "solver.h"
-#include <chrono>
 #include <atomic>
+#include <chrono>
 
 #include <algorithm>
 #include <cassert>
@@ -813,9 +813,10 @@ bool TrainMC::solveLeaf() {
   const auto t0 = std::chrono::steady_clock::now();
   const int32_t r = solver.solve(game, node_cap_);
   g_node_nanos.fetch_add(
-      static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                std::chrono::steady_clock::now() - t0)
-                                .count()),
+      static_cast<uint64_t>(
+          std::chrono::duration_cast<std::chrono::nanoseconds>(
+              std::chrono::steady_clock::now() - t0)
+              .count()),
       std::memory_order_relaxed);
   g_node_attempts.fetch_add(1, std::memory_order_relaxed);
   if (r == Solver::kUnknown)

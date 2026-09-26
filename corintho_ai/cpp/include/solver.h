@@ -1,0 +1,58 @@
+#ifndef SOLVER_H
+#define SOLVER_H
+
+#include <cstdint>
+
+#include <vector>
+
+#include "game.h"
+
+/// @brief Exact endgame solver: the game-theoretic result (win, draw or
+/// loss for the side to move) by alpha-beta search to the end of the game
+/// @details Scores are exact results in {-1, 0, 1}, so a transposition table
+/// stores bounds on them and a search needs no depth limit: every move lowers
+/// P = 2 * reserves + occupied spaces by at least one, so games end within P
+/// plies and the search graph has no cycles. The number of positions visited
+/// can be capped; a capped solve reports kUnknown.
+/// Worklog 2026-09-25-nn-architectures, entry 08.
+class Solver {
+ public:
+  /// @brief Returned when the node cap was reached before a result
+  static constexpr int32_t kUnknown = 2;
+
+  /// @param log2_entries The transposition table has 2^log2_entries entries
+  explicit Solver(int32_t log2_entries = 20);
+
+  /// @brief Solve a position
+  /// @param max_nodes Give up after visiting this many positions
+  /// @return 1, 0 or -1 for the side to move, or kUnknown
+  int32_t solve(const Game &game, uint64_t max_nodes);
+
+  /// @brief Positions visited by the last solve
+  uint64_t nodes() const noexcept { return nodes_; }
+
+  /// @brief Forget every stored result (constant time)
+  void clear() noexcept;
+
+ private:
+  int32_t search(const Game &game, int32_t alpha, int32_t beta);
+
+  enum Bound : int8_t { kExact = 0, kLower = 1, kUpper = 2 };
+  struct Entry {
+    uint64_t board{0};
+    uint64_t rest{0};
+    uint32_t epoch{0};  // valid only when equal to epoch_
+    int8_t score{0};
+    int8_t bound{0};
+    int8_t move{-1};
+  };
+
+  std::vector<Entry> table_;
+  uint64_t mask_;
+  uint32_t epoch_{1};
+  uint64_t nodes_{0};
+  uint64_t max_nodes_{0};
+  bool aborted_{false};
+};
+
+#endif

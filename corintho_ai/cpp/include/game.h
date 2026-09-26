@@ -46,6 +46,10 @@ class Game {
   bool
   getLegalMovesReference(std::bitset<kNumMoves> &legal_moves) const noexcept;
 
+  /// @brief An exact key for the position (board, both reserves, side to move)
+  /// @details For transposition tables (solver.h). Two games have equal keys
+  /// exactly when they are the same position.
+  void key(uint64_t &board, uint64_t &rest) const noexcept;
   /// @brief The spaces that belong to a line on the board, by top type
   /// @details Bit i of by_type[t] is set when space i is part of a line
   /// topped by type t (base, column, capital). For network input features

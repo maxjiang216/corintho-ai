@@ -54,6 +54,13 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
+  board = board_.to_ullong();
+  rest = static_cast<uint64_t>(to_play_);
+  for (int32_t i = 0; i < 6; ++i)
+    rest |= static_cast<uint64_t>(pieces_[i]) << (4 + 4 * i);
+}
+
 void Game::lineSpaces(uint16_t by_type[3]) const noexcept {
   SpaceInfo info;
   computeSpaceInfo(info);

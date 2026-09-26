@@ -51,8 +51,26 @@ VALUE_WEIGHT, POLICY_WEIGHT = 1.0, 0.25
 class Data:
     """The dataset on the GPU, with symmetric views and input features."""
 
-    def __init__(self, path, device, lines, legal_input):
-        z = np.load(path)
+    def __init__(self, paths, device, lines, legal_input):
+        # Several files (one per generation, arch/loop.py) are concatenated;
+        # a row's source is then its file's index
+        if isinstance(paths, str):
+            paths = [paths]
+        files = [np.load(p) for p in paths]
+        if len(files) == 1:
+            z = files[0]
+        else:
+            z = {
+                k: np.concatenate([f[k] for f in files])
+                for k in ("states", "values", "policies", "legal", "lines")
+            }
+            z["source"] = np.concatenate(
+                [
+                    np.full(len(f["values"]), i, np.int8)
+                    for i, f in enumerate(files)
+                ]
+            )
+            z["dirs"] = np.array(paths)
         t = lambda a: torch.from_numpy(np.ascontiguousarray(a)).to(device)
         self.states = t(z["states"])
         self.values = t(z["values"])
@@ -225,7 +243,7 @@ def evaluate(net, data, rows, batch=16384):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--data", required=True)
+    ap.add_argument("--data", required=True, nargs="+")
     ap.add_argument("--model", choices=("mlp", "res"), default="mlp")
     ap.add_argument("--width", type=int, default=100)
     ap.add_argument("--depth", type=int, default=12)
@@ -242,6 +260,27 @@ def main():
     ap.add_argument("--val-source", type=int, default=-1)
     ap.add_argument("--train-fraction", type=float, default=1.0)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument(
+        "--val-fraction",
+        type=float,
+        default=0.0,
+        help="hold out this random fraction of all rows instead of the "
+        "last source",
+    )
+    ap.add_argument(
+        "--init", help="warm start: a checkpoint of the same architecture"
+    )
+    ap.add_argument(
+        "--schedule",
+        choices=("cosine", "const"),
+        default="cosine",
+        help="after warm-up: cosine decay to 0, or constant",
+    )
+    ap.add_argument(
+        "--warmup",
+        type=int,
+        help="warm-up steps (default: " "5%% of training, at most 500)",
+    )
     ap.add_argument("--reference", help="evaluate this model prefix only")
     ap.add_argument("--tag", default="")
     ap.add_argument("--models", default="runs/sup/models")
@@ -254,9 +293,15 @@ def main():
     dev = torch.device("cuda")
     t0 = time.perf_counter()
     data = Data(a.data, dev, a.lines, a.legal_input)
-    val_source = a.val_source % len(data.dirs)
-    val_rows = torch.nonzero(data.source == val_source).squeeze(1)
-    train_rows = torch.nonzero(data.source != val_source).squeeze(1)
+    if a.val_fraction > 0:
+        g = torch.Generator(device=dev).manual_seed(a.seed + 1)
+        order = torch.randperm(data.values.numel(), device=dev, generator=g)
+        n_val = int(a.val_fraction * order.numel())
+        val_rows, train_rows = order[:n_val].sort()[0], order[n_val:]
+    else:
+        val_source = a.val_source % len(data.dirs)
+        val_rows = torch.nonzero(data.source == val_source).squeeze(1)
+        train_rows = torch.nonzero(data.source != val_source).squeeze(1)
     if a.train_fraction < 1.0:
         g = torch.Generator(device=dev).manual_seed(a.seed)
         keep = torch.randperm(train_rows.numel(), device=dev, generator=g)
@@ -279,6 +324,9 @@ def main():
         net = Mlp(data.inputs, a.width, a.depth)
     else:
         net = ResMlp(data.inputs, a.width, a.depth, a.norm, a.block)
+    if a.init:
+        ck = torch.load(a.init, map_location="cpu", weights_only=False)
+        net.load_state_dict(ck["model"])
     net = net.to(dev)
     params = sum(p.numel() for p in net.parameters())
     opt = torch.optim.AdamW(
@@ -286,12 +334,15 @@ def main():
     )
     steps_per_epoch = train_rows.numel() // a.batch
     total = steps_per_epoch * a.epochs
-    warm = max(1, min(500, total // 20))
+    warm = a.warmup if a.warmup is not None else min(500, total // 20)
+    warm = max(1, warm)
+    decay = (
+        (lambda s: 0.5 * (1 + math.cos(math.pi * min(s, total) / total)))
+        if a.schedule == "cosine"
+        else (lambda s: 1.0)
+    )
     sched = torch.optim.lr_scheduler.LambdaLR(
-        opt,
-        lambda s: min(1.0, (s + 1) / warm)
-        * 0.5
-        * (1 + math.cos(math.pi * min(s, total) / total)),
+        opt, lambda s: min(1.0, (s + 1) / warm) * decay(s)
     )
     print(
         f"{a.model} w{a.width} d{a.depth} norm {a.norm} block {a.block} "

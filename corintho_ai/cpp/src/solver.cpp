@@ -103,17 +103,22 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   int32_t n = 0;
   bool win = false;
   int32_t win_move = -1;
+  // Line-making children first: only they can win at once (the opponent
+  // stuck with a line), and they force replies. Their legal moves are
+  // generated here, the others' only if the search reaches them.
   forEachMove(legal, [&](int32_t m) {
     if (win || m == table_move)
       return;
-    Child &c = *new (&children[n]) Child{game, {}, m, 0, false};
+    Child &c = *new (&children[n]) Child{game, {}, m, kNumMoves + 1, false};
     c.game.doMove(m);
-    c.lines = c.game.getLegalMoves(c.legal);
-    c.replies = c.legal.count();
-    if (c.replies == 0 && c.lines) {
-      win = true;  // the opponent is stuck with a line on the board
-      win_move = m;
-      return;
+    if (c.game.hasLine()) {
+      c.lines = c.game.getLegalMoves(c.legal);
+      c.replies = c.legal.count();
+      if (c.replies == 0) {
+        win = true;  // the opponent is stuck with a line on the board
+        win_move = m;
+        return;
+      }
     }
     ++n;
   });
@@ -121,8 +126,8 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     best = 1;
     best_move = win_move;
   } else {
-    // Fewest replies first; an insertion sort, stable, with no allocation
-    // (std::stable_sort's merge sort was ~6%)
+    // Line-making children by fewest replies, then the others in move
+    // order; an insertion sort, stable, with no allocation
     int32_t order[kNumMoves];
     for (int32_t i = 0; i < n; ++i) {
       const int32_t x = i;
@@ -133,7 +138,9 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
       order[j] = x;
     }
     for (int32_t k = 0; k < n; ++k) {
-      const Child &c = children[order[k]];
+      Child &c = children[order[k]];
+      if (c.replies > kNumMoves)
+        c.lines = c.game.getLegalMoves(c.legal);
       const int32_t s = -search(c.game, c.legal, c.lines, -beta, -alpha);
       if (aborted_)
         return 0;

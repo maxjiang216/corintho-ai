@@ -54,6 +54,13 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+bool Game::hasLine() const noexcept {
+  SpaceInfo info;
+  computeSpaceInfo(info);
+  PresentLine lines[kNumLineShapes];
+  return findLines(info, lines) > 0;
+}
+
 void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   board = board_.to_ullong();
   rest = static_cast<uint64_t>(to_play_);

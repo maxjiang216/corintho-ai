@@ -1,0 +1,22 @@
+# 2026-09-25, RTX 3060 Laptop, ORT 1.30 CUDA, gen_93 (folded, fp32) unless noted
+
+## One 16,000-row call, parts measured separately (pipeline/arch/gpu_limits.py)
+h2d states fp32                      0.398 ms     24.9 ns/row   11.26 GB/s
+h2d states uint8                     0.102 ms      6.3 ns/row   11.03 GB/s
+h2d states bits (12 B)               0.027 ms      1.7 ns/row    7.12 GB/s
+d2h value+policy fp32                0.612 ms     38.3 ns/row   10.14 GB/s
+d2h value+policy fp16                0.313 ms     19.6 ns/row    9.90 GB/s
+compute (all on GPU)                 1.975 ms    123.4 ns/row
+run bound to host (pageable, python) 2.705 ms    169.1 ns/row
+host memcpy in+out                   0.424 ms     26.5 ns/row   50.39 GB/s
+driver (corintho_play bench)         4.022 ms    251.4 ns/row
+fp16 copy of gen_93, driver bench    3.391 ms    211.9 ns/row
+
+## Self-play in situ: 4000 games, in-flight 2000, groups 2, 1600 searches, seed 1
+## (9,614 calls, ~14.9k rows/call; sm util = nvidia-smi dmon mean)
+run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
+fp32           20       29.58     70.02        20.69   51.14   66%
+fp32           18       30.32     67.64        19.16   50.36   67%
+fp32           16       32.43     66.95        17.68   51.13   63%
+fp32 (repeat)  20       30.63     68.93        19.63   51.26   63%
+fp16           20       30.50     61.13        15.80   47.35   56%

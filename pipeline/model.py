@@ -11,8 +11,10 @@ momentum 0.01), so a model converted from Keras behaves the same.
 
 Exports:
   .pt    state dict plus optimizer state, for continuing training
-  .onnx  input "states" [N, 70], outputs "value" [N, 1], "policy" [N, 96];
-         read by the driver's ONNX Runtime backend (pipeline/cpp/backend.h)
+  .onnx  input "states" [N, 70] uint8 (4x the engine's values), outputs
+         "value" [N, 1] float32 and "policy" [N, 96] float16 (CompactIo);
+         read by the driver's ONNX Runtime backend (pipeline/cpp/backend.h),
+         which also still takes all-float32 files
   .mlp   BatchNorm folded into the following layer, for the CPU network
          (corintho_ai/cpp/include/mlp.h), the driver's fallback and reference
 
@@ -259,7 +261,7 @@ def save(net, prefix, optimizer=None, extra=None):
     if extra:
         state.update(extra)
     torch.save(state, f"{prefix}.pt")
-    export_onnx(net, f"{prefix}.onnx")
+    export_onnx(net, f"{prefix}.onnx", compact=True)
     export_mlp(net, f"{prefix}.mlp")
     check_exports(net, prefix)
 

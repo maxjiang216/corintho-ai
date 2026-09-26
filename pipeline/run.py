@@ -123,6 +123,12 @@ def generation(run_dir, cfg, state, g):
     test_dir = os.path.join(gen_dir, "test")
     best = state["best_gen"]
     play_log = os.path.join(gen_dir, "play.log")
+    # Runs configured before the option existed used the CUDA provider
+    prefix = "trt:" if cfg.get("backend", "cuda") == "trt" else ""
+
+    def onnx(run_dir, g):
+        return prefix + model_prefix(run_dir, g) + ".onnx"
+
     common = [
         "--searches",
         str(cfg["searches"]),
@@ -143,7 +149,7 @@ def generation(run_dir, cfg, state, g):
                 PLAY,
                 "train",
                 "--model",
-                model_prefix(run_dir, best) + ".onnx",
+                onnx(run_dir, best),
                 "--games",
                 str(cfg["games"]),
                 "--in-flight",
@@ -199,9 +205,9 @@ def generation(run_dir, cfg, state, g):
                 PLAY,
                 "test",
                 "--new",
-                model_prefix(run_dir, g) + ".onnx",
+                onnx(run_dir, g),
                 "--best",
-                model_prefix(run_dir, best) + ".onnx",
+                onnx(run_dir, best),
                 "--games",
                 str(cfg["test_games"]),
                 "--seed",
@@ -336,6 +342,13 @@ def main():
     ap.add_argument("--logged", type=int, default=10)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--keep-samples", action="store_true")
+    ap.add_argument(
+        "--backend",
+        choices=("trt", "cuda"),
+        default="trt",
+        help="ONNX Runtime provider for self-play and tests: TensorRT "
+        "(~22%% faster self-play with compact models, entry 30) or CUDA",
+    )
     args = ap.parse_args()
 
     run_dir = os.path.join(HERE, "runs", args.name)

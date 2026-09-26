@@ -139,8 +139,11 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     }
     for (int32_t k = 0; k < n; ++k) {
       Child &c = children[order[k]];
-      if (c.replies > kNumMoves)
-        c.lines = c.game.getLegalMoves(c.legal);
+      if (c.replies > kNumMoves) {
+        // hasLine said no line stands: no line search needed (entry 08)
+        c.game.getLegalMovesNoLines(c.legal);
+        c.lines = false;
+      }
       const int32_t s = -search(c.game, c.legal, c.lines, -beta, -alpha);
       if (aborted_)
         return 0;

@@ -48,6 +48,13 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   return num_lines > 0;
 }
 
+void Game::getLegalMovesNoLines(MoveMask &legal_moves) const noexcept {
+  assert(!hasLine());
+  SpaceInfo info;
+  computeSpaceInfo(info);
+  legal_moves = basicLegalMoves(info);
+}
+
 bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   MoveMask mask;
   const bool is_lines = getLegalMoves(mask);

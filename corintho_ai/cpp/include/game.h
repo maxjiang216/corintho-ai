@@ -48,6 +48,9 @@ class Game {
 
   /// @brief Whether a line stands on the board (cheaper than getLegalMoves)
   bool hasLine() const noexcept;
+  /// @brief Legal moves when no line stands (the caller knows, e.g. from
+  /// hasLine): placement and movement rules only, no line search
+  void getLegalMovesNoLines(MoveMask &legal_moves) const noexcept;
   /// @brief An exact key for the position (board, both reserves, side to move)
   /// @details For transposition tables (solver.h). Two games have equal keys
   /// exactly when they are the same position.

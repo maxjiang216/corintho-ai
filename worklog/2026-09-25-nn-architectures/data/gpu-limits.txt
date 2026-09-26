@@ -20,3 +20,21 @@ fp32           18       30.32     67.64        19.16   50.36   67%
 fp32           16       32.43     66.95        17.68   51.13   63%
 fp32 (repeat)  20       30.63     68.93        19.63   51.26   63%
 fp16           20       30.50     61.13        15.80   47.35   56%
+
+## TensorRT provider (tensorrt-cu13 10.16.1.11), gen_93, 16000 real states from runs/full-2/gen_1
+## (pipeline/arch/trt_test.py; differences against the CUDA provider in fp32)
+cuda   compute  1.981 ms (123.8 ns/row)  host-bound  2.728 ms (170.5 ns/row)
+cuda   compute  1.975 ms (123.4 ns/row)  host-bound  2.734 ms (170.9 ns/row)  |dv| max 0 (deterministic)
+trt32  compute  0.862 ms ( 53.9 ns/row)  host-bound  1.727 ms (107.9 ns/row)  |dv| max 2.5e-02 mean 1.1e-03  |dp| max 1.6e-02  top-move differs 0.64%
+trt16  compute  0.774 ms ( 48.4 ns/row)  host-bound  1.746 ms (109.1 ns/row)  |dv| max 9.6e-02 mean 2.3e-03  |dp| max 4.1e-02  top-move differs 5.04%
+
+## Driver bench (corintho_play bench, a3fe0ae)
+ort-cuda      16000 rows 3.971 ms (248.2 ns/row)   32000 rows 8.283 ms (258.8 ns/row)
+ort-trt       16000 rows 2.773 ms (173.3 ns/row)   32000 rows 5.876 ms (183.6 ns/row)
+ort-trt-fp16  16000 rows 2.670 ms (166.8 ns/row)   32000 rows 5.538 ms (173.1 ns/row)
+
+## Self-play in situ, same settings as above
+run            threads  engine_s  eval_s(sum)  wait_s  wall_s  sm_util
+trt            20       30.16     56.15        13.59   44.71   54%
+trt16          20       30.71     55.21        12.78   44.57   50%
+cuda           20       31.83     72.14        20.63   53.38   65%

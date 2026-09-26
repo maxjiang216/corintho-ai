@@ -58,6 +58,12 @@ class Trainer {
   /// gate, which tests the decisive-game win rate and so needs counts rather
   /// than an averaged score.
   int32_t numWins() const noexcept;
+  /// @brief The new agent's score (1, 0.5, 0) in test game `game`; same
+  /// parity handling as numWins()
+  float newScore(int32_t game) const noexcept {
+    const float s = games_[static_cast<size_t>(game)].score();
+    return game % 2 == 0 ? s : 1.0F - s;
+  }
   /// @brief Number of drawn test games
   int32_t numDraws() const noexcept;
   /// @brief Number of games in this Trainer
@@ -103,9 +109,12 @@ class Trainer {
   int32_t finalizeSolves();
   /// @brief Solve search leaves with horizon P <= max_horizon exactly,
   /// giving up after max_nodes (entry 15); call before the first iteration
-  void setNodeSolver(int32_t max_horizon, uint64_t max_nodes) {
+  /// @param model In test games, only this model's side (0 new, 1 best);
+  /// -1 both
+  void setNodeSolver(int32_t max_horizon, uint64_t max_nodes,
+                     int32_t model = -1) {
     for (SelfPlayer &game : games_)
-      game.set_node_solver(max_horizon, max_nodes);
+      game.set_node_solver(max_horizon, max_nodes, model);
   }
   /// @brief Games ended by exact solution so far
   int32_t numAdjudicated() const noexcept;

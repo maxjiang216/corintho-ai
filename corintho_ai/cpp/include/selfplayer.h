@@ -85,9 +85,13 @@ class SelfPlayer {
     solve_horizon_ = max_horizon;
   }
   /// @brief Solve search leaves with horizon P <= max_horizon (entry 15)
-  void set_node_solver(int32_t max_horizon, uint64_t max_nodes) noexcept {
-    players_[0].set_node_solver(max_horizon, max_nodes);
-    players_[1].set_node_solver(max_horizon, max_nodes);
+  /// @param model In test games, only the player of this model (0 new, 1
+  /// best); -1 both
+  void set_node_solver(int32_t max_horizon, uint64_t max_nodes,
+                       int32_t model = -1) noexcept {
+    for (int32_t p = 0; p < 2; ++p)
+      if (model < 0 || p == (model + parity_) % 2)
+        players_[p].set_node_solver(max_horizon, max_nodes);
   }
   /// @brief Whether the game ended by an exact solution
   bool adjudicated() const noexcept { return adjudicated_; }

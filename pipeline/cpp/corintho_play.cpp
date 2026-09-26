@@ -28,11 +28,13 @@
 //   --solve-p 0     end games by exact solution once the position's horizon
 //                   P (2 x reserves + occupied spaces) is at most this; 0:
 //                   off (entry 14). --solve-cap 5000000 (positions per
-//                   attempt; a capped game retries at its next move),
+//                   solve; a capped solve is retried once at 20x, then
+//                   counts as a draw),
 //                   --solve-threads 4, --solve-table 22 (log2 entries)
 //   --node-p 0      solve search leaves with horizon P <= this exactly
 //                   instead of asking the network (entry 15); --node-cap
 //                   20000 positions per leaf, then the network
+//   --node-side both  test only: which side uses the node solver (new, best)
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
@@ -654,10 +656,15 @@ int runTest(const Args &a) {
   Trainer trainer{games,  out,     seed,   searches, spe,
                   c_puct, epsilon, logged, threads,  true};
   // Matches end games by exact solution the same way (entry 14): both
-  // players alike, as deployment would
+  // players alike, as deployment would. The node solver can be given to one
+  // side only (--node-side new|best), to measure what it is worth
+  const std::string node_side = a.str("node-side", "both");
+  if (node_side != "both" && node_side != "new" && node_side != "best")
+    throw std::runtime_error("--node-side: both, new or best");
   if (a.i32("node-p", 0) > 0)
     trainer.setNodeSolver(a.i32("node-p", 0),
-                          static_cast<uint64_t>(a.i64("node-cap", 20000)));
+                          static_cast<uint64_t>(a.i64("node-cap", 20000)),
+                          node_side == "both" ? -1 : node_side == "new" ? 0 : 1);
   const int32_t solve_p = a.i32("solve-p", 0);
   if (solve_p > 0)
     trainer.enableSolver(solve_p,
@@ -694,6 +701,13 @@ int runTest(const Args &a) {
   const double wall = since(wall_start);
   trainer.finalizeSolves();  // exact results of games ended by solution
   trainer.writeScores(out + "/score_verbose.txt");
+  // The new agent's score in every game, in game order: the same seed plays
+  // the same games, so two matches can be compared game by game
+  {
+    std::ofstream per_game{out + "/game_scores.txt"};
+    for (int32_t i = 0; i < trainer.numGames(); ++i)
+      per_game << trainer.newScore(i) << '\n';
+  }
   const int32_t wins = trainer.numWins();
   const int32_t draws = trainer.numDraws();
   std::ofstream js{out + "/test.json"};
@@ -711,6 +725,8 @@ int runTest(const Args &a) {
      << "  \"engine_seconds\": " << engine_s << ",\n"
      << "  \"eval_seconds\": " << eval_s << ",\n"
      << "  \"solve_horizon\": " << solve_p << ",\n"
+     << "  \"node_horizon\": " << a.i32("node-p", 0) << ",\n"
+     << "  \"node_side\": \"" << node_side << "\",\n"
      << "  \"adjudicated_games\": " << trainer.numAdjudicated() << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";

@@ -32,19 +32,22 @@ int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
   nodes_ = 0;
   max_nodes_ = max_nodes;
   aborted_ = false;
-  const int32_t result = search(game, -1, 1);
+  MoveMask legal;
+  const bool lines = game.getLegalMoves(legal);
+  const int32_t result = search(game, legal, lines, -1, 1);
   return aborted_ ? kUnknown : result;
 }
 
-// Negamax alpha-beta over exact results. The table's move is tried first,
-// then the rest in move-ID order (the baseline; see entry 08).
-int32_t Solver::search(const Game &game, int32_t alpha, int32_t beta) {
+// Negamax alpha-beta over exact results. Every child is generated first:
+// a move that leaves the opponent no moves while a line stands wins at once;
+// the others are tried table move first, then fewest opponent replies first
+// (entry 08).
+int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
+                       int32_t alpha, int32_t beta) {
   if (++nodes_ > max_nodes_) {
     aborted_ = true;
     return 0;
   }
-  MoveMask legal;
-  const bool lines = game.getLegalMoves(legal);
   if (!legal.any())
     return lines ? -1 : 0;  // no moves: lost if a line stands, else drawn
   uint64_t board, rest;
@@ -63,29 +66,61 @@ int32_t Solver::search(const Game &game, int32_t alpha, int32_t beta) {
       beta = std::min(beta, s);
     table_move = slot.move;
   }
-  int32_t moves[kNumMoves];
+  struct Child {
+    Game game;
+    MoveMask legal;
+    int32_t move;
+    int32_t replies;
+    bool lines;
+  };
+  Child children[kNumMoves];
   int32_t n = 0;
-  forEachMove(legal, [&](int32_t m) { moves[n++] = m; });
-  if (table_move >= 0)
-    for (int32_t i = 0; i < n; ++i)
-      if (moves[i] == table_move) {
-        std::rotate(moves, moves + i, moves + i + 1);
-        break;
-      }
-  int32_t best = -2, best_move = moves[0];
-  for (int32_t i = 0; i < n; ++i) {
-    Game child = game;
-    child.doMove(moves[i]);
-    const int32_t s = -search(child, -beta, -alpha);
-    if (aborted_)
-      return 0;
-    if (s > best) {
-      best = s;
-      best_move = moves[i];
+  bool win = false;
+  int32_t win_move = -1;
+  forEachMove(legal, [&](int32_t m) {
+    if (win)
+      return;
+    Child &c = children[n];
+    c.game = game;
+    c.game.doMove(m);
+    c.lines = c.game.getLegalMoves(c.legal);
+    c.move = m;
+    c.replies = static_cast<int32_t>(c.legal.count());
+    if (c.replies == 0 && c.lines) {
+      win = true;  // the opponent is stuck with a line on the board
+      win_move = m;
+      return;
     }
-    alpha = std::max(alpha, s);
-    if (alpha >= beta)
-      break;
+    ++n;
+  });
+  int32_t best = -2, best_move = -1;
+  if (win) {
+    best = 1;
+    best_move = win_move;
+  } else {
+    int32_t order[kNumMoves];
+    for (int32_t i = 0; i < n; ++i)
+      order[i] = i;
+    std::stable_sort(order, order + n, [&](int32_t a, int32_t b) {
+      const bool ta = children[a].move == table_move;
+      const bool tb = children[b].move == table_move;
+      if (ta != tb)
+        return ta;
+      return children[a].replies < children[b].replies;
+    });
+    for (int32_t k = 0; k < n; ++k) {
+      const Child &c = children[order[k]];
+      const int32_t s = -search(c.game, c.legal, c.lines, -beta, -alpha);
+      if (aborted_)
+        return 0;
+      if (s > best) {
+        best = s;
+        best_move = c.move;
+      }
+      alpha = std::max(alpha, s);
+      if (alpha >= beta)
+        break;
+    }
   }
   // The search above may have overwritten this slot; store afresh
   Entry &out = table_[mix(board, rest) & mask_];

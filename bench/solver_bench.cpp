@@ -26,11 +26,14 @@
 #include "solver.h"
 #include "util.h"
 
+#ifdef SOLVER_STATS
+void solverStatsFlush(std::FILE *out);
+#endif
+
 int main(int argc, char **argv) {
   if (argc < 5) {
-    std::fprintf(stderr,
-                 "usage: solver_bench POSITIONS.bin MAX_P CAP THREADS "
-                 "[RESULTS.tsv]\n");
+    std::fprintf(stderr, "usage: solver_bench POSITIONS.bin MAX_P CAP THREADS "
+                         "[RESULTS.tsv]\n");
     return 1;
   }
   FILE *f = std::fopen(argv[1], "rb");
@@ -82,13 +85,20 @@ int main(int argc, char **argv) {
               std::chrono::steady_clock::now() - t0)
               .count());
       rows[i].nodes = solver.nodes();
+#ifdef SOLVER_STATS
+      // Single-threaded stats runs: records of this solve, in order
+      static std::FILE *stats =
+          std::fopen(std::getenv("SOLVER_STATS_OUT"), "wb");
+      solverStatsFlush(stats);
+#endif
     }
   }
-  const double wall = std::chrono::duration<double>(
-                          std::chrono::steady_clock::now() - t_all)
-                          .count();
+  const double wall =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - t_all)
+          .count();
 
-  std::printf(" P |   n | solved | median us |   p90 us |    max us | median nodes\n");
+  std::printf(
+      " P |   n | solved | median us |   p90 us |    max us | median nodes\n");
   uint64_t total_nodes = 0, total_us = 0, solved_all = 0;
   for (int32_t p = 0; p <= max_p; ++p) {
     std::vector<uint64_t> us, nodes;
@@ -110,7 +120,8 @@ int main(int argc, char **argv) {
     std::sort(us.begin(), us.end());
     std::sort(nodes.begin(), nodes.end());
     auto q = [](const std::vector<uint64_t> &v, double f) {
-      return v.empty() ? uint64_t{0} : v[static_cast<size_t>(f * (v.size() - 1))];
+      return v.empty() ? uint64_t{0}
+                       : v[static_cast<size_t>(f * (v.size() - 1))];
     };
     std::printf("%2d | %3d | %5.1f%% | %9lu | %8lu | %9lu | %12lu\n", p, n,
                 100.0 * us.size() / n, q(us, 0.5), q(us, 0.9),
@@ -123,8 +134,8 @@ int main(int argc, char **argv) {
     FILE *o = std::fopen(argv[5], "w");
     std::fprintf(o, "index\tP\tresult\tnodes\tus\n");
     for (const Row &r : rows)
-      std::fprintf(o, "%d\t%d\t%d\t%lu\t%lu\n", r.index, r.p, r.result, r.nodes,
-                   r.us);
+      std::fprintf(o, "%d\t%d\t%d\t%lu\t%lu\n", r.index, r.p, r.result,
+                   r.nodes, r.us);
     std::fclose(o);
   }
   return 0;

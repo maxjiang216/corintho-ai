@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 #include <new>
 #include <type_traits>
+#include <vector>
 
 #include "move.h"
 #include "util.h"
@@ -57,6 +59,61 @@ int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
   return aborted_ ? kUnknown : result;
 }
 
+#ifdef SOLVER_STATS
+// Move-ordering statistics (entry 10): one record per move tried
+struct StatRecord {
+  uint8_t p, n_moves, phase, k, type, from, to, dest_occupied, height, top,
+      replies, dist_frozen, cut, pad[3];
+  uint32_t cost;  // positions visited searching this move
+};
+static_assert(sizeof(StatRecord) == 20);
+thread_local std::vector<StatRecord> g_stats;
+
+void statsRecord(uint64_t board, uint64_t rest, int32_t move, int32_t phase,
+                 int32_t k, int32_t n_moves, int32_t replies, bool cut,
+                 uint64_t cost) {
+  const MoveInfo &info = kMoveTable[move];
+  uint64_t reserves = 0;
+  for (int32_t i = 0; i < 6; ++i)
+    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const int32_t occupied = __builtin_popcountll(
+      (board | board >> 1 | board >> 2) & 0x1111111111111111ULL);
+  int32_t frozen = -1;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    if ((board >> (4 * s + 3)) & 1)
+      frozen = s;
+  StatRecord r{};
+  r.p = static_cast<uint8_t>(2 * reserves + static_cast<uint64_t>(occupied));
+  r.n_moves = static_cast<uint8_t>(n_moves);
+  r.phase = static_cast<uint8_t>(phase);
+  r.k = static_cast<uint8_t>(std::min(k, 255));
+  r.type = static_cast<uint8_t>(info.is_place ? 1 + info.piece : 0);
+  r.from = static_cast<uint8_t>(info.is_place ? 255 : info.from);
+  r.to = static_cast<uint8_t>(info.to);
+  const uint64_t dest = (board >> (4 * info.to)) & 7;
+  r.dest_occupied = dest != 0;
+  if (!info.is_place) {
+    const uint64_t src = (board >> (4 * info.from)) & 7;
+    r.height = static_cast<uint8_t>(__builtin_popcountll(src));
+    r.top = static_cast<uint8_t>(63 - __builtin_clzll(src));
+  }
+  r.replies = static_cast<uint8_t>(std::min(replies, 255));
+  if (frozen >= 0) {
+    const int32_t dr = std::abs(info.to / 4 - frozen / 4);
+    const int32_t dc = std::abs(info.to % 4 - frozen % 4);
+    r.dist_frozen = static_cast<uint8_t>(std::max(dr, dc));
+  } else {
+    r.dist_frozen = 255;
+  }
+  r.cut = cut;
+  r.cost = static_cast<uint32_t>(std::min<uint64_t>(cost, UINT32_MAX));
+  g_stats.push_back(r);
+}
+#define STATS(...) statsRecord(__VA_ARGS__)
+#else
+#define STATS(...) ((void)0)
+#endif
+
 // Negamax alpha-beta over exact results. The table's move is searched
 // first; if it does not cut off, every other child is generated: a move that
 // leaves the opponent no moves while a line stands wins at once, and the
@@ -93,6 +150,7 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     child.doMove(table_move);
     MoveMask child_legal;
     const bool child_lines = child.getLegalMoves(child_legal);
+    [[maybe_unused]] const uint64_t nodes_before = nodes_;
     const int32_t s =
         !child_legal.any() && child_lines
             ? 1
@@ -102,6 +160,9 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
     best = s;
     best_move = table_move;
     alpha = std::max(alpha, s);
+    STATS(board, rest, table_move, 0, 0, legal.count(),
+          static_cast<int32_t>(child_legal.count()), alpha >= beta,
+          nodes_ - nodes_before);
     if (alpha >= beta)
       return store(board, rest, best, alpha0, beta, best_move);
   }
@@ -143,6 +204,8 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   if (win) {
     best = 1;
     best_move = win_move;
+    STATS(board, rest, win_move, 3, table_move >= 0 ? 1 : 0, legal.count(), 0,
+          true, 0);
   } else {
     // Line-making children by fewest replies, then the quiet ones by rank
     // group and, within a group, by history (most cutoffs first); an
@@ -173,6 +236,7 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
         c.game.getLegalMovesNoLines(c.legal);
         c.lines = false;
       }
+      [[maybe_unused]] const uint64_t nodes_before = nodes_;
       const int32_t s = -search(c.game, c.legal, c.lines, -beta, -alpha);
       if (aborted_)
         return 0;
@@ -181,6 +245,10 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
         best_move = c.move;
       }
       alpha = std::max(alpha, s);
+      STATS(board, rest, c.move, c.replies > kNumMoves ? 2 : 1,
+            k + (table_move >= 0 ? 1 : 0), legal.count(),
+            c.replies > kNumMoves ? 255 : c.replies, alpha >= beta,
+            nodes_ - nodes_before);
       if (alpha >= beta) {
         if (c.replies > kNumMoves)
           recordCutoff(board, rest, c.move);
@@ -218,3 +286,10 @@ int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,
             static_cast<int8_t>(best_move)};
   return best;
 }
+
+#ifdef SOLVER_STATS
+void solverStatsFlush(std::FILE *out) {
+  std::fwrite(g_stats.data(), sizeof(StatRecord), g_stats.size(), out);
+  g_stats.clear();
+}
+#endif

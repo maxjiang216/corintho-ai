@@ -36,6 +36,13 @@ class Trainer {
   /// writes them during search, so nothing is copied. Results go back to
   /// doIteration in the same row layout. Training only.
   const float *requests() const noexcept;
+  /// @brief The game whose rows are in batch slot `slot` (training only)
+  /// @details Rows [slot * searches_per_eval, (slot + 1) * searches_per_eval)
+  /// of requests() belong to this game. For measurements (worklog
+  /// 2026-09-25-nn-architectures, entry 07).
+  int32_t gameInSlot(int32_t slot) const noexcept {
+    return game_in_slot_[static_cast<size_t>(slot)];
+  }
   /// @brief Return the number of training samples
   int32_t num_samples() const noexcept;
   /// @brief Average score of first player

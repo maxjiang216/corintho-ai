@@ -28,6 +28,9 @@
 //   --stagger 0     train: iterations over which a chunk's games start (0:
 //                   the Trainer's original ~16-turn rule; 100 = one turn)
 //   --digest        also print the FNV-1a sample digest (as selfplay_nn)
+//   --cache L       train only: cache network results for 2^L positions (0,
+//                   the default: off), shared by all games and keyed up to
+//                   board symmetry (eval_cache.h); ~208 bytes per entry
 //   --check M2      train only: also evaluate every batch with M2 and report
 //                   the largest differences (games follow --model)
 
@@ -47,6 +50,7 @@
 #include <vector>
 
 #include "backend.h"
+#include "eval_cache.h"
 #include "npy.h"
 #include "trainer.h"
 #include "util.h"
@@ -133,7 +137,33 @@ struct Group {
   std::vector<float> values, probs;
   std::future<double> pending;  // seconds the network call took
   int32_t games{0};
+  int32_t chunk{0};  // index of the chunk being played
+  // With --cache: this call's rows, and the misses sent to the network
+  EvalCache::Call cache_call;
+  std::vector<float> miss_states, miss_values, miss_probs;
 };
+
+// Optional measurement (worklog 2026-09-25-nn-architectures, entry 07): with
+// CORINTHO_DUP_DUMP=FILE, every row sent to the network is recorded as
+// {game id, call index, 64-bit hash of the 70 inputs}, to count how often a
+// position is evaluated more than once, within a game or across games.
+struct DupRecord {
+  uint32_t game, call;
+  uint64_t hash, canonical;  // canonical: least hash over the 8 symmetries
+};
+uint64_t rowHash(const float *row, const int32_t *perm = nullptr) {
+  uint64_t h = 1469598103934665603ULL;  // FNV-1a over the inputs x 4
+  for (int32_t i = 0; i < kGameStateSize; ++i) {
+    const int32_t j =
+        perm == nullptr || i >= 4 * kBoardSize ? i
+                                               : perm[i / 4] * 4 + i % 4;
+    h ^= static_cast<uint64_t>(row[j] * 4.0F + 0.5F);
+    h *= 1099511628211ULL;
+  }
+  h ^= h >> 31;  // final mix; FNV's low bits alone are weak
+  h *= 0x9E3779B97F4A7C15ULL;
+  return h ^ (h >> 29);
+}
 
 int runTrain(const Args &a) {
   const std::string model = a.str("model");
@@ -153,12 +183,42 @@ int runTrain(const Args &a) {
   // spreads the games over a turn's phases without leaving the batch mostly
   // empty while they ramp up (entry 29).
   const int32_t stagger = a.i32("stagger", 0);
+  const int32_t cache_log2 = a.i32("cache", 0);
+  // CORINTHO_CACHE_VERIFY=1 (with --groups 1): also evaluate every batch in
+  // full and compare the rows served from the cache. [0]: rows whose own
+  // frame is canonical, [1]: the others; {rows, top move differs, max |dp|,
+  // max |dv|}
+  const bool verify = std::getenv("CORINTHO_CACHE_VERIFY") != nullptr;
+  std::vector<float> verify_values, verify_probs;
+  double verify_stats[2][4] = {};
+  int32_t verify_printed = 0;
+  std::unique_ptr<EvalCache> cache;
+  if (cache_log2 > 0)
+    cache = std::make_unique<EvalCache>(cache_log2);
+  // After a call's misses come back: put them in the batch's row layout and
+  // remember them
+  auto finishCached = [&cache](Group &g) {
+    if (!cache)
+      return;
+    const auto &misses = g.cache_call.misses;
+    const int64_t n = static_cast<int64_t>(misses.size());
+#pragma omp parallel for schedule(static)
+    for (int64_t i = 0; i < n; ++i) {
+      const size_t r = static_cast<size_t>(misses[static_cast<size_t>(i)]);
+      g.values[r] = g.miss_values[static_cast<size_t>(i)];
+      std::copy_n(g.miss_probs.data() + static_cast<size_t>(i) * kNumMoves,
+                  kNumMoves, g.probs.data() + r * kNumMoves);
+    }
+    cache->insert(g.cache_call, g.values.data(), g.probs.data());
+  };
 
   auto backend = makeBackend(model, threads);
   std::unique_ptr<Backend> check;
   if (a.kv.count("check")) {
     if (num_groups != 1)
       throw std::runtime_error("--check needs --groups 1");
+    if (cache_log2 > 0)
+      throw std::runtime_error("--check compares whole batches: not with --cache");
     check = makeBackend(a.str("check"), threads);
   }
   std::vector<float> check_values, check_probs;
@@ -168,7 +228,7 @@ int runTrain(const Args &a) {
   NpyWriter values_out{out + "/values.npy", 1};
   NpyWriter policies_out{out + "/policies.npy", kNumMoves};
 
-  double engine_s = 0, eval_s = 0, wait_s = 0, write_s = 0;
+  double engine_s = 0, eval_s = 0, wait_s = 0, write_s = 0, cache_s = 0;
   uint64_t rows_evaluated = 0, calls = 0;
   int64_t turns_total = 0;
   double score_sum = 0;
@@ -176,6 +236,10 @@ int runTrain(const Args &a) {
   const auto wall_start = Clock::now();
   std::vector<float> st, vs, ps;
   int32_t chunks_started = 0, chunks_done = 0, games_started = 0;
+  FILE *dup_file = nullptr;
+  if (const char *dup = std::getenv("CORINTHO_DUP_DUMP"))
+    dup_file = std::fopen(dup, "wb");
+  std::vector<DupRecord> dup_buf;
 
   // Chunk c gets seed + c, and chunks are numbered in the order they start,
   // so a run is deterministic for a given --groups and --in-flight
@@ -185,6 +249,7 @@ int runTrain(const Args &a) {
       return;
     }
     g.games = std::min(in_flight, games - games_started);
+    g.chunk = chunks_started;
     // Only the first chunk logs games
     g.trainer = std::make_unique<Trainer>(
         g.games, out, seed + chunks_started, searches, spe, c_puct, epsilon,
@@ -248,6 +313,7 @@ int runTrain(const Args &a) {
         const auto t = Clock::now();
         eval_s += g.pending.get();
         wait_s += since(t);
+        finishCached(g);
       }
       auto t = Clock::now();
       const bool finished =
@@ -261,21 +327,104 @@ int runTrain(const Args &a) {
       const int32_t rows = g.trainer->num_requests(-1);
       const float *batch = g.trainer->requests();
       rows_evaluated += static_cast<uint64_t>(rows);
+      if (dup_file != nullptr) {
+        dup_buf.resize(static_cast<size_t>(rows));
+        for (int32_t r = 0; r < rows; ++r) {
+          const uint32_t game = static_cast<uint32_t>(
+              g.chunk * in_flight + g.trainer->gameInSlot(r / spe));
+          const float *row = batch + static_cast<size_t>(r) * kGameStateSize;
+          uint64_t canonical = rowHash(row);
+          for (int32_t k = 1; k < kNumSymmetries; ++k)
+            canonical = std::min(canonical, rowHash(row, space_symmetries[k]));
+          dup_buf[static_cast<size_t>(r)] = {
+              game, static_cast<uint32_t>(calls), rowHash(row), canonical};
+        }
+        std::fwrite(dup_buf.data(), sizeof(DupRecord), dup_buf.size(),
+                    dup_file);
+      }
       ++calls;
+      // Rows to send: all of them, or with the cache only the misses
+      const float *send = batch;
+      int32_t send_rows = rows;
+      float *values = g.values.data();
+      float *probs = g.probs.data();
+      if (cache) {
+        t = Clock::now();
+        cache->lookup(batch, rows, values, probs, g.cache_call);
+        const auto &misses = g.cache_call.misses;
+        send_rows = static_cast<int32_t>(misses.size());
+        g.miss_states.resize(misses.size() * kGameStateSize);
+        g.miss_values.resize(misses.size());
+        g.miss_probs.resize(misses.size() * kNumMoves);
+        const int64_t n_miss = static_cast<int64_t>(misses.size());
+#pragma omp parallel for schedule(static)
+        for (int64_t i = 0; i < n_miss; ++i)
+          std::copy_n(batch + static_cast<size_t>(misses[static_cast<size_t>(i)]) *
+                                  kGameStateSize,
+                      kGameStateSize,
+                      g.miss_states.data() + static_cast<size_t>(i) * kGameStateSize);
+        send = g.miss_states.data();
+        values = g.miss_values.data();
+        probs = g.miss_probs.data();
+        cache_s += since(t);
+      }
       if (num_groups == 1) {
         t = Clock::now();
-        g.backend->evaluate(batch, rows, g.values.data(), g.probs.data());
+        if (send_rows > 0)
+          g.backend->evaluate(send, send_rows, values, probs);
         const double s = since(t);
         eval_s += s;
         wait_s += s;
+        finishCached(g);
+        if (cache && verify) {
+          // Evaluate everything directly and compare the cached rows
+          verify_values.resize(static_cast<size_t>(rows));
+          verify_probs.resize(static_cast<size_t>(rows) * kNumMoves);
+          g.backend->evaluate(batch, rows, verify_values.data(),
+                              verify_probs.data());
+          std::vector<uint8_t> missed(static_cast<size_t>(rows));
+          for (const int32_t r : g.cache_call.misses)
+            missed[static_cast<size_t>(r)] = 1;
+          for (int32_t r = 0; r < rows; ++r) {
+            if (missed[static_cast<size_t>(r)])
+              continue;
+            const bool same_frame =
+                g.cache_call.frame[static_cast<size_t>(r)] ==
+                g.cache_call.stored_frame[static_cast<size_t>(r)];
+            const float *p = g.probs.data() + static_cast<size_t>(r) * kNumMoves;
+            const float *q =
+                verify_probs.data() + static_cast<size_t>(r) * kNumMoves;
+            int32_t bp = 0, bq = 0;
+            float dp = 0;
+            for (int32_t m = 0; m < kNumMoves; ++m) {
+              dp = std::max(dp, std::fabs(p[m] - q[m]));
+              bp = p[m] > p[bp] ? m : bp;
+              bq = q[m] > q[bq] ? m : bq;
+            }
+            if (same_frame && bp != bq && verify_printed < 5) {
+              ++verify_printed;
+              std::printf("#MISMATCH call %lld row %d frame %d: cached v %.4f "
+                          "top %d (%.3f); direct v %.4f top %d (%.3f)\n",
+                          static_cast<long long>(calls), r,
+                          g.cache_call.frame[static_cast<size_t>(r)],
+                          g.values[r], bp, p[bp],
+                          verify_values[static_cast<size_t>(r)], bq, q[bq]);
+            }
+            auto &st = verify_stats[same_frame ? 0 : 1];
+            st[0] += 1;
+            st[1] += bp != bq;
+            st[2] = std::max(st[2], static_cast<double>(dp));
+            st[3] = std::max(st[3], static_cast<double>(std::fabs(
+                g.values[r] - verify_values[static_cast<size_t>(r)])));
+          }
+        }
       } else {
         Backend *b = g.backend.get();
-        float *values = g.values.data();
-        float *probs = g.probs.data();
-        g.pending = std::async(std::launch::async, [b, batch, rows, values,
+        g.pending = std::async(std::launch::async, [b, send, send_rows, values,
                                                     probs] {
           const auto t0 = Clock::now();
-          b->evaluate(batch, rows, values, probs);
+          if (send_rows > 0)
+            b->evaluate(send, send_rows, values, probs);
           return since(t0);
         });
       }
@@ -326,12 +475,31 @@ int runTrain(const Args &a) {
      << "  \"engine_seconds\": " << engine_s << ",\n"
      << "  \"eval_seconds\": " << eval_s << ",\n"
      << "  \"eval_wait_seconds\": " << wait_s << ",\n"
+     << "  \"cache_log2\": " << cache_log2 << ",\n"
+     << "  \"cache_lookups\": " << (cache ? cache->lookups() : 0) << ",\n"
+     << "  \"cache_hits\": " << (cache ? cache->hits() : 0) << ",\n"
+     << "  \"cache_seconds\": " << cache_s << ",\n"
      << "  \"write_seconds\": " << write_s << ",\n"
      << "  \"wall_seconds\": " << wall << "\n"
      << "}\n";
   std::printf("#METRIC engine_seconds %.4f\n", engine_s);
   std::printf("#METRIC eval_seconds %.4f\n", eval_s);
   std::printf("#METRIC eval_wait_seconds %.4f\n", wait_s);
+  if (cache)
+    std::printf("#METRIC cache_hit_rate %.4f\n#METRIC cache_seconds %.4f\n",
+                static_cast<double>(cache->hits()) /
+                    static_cast<double>(std::max<uint64_t>(1, cache->lookups())),
+                cache_s);
+  if (dup_file != nullptr)
+    std::fclose(dup_file);
+  if (verify)
+    for (int32_t i = 0; i < 2; ++i)
+      std::printf("#VERIFY %s: %.0f cached rows, top move differs %.0f "
+                  "(%.4f%%), max |dp| %.2e, max |dv| %.2e\n",
+                  i == 0 ? "stored from the same frame" : "from another frame",
+                  verify_stats[i][0], verify_stats[i][1],
+                  100 * verify_stats[i][1] / std::max(1.0, verify_stats[i][0]),
+                  verify_stats[i][2], verify_stats[i][3]);
   std::printf("#METRIC wall_seconds %.4f\n", wall);
   std::printf("#METRIC turns %lld\n", static_cast<long long>(turns_total));
   std::printf("#METRIC rows_evaluated %llu\n",

@@ -29,6 +29,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 16 | [solver in self-play: a first training comparison (loss only)](2026-09-26-16-solver-in-training-loss-comparison.md) | `solve-27` vs `solve-0`, 3 generations each, same init. Value/policy loss higher with the solver, but not from label extremity (checked: ~97-99% \|v\|=1 either way) — data-volume and a widening gen-over-gen gap in `solve-27`'s val_value_mse are unexplained. No strength comparison yet (`paired.py` next). |
 | 17 | [where repeats come from; one self-play tree](2026-09-26-17-shared-self-play-tree.md) | Repeated rows: 20.6% repeat the *other player's* tree, only 6% are transpositions within a search. `--shared-tree 1`: rows new to the game 69 -> 87% at the same cost (1600 new searches per move), root visits ~1.8x. Root visits now capped at 32,000 (int16_t). Training effect not yet measured. |
 | 18 | [solver endings hurt training](2026-09-26-18-solver-endings-hurt-training.md) | Paired training to gen 5 from night-2 it1: solve-27 scores 0.24 vs its start (0.40 with both sides adjudicated at P 27), solve-0 scores 0.57. Endgame play drifts without data and the middlegame gets worse too. `loop.sh` defaults to `SOLVE_P=0`. |
+| 19 | [the solver plays solved games out](2026-09-26-19-solver-plays-games-out.md) | `Solver::playOut` (winner: immediate win or the table's move; loser: hardest refutation; draw: most losing replies), 0.56 ms per line; labels 100% exact; self-play 12% faster than solver off. 5 gens: no collapse, but gen 5 loses to solve-0 gen 5 0.464 (z ~ -5); late-endgame values drift down. Solver lines are not the positions the search evaluates. Next: MCTS play with exact relabelling. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -64,6 +65,9 @@ kept no samples.
 - No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
   night-2 after it1; solve-27 and solve-0 stopped after gen 5; all
   resumable, all data kept).
+- Entry 19: the solver plays solved games out (`fdffce1`); still ~25 Elo
+  below solve-0 at gen 5. `SOLVE_P` stays 0. Next: exact relabelling of
+  MCTS-played games.
 - **Ending self-play games by solver at P 27 hurts training (entry 18):**
   solve-27 gen 5 scores 0.24 against its own starting network, solve-0 gen
   5 scores 0.57. `arch/loop.sh` now defaults to `SOLVE_P=0`. Suspected

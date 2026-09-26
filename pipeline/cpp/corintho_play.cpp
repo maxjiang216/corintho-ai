@@ -43,7 +43,13 @@
 #include <chrono>
 #include <cmath>
 #include <fstream>
+#include <condition_variable>
+#include <deque>
+#include <functional>
 #include <future>
+#include <mutex>
+#include <thread>
+#include <utility>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -136,12 +142,62 @@ struct Group {
   // groups' network calls can run at the same time
   std::unique_ptr<Backend> backend;
   std::vector<float> values, probs;
-  std::future<double> pending;  // seconds the network call took
+  // The network call in flight: {seconds on the network, seconds in the cache}
+  std::future<std::pair<double, double>> pending;
   int32_t games{0};
   int32_t chunk{0};  // index of the chunk being played
   // With --cache: this call's rows, and the misses sent to the network
   EvalCache::Call cache_call;
   std::vector<float> miss_states, miss_values, miss_probs;
+};
+
+// Runs submitted jobs one at a time, in order, on its own thread. The
+// network calls of both groups go through it: with --cache every lookup and
+// insert then happens on this one thread (no locking), off the engine's
+// critical path while the main thread searches the other group.
+class SerialWorker {
+ public:
+  using Result = std::pair<double, double>;
+  SerialWorker() : thread_([this] { run(); }) {}
+  ~SerialWorker() {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      stop_ = true;
+    }
+    wake_.notify_one();
+    thread_.join();
+  }
+  std::future<Result> submit(std::function<Result()> job) {
+    std::packaged_task<Result()> task(std::move(job));
+    std::future<Result> result = task.get_future();
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      jobs_.push_back(std::move(task));
+    }
+    wake_.notify_one();
+    return result;
+  }
+
+ private:
+  void run() {
+    for (;;) {
+      std::packaged_task<Result()> task;
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        wake_.wait(lock, [this] { return stop_ || !jobs_.empty(); });
+        if (jobs_.empty())
+          return;
+        task = std::move(jobs_.front());
+        jobs_.pop_front();
+      }
+      task();
+    }
+  }
+  std::mutex mutex_;
+  std::condition_variable wake_;
+  std::deque<std::packaged_task<Result()>> jobs_;
+  bool stop_{false};
+  std::thread thread_;
 };
 
 // Optional measurement (worklog 2026-09-25-nn-architectures, entry 07): with
@@ -196,22 +252,44 @@ int runTrain(const Args &a) {
   std::unique_ptr<EvalCache> cache;
   if (cache_log2 > 0)
     cache = std::make_unique<EvalCache>(cache_log2, a.i32("cache-sym", 1) != 0);
-  // After a call's misses come back: put them in the batch's row layout and
-  // remember them
-  auto finishCached = [&cache](Group &g) {
-    if (!cache)
-      return;
+  // One network call for group g's batch: with the cache, the lookup fills
+  // the hits, only the misses go to the network, and their results are
+  // scattered back and stored. Returns {network seconds, cache seconds}.
+  auto runCall = [&cache](Group &g, const float *batch,
+                          int32_t rows) -> std::pair<double, double> {
+    if (!cache) {
+      const auto t0 = Clock::now();
+      g.backend->evaluate(batch, rows, g.values.data(), g.probs.data());
+      return {since(t0), 0.0};
+    }
+    auto t0 = Clock::now();
+    cache->lookup(batch, rows, g.values.data(), g.probs.data(), g.cache_call);
     const auto &misses = g.cache_call.misses;
-    const int64_t n = static_cast<int64_t>(misses.size());
-#pragma omp parallel for schedule(static)
-    for (int64_t i = 0; i < n; ++i) {
-      const size_t r = static_cast<size_t>(misses[static_cast<size_t>(i)]);
-      g.values[r] = g.miss_values[static_cast<size_t>(i)];
-      std::copy_n(g.miss_probs.data() + static_cast<size_t>(i) * kNumMoves,
-                  kNumMoves, g.probs.data() + r * kNumMoves);
+    const size_t n = misses.size();
+    g.miss_states.resize(n * kGameStateSize);
+    g.miss_values.resize(n);
+    g.miss_probs.resize(n * kNumMoves);
+    for (size_t i = 0; i < n; ++i)
+      std::copy_n(batch + static_cast<size_t>(misses[i]) * kGameStateSize,
+                  kGameStateSize, g.miss_states.data() + i * kGameStateSize);
+    double cache_seconds = since(t0);
+    t0 = Clock::now();
+    if (n > 0)
+      g.backend->evaluate(g.miss_states.data(), static_cast<int32_t>(n),
+                          g.miss_values.data(), g.miss_probs.data());
+    const double network_seconds = since(t0);
+    t0 = Clock::now();
+    for (size_t i = 0; i < n; ++i) {
+      const size_t r = static_cast<size_t>(misses[i]);
+      g.values[r] = g.miss_values[i];
+      std::copy_n(g.miss_probs.data() + i * kNumMoves, kNumMoves,
+                  g.probs.data() + r * kNumMoves);
     }
     cache->insert(g.cache_call, g.values.data(), g.probs.data());
+    cache_seconds += since(t0);
+    return {network_seconds, cache_seconds};
   };
+  SerialWorker worker;
 
   auto backend = makeBackend(model, threads);
   std::unique_ptr<Backend> check;
@@ -312,9 +390,10 @@ int runTrain(const Args &a) {
       any = true;
       if (g.pending.valid()) {
         const auto t = Clock::now();
-        eval_s += g.pending.get();
+        const auto [network_seconds, cache_seconds] = g.pending.get();
+        eval_s += network_seconds;
+        cache_s += cache_seconds;
         wait_s += since(t);
-        finishCached(g);
       }
       auto t = Clock::now();
       const bool finished =
@@ -344,39 +423,12 @@ int runTrain(const Args &a) {
                     dup_file);
       }
       ++calls;
-      // Rows to send: all of them, or with the cache only the misses
-      const float *send = batch;
-      int32_t send_rows = rows;
-      float *values = g.values.data();
-      float *probs = g.probs.data();
-      if (cache) {
-        t = Clock::now();
-        cache->lookup(batch, rows, values, probs, g.cache_call);
-        const auto &misses = g.cache_call.misses;
-        send_rows = static_cast<int32_t>(misses.size());
-        g.miss_states.resize(misses.size() * kGameStateSize);
-        g.miss_values.resize(misses.size());
-        g.miss_probs.resize(misses.size() * kNumMoves);
-        const int64_t n_miss = static_cast<int64_t>(misses.size());
-#pragma omp parallel for schedule(static)
-        for (int64_t i = 0; i < n_miss; ++i)
-          std::copy_n(batch + static_cast<size_t>(misses[static_cast<size_t>(i)]) *
-                                  kGameStateSize,
-                      kGameStateSize,
-                      g.miss_states.data() + static_cast<size_t>(i) * kGameStateSize);
-        send = g.miss_states.data();
-        values = g.miss_values.data();
-        probs = g.miss_probs.data();
-        cache_s += since(t);
-      }
       if (num_groups == 1) {
         t = Clock::now();
-        if (send_rows > 0)
-          g.backend->evaluate(send, send_rows, values, probs);
-        const double s = since(t);
-        eval_s += s;
-        wait_s += s;
-        finishCached(g);
+        const auto [network_seconds, cache_seconds] = runCall(g, batch, rows);
+        eval_s += network_seconds;
+        cache_s += cache_seconds;
+        wait_s += since(t);
         if (cache && verify) {
           // Evaluate everything directly and compare the cached rows
           verify_values.resize(static_cast<size_t>(rows));
@@ -420,14 +472,9 @@ int runTrain(const Args &a) {
           }
         }
       } else {
-        Backend *b = g.backend.get();
-        g.pending = std::async(std::launch::async, [b, send, send_rows, values,
-                                                    probs] {
-          const auto t0 = Clock::now();
-          if (send_rows > 0)
-            b->evaluate(send, send_rows, values, probs);
-          return since(t0);
-        });
+        Group *gp = &g;
+        g.pending = worker.submit(
+            [&runCall, gp, batch, rows] { return runCall(*gp, batch, rows); });
       }
       if (check) {
         check_values.resize(g.values.size());

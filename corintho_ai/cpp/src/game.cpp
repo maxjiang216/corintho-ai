@@ -189,7 +189,13 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   legal.lo |= static_cast<uint64_t>(down & 0x0FFFU) << 12;
   legal.lo |= static_cast<uint64_t>((up >> 4) & 0x0FFFU) << 36;
   // Right and left do not, since each row contributes three IDs rather than
-  // four, so those two walk their set bits.
+  // four (ID row * 3 + column for right, row * 3 + column - 1 for left).
+  // Compressing out the one impossible column of each row gives exactly
+  // those IDs: one pext each (entry 11); otherwise the set bits are walked.
+#if defined(__BMI2__)
+  legal.lo |= _pext_u64(right, kNotFileD);
+  legal.lo |= _pext_u64(left, kNotFileA) << 24;
+#else
   uint32_t w = right;
   while (w != 0) {
     const int32_t c = __builtin_ctz(w);
@@ -202,6 +208,7 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
     w &= w - 1;
     legal.lo |= 1ULL << (24 + (c >> 2) * 3 + (c & 3) - 1);
   }
+#endif
   return legal;
 }
 

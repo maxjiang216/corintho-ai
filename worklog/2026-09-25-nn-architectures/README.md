@@ -28,6 +28,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 15 | [node solver; games end when known](2026-09-26-15-node-solver-and-proven-endings.md) | Games end once proven or at P 27, checked every move. Node solver (P_node 15-19): slower, and paired matches (per-game, same seeds) show no gain, mild harm at 17-19: off. |
 | 16 | [solver in self-play: a first training comparison (loss only)](2026-09-26-16-solver-in-training-loss-comparison.md) | `solve-27` vs `solve-0`, 3 generations each, same init. Value/policy loss higher with the solver, but not from label extremity (checked: ~97-99% \|v\|=1 either way) — data-volume and a widening gen-over-gen gap in `solve-27`'s val_value_mse are unexplained. No strength comparison yet (`paired.py` next). |
 | 17 | [where repeats come from; one self-play tree](2026-09-26-17-shared-self-play-tree.md) | Repeated rows: 20.6% repeat the *other player's* tree, only 6% are transpositions within a search. `--shared-tree 1`: rows new to the game 69 -> 87% at the same cost (1600 new searches per move), root visits ~1.8x. Root visits now capped at 32,000 (int16_t). Training effect not yet measured. |
+| 18 | [solver endings hurt training](2026-09-26-18-solver-endings-hurt-training.md) | Paired training to gen 5 from night-2 it1: solve-27 scores 0.24 vs its start (0.40 with both sides adjudicated at P 27), solve-0 scores 0.57. Endgame play drifts without data and the middlegame gets worse too. `loop.sh` defaults to `SOLVE_P=0`. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -61,13 +62,14 @@ kept no samples.
 ## Where to resume
 
 - No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
-  night-2 after it1; all resumable, all data kept).
-- Self-play with the solver: `--solve-p 27` (entries 14-15); `--node-p`
-  stays off. Not yet measured: a paired **training** run with and without
-  `--solve-p 27` (queued driver, TensorRT, wider window).
-- `pipeline/build/corintho_play` is rebuilt (queued calls, solver), and
-  `arch/loop.sh` passes `--solve-p 27` by default (`SOLVE_P=0` turns it
-  off). PR #169.
+  night-2 after it1; solve-27 and solve-0 stopped after gen 5; all
+  resumable, all data kept).
+- **Ending self-play games by solver at P 27 hurts training (entry 18):**
+  solve-27 gen 5 scores 0.24 against its own starting network, solve-0 gen
+  5 scores 0.57. `arch/loop.sh` now defaults to `SOLVE_P=0`. Suspected
+  cause: no training data at P <= 27. `--node-p` stays off.
+- `pipeline/build/corintho_play` is rebuilt (queued calls, solver). PR
+  #169. `build-shared/` has `--shared-tree` (entry 17).
 - Strength comparisons: paired matches (`game_scores.txt`,
   `arch/paired.py`, entry 15); the second player wins ~91% of test games,
   so plain totals are noisy.

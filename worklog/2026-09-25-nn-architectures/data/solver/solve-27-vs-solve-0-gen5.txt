@@ -1,0 +1,33 @@
+# runs/solve-27/matches.tsv
+gen	opponent	wins	draws	losses	decisive_win_rate
+5	n1it0	558	27	1015	0.3547
+5	gen1	612	38	950	0.3918
+5	gen0	381	21	1198	0.2413
+
+# runs/solve-0/matches.tsv
+gen	opponent	wins	draws	losses	decisive_win_rate
+5	n1it0	1001	48	551	0.645
+5	gen1	1091	35	474	0.6971
+5	gen0	890	42	668	0.5712
+
+# runs/solve-27/summary.tsv (gens 1-2 rows doubled by the duplicate loop.sh, entry 16)
+gen	selfplay_s	positions	train_s	val_value_mse	val_policy_ce	val_top1	turns_per_game	first_player_score
+1	274	483091	5	0.3916	1.5670	0.6220	19.32	0.4985
+1	274	483091	5	0.3916	1.5670	0.6220	19.32	0.4985
+2	526	953956	14	0.5439	1.3842	0.6728	18.83	0.5010
+2	526	953956	14	0.5439	1.3842	0.6728	18.83	0.5010
+3	279	1426269	13	0.5543	1.3119	0.6828	18.89	0.5076
+4	281	1897338	17	0.5690	1.2942	0.6873	18.84	0.4994
+5	310	1884593	17	0.6145	1.2640	0.6811	18.81	0.4948
+
+# runs/solve-0/summary.tsv
+gen	selfplay_s	positions	train_s	val_value_mse	val_policy_ce	val_top1	turns_per_game	first_player_score
+1	353	746245	7	0.3686	1.2333	0.6719	29.85	0.4974
+2	363	1495196	15	0.3748	1.2056	0.6811	29.96	0.5030
+3	351	2240843	19	0.3852	1.1850	0.6852	29.83	0.4998
+4	342	2986431	30	0.3844	1.1660	0.6873	29.82	0.4973
+5	368	2987824	28	0.3840	1.1346	0.7017	29.91	0.4992
+
+# solve-27 gen_5 vs gen_0, 1600 games, seed 7005, test --solve-p (both sides alike)
+solve-p 0 (played out): 381 21 1198 0.2413
+solve-p 27 (adjudicated): 630 21 949 0.399

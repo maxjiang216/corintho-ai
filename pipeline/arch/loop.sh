@@ -48,6 +48,9 @@ RELABEL_P=${RELABEL_P:-0}
 # alike (0: played out), as a user-facing engine with the solver would play
 MATCH_SOLVE_P=${MATCH_SOLVE_P:-0}
 INIT=${INIT:-runs/night-2/it1/net.pt}
+# Offsets the self-play and training seeds: runs that differ only in SEED
+# measure run-to-run noise (entry 20). 0 reproduces earlier runs.
+SEED=${SEED:-0}
 # Compact data files standing in for the generations before gen 1
 SEED_DATA=${SEED_DATA:-}
 # Fixed anchors for the matches: name=model (driver syntax)
@@ -59,7 +62,7 @@ PY=$PWD/.venv/bin/python
 mkdir -p "$R"
 log() { echo "$(date '+%F %T') $*" | tee -a "$R/progress.log"; }
 [ -f "$R/config.txt" ] || {
-  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS RELABEL_P MATCH_SOLVE_P INIT SEED_DATA ANCHORS; do
+  for v in NAME GENS GAMES WINDOW EPOCHS LR WARMUP VAL_FRACTION THREADS LOGGED WIDTH DEPTH MATCH_EVERY MATCH SOLVE_P SOLVE_THREADS RELABEL_P MATCH_SOLVE_P INIT SEED SEED_DATA ANCHORS; do
     echo "$v=${!v}"
   done > "$R/config.txt"
   echo "git $(git rev-parse --short HEAD)" >> "$R/config.txt"
@@ -111,7 +114,7 @@ for g in $(seq 1 "$GENS"); do
     rm -rf "$C/samples"
     mkdir -p "$C/samples"
     "$PLAY" train --model "trt16:$P/model.onnx" --games "$GAMES" \
-      --in-flight 2000 --groups 2 --threads "$THREADS" --seed $((100000 + g)) \
+      --in-flight 2000 --groups 2 --threads "$THREADS" --seed $((100000 + 1000 * SEED + g)) \
       --logged "$LOGGED" --solve-p "$SOLVE_P" --solve-threads "$SOLVE_THREADS" \
       --relabel-p "$RELABEL_P" \
       --out "$C/samples" > "$C/selfplay.log" 2>&1
@@ -128,7 +131,7 @@ for g in $(seq 1 "$GENS"); do
     $PY arch/sup.py --data $(cat "$C/window.txt") --init "$P/net.pt" \
       --model res --width "$WIDTH" --depth "$DEPTH" --block post --mask \
       --lr "$LR" --epochs "$EPOCHS" --warmup "$WARMUP" \
-      --val-fraction "$VAL_FRACTION" --seed "$g" --tag net.tmp --models "$C" \
+      --val-fraction "$VAL_FRACTION" --seed $((1000 * SEED + g)) --tag net.tmp --models "$C" \
       --out "$C/result.jsonl" > "$C/train.log" 2>&1
     mv "$C/net.tmp.pt" "$C/net.pt"
   fi

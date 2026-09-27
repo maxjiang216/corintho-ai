@@ -30,6 +30,7 @@ on fixed data first (supervised), then confirm the best by matches.
 | 17 | [where repeats come from; one self-play tree](2026-09-26-17-shared-self-play-tree.md) | Repeated rows: 20.6% repeat the *other player's* tree, only 6% are transpositions within a search. `--shared-tree 1`: rows new to the game 69 -> 87% at the same cost (1600 new searches per move), root visits ~1.8x. Root visits now capped at 32,000 (int16_t). Training effect not yet measured. |
 | 18 | [solver endings hurt training](2026-09-26-18-solver-endings-hurt-training.md) | Paired training to gen 5 from night-2 it1: solve-27 scores 0.24 vs its start (0.40 with both sides adjudicated at P 27), solve-0 scores 0.57. Endgame play drifts without data and the middlegame gets worse too. `loop.sh` defaults to `SOLVE_P=0`. |
 | 19 | [the solver plays solved games out](2026-09-26-19-solver-plays-games-out.md) | `Solver::playOut` (winner: immediate win or the table's move; loser: hardest refutation; draw: most losing replies), 0.56 ms per line; labels 100% exact; self-play 12% faster than solver off. 5 gens: no collapse, but gen 5 loses to solve-0 gen 5 0.464 (z ~ -5); late-endgame values drift down. Solver lines are not the positions the search evaluates. Next: MCTS play with exact relabelling. |
+| 20 | [exact relabelling; run-to-run noise](2026-09-26-20-exact-relabelling.md) | `--relabel-p 27`: games played out as usual, exact value labels at P <= 27 (identical positions and policies, 9% of values change, +6.7% time). Endgame values fine. Head to head vs solve-0 gen 5: 0.467; but a same-settings replicate (`SEED=1`) also scores 0.475 against it, and relabel beats the replicate 0.518. Run-to-run noise ~+-25 Elo at 5 gens: comparisons need several seeds per arm. |
 
 ## The developer's ideas (2026-09-25), to work through
 
@@ -65,9 +66,10 @@ kept no samples.
 - No run is going (loop-1 stopped at gen 15; night-1 paused after it4,
   night-2 after it1; solve-27 and solve-0 stopped after gen 5; all
   resumable, all data kept).
-- Entry 19: the solver plays solved games out (`fdffce1`); still ~25 Elo
-  below solve-0 at gen 5. `SOLVE_P` stays 0. Next: exact relabelling of
-  MCTS-played games.
+- Entries 19-20: solver playout (`SOLVE_P=27`) and exact relabelling
+  (`RELABEL_P=27`) are both within run-to-run noise of no solver at gen 5
+  (~+-25 Elo between same-settings runs, `SEED`). Comparing training
+  treatments needs several seeds per arm. Defaults stay off.
 - **Ending self-play games by solver at P 27 hurts training (entry 18):**
   solve-27 gen 5 scores 0.24 against its own starting network, solve-0 gen
   5 scores 0.57. `arch/loop.sh` now defaults to `SOLVE_P=0`. Suspected

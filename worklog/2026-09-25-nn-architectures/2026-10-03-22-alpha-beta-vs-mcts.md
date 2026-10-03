@@ -101,3 +101,21 @@ plies; the line extension is within noise; late-move reductions 1.2
 plies more. At equal time AB now scores 0.445 (~-40 Elo, about 1.5
 standard errors from even). Next levers: incremental evaluation, int8,
 a larger match to settle the gap.
+
+## Where an AB node's time goes
+
+The developer asked what can be done purely on CPU performance. gprofng
+returned no samples again (as in 2026-09-22), so cycle counters (`__rdtsc`)
+around each part of a node, in a build with `-DAB_PROFILE`; 36 games, 18
+threads, h1024, 272k nodes/s, depth 8.1:
+
+| part of a node | share of timed cycles | TSC cycles per node |
+|---|---|---|
+| network evaluation | **94.1%** | 9022 |
+| move ordering (solver's) | 4.3% | 414 |
+| move generation | 1.2% | 112 |
+| child copy + doMove | 0.4% | 38 |
+
+46.5% of nodes are evaluated leaves, 35.8% expanded interior nodes. Only
+the evaluation's cost matters: a smaller network, int8 with AVX2 (the
+second layer, h x 32, dominates), an incremental first layer.

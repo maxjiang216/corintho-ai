@@ -38,6 +38,18 @@
 #include "trainmc.h"
 #include "util.h"
 
+#ifdef AB_PROFILE
+#include <x86intrin.h>
+// Cycles by part of an alpha-beta node (worklog entry 22): move generation,
+// network evaluation, move ordering, child setup; and counts
+thread_local uint64_t g_prof[8];
+#define PROF_START(v) const uint64_t v = __rdtsc()
+#define PROF_ADD(i, v) (g_prof[i] += __rdtsc() - (v))
+#else
+#define PROF_START(v) ((void)0)
+#define PROF_ADD(i, v) ((void)0)
+#endif
+
 namespace {
 
 using Clock = std::chrono::steady_clock;
@@ -191,15 +203,24 @@ class AlphaBeta {
       aborted_ = true;
     if (aborted_)
       return 0.0F;
+    PROF_START(t_gen);
     MoveMask legal;
     const bool lines = game.getLegalMoves(legal);
+    PROF_ADD(0, t_gen);
     if (!legal.any())  // lost if a line stands, else drawn; prefer quick wins
       return lines ? -(kMate - 0.01F * static_cast<float>(ply)) : 0.0F;
     // A standing line forces the side to move to break it (like check):
     // keep searching instead of evaluating mid-sequence (AB_LINE_EXTEND=0
     // turns it off)
-    if (depth <= 0 && !(lines && line_extend_))
-      return net_.eval(game);
+    if (depth <= 0 && !(lines && line_extend_)) {
+      PROF_START(t_eval);
+      const float v = net_.eval(game);
+      PROF_ADD(1, t_eval);
+#ifdef AB_PROFILE
+      ++g_prof[4];  // leaves evaluated
+#endif
+      return v;
+    }
     uint64_t board, rest;
     game.key(board, rest);
     Entry &e = table_[(board * 0x9E3779B97F4A7C15ULL ^ rest) & mask_];
@@ -221,6 +242,7 @@ class AlphaBeta {
     // capital, each group by history. AB_ORDER_DEPTH: from this depth up,
     // by the network's value of each child instead.
     uint64_t key[kNumMoves];
+    PROF_START(t_order);
     for (int32_t i = 0; i < n; ++i) {
       const int32_t m = moves[i];
       if (m == tt_move) {
@@ -258,12 +280,18 @@ class AlphaBeta {
     }
     std::sort(moves, moves + n,
               [&](int32_t a, int32_t b) { return key[a] > key[b]; });
+    PROF_ADD(2, t_order);
+#ifdef AB_PROFILE
+    ++g_prof[5];  // interior nodes expanded
+#endif
     const float alpha0 = alpha;
     float best = -kInf;
     int32_t best_move = moves[0];
     for (int32_t i = 0; i < n; ++i) {
+      PROF_START(t_child);
       Game child = game;
       child.doMove(moves[i]);
+      PROF_ADD(3, t_child);
       // Principal variation search: later moves with a null window first
       float s;
       if (i == 0) {
@@ -488,9 +516,19 @@ int main(int argc, char **argv) {
           st.mcts_seconds / std::max(1, st.mcts_moves), since(t0));
     }
   };
+#ifdef AB_PROFILE
+  std::atomic<uint64_t> prof_total[8]{};
+  auto worker_profiled = [&]() {
+    worker();
+    for (int i = 0; i < 8; ++i)
+      prof_total[i] += g_prof[i];
+  };
+#else
+  auto &worker_profiled = worker;
+#endif
   std::vector<std::thread> pool;
   for (int32_t i = 0; i < threads; ++i)
-    pool.emplace_back(worker);
+    pool.emplace_back(worker_profiled);
   for (std::thread &t : pool)
     t.join();
 
@@ -529,5 +567,21 @@ int main(int argc, char **argv) {
               static_cast<double>(nodes) / std::max(1e-9, ab_s) / 1e3,
               mcts_s / std::max(1, mcts_m), mcts_searches);
   std::printf("wall %.0f s\n", since(t0));
+#ifdef AB_PROFILE
+  const double cycles = static_cast<double>(prof_total[0] + prof_total[1] +
+                                            prof_total[2] + prof_total[3]);
+  const char *names[4] = {"move generation", "network evaluation",
+                          "move ordering", "child copy + doMove"};
+  const double all_nodes = static_cast<double>(nodes);
+  for (int i = 0; i < 4; ++i)
+    std::printf("%-20s %5.1f%% of timed cycles, %6.0f cycles per node\n",
+                names[i], 100.0 * prof_total[i] / cycles,
+                prof_total[i] / all_nodes);
+  std::printf("leaves evaluated %.1f%% of nodes, interior expanded %.1f%%\n",
+              100.0 * prof_total[4] / all_nodes,
+              100.0 * prof_total[5] / all_nodes);
+  std::printf("timed cycles per node %.0f; all AB time per node %.2f us\n",
+              cycles / all_nodes, 1e6 * ab_s / all_nodes);
+#endif
   return 0;
 }

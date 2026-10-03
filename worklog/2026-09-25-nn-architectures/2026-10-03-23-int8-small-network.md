@@ -162,6 +162,19 @@ AB 1.72 s per move (depth 10.2, 1.96M nodes/s), MCTS 1.72 s. Within
 noise of the 0.527 and 0.510 before it; three runs in a row at or above
 0.5.
 
+## Staged move ordering: tried, reverted
+
+The developer: try staged ordering (Stockfish): search the table's move
+before scoring the others, so a cutoff by it skips the scoring. Ordering
+cost went up (210 -> ~275 TSC cycles per node; likely code generation of
+the restructured loop), nodes/s unchanged (1.93-1.96M). Counters (18
+games, 158M expanded nodes): only **4.5%** of expanded nodes have a table
+move (1.8% cut off by it): most expanded nodes are one level above the
+leaves, and were leaves in the previous iteration, which store no table
+entry. 65.9% of expanded nodes cut off, 60.4% of those by the first move
+tried (strong chess engines: ~90%). Reverted. Better first guesses (more
+cutoffs by the first move) would pay more than cheaper ordering.
+
 ## Next options
 
 - A larger match (or longer time controls) to settle the result.

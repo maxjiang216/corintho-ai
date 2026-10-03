@@ -562,13 +562,12 @@ constexpr bool everyRunIsAShape() {
 }
 static_assert(everyRunIsAShape());
 
-bool Game::hasLine() const noexcept {
+bool Game::boardHasLine(uint64_t b) noexcept {
   // Branch-free: the three top planes, packed into 16-bit lanes of one word,
   // then one shifted AND per direction for all three types at once. A lane
   // shifted right spills its low bits into the lane below, but only onto
   // positions the run masks exclude: every admitted run lies within its lane
   // (entry 08). pext gathers a piece's bit from all 16 nibbles at once.
-  const uint64_t b = board_.to_ullong();
 #if defined(__BMI2__)
   const uint64_t nibble = 0x1111111111111111ULL;
   const uint64_t base = _pext_u64(b, nibble << kBase);

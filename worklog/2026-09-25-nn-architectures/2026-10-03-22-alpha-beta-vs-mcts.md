@@ -70,3 +70,28 @@ ordering and late-move reductions (selectivity); int8 and incremental
 evaluation (~3-5x nodes, about one ply); quiescence over line threats.
 Each is real work, against a ~160 Elo deficit. The developer asked only
 for a preliminary read; no further AB work is planned without a decision.
+
+## Search improvements (the developer's suggestions)
+
+The developer: the solver's move ordering should be a good ordering for a
+normal search too, and line-making moves should be extended like checks
+in chess (also: Stockfish's search for ideas, which is GPLv3, so ideas
+only, no code; and incremental evaluation, since a move changes only a
+few inputs). Iterative deepening orders only through the table's move:
+the first move at nodes searched in the previous iteration; every other
+move, and every new node at the frontier, needs a static order.
+
+Same 200 games (seed 1, equal time):
+
+| AB | score | pairs (AB-MCTS-split) | depth | nodes/s |
+|---|---|---|---|---|
+| table move + history | 0.285 | 2-48-50 | 5.5 | 147k |
+| + the solver's ordering (line-making moves by fewest replies, an immediate win returned at once; quiet moves by type, then history) | 0.328 | 1-37-62 | 6.9 | 195k |
+| + search on while a line stands at depth 0 (`AB_LINE_EXTEND`) | 0.345 | 3-35-62 | 6.7 | 241k |
+
+(200 games: about +-0.035 per score.) The solver's ordering gives 1.4
+plies; the line extension is within noise. Together ~+45 Elo; still
+~110 Elo behind MCTS at equal time. Next levers: late-move reductions
+(selectivity), incremental evaluation, using all of the time (a new
+iteration starts only with half the time left: AB used 1.49 s vs MCTS
+1.72 s).

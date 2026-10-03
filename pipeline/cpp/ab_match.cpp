@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "game.h"
+#include "move.h"
 #include "solver.h"
 #include "trainmc.h"
 #include "util.h"
@@ -190,7 +191,10 @@ class AlphaBeta {
     const bool lines = game.getLegalMoves(legal);
     if (!legal.any())  // lost if a line stands, else drawn; prefer quick wins
       return lines ? -(kMate - 0.01F * static_cast<float>(ply)) : 0.0F;
-    if (depth <= 0)
+    // A standing line forces the side to move to break it (like check):
+    // keep searching instead of evaluating mid-sequence (AB_LINE_EXTEND=0
+    // turns it off)
+    if (depth <= 0 && !(lines && line_extend_))
       return net_.eval(game);
     uint64_t board, rest;
     game.key(board, rest);
@@ -207,19 +211,46 @@ class AlphaBeta {
     int32_t moves[kNumMoves], n = 0;
     forEachMove(legal, [&](int32_t m) { moves[n++] = m; });
     const int32_t side = static_cast<int32_t>(rest & 1);
-    // Order: the table's move, then (with depth to spare) by the network's
-    // value of each child, else by history
-    float key[kNumMoves];
+    // Order (the solver's, entries 08 and 10): the table's move; moves
+    // that make a line, fewest opponent replies first (none: an immediate
+    // win); then quiet moves: move a stack, place a base, a column, a
+    // capital, each group by history. AB_ORDER_DEPTH: from this depth up,
+    // by the network's value of each child instead.
+    uint64_t key[kNumMoves];
     for (int32_t i = 0; i < n; ++i) {
-      if (moves[i] == tt_move) {
-        key[moves[i]] = 1e6F;
-      } else if (depth >= order_depth_) {
-        Game child = game;
-        child.doMove(moves[i]);
-        key[moves[i]] = -net_.eval(child);
-      } else {
-        key[moves[i]] = static_cast<float>(history_[side][moves[i]]);
+      const int32_t m = moves[i];
+      if (m == tt_move) {
+        key[m] = uint64_t{3} << 60;
+        continue;
       }
+      if (depth >= order_depth_) {
+        Game child = game;
+        child.doMove(m);
+        key[m] = static_cast<uint64_t>((1.0F - net_.eval(child)) * 1e6F);
+        key[m] = (uint64_t{2} << 60) - key[m];
+        continue;
+      }
+      if (solver_order_) {
+        Game child = game;
+        child.doMove(m);
+        if (child.hasLine()) {
+          MoveMask replies;
+          child.getLegalMoves(replies);
+          const int32_t r = replies.count();
+          if (r == 0)  // the opponent is stuck with a line: a win
+            return kMate - 0.01F * static_cast<float>(ply + 1);
+          key[m] =
+              (uint64_t{2} << 60) + (static_cast<uint64_t>(100 - r) << 40);
+          continue;
+        }
+        const MoveInfo &info = kMoveTable[m];
+        const uint64_t rank = info.is_place ? 1 + info.piece : 0;
+        key[m] =
+            (uint64_t{1} << 60) + ((3 - rank) << 40) +
+            std::min<uint64_t>(history_[side][m], (uint64_t{1} << 40) - 1);
+        continue;
+      }
+      key[m] = static_cast<uint64_t>(history_[side][m]);
     }
     std::sort(moves, moves + n,
               [&](int32_t a, int32_t b) { return key[a] > key[b]; });
@@ -261,6 +292,11 @@ class AlphaBeta {
   }
 
   const SmallNet &net_;
+  bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
+                    atoi(getenv("AB_LINE_EXTEND")) != 0};
+  /// The solver's move ordering (AB_SOLVER_ORDER=0: table move and history)
+  bool solver_order_{getenv("AB_SOLVER_ORDER") == nullptr ||
+                     atoi(getenv("AB_SOLVER_ORDER")) != 0};
   /// Nodes with at least this depth order moves by the children's values
   int32_t order_depth_{
       getenv("AB_ORDER_DEPTH") ? atoi(getenv("AB_ORDER_DEPTH")) : 99};

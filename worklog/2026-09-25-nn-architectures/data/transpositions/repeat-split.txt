@@ -1,0 +1,31 @@
+# arch/dup_split.py, 500 self-play games, loop-1 gen_15 (trt16), --seed 7
+# --in-flight 500 --groups 1 --threads 6 --solve-p 27 --solve-threads 2
+
+## --shared-tree 0
+exact: 15,116,000 rows
+  new to the game:                   69.1%
+  repeat within the same search:     6.0%
+  repeat of the same player's earlier search: 4.2%
+  seen before only by the other player:       20.6%
+up to symmetry: 15,116,000 rows
+  new to the game:                   63.2%
+  repeat within the same search:     12.0%
+  repeat of the same player's earlier search: 4.6%
+  seen before only by the other player:       20.2%
+
+## --shared-tree 1
+exact: 15,050,976 rows
+  new to the game:                   86.9%
+  repeat within the same search:     5.6%
+  repeat of the same player's earlier search: 2.9%
+  seen before only by the other player:       4.5%
+up to symmetry: 15,050,976 rows
+  new to the game:                   80.3%
+  repeat within the same search:     11.4%
+  repeat of the same player's earlier search: 3.1%
+  seen before only by the other player:       5.2%
+
+## root visits at move choice (VISITS: in the 50 logged games)
+shared-tree 0: mean 2699 p50 2375 p90 4457 p99 6258 max 7722 (980 moves)
+shared-tree 1: mean 4932 p50 4231 p90 9113 p99 13977 max 16570 (969 moves)
+shared-tree 1, --solve-p 0 (100 logged games of 500): p50 3429 p90 8486 p99 14039 max 20380

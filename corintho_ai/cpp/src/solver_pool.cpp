@@ -21,11 +21,12 @@ SolverPool::~SolverPool() {
     t.join();
 }
 
-std::shared_ptr<SolveJob> SolverPool::submit(const Game &game,
-                                             uint64_t max_nodes) {
+std::shared_ptr<SolveJob>
+SolverPool::submit(const Game &game, uint64_t max_nodes, bool play_out) {
   auto job = std::make_shared<SolveJob>();
   job->game = game;
   job->max_nodes = max_nodes;
+  job->play_out = play_out;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     queue_.push_back(job);
@@ -64,8 +65,11 @@ void SolverPool::run(int32_t index) {
       queue_.pop_front();
     }
     const auto t0 = std::chrono::steady_clock::now();
-    const int32_t result = solver.solve(
-        job->game, job->max_nodes != 0 ? job->max_nodes : max_nodes_);
+    const uint64_t cap = job->max_nodes != 0 ? job->max_nodes : max_nodes_;
+    const int32_t result = solver.solve(job->game, cap);
+    if (job->play_out && result != Solver::kUnknown &&
+        !solver.playOut(job->game, cap, job->line))
+      job->line.clear();
     const auto ns = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now() - t0)

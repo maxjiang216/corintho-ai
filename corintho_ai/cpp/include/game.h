@@ -50,7 +50,10 @@ class Game {
   /// bound on the plies left, lowered by every move
   int32_t horizon() const noexcept;
   /// @brief Whether a line stands on the board (cheaper than getLegalMoves)
-  bool hasLine() const noexcept;
+  bool hasLine() const noexcept { return boardHasLine(board_.to_ullong()); }
+  /// @brief hasLine for a board word (4 bits per space), without a Game:
+  /// lines depend on the board alone
+  static bool boardHasLine(uint64_t board) noexcept;
   /// @brief Legal moves when no line stands (the caller knows, e.g. from
   /// hasLine): placement and movement rules only, no line search
   void getLegalMovesNoLines(MoveMask &legal_moves) const noexcept;

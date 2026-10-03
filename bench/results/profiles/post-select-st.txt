@@ -1,0 +1,29 @@
+# gprofng, 1 thread, 300 games x 1600 searches
+# label:    post-select
+# commit:   3a2a5fa
+# dirty:    no
+# cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-22T19:56:33-07:00
+
+# Percentages only -- absolute seconds are unreliable.
+
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+1.631 100.00  1.631 100.00   <Total>
+1.151  70.55  1.271  77.91   TrainMC::doIteration(float*, float*)
+0.310  19.02  1.481  90.80   main
+0.110   6.75  0.120   7.36   Node::initializeEdges()
+0.040   2.45  0.040   2.45   Node::~Node()
+0.020   1.23  0.020   1.23   <static>@0x188341 (<libc.so.6>)
+0.      0.    1.481  90.80   <static>@0x2a145 (<libc.so.6>)
+0.      0.    1.161  71.17   GOMP_parallel
+0.      0.    0.030   1.84   SelfPlayer::chooseMove() [clone .part.0]
+0.      0.    0.040   2.45   SelfPlayer::chooseMoveAndContinue()
+0.      0.    0.030   1.84   TrainMC::chooseMove(float*, float*)
+0.      0.    0.030   1.84   TrainMC::moveDown(Node*)
+0.      0.    1.161  71.17   Trainer::doIteration(float*, float*, int) [clone ._omp_fn.0]
+0.      0.    1.481  90.80   __libc_start_main
+

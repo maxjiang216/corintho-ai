@@ -163,6 +163,10 @@ int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
   return chooseMoveNormal(prob_sample);
 }
 
+bool TrainMC::budgetLeft() const noexcept {
+  return searches_done_ < max_searches_ && root_->visits() < kMaxRootVisits;
+}
+
 bool TrainMC::doIteration(float eval[], float probs[]) {
   assert(to_eval_ != nullptr);
   assert(searches_done_ <= max_searches_);
@@ -194,14 +198,12 @@ bool TrainMC::doIteration(float eval[], float probs[]) {
   if (searched_.size() > 0)
     receiveEval(eval, probs);
   while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
-         searches_done_ < max_searches_ && !root_->known() &&
-         !root_->all_visited()) {
+         budgetLeft() && !root_->known() && !root_->all_visited()) {
     search();
   }
   // Add a check for the number of requests
   // We should only choose a move if we have received all evaluations
-  return (searches_done_ == max_searches_ || root_->known()) &&
-         searched_.size() == 0;
+  return (!budgetLeft() || root_->known()) && searched_.size() == 0;
 }
 
 bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,

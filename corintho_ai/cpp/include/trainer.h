@@ -116,6 +116,26 @@ class Trainer {
     for (SelfPlayer &game : games_)
       game.set_node_solver(max_horizon, max_nodes, model);
   }
+  /// @brief Both sides of each game search one tree (entry 17); call before
+  /// the first iteration, training only
+  void setSharedTree(bool shared) {
+    for (SelfPlayer &game : games_)
+      game.set_shared_tree(shared);
+  }
+  /// @brief Label samples at P <= max_horizon by exact solution (entry 20);
+  /// call before the first iteration, training only, not with setSolver
+  void setRelabel(SolverPool *pool, int32_t max_horizon) {
+    for (SelfPlayer &game : games_)
+      game.set_relabel(pool, max_horizon);
+  }
+  /// @brief After finalizeSolves: samples given an exact label, and of them
+  /// the ones whose game outcome label differed
+  void relabelCounts(int64_t &relabelled, int64_t &changed) const {
+    for (const SelfPlayer &game : games_) {
+      relabelled += game.num_relabelled();
+      changed += game.num_relabel_changed();
+    }
+  }
   /// @brief Games ended by exact solution so far
   int32_t numAdjudicated() const noexcept;
   /// @brief The solver pool, or nullptr (for its statistics)

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <cstdlib>
 #include <new>
 #include <type_traits>
@@ -100,6 +101,141 @@ int32_t Solver::solve(const Game &game, uint64_t max_nodes) {
     return kUnknown;
   return at_least_draw >= 0 ? 0 : -1;
 #endif
+}
+
+int32_t Solver::tableMove(const Game &game) const noexcept {
+  uint64_t board, rest;
+  game.key(board, rest);
+  const Bucket &bucket = table_[mix(board, rest) & mask_];
+  const uint64_t key_rest = packRest(rest);
+  uint32_t matches = boardMatches(bucket, board);
+  while (matches != 0) {
+    const int32_t w = __builtin_ctz(matches);
+    matches &= matches - 1;
+    const uint64_t meta = bucket.meta[w];
+    if ((meta & kRestMask) == key_rest && (meta >> 36) == epoch_)
+      return static_cast<int32_t>((meta >> 23) & 127) - 1;
+  }
+  return -1;
+}
+
+bool Solver::playOut(Game game, uint64_t max_nodes,
+                     std::vector<LineStep> &line) {
+  line.clear();
+  struct Option {
+    int32_t move, value;
+    uint64_t nodes;
+    bool ends;
+  };
+  std::vector<Option> options;
+  int32_t value = solve(game, max_nodes);
+  for (;; value = -value) {
+    if (value == kUnknown || value == -kUnknown)
+      return false;
+    MoveMask legal;
+    game.getLegalMoves(legal);
+    if (legal.count() == 0)
+      return true;  // the last move ended the game
+    if (value == 1) {
+      // The winner needs one winning move, not every child solved: an
+      // immediate win, else the move the solve proved (the table's), checked
+      const int32_t move = winningMove(game, legal, max_nodes);
+      if (move == -2)
+        return false;
+      if (move >= 0) {
+        line.push_back({game, move, 1});
+        game.doMove(move);
+        continue;
+      }
+    }
+    options.clear();
+    int32_t best = -1;
+    bool capped = false;
+    forEachMove(legal, [&](int32_t move) {
+      if (capped)
+        return;
+      Game child = game;
+      child.doMove(move);
+      MoveMask child_legal;
+      child.getLegalMoves(child_legal);
+      const bool ends = child_legal.count() == 0;
+      const int32_t r = solve(child, max_nodes);
+      if (r == kUnknown) {
+        capped = true;
+        return;
+      }
+      options.push_back({move, -r, nodes_, ends});
+      best = std::max(best, -r);
+    });
+    if (capped)
+      return false;
+    const Option *choice = nullptr;
+    int64_t choice_score = 0;
+    for (const Option &o : options) {
+      if (o.value != best)
+        continue;
+      int64_t score;
+      if (best == 1) {
+        // An immediate win first, then the cheapest proof
+        score = o.ends ? INT64_MAX : -static_cast<int64_t>(o.nodes);
+      } else if (best == -1) {
+        score = static_cast<int64_t>(o.nodes);  // the hardest refutation
+      } else {
+        // The opponent's losing replies after this drawing move
+        Game child = game;
+        child.doMove(o.move);
+        MoveMask replies;
+        child.getLegalMoves(replies);
+        score = 0;
+        forEachMove(replies, [&](int32_t reply) {
+          if (capped)
+            return;
+          Game grandchild = child;
+          grandchild.doMove(reply);
+          const int32_t r = solve(grandchild, max_nodes);
+          if (r == kUnknown)
+            capped = true;
+          else if (r == 1)
+            ++score;  // the reply lets us win
+        });
+        if (capped)
+          return false;
+      }
+      if (choice == nullptr || score > choice_score) {
+        choice = &o;
+        choice_score = score;
+      }
+    }
+    if (best != value)
+      return false;  // cannot happen: the position's value was solved
+    line.push_back({game, choice->move, best});
+    game.doMove(choice->move);
+  }
+}
+
+int32_t Solver::winningMove(const Game &game, const MoveMask &legal,
+                            uint64_t max_nodes) {
+  int32_t immediate = -1;
+  forEachMove(legal, [&](int32_t move) {
+    if (immediate >= 0)
+      return;
+    Game child = game;
+    child.doMove(move);
+    MoveMask child_legal;
+    if (child.getLegalMoves(child_legal) && !child_legal.any())
+      immediate = move;
+  });
+  if (immediate >= 0)
+    return immediate;
+  const int32_t move = tableMove(game);
+  if (move < 0 || !legal.test(move))
+    return -1;
+  Game child = game;
+  child.doMove(move);
+  const int32_t r = solve(child, max_nodes);
+  if (r == kUnknown)
+    return -2;
+  return r == -1 ? move : -1;
 }
 
 #ifdef SOLVER_STATS

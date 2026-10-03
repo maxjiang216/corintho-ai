@@ -3,6 +3,7 @@
 # unpacks the ONNX Runtime C++ release into third_party/.
 #
 #   make            build build/corintho_play
+#   make build/ab_match   alpha-beta vs MCTS match tool (entry 22)
 #   make clean
 
 ifeq ($(origin CXX),default)
@@ -42,6 +43,11 @@ $(BUILD)/%.o: cpp/%.cpp | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
 $(BUILD)/corintho_play: $(OBJS)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+# Alpha-beta with a small value network against MCTS, on the CPU (worklog
+# entry 22); not part of `all`
+$(BUILD)/ab_match: $(BUILD)/ab_match.o $(CORE:%=$(BUILD)/%.o)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 # Rules-derived features for pipeline/arch (legal-move masks, line spaces),

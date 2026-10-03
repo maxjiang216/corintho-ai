@@ -1,6 +1,7 @@
 #ifndef SELFPLAYER_H
 #define SELFPLAYER_H
 
+#include <cassert>
 #include <cstdint>
 
 #include <array>
@@ -31,7 +32,9 @@ class SelfPlayer {
   /// @brief Root of the tree now being searched (the player to move's),
   /// or nullptr. For measurements (worklog 2026-09-25-nn-architectures,
   /// entry 08).
-  const Node *searchRoot() const noexcept { return players_[to_play_].root(); }
+  const Node *searchRoot() const noexcept {
+    return players_[tree(to_play_)].root();
+  }
   SelfPlayer(int32_t random_seed, int32_t max_searches = 1600,
              int32_t searches_per_eval = 16, float c_puct = 1.0,
              float epsilon = 0.25,
@@ -79,11 +82,27 @@ class SelfPlayer {
   /// @brief End games by exact solution once the position's horizon P is at
   /// most max_horizon (worklog 2026-09-25-nn-architectures, entry 14)
   /// @details The position is submitted to `pool` and the game ends at once
-  /// (its trees and slot are freed); finalize() collects the result.
+  /// (its trees and slot are freed); finalize() collects the result. In
+  /// training, the solver also plays the game out from there and its
+  /// positions become samples (entry 19); so do positions the search has
+  /// proven.
   void set_solver(SolverPool *pool, int32_t max_horizon) noexcept {
     solver_pool_ = pool;
     solve_horizon_ = max_horizon;
   }
+  /// @brief Label training samples with exact values (entry 20): games are
+  /// played out as usual, every sample at horizon P <= max_horizon gets its
+  /// position's exact value, and the earlier samples the first of these
+  /// values, flipped back. Policy targets are unchanged. Not with set_solver.
+  void set_relabel(SolverPool *pool, int32_t max_horizon) noexcept {
+    assert(solver_pool_ == nullptr);
+    relabel_pool_ = pool;
+    relabel_horizon_ = max_horizon;
+  }
+  /// @brief After finalize: samples given an exact label, and of them the
+  /// ones whose game outcome label differed
+  int32_t num_relabelled() const noexcept { return num_relabelled_; }
+  int32_t num_relabel_changed() const noexcept { return num_relabel_changed_; }
   /// @brief Solve search leaves with horizon P <= max_horizon (entry 15)
   /// @param model In test games, only the player of this model (0 new, 1
   /// best); -1 both
@@ -92,6 +111,15 @@ class SelfPlayer {
     for (int32_t p = 0; p < 2; ++p)
       if (model < 0 || p == (model + parity_) % 2)
         players_[p].set_node_solver(max_horizon, max_nodes);
+  }
+  /// @brief Both sides search one tree (training only; worklog
+  /// 2026-09-25-nn-architectures, entry 17); call before the first iteration
+  /// @details Both sides use the same network in training, and with a tree
+  /// each ~20% of evaluations repeated positions the other side's tree had
+  /// already evaluated. Each move still gets max_searches new searches.
+  void set_shared_tree(bool shared) noexcept {
+    assert(!testing_ || !shared);
+    shared_tree_ = shared;
   }
   /// @brief Whether the game ended by an exact solution
   bool adjudicated() const noexcept { return adjudicated_; }
@@ -120,6 +148,8 @@ class SelfPlayer {
   /// @brief In solver mode, end the game at `position` (to_play_ to move) if
   /// its outcome is proven or it is within the solve horizon
   bool tryEnd(const Node &position);
+  /// @brief Collect the relabelling solves into labels_ (in finalize)
+  void finalizeRelabel();
   /// @brief At the start of an iteration: tryEnd on the current position
   bool solveStep();
   /// @brief Choose a move and write the training sample
@@ -127,6 +157,8 @@ class SelfPlayer {
   int32_t chooseMove();
   /// @brief Choose a move and then do an iteration of searches
   bool chooseMoveAndContinue();
+  /// @brief Index in players_ of player p's tree
+  int32_t tree(int32_t p) const noexcept { return shared_tree_ ? 0 : p; }
   /// @brief Random generator for all operations
   /// @details Shared with the TrainMC objects
   std::mt19937 generator_{};
@@ -138,7 +170,9 @@ class SelfPlayer {
   /// straight into the network input and never copied.
   float *to_eval_{nullptr};
   /// @brief Monte Carlo search trees for each player
+  /// @details With shared_tree_, both sides use players_[0]
   TrainMC players_[2];
+  bool shared_tree_{false};
   /// @brief Whose turn it is
   int32_t to_play_{0};
   /// @brief Training samples
@@ -151,6 +185,18 @@ class SelfPlayer {
   SolverPool *solver_pool_{nullptr};
   int32_t solve_horizon_{0};
   std::shared_ptr<SolveJob> solve_job_{};
+  /// @brief In training, the value the search proved for the position sent
+  /// to the solver for its line, else Solver::kUnknown
+  int32_t proven_value_{Solver::kUnknown};
+  SolverPool *relabel_pool_{nullptr};
+  int32_t relabel_horizon_{0};
+  /// @brief Solves of the samples at P <= relabel_horizon_, by sample index
+  std::vector<std::pair<int32_t, std::shared_ptr<SolveJob>>> relabel_jobs_{};
+  /// @brief Exact value target per sample after finalize (NaN: none, the
+  /// game outcome is used); empty without relabelling
+  std::vector<float> labels_{};
+  int32_t num_relabelled_{0};
+  int32_t num_relabel_changed_{0};
 
   bool adjudicated_{false};
   /// @brief File where all logs are written to

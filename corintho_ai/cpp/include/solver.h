@@ -36,6 +36,32 @@ class Solver {
   /// @return 1, 0 or -1 for the side to move, or kUnknown
   int32_t solve(const Game &game, uint64_t max_nodes);
 
+  /// @brief One position of a solved line (playOut)
+  struct LineStep {
+    Game game;
+    /// @brief The move played from it
+    int32_t move;
+    /// @brief 1, 0 or -1 for the side to move
+    int32_t value;
+  };
+  /// @brief Play a position out to the end of the game with exact values
+  /// (worklog 2026-09-25-nn-architectures, entry 19)
+  /// @details Every child is solved at every ply. The winner plays an
+  /// immediate win if it has one, else the winning move whose solve visited
+  /// the fewest positions (with a warm table: the move the search already
+  /// proved; a stand-in for the shortest win). The loser plays the move
+  /// whose refutation visited the most positions (a stand-in for the
+  /// longest defence). A drawn side plays the drawing move that leaves the
+  /// opponent the most losing replies.
+  /// @param line Receives one step per move played, the last one ending
+  /// the game
+  /// @return false if a solve reached max_nodes (line is then incomplete)
+  bool playOut(Game game, uint64_t max_nodes, std::vector<LineStep> &line);
+
+  /// @brief The move stored for a position in the table, or -1
+  /// @details After a solve that found a win, the winning move it proved
+  int32_t tableMove(const Game &game) const noexcept;
+
   /// @brief Positions visited by the last solve
   uint64_t nodes() const noexcept { return nodes_; }
 
@@ -50,6 +76,10 @@ class Solver {
 
   /// @brief A quiet move cut off: credit it in the history table
   void recordCutoff(uint64_t board, uint64_t rest, int32_t move);
+  /// @brief For a won position: an immediate win, else the table's move if
+  /// it wins; -1 if neither, -2 if a solve reached max_nodes
+  int32_t winningMove(const Game &game, const MoveMask &legal,
+                      uint64_t max_nodes);
   /// @brief Store a result with its bound and best move; returns best
   int32_t store(uint64_t board, uint64_t rest, int32_t best, int32_t alpha0,
                 int32_t beta, int32_t best_move);

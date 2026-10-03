@@ -6,8 +6,10 @@
 #include <cstdint>
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -60,7 +62,7 @@ int32_t SelfPlayer::parity() const noexcept {
 }
 
 int32_t SelfPlayer::num_requests() const noexcept {
-  return players_[to_play_].num_requests();
+  return players_[tree(to_play_)].num_requests();
 }
 
 int32_t SelfPlayer::num_samples() const noexcept {
@@ -85,7 +87,7 @@ int32_t SelfPlayer::mate_length() const noexcept {
 
 void SelfPlayer::writeRequests(float *game_states) const noexcept {
   assert(game_states != nullptr);
-  int32_t count = kGameStateSize * players_[to_play_].num_requests();
+  int32_t count = kGameStateSize * players_[tree(to_play_)].num_requests();
   std::copy(to_eval_, to_eval_ + count, game_states);
 }
 
@@ -106,6 +108,9 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
   float evaluation = last_mover_value_;
   // Start from end of the game to get evaluations more easily
   for (int32_t i = samples_.size() - 1; i >= 0; --i) {
+    // An exact label where relabelling gave one (entry 20)
+    const float label =
+        labels_.empty() || std::isnan(labels_[i]) ? evaluation : labels_[i];
     // Apply symmetries
     // The first symmetry is the identity, which is a bit inefficient but
     // makes the code simpler
@@ -119,7 +124,7 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
         *(game_states + i * kGameStateSize * kNumSymmetries +
           k * kGameStateSize + j) = samples_[i].game_state[j];
       }
-      *(eval_samples + i * kNumSymmetries + k) = evaluation;
+      *(eval_samples + i * kNumSymmetries + k) = label;
       for (int32_t j = 0; j < kNumMoves; ++j) {
         *(prob_samples + i * kNumMoves * kNumSymmetries + k * kNumMoves + j) =
             samples_[i].probabilities[move_symmetries[k][j]];
@@ -130,42 +135,104 @@ void SelfPlayer::writeSamples(float *game_states, float *eval_samples,
 }
 
 bool SelfPlayer::solveStep() {
-  return players_[to_play_].root() != nullptr &&
-         tryEnd(*players_[to_play_].root());
+  return players_[tree(to_play_)].root() != nullptr &&
+         tryEnd(*players_[tree(to_play_)].root());
 }
 
 bool SelfPlayer::tryEnd(const Node &position) {
   // `position` is the current position, to_play_ to move. In solver mode a
   // game ends as soon as its outcome is known (entry 15): proven by the
   // search (exact: deduced from terminal and solved positions), or at the
-  // solve horizon. Playing a known outcome out adds nothing to learn.
+  // solve horizon. In training the rest of the game is still played, by the
+  // solver, for its samples (entry 19).
   const Game &game = position.get_game();
   if (position.known() && !position.terminal()) {
     const int32_t value = position.won() ? 1 : position.lost() ? -1 : 0;
-    adjudicate(value, game.horizon(), "PROVEN");
+    if (testing_) {
+      adjudicate(value, game.horizon(), "PROVEN");
+    } else {
+      proven_value_ = value;
+      solve_job_ = solver_pool_->submit(game, 0, true);
+    }
   } else if (game.horizon() <= solve_horizon_) {
-    solve_job_ = solver_pool_->submit(game);  // result in finalize()
+    // Result in finalize(); in training, also the line played out from here
+    solve_job_ = solver_pool_->submit(game, 0, !testing_);
   } else {
     return false;
   }
   players_[0].null_root();
-  players_[1].null_root();
+  if (!shared_tree_)  // a shared tree is players_[0] only
+    players_[1].null_root();
   owned_to_eval_.reset();
   to_eval_ = nullptr;
   return true;
 }
 
+void SelfPlayer::finalizeRelabel() {
+  if (relabel_jobs_.empty())
+    return;
+  labels_.assign(samples_.size(), std::numeric_limits<float>::quiet_NaN());
+  for (auto &[index, job] : relabel_jobs_) {
+    int32_t r = SolverPool::wait(*job);
+    if (r == Solver::kUnknown) {
+      job = relabel_pool_->submit(job->game, 20 * relabel_pool_->max_nodes());
+      r = SolverPool::wait(*job);
+    }
+    if (r != Solver::kUnknown)
+      labels_[static_cast<size_t>(index)] = static_cast<float>(r);
+  }
+  // Before the first solved position, its value flipped back: the result
+  // had both sides played perfectly from there
+  const auto first = static_cast<size_t>(relabel_jobs_.front().first);
+  if (!std::isnan(labels_[first]))
+    for (size_t i = first; i-- > 0;)
+      labels_[i] = -labels_[i + 1];
+  // Compare with the outcome labels writeSamples would otherwise use
+  float outcome = last_mover_value_;
+  for (size_t i = samples_.size(); i-- > 0; outcome = -outcome) {
+    if (std::isnan(labels_[i]))
+      continue;
+    ++num_relabelled_;
+    num_relabel_changed_ += labels_[i] != outcome;
+  }
+  relabel_jobs_.clear();
+}
+
 bool SelfPlayer::finalize() {
+  finalizeRelabel();
   if (!solve_job_)
     return true;
   int32_t r = SolverPool::wait(*solve_job_);
+  // A position the search proved keeps its proven value if the solve is
+  // capped; no retry, since only its line is lost
+  assert(proven_value_ == Solver::kUnknown || r == Solver::kUnknown ||
+         r == proven_value_);
+  if (r == Solver::kUnknown && proven_value_ != Solver::kUnknown)
+    r = proven_value_;
   if (r == Solver::kUnknown) {
-    solve_job_ =
-        solver_pool_->submit(solve_job_->game, 20 * solver_pool_->max_nodes());
+    solve_job_ = solver_pool_->submit(
+        solve_job_->game, 20 * solver_pool_->max_nodes(), !testing_);
     r = SolverPool::wait(*solve_job_);
   }
   const bool known = r != Solver::kUnknown;
-  adjudicate(known ? r : 0, solve_job_->game.horizon(), "SOLVED");
+  adjudicate(known ? r : 0, solve_job_->game.horizon(),
+             proven_value_ != Solver::kUnknown ? "PROVEN" : "SOLVED");
+  // The solved line's positions become samples like any other (entry 19):
+  // the network still evaluates positions below the solve horizon inside
+  // its searches, and without data there its values collapse (entry 18).
+  // Policy target: the move played. The game now ends with the line's last
+  // move, whose mover gets the line's last value.
+  const std::vector<Solver::LineStep> &line = solve_job_->line;
+  if (!line.empty()) {
+    for (const Solver::LineStep &step : line) {
+      std::array<float, kGameStateSize> game_state;
+      std::array<float, kNumMoves> prob_sample{};
+      step.game.writeGameState(game_state.data());
+      prob_sample[step.move] = 1.0F;
+      samples_.emplace_back(game_state, prob_sample);
+    }
+    last_mover_value_ = static_cast<float>(line.back().value);
+  }
   solve_job_.reset();
   return known;
 }
@@ -199,7 +266,7 @@ void SelfPlayer::adjudicate(int32_t value, int32_t horizon,
 bool SelfPlayer::doIteration(float eval[], float probs[]) {
   if (solver_pool_ != nullptr && solveStep())
     return true;
-  bool done = players_[to_play_].doIteration(eval, probs);
+  bool done = players_[tree(to_play_)].doIteration(eval, probs);
   // If we have completed a turn, we can choose a move
   if (done)
     return chooseMoveAndContinue();
@@ -223,7 +290,7 @@ void SelfPlayer::writeMoves() const noexcept {
   assert(log_file_ != nullptr);
   *log_file_ << "LEGAL MOVES:\n";
   // Print main line
-  players_[to_play_].root()->printMainLine(log_file_.get());
+  players_[tree(to_play_)].root()->printMainLine(log_file_.get());
   *log_file_ << '\n';
   // Get and sort remaining legal moves by visit count and evaluation
   struct MoveData {
@@ -238,14 +305,15 @@ void SelfPlayer::writeMoves() const noexcept {
           probability{probability}, move{move}, node{node} {}
   };
   std::vector<MoveData> moves;
-  Node *cur = players_[to_play_].root()->first_child();
+  Node *cur = players_[tree(to_play_)].root()->first_child();
   int32_t edge_index = 0;
   while (cur != nullptr) {
-    if (cur->child_id() == players_[to_play_].root()->move_id(edge_index)) {
-      moves.emplace_back(cur->visits(),
-                         cur->evaluation() / static_cast<float>(cur->visits()),
-                         players_[to_play_].root()->probability(edge_index),
-                         cur->child_id(), cur);
+    if (cur->child_id() ==
+        players_[tree(to_play_)].root()->move_id(edge_index)) {
+      moves.emplace_back(
+          cur->visits(), cur->evaluation() / static_cast<float>(cur->visits()),
+          players_[tree(to_play_)].root()->probability(edge_index),
+          cur->child_id(), cur);
       cur = cur->next_sibling();
     }
     ++edge_index;
@@ -272,13 +340,13 @@ void SelfPlayer::writeMoves() const noexcept {
 void SelfPlayer::writePreMoveLogs() const noexcept {
   assert(log_file_ != nullptr);
   *log_file_ << "TURN "
-             << static_cast<int32_t>(players_[to_play_].root()->depth())
+             << static_cast<int32_t>(players_[tree(to_play_)].root()->depth())
              << "\nPLAYER " << static_cast<int32_t>(to_play_ + 1)
              << " TO PLAY\nVISITS: "
-             << static_cast<int32_t>(players_[to_play_].root()->visits())
+             << static_cast<int32_t>(players_[tree(to_play_)].root()->visits())
              << '\n';
   *log_file_ << "POSITION EVALUATION: ";
-  writeEval(players_[to_play_].root());
+  writeEval(players_[tree(to_play_)].root());
   *log_file_ << '\n';
   writeMoves();
 }
@@ -286,13 +354,13 @@ void SelfPlayer::writePreMoveLogs() const noexcept {
 void SelfPlayer::writeMoveChoice(int32_t choice) const noexcept {
   assert(log_file_ != nullptr);
   *log_file_ << "CHOSE MOVE " << Move{choice} << "\nNEW POSITION:\n"
-             << players_[to_play_].root()->game() << "\n\n";
+             << players_[tree(to_play_)].root()->game() << "\n\n";
 }
 
 void SelfPlayer::endGame() noexcept {
-  assert(players_[to_play_].root()->terminal());
+  assert(players_[tree(to_play_)].root()->terminal());
   // Set result
-  if (players_[to_play_].root()->result() == kResultDraw) {
+  if (players_[tree(to_play_)].root()->result() == kResultDraw) {
     result_ = kResultDraw;
     last_mover_value_ = 0.0F;
     // Second player win (to_play is not updated yet so it is opposite)
@@ -313,7 +381,8 @@ void SelfPlayer::endGame() noexcept {
   // We cannot delete the SelfPlayer yet as it contains training samples
   // and results which will be collected at the end
   players_[0].null_root();
-  players_[1].null_root();
+  if (!shared_tree_)  // a shared tree is players_[0] only
+    players_[1].null_root();
   // Frees nothing when the rows live in a caller's slot
   owned_to_eval_.reset();
   to_eval_ = nullptr;
@@ -321,15 +390,22 @@ void SelfPlayer::endGame() noexcept {
 }
 
 int32_t SelfPlayer::chooseMove() {
+  if (relabel_pool_ != nullptr) {
+    // This move's sample is the root position; solved off the critical path
+    const Game &game = players_[tree(to_play_)].root()->get_game();
+    if (game.horizon() <= relabel_horizon_)
+      relabel_jobs_.emplace_back(static_cast<int32_t>(samples_.size()),
+                                 relabel_pool_->submit(game));
+  }
   if (!testing_) {
     std::array<float, kGameStateSize> game_state;
     std::array<float, kNumMoves> prob_sample;
-    int32_t choice =
-        players_[to_play_].chooseMove(game_state.data(), prob_sample.data());
+    int32_t choice = players_[tree(to_play_)].chooseMove(game_state.data(),
+                                                         prob_sample.data());
     samples_.emplace_back(game_state, prob_sample);
     return choice;
   }
-  return players_[to_play_].chooseMove();
+  return players_[tree(to_play_)].chooseMove();
 }
 
 bool SelfPlayer::chooseMoveAndContinue() {
@@ -342,7 +418,7 @@ bool SelfPlayer::chooseMoveAndContinue() {
       writePreMoveLogs();
     }
     // New mate found
-    if (players_[to_play_].root()->known() && mate_turn_ == 0) {
+    if (players_[tree(to_play_)].root()->known() && mate_turn_ == 0) {
       mate_turn_ = samples_.size() + 1;
     }
     int32_t choice = chooseMove();
@@ -350,7 +426,7 @@ bool SelfPlayer::chooseMoveAndContinue() {
       writeMoveChoice(choice);
     }
     // Check if the game is over
-    if (players_[to_play_].root()->terminal()) {
+    if (players_[tree(to_play_)].root()->terminal()) {
       endGame();
       return true;
     }
@@ -359,26 +435,34 @@ bool SelfPlayer::chooseMoveAndContinue() {
     // Checked after every move, not only at the start of an iteration:
     // known results used to be played out move after move within this loop
     // (entry 15). The new position is the root of the mover's tree.
-    if (solver_pool_ != nullptr && tryEnd(*players_[1 - to_play_].root()))
+    if (solver_pool_ != nullptr &&
+        tryEnd(*players_[tree(1 - to_play_)].root()))
       return true;
+    // One tree for both sides: chooseMove has already moved its root down
+    // to the new position, keeping the subtree the mover searched
+    if (shared_tree_) {
+      need_eval = !players_[0].doIteration();
+      continue;
+    }
     // First time iterating the second player
-    if (players_[to_play_].uninitialized()) {
-      players_[to_play_].createRoot(players_[1 - to_play_].root()->game(),
-                                    players_[1 - to_play_].root()->depth());
+    if (players_[tree(to_play_)].uninitialized()) {
+      players_[tree(to_play_)].createRoot(
+          players_[tree(1 - to_play_)].root()->game(),
+          players_[tree(1 - to_play_)].root()->depth());
       // This is always false as the root requires an evaluation
-      return players_[to_play_].doIteration();
+      return players_[tree(to_play_)].doIteration();
     }
     // It's possible that we need an evaluation for this
     // in the case that received move has not been searched
-    need_eval = players_[to_play_].receiveOpponentMove(
-        choice, players_[1 - to_play_].root()->get_game(),
-        players_[1 - to_play_].root()->depth());
+    need_eval = players_[tree(to_play_)].receiveOpponentMove(
+        choice, players_[tree(1 - to_play_)].root()->get_game(),
+        players_[tree(1 - to_play_)].root()->depth());
     if (!need_eval) {
       // Otherwise, we search again.
       // If no evaluation is needed, this player also did all its iterations
       // without needing evaluations, so we loop again.
       // This can happen if a mating sequence is found
-      need_eval = !players_[to_play_].doIteration();
+      need_eval = !players_[tree(to_play_)].doIteration();
     }
   }
   return false;

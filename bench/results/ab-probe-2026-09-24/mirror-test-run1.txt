@@ -1,0 +1,15 @@
+P1 depth 0 vs mirror-P2 (fallback depth 0), 2000 games
+  P1 0.394  draw 0.030  P2 0.576   mean plies 20.6
+  P2 mirrored 88.3% of its moves; 1142 games needed a deviation, first at ply 15.5 on average
+P1 depth 2 vs mirror-P2 (fallback depth 2), 2000 games
+  P1 0.625  draw 0.031  P2 0.344   mean plies 22.9
+  P2 mirrored 86.3% of its moves; 1375 games needed a deviation, first at ply 16.9 on average
+P1 depth 4 vs mirror-P2 (fallback depth 4), 2000 games
+  P1 0.690  draw 0.043  P2 0.267   mean plies 24.2
+  P2 mirrored 84.4% of its moves; 1521 games needed a deviation, first at ply 17.4 on average
+P1 depth 4 vs mirror-P2 (fallback depth 0), 2000 games
+  P1 0.832  draw 0.035  P2 0.133   mean plies 23.0
+  P2 mirrored 86.0% of its moves; 1521 games needed a deviation, first at ply 17.4 on average
+P1 depth 6 vs mirror-P2 (fallback depth 6), 2000 games
+  P1 0.744  draw 0.041  P2 0.215   mean plies 24.6
+  P2 mirrored 84.5% of its moves; 1480 games needed a deviation, first at ply 17.6 on average

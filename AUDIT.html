@@ -1,0 +1,976 @@
+<title>corintho-ai — codebase audit</title>
+<style>
+  :root {
+    --bg: #f3f5f3;
+    --surface: #ffffff;
+    --surface-2: #eaeeec;
+    --ink: #141a1c;
+    --ink-2: #38474a;
+    --muted: #64757a;
+    --line: #d5dcd9;
+    --line-strong: #b6c2be;
+    --accent: #0d7168;
+    --accent-soft: #e0efec;
+    --crit: #9e3320;
+    --crit-bg: #f7e6e1;
+    --high: #a75f16;
+    --high-bg: #f8ecdd;
+    --med: #7a6a1c;
+    --med-bg: #f2eedb;
+    --low: #4a626e;
+    --low-bg: #e6ecef;
+    --dead: #5b5566;
+    --dead-bg: #ecebef;
+
+    --serif: ui-serif, "Iowan Old Style", "Source Serif 4", "Charter", Georgia, Cambria, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1315;
+      --surface: #151c1e;
+      --surface-2: #1b2427;
+      --ink: #e3eae8;
+      --ink-2: #b9c8c7;
+      --muted: #8a9b9c;
+      --line: #242f32;
+      --line-strong: #35454a;
+      --accent: #52c4b6;
+      --accent-soft: #12312e;
+      --crit: #ea7c63;
+      --crit-bg: #331914;
+      --high: #dfa261;
+      --high-bg: #2f2214;
+      --med: #c6b467;
+      --med-bg: #2a2715;
+      --low: #93b2c0;
+      --low-bg: #1a262c;
+      --dead: #a29bb0;
+      --dead-bg: #221f29;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0e1315;
+    --surface: #151c1e;
+    --surface-2: #1b2427;
+    --ink: #e3eae8;
+    --ink-2: #b9c8c7;
+    --muted: #8a9b9c;
+    --line: #242f32;
+    --line-strong: #35454a;
+    --accent: #52c4b6;
+    --accent-soft: #12312e;
+    --crit: #ea7c63;
+    --crit-bg: #331914;
+    --high: #dfa261;
+    --high-bg: #2f2214;
+    --med: #c6b467;
+    --med-bg: #2a2715;
+    --low: #93b2c0;
+    --low-bg: #1a262c;
+    --dead: #a29bb0;
+    --dead-bg: #221f29;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 1.5rem 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 58rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* ---- masthead ---- */
+
+  header.masthead {
+    padding-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.75rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.1rem, 5.5vw, 3.1rem);
+    line-height: 1.08;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h1 .thin { color: var(--muted); font-weight: 400; }
+
+  .standfirst {
+    font-family: var(--serif);
+    font-size: 1.16rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 40rem;
+    margin: 0;
+  }
+
+  .runmeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+  .runmeta b { color: var(--ink-2); font-weight: 500; }
+
+  /* ---- sections ---- */
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line-strong);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  h2 .count {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .lede {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    max-width: 42rem;
+    margin: -0.5rem 0 0;
+  }
+
+  /* ---- tally table ---- */
+
+  .scroller { overflow-x: auto; }
+
+  table.tally {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.87rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 34rem;
+  }
+  table.tally th, table.tally td {
+    text-align: right;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+  table.tally th:first-child, table.tally td:first-child {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+  }
+  table.tally thead th {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  table.tally tbody tr:last-child td { border-bottom: 1px solid var(--line-strong); }
+  table.tally tfoot td {
+    font-weight: 600;
+    border-bottom: none;
+    padding-top: 0.7rem;
+  }
+  td.zero { color: var(--muted); opacity: 0.45; }
+
+  /* ---- finding register ---- */
+
+  .register { display: flex; flex-direction: column; gap: 0; }
+
+  article.finding {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+  article.finding:first-child { border-top: 1px solid var(--line-strong); }
+
+  .fhead {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+  }
+
+  .fid {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 1.13rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+    flex: 1 1 20rem;
+    text-wrap: balance;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.16rem 0.5rem;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .chip.crit { color: var(--crit); background: var(--crit-bg); }
+  .chip.high { color: var(--high); background: var(--high-bg); }
+  .chip.med  { color: var(--med);  background: var(--med-bg); }
+  .chip.low  { color: var(--low);  background: var(--low-bg); }
+  .chip.dead { color: var(--dead); background: var(--dead-bg); }
+
+  .loc {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    word-break: break-word;
+  }
+
+  article.finding p { margin: 0; max-width: 44rem; }
+  article.finding p + p { margin-top: 0.55rem; }
+
+  .impact {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    border-left: 2px solid var(--line-strong);
+    padding-left: 0.85rem;
+    max-width: 44rem;
+  }
+  .impact b {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    display: block;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 0.08em 0.32em;
+    border-radius: 2px;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--accent);
+    padding: 0.85rem 1rem;
+    margin: 0;
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  pre .cmt { color: var(--muted); }
+  pre .bad { color: var(--crit); font-weight: 600; }
+  pre .good { color: var(--accent); font-weight: 600; }
+
+  .verified {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  /* ---- dead file list ---- */
+
+  table.files {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.84rem;
+    min-width: 40rem;
+  }
+  table.files th, table.files td {
+    text-align: left;
+    padding: 0.5rem 0.7rem 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  table.files thead th {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  table.files td:first-child { font-family: var(--mono); font-size: 0.78rem; }
+  table.files td.size {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+    color: var(--ink-2);
+    padding-right: 1.2rem;
+  }
+  table.files td.why { color: var(--ink-2); }
+
+  ol.plan {
+    margin: 0;
+    padding-left: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-width: 44rem;
+  }
+  ol.plan li::marker { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); }
+  ol.plan b { font-weight: 600; }
+
+  .note {
+    background: var(--accent-soft);
+    border: 1px solid var(--line-strong);
+    padding: 1rem 1.15rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    max-width: 44rem;
+  }
+  .note b { color: var(--ink); }
+
+  footer {
+    border-top: 1px solid var(--line-strong);
+    padding-top: 1.25rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  a { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    body { padding: 0 1rem 4rem; }
+    header.masthead { padding-top: 2.5rem; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Codebase audit · branch audit/codebase-review</p>
+    <h1>corintho-ai <span class="thin">— bugs, races, and 2.4&nbsp;GB of things nobody reads</span></h1>
+    <p class="standfirst">Full read of the C++ MCTS core, the Cython training pipeline, the browser port, and the build/CI layer. Two engine bugs silently corrupt search results; one hangs the web app; the self-play arena over-allocates its neural-net input buffer by 100&times;.</p>
+    <div class="runmeta">
+      <span><b>45/45</b> gtest cases pass</span>
+      <span><b>0</b> code changes made</span>
+      <span><b>~5,500</b> LOC first-party</span>
+      <span><b>3</b> subagents fanned out</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Where the findings landed <span class="count">by subsystem</span></h2>
+    <p class="lede">Severity is about consequence, not effort. <em>Critical</em> means it silently produces wrong results or hangs; <em>high</em> means it wastes a lot of something or breaks a documented feature.</p>
+    <div class="scroller">
+      <table class="tally">
+        <thead>
+          <tr><th>Subsystem</th><th>Critical</th><th>High</th><th>Medium</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>C++ engine core</td><td>4</td><td>1</td><td>5</td><td>10</td></tr>
+          <tr><td>Training pipeline (Cython/Python)</td><td>3</td><td>4</td><td>4</td><td>11</td></tr>
+          <tr><td>Web app</td><td>2</td><td>3</td><td>5</td><td>10</td></tr>
+          <tr><td>Build &amp; CI</td><td class="zero">0</td><td>1</td><td>3</td><td>4</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>Total</td><td>9</td><td>9</td><td>17</td><td>35</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="lede">Plus a dead-code inventory: <b>~7&nbsp;MB tracked</b> and unreachable, and <b>~2.4&nbsp;GB untracked</b> local training detritus.</p>
+  </section>
+
+  <section>
+    <h2>C++ engine core <span class="count">10 findings</span></h2>
+    <div class="register">
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-1</span>
+          <h3>Drawn positions are always deduced as losses</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/src/trainmc.cpp:518 &nbsp;·&nbsp; <span class="verified">verified against JS port</span></p>
+        <p>Inside <code>propagateTerminal()</code>'s loop over a node's children, the draw check tests the <em>parent</em>, not the child:</p>
+<pre><code>while (cur_child != nullptr) {
+  if (cur_child-&gt;child_id() != cur-&gt;move_id(edge_index) || !cur_child-&gt;known())
+    return;
+  <span class="bad">if (cur-&gt;drawn()) {          // cur is the parent being deduced</span>
+    has_draw = true;
+  }
+  ...
+}</code></pre>
+        <p>At that point <code>cur-&gt;result_</code> is always <code>kResultNone</code> — that is the value the loop is computing. So <code>has_draw</code> can never become true, and the <code>if (has_draw)</code> branch below is dead code: every fully-resolved non-winning node is marked <code>kDeducedLoss</code>, never <code>kDeducedDraw</code>.</p>
+        <p>The browser port at <code>web/trainmc.js:288</code> correctly reads <code>curChild.drawn()</code>, which is how I confirmed intent rather than guessing it.</p>
+        <div class="impact"><b>Impact</b>A drawn position is scored as a loss for the side to move, and its parent then flips to <code>kDeducedWin</code> on the next iteration. This propagates upward, changes which branch of <code>chooseMove</code> runs, and feeds wrong evaluation labels into training. Every generation trained since this was introduced has learned from it.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-2</span>
+          <h3><code>chooseHighProbMove</code> returns the last legal move, not the best one</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/src/trainmc.cpp:298–308 &nbsp;·&nbsp; <span class="verified">reproduced</span></p>
+<pre><code><span class="bad">int32_t max_prob = 0;</span>   <span class="cmt">// probability() returns float in (0, 1]</span>
+int32_t choice = 0;
+for (int32_t i = 0; i &lt; root_-&gt;num_legal_moves(); ++i) {
+  if (root_-&gt;probability(i) &gt; max_prob) {
+    <span class="bad">max_prob = root_-&gt;probability(i);</span>   <span class="cmt">// truncates to 0</span>
+    choice = root_-&gt;move_id(i);
+  }
+}</code></pre>
+        <p>Every assignment truncates a sub-1.0 float to <code>0</code>, so the guard <code>probability(i) &gt; 0</code> passes on every iteration and <code>choice</code> ends up as whichever legal move happens to be last. I confirmed with a standalone repro: given weights <code>{0.5, 0.1, 0.3, 0.1}</code> the loop returns index 3, not 0.</p>
+        <div class="impact"><b>Impact</b>Fallback path, but not a rare one — it fires in <code>chooseMoveNormal</code> and <code>chooseMoveOpening</code> whenever <code>max_visits == 0</code>, i.e. one-search turns and positions where every child is a losing move. Exactly the solved-endgame case. Fix is <code>float max_prob = 0.0f;</code>. The JS port uses the raw integer edge weight and is correct.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-3</span>
+          <h3><code>std::vector&lt;bool&gt;</code> written concurrently from an OpenMP loop</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/src/trainer.cpp:192 · tourney.cpp:70 (declarations: trainer.h:65, tourney.h:42)</p>
+<pre><code>#pragma omp parallel for
+for (size_t i = 0; i &lt; games_.size(); ++i) {
+  ...
+  <span class="bad">if (done) is_done_[i] = true;</span>   <span class="cmt">// vector&lt;bool&gt; — bit-packed proxy</span>
+}</code></pre>
+        <p><code>std::vector&lt;bool&gt;</code> packs 64 elements into one word. Two threads finishing games <code>i</code> and <code>i+1</code> perform read-modify-write on the <em>same</em> word with no synchronisation — a textbook data race, and one that loses updates rather than crashing.</p>
+        <div class="impact"><b>Impact</b>A completed game can be marked incomplete, so it keeps being iterated after <code>endGame()</code> has already reset its root and released its eval buffer. The loop also reads <code>is_done_[i]</code> concurrently. Non-deterministic; more likely as thread count rises. Fix: <code>std::vector&lt;uint8_t&gt;</code> or <code>std::deque&lt;bool&gt;</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-4</span>
+          <h3>Tournament matches read the wrong network evaluations</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/src/tourney.cpp:56–62</p>
+<pre><code>for (size_t i = 1; i &lt; matches_.size(); ++i) {
+  <span class="bad">if (!is_done_[i] &amp;&amp; matches_[i]-&gt;to_play() == id) {</span>   <span class="cmt">// tests i</span>
+    <span class="bad">offset += matches_[i - 1]-&gt;num_requests();</span>          <span class="cmt">// adds i-1</span>
+  }
+  offsets[i] = offset;
+}</code></pre>
+        <p>The eligibility guard and the accumulation disagree by one index. <code>writeRequests</code> (tourney.cpp:44–52) packs the batch as <em>&ldquo;sum over j&nbsp;&lt;&nbsp;i of eligible <code>num_requests(j)</code>&rdquo;</em>, so <code>offsets[i]</code> only matches by coincidence. The equivalent loop in <code>Trainer::doIteration</code> (trainer.cpp:208–215) tests <code>i-1</code> in both places and is correct — this is a transcription slip in the copy.</p>
+        <div class="impact"><b>Impact</b>Matches read another match's evaluation and policy rows out of the batch. Silent: no crash, no assert, just subtly wrong play. Everything downstream of a tournament — the Elo table, generation-to-generation rating deltas — is built on this.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-5</span>
+          <h3>Self-play eval buffer over-allocated 100&times;</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/src/selfplayer.cpp:24 · match.cpp:18–20</p>
+<pre><code><span class="bad">to_eval_{std::make_unique&lt;float[]&gt;(kGameStateSize * max_searches)}</span></code></pre>
+        <p>The buffer is only ever written at <code>to_eval_ + searched_.size() * kGameStateSize</code>, and <code>searched_.size()</code> is bounded by <code>searches_per_eval_</code>, never by <code>max_searches_</code>. The correct size is <code>kGameStateSize * searches_per_eval</code>. <code>DockerMC</code> (dockermc.cpp:16) already gets this right, which is good evidence it's a slip rather than a deliberate margin.</p>
+        <div class="impact"><b>Impact</b>At <code>max_searches=1600, searches_per_eval=16</code> that's 448&nbsp;KB per game instead of 4.5&nbsp;KB. Every <code>SelfPlayer</code> is constructed up front in <code>Trainer::initialize</code>, so the default <code>num_games=25000</code> reserves ~11&nbsp;GB of eval buffers before a single search runs. At the shipped default <code>searches_per_eval=1</code> the over-allocation is 1600&times;. This is almost certainly the ceiling on how many games you can run at once.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-6</span>
+          <h3><code>TrainMC</code> has defaulted copy/move but owns a raw pointer it deletes</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/include/trainmc.h:21–25, src/trainmc.cpp:34–36</p>
+        <p>Rule-of-three violation: <code>~TrainMC() { delete root_; }</code> alongside <code>TrainMC(const TrainMC&amp;) = default</code>. Any real copy double-frees the tree. It is currently harmless only because C++17 guaranteed elision means <code>SelfPlayer</code>'s array-of-two initialisation never actually copies, and <code>root_</code> is <code>nullptr</code> at that moment anyway. Separately, both assignment operators are declared <code>= default</code> but are implicitly <em>deleted</em> because of the <code>const</code> members — the declaration says something untrue.</p>
+        <div class="impact"><b>Impact</b>Latent. But it's the kind of thing that detonates the first time someone puts a <code>TrainMC</code> in a container or refactors <code>SelfPlayer</code>. Delete the copy operations explicitly, or hold <code>root_</code> in a <code>unique_ptr</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-7</span>
+          <h3>Variable-length arrays sized by <code>num_games</code></h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">trainer.cpp:116, 170, 207 · tourney.cpp:56 · trainmc.cpp:250, 274, 277</p>
+        <p><code>-Wpedantic</code> flags four: <code>float scores[games_.size()]</code> and three <code>int32_t offsets[...]</code>. These are a GCC/Clang extension, not ISO C++ (MSVC rejects them), and they are stack allocations scaled by a user-supplied flag. At <code>num_games=25000</code> that's 100&nbsp;KB of stack per array; the default 8&nbsp;MB stack holds, but nothing enforces it. The small VLAs in <code>trainmc.cpp</code> (bounded by 48 legal moves) are fine in practice.</p>
+        <div class="impact"><b>Impact</b>Stack overflow at large <code>--num_games</code>, no diagnostic. Swap the three large ones for <code>std::vector</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-8</span>
+          <h3>Move id and new root can disagree when no child matches</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">trainmc.cpp:310–335 (<code>chooseMoveWon</code>), 337–361 (<code>chooseMoveLostDrawn</code>)</p>
+        <p>Both initialise <code>choice = 0, best_prev = nullptr</code> and only overwrite them if a child passes the filter. If none does, the function <em>returns move id 0</em> but calls <code>moveDown(nullptr)</code>, which promotes <code>root_-&gt;first_child()</code> — a different move. The caller then tells the opponent one thing and continues searching another.</p>
+        <p><code>chooseMoveNormal</code> handles this case explicitly (rebuilds the root from <code>choice</code>); these two don't. Reaching it requires a <code>won()</code>/<code>drawn()</code> root with no correspondingly-resolved child, which the invariants should prevent — but <code>chooseMoveLostDrawn</code> on a terminal <code>kResultDraw</code> root has no children at all, and <code>moveDown</code> would then dereference <code>nullptr</code>.</p>
+        <div class="impact"><b>Impact</b>Desynchronised game state, or a null dereference. Cheap to make defensive.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-9</span>
+          <h3>Inconsistent null guard on <code>prob_sample</code></h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">trainmc.cpp:383 vs 396</p>
+        <p><code>chooseMoveOpening</code> guards <code>if (prob_sample != nullptr)</code> at line 383, then writes <code>prob_sample[choice] = 1.0</code> unguarded thirteen lines later. Currently unreachable because <code>assert(!testing_)</code> implies a non-null sample, but the two lines disagree about what's true.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CPP-10</span>
+          <h3><code>Node::visits_</code> is <code>int16_t</code> with no saturation guard</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">corintho_ai/cpp/include/node.h:164</p>
+        <p>The header documents the ceiling — &ldquo;<em>Search should stop for any node that has been visited 32,767 times</em>&rdquo; — but nothing enforces it. <code>increment_visits()</code> is a bare <code>++visits_</code>. Overflow gives a negative visit count, which then divides the evaluation in <code>chooseNext</code> and inverts the UCB ranking.</p>
+        <div class="impact"><b>Impact</b>Not reachable at the training default (1600) or the web app's 4000. Reachable in deep analysis runs. Either clamp in <code>increment_visits</code> or treat &ge;32767 as <code>all_visited</code>.</div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Training pipeline <span class="count">11 findings · Cython + Python</span></h2>
+    <div class="register">
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-1</span>
+          <h3>The replay buffer has never been used</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/python/main.pyx:208–219</p>
+<pre><code>for cur_path in old_training_samples:
+    old_game_states = np.load(f"{cur_path}/game_states.npz")
+    ...
+    <span class="bad">np.concatenate((game_states, np.reshape(old_game_states["arr_0"], (-1, 70))))</span>
+    <span class="bad">np.concatenate((eval_labels, old_eval_labels["arr_0"]))</span>
+    <span class="bad">np.concatenate((prob_labels, np.reshape(old_prob_labels["arr_0"], (-1, 96))))</span></code></pre>
+        <p><code>np.concatenate</code> is pure — it returns a new array and mutates nothing. All three return values are discarded, and line 219 returns the original three arrays untouched.</p>
+        <div class="impact"><b>Impact</b><code>--num_old_gens</code> (default <b>20</b>) is silently inert. Every generation has trained only on its own self-play samples. This is a real change to training dynamics, not a micro-optimisation — sample reuse is normally what keeps AlphaZero-style training stable.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-2</span>
+          <h3>Prediction buffers sized from the wrong game count</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">main.pyx:132–134, called at 343 with the tester built at 329</p>
+        <p><code>play_games</code> always reads <code>params["num_games"]</code> to size <code>evals</code>, <code>probs</code> and <code>game_states</code> — but it is also called with the testing <code>Trainer</code>, which was constructed with <code>params["num_test_games"]</code>. The C++ side writes up to <code>games_in_trainer &times; searches_per_eval</code> rows.</p>
+        <div class="impact"><b>Impact</b>Heap buffer overflow past the end of three NumPy arrays whenever <code>num_test_games &gt; num_games</code>. The two flags are clamped independently in <code>wrapper.py</code> (<code>num_games &ge; 1</code>, <code>num_test_games</code> default <b>400</b>), so <code>--num_games=100</code> is enough to trigger it. Silent corruption, no exception.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-3</span>
+          <h3>Unnamed runs are dead on arrival</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">corintho_ai/python/wrapper.py:247–250, 341–350</p>
+<pre><code>if len(name) == 0:
+    now = datetime.now()
+    name = f"_run_{now.year}{now.month}{now.day}"
+    <span class="bad">f"{now.hour}{now.minute}{now.second}"</span>   <span class="cmt"># no-op expression statement</span></code></pre>
+        <p>Two bugs stacked. The second f-string is a dangling expression, not a continuation, so generated names are date-only and collide for two runs on the same day. And <code>params["name"]</code> is never assigned the generated name — <code>setup_new_run</code> creates <code>{cwd}/_run_20260808/</code> using the local, then <code>start_generation</code> reads <code>params["name"] == ""</code> and builds <code>{cwd}//generations/gen_1</code>, so <code>os.mkdir(train_log_folder)</code> raises <code>FileNotFoundError</code>.</p>
+        <div class="impact"><b>Impact</b>Latent only because the shipped TOMLs always set <code>name</code>. Anyone running without <code>--name</code> gets an immediate crash after the model has been built and saved.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-4</span>
+          <h3>A perfect test score poisons the rating chain permanently</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">main.pyx:274–283</p>
+        <p><code>new_rating = best_gen_rating - 400 * np.log10(1 / score - 1)</code>. At <code>score == 1.0</code> that is <code>log10(0)</code> → <code>+inf</code> with only a <code>RuntimeWarning</code>. The <code>inf</code> is written to <code>rating.txt</code>; since <code>score &gt; test_threshold</code> the generation is promoted, so <code>setup_existing_run</code> reads <code>inf</code> as <code>best_gen_rating</code> next generation and every subsequent rating is <code>inf</code> or <code>nan</code>. The <code>score &gt; 0</code> guard covers the mirror case but not this one.</p>
+        <div class="impact"><b>Impact</b>Reachable in practice — <code>test.toml</code> sets <code>num_test_games = 2</code>. Clamp the score to <code>[1/(2n), 1 - 1/(2n)]</code> before the log.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-5</span>
+          <h3><code>predict()</code> is handed the full 400,000-row array every call</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">main.pyx:70–83</p>
+        <p><code>get_predictions</code> passes the entire <code>game_states</code> array to <code>model.predict</code> and relies on <code>steps=1</code> to truncate it. At <code>num_games=25000, searches_per_eval=16</code> that's a 400,000&times;70 float32 array (~112&nbsp;MB) converted into a <code>tf.data</code> pipeline on every evaluation, thousands of times per generation, to compute at most <code>num_requests</code> rows. <code>verbose=1</code> also prints a Keras progress bar per call.</p>
+        <div class="impact"><b>Impact</b>Very likely the dominant term in <code>predict_time</code>. Slice the input and use <code>model(x, training=False)</code> instead of <code>predict</code> for in-loop batches.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-6</span>
+          <h3>Symmetry augmentation leaks across the train/val split</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">main.pyx:249–258</p>
+        <p>Each position is written as 8 contiguous symmetry rows. Keras's <code>validation_split=0.3</code> takes the last 30% of the array <em>before</em> shuffling, so nearly every validation position has 1–7 of its own rotations sitting in the training set.</p>
+        <div class="impact"><b>Impact</b><code>val_loss</code> is optimistically biased — and it drives <code>ModelCheckpoint(save_best_only=True)</code>, <code>ReduceLROnPlateau</code>, and the <code>losses.txt</code> → <code>write_learning_rate</code> chain. Every learning-rate and model-acceptance decision keys off a leaked metric. Split by position group, or hold out whole games.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-7</span>
+          <h3><code>new Trainer</code> / <code>del trainer</code> is not exception-safe</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">main.pyx:299–357</p>
+        <p>Both <code>Trainer</code> objects are allocated with bare <code>new</code> and only freed on the happy path. <code>play_games</code> raises explicitly at line 163; <code>train_neural_network</code> can raise on Keras OOM or checkpoint I/O; <code>get_samples</code> allocates multi-GB arrays. Each leaked <code>Trainer</code> owns <code>num_games</code> <code>SelfPlayer</code>s with their trees. Since <code>main.py</code> drives generations via <code>os.system</code> in a loop, this leaks per failed generation.</p>
+        <div class="impact"><b>Impact</b>Wrap each in <code>try/finally</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-8</span>
+          <h3><code>cdef void</code> without <code>except *</code> can swallow the explicit raise</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">main.pyx:85, 123, 221</p>
+        <p><code>log_stats</code>, <code>play_games</code> and <code>train_neural_network</code> are all <code>cdef void</code> with no exception specification. Under Cython 0.29 semantics an exception inside them — including the deliberate <code>raise Exception("No requests during training")</code> at line 163 — is reported via <code>WriteUnraisable</code> ("Exception ignored in:") and <b>execution continues</b> into <code>get_samples</code> with garbage state.</p>
+        <p>Which behaviour you actually get depends on the installed Cython, and that's undetermined: the <code>language_level=3str</code> directive lives in <code>setup.py</code> as an inert comment rather than in the <code>.pyx</code> or in <code>cythonize(compiler_directives=...)</code>. The same ambiguity silently changes <code>main.pyx:116</code> from floor to true division.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-9</span>
+          <h3><code>cdef extern from "../cpp/src/trainer.cpp"</code> defeats rebuild tracking</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">main.pyx:17 · setup.py:17–25 · tourney.pyx:15</p>
+        <p>No ODR problem — <code>trainer.cpp</code> is deliberately absent from <code>setup.py</code>'s sources, so it compiles exactly once inside the generated TU. The cost is dependency tracking: setuptools does no include scanning, so editing <code>trainer.cpp</code> or <code>trainer.h</code> alone leaves the object stale and <code>build_ext</code> reports "up-to-date". <code>build.sh</code> accidentally papers over it with <code>rm main.cpp</code>; a direct <code>setup.py build_ext</code> silently links yesterday's engine.</p>
+        <div class="impact"><b>Impact</b>Add <code>trainer.cpp</code> to <code>sources</code> and extern from <code>trainer.h</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-10</span>
+          <h3><code>os.system</code> with no exit-code check</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">corintho_ai/python/main.py:56 · corintho_ai/rating/tourney.py:42</p>
+        <p>Both drivers build a shell command string from unvalidated TOML values and loop <code>for element in commands: os.system(element)</code>. If generation 3 of 20 segfaults, generations 4–20 run anyway against a half-written directory. It's also a shell-injection surface via <code>name</code>/<code>cwd</code>. Use <code>subprocess.run([...], check=True)</code>.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">PY-11</span>
+          <h3>Rating utilities: sparse-matchup <code>KeyError</code>, unreset patience, biased pairing</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">corintho_ai/rating/rating.py:62–71, 129–135 · round.py:188–191</p>
+        <p>Three separate defects in the rating tooling. <code>compute_gradient_r</code> indexes <code>self.matchups[k]</code> and <code>self.matchups[opp][k]</code> unconditionally while the dict is built only from rows present in <code>results.txt</code> — <code>KeyError</code> on any pair that never played, which is most of them. <code>updates_since_improvement</code> is incremented but never reset, so the learning rate decays on a fixed schedule regardless of progress (the C++ twin, <code>rating_gd.cpp:125–133</code>, does this correctly). And <code>round.py</code>'s variance estimate mutates <code>n1</code> before evaluating <code>m1</code>'s denominator, adding 0.96 games skewed toward the winner instead of a symmetric 1.0.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Web app <span class="count">10 findings · web/</span></h2>
+    <p class="lede">Port fidelity is otherwise excellent: the 102&times;96-bit <code>LINE_BREAKERS</code> table is byte-identical to <code>util.h</code>, the reversed <code>std::bitset</code> string ordering is handled correctly, and the capital-line special case is faithfully ported. The two divergences found (CPP-1, CPP-2) both have the JS as the correct side.</p>
+    <div class="register">
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-1</span>
+          <h3>The search worker can spin forever</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">web/trainmc.js:120–133 → web/worker.js:114–134</p>
+        <p><code>doIteration</code>'s <code>while</code> loop exits on <b>four</b> conditions but its return value only reports two of them:</p>
+<pre><code>while (this.searched.length &lt; this.searchesPerEval &amp;&amp;
+       this.searchesDone   &lt; this.maxSearches   &amp;&amp;
+       !this.root.known() &amp;&amp; <span class="bad">!this.root.allVisited</span>) { this.search(); }
+
+return (this.searchesDone === this.maxSearches || this.root.known())
+       &amp;&amp; this.searched.length === 0;</code></pre>
+        <p>When the loop exits because <code>root.allVisited</code> went true with <code>searchesDone &lt; maxSearches</code>, it returns <code>false</code> with zero pending requests. The worker then skips <code>await runInference(...)</code> — so there is <b>no <code>await</code> anywhere on that path</b> — and calls <code>doIteration</code> again, which immediately fails the same guard. Forever.</p>
+        <p><code>search()</code> itself sets <code>allVisited</code> on the root and <em>decrements</em> <code>searchesDone</code> when <code>chooseNext</code> returns <code>"none"</code>, so once the root is exhausted <code>searchesDone</code> can never reach <code>maxSearches</code>.</p>
+        <div class="impact"><b>Impact</b>Worker pins a core at 100%, the event loop never yields so <code>onmessage</code> can never be re-entered, and the UI sits on "CPU is thinking…" permanently with no timeout. Fix is to make the return condition total: <code>… || this.root.allVisited</code>.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-2</span>
+          <h3>CDN failure hangs the game — and the UI promises otherwise</h3>
+          <span class="chip crit">Critical</span>
+        </div>
+        <p class="loc">web/corintho.js:656–690 · web/worker.js:9</p>
+        <p><code>chooseCPUMove</code> subscribes only to <code>message</code> — no <code>error</code>, no <code>messageerror</code> handler. <code>worker.js</code> does a <em>top-level</em> <code>import * as ort from "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/…"</code>. If that import fails — ad-blocker, corporate proxy, offline, CSP, jsdelivr outage — the module never evaluates, <code>self.onmessage</code> is never installed, the posted message is dropped, and the promise never settles.</p>
+        <p>The shipped copy at <code>index.html:422</code> says <em>"If the model fails to load, the game falls back to random legal moves."</em> That's true for <code>InferenceSession.create</code> failures, which the worker's <code>try/catch</code> does cover — but not for load failures, which happen before the <code>try</code> exists.</p>
+        <div class="impact"><b>Impact</b>Add <code>error</code>/<code>messageerror</code> listeners routing to the existing random fallback, plus a wall-clock timeout. Moving to <code>await import()</code> inside the try block makes CDN failure catchable.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-3</span>
+          <h3>Starting a new game mid-search corrupts the board</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">web/corintho.js:288–324, 656–690, 846–871</p>
+        <p>Nothing cancels an in-flight search and nothing tags requests. Click New Game while the CPU is thinking and a second message goes to the same worker with a second listener attached; both listeners receive every reply, and the first resolves on whichever arrives first. The old <code>runCpuResponse</code> then resumes after its <code>await</code>, reads the <em>module-level</em> <code>gameState</code> (now the new game), and applies a move computed for the old position.</p>
+        <p><code>doCPUMove</code> performs zero validation: <code>placePiece</code> decrements <code>pieceCounts</code> below zero, <code>movePiece</code> moves pieces out of empty cells.</p>
+        <div class="impact"><b>Impact</b>Silent board corruption, plus two searches interleaving at their <code>await</code> points and roughly doubling each other's latency. Fix with a monotonic request id, and re-check <code>gs === gameState</code> after the await.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-4</span>
+          <h3>NaN cascade when the policy head zeroes every legal move</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">web/trainmc.js:150, 178 · node.js:102–105</p>
+        <p>If the float32 policy output underflows to 0 across all legal moves, <code>scalar = (1/0) * (1-ε) = Infinity</code>, then <code>0 * Infinity = NaN</code>. In <code>setProbs</code>, <code>NaN &gt; maxProb</code> is false so <code>maxProb</code> stays 0, <code>denom = 511/0 = Infinity</code>, and <code>Math.max(1, Math.round(NaN))</code> is <code>NaN</code> — every edge probability and the denominator go NaN. <code>node.js</code> guards only <code>denominator &lt;= 0</code>, and <code>NaN &lt;= 0</code> is false.</p>
+        <div class="impact"><b>Impact</b>Every <code>u</code> in <code>chooseNext</code> becomes NaN, <code>maxEval</code> stays <code>-Infinity</code>, <code>"none"</code> is returned at the root — which is the deterministic trigger for WEB-1. The C++ at least has <code>assert(denominator &gt; 0.0)</code>. Guard with <code>if (!(sum &gt; 0))</code> / <code>if (!(this.denominator &gt; 0))</code>, which catches NaN.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-5</span>
+          <h3>Chosen move id is applied without a legality check</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">web/worker.js:136–138 · trainmc.js:378–415</p>
+        <p><code>chooseMoveWon</code>, <code>chooseMoveLostDrawn</code> and <code>chooseHighProbMove</code> all default <code>choice = 0</code>. <code>buildResponseAfterCpuMove</code> takes the result straight to <code>g.doMove(moveId)</code> with no validation (C++ at least has <code>assert(isLegalMove(move_id))</code> at game.cpp:64, even if <code>NDEBUG</code> compiles it out). Move id 0 is "move stack a4 → b4", almost always illegal.</p>
+        <div class="impact"><b>Impact</b>Defensive-only in the normal flow, but WEB-4 makes it live. Check the id against the root's edges before applying; on failure post an error so the random fallback fires.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-6</span>
+          <h3>No tree reuse — every CPU move rebuilds 4,000 nodes from scratch</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">web/worker.js:96–107</p>
+        <p><code>TrainMC::moveDown</code> and <code>receiveOpponentMove</code> have no JS counterpart, and the worker constructs a fresh <code>TrainMC</code> per incoming message. The C++ keeps the subtree under the chosen move; the web app discards it. Roughly doubles time-to-move and peak allocation.</p>
+        <p>Related, same file: <code>new Float32Array(16 * K_GAME_STATE_SIZE)</code> at line 93 hardcodes the batch size separately from <code>searchesPerEval: 16</code> at line 101. Change one without the other and <code>writeGameState</code> writes past the typed array — which JS <b>silently ignores</b>, so positions would be evaluated as all-zero game states with no error.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-7</span>
+          <h3>~1M short-lived objects per CPU move</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">web/node.js:26, 59–76 · web/engine.js:137–140, 312–349</p>
+        <p>Each <code>MCTSNode</code> clones two <code>Int8Array</code>s (~200 bytes of object headers for 70 bytes of data, versus C++'s inline 16-byte <code>Game</code>), allocates <code>new Array(96).fill(true)</code>, and calls <code>isLegalMove</code> 96 times — each of which runs <code>decodeMove</code>, allocating a move object plus nested <code>{row, col}</code> objects. Retained edges are up to 48 <code>{moveId, prob}</code> objects, ~2&nbsp;KB per node against C++'s 2-byte packed bitfields.</p>
+        <div class="impact"><b>Impact</b>At 4,000 searches that's roughly 1M transient objects and ~9&nbsp;MB retained per move. The 96 decoded moves are constant — precompute them into a frozen module-level table and reuse a scratch <code>Uint8Array(96)</code> for the legal mask.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-8</span>
+          <h3>No CSP, no SRI, and the Tailwind JIT compiler in production</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">web/index.html:19, 469, 477 · web/worker.js:9, 14 · web/vercel.json</p>
+        <p>No <code>Content-Security-Policy</code>, <code>X-Content-Type-Options</code>, <code>Referrer-Policy</code> or <code>Permissions-Policy</code> anywhere. <code>index.html:19</code> loads <code>cdn.tailwindcss.com</code> — the in-browser JIT compiler that Tailwind explicitly documents as not for production; it's ~100&nbsp;KB of render-blocking JS that needs <code>unsafe-eval</code>, so it actively blocks adopting a CSP. Zero <code>integrity</code> attributes on it or the two Google Fonts stylesheets. The worker pulls both the ORT bundle and its <code>.wasm</code> binaries from jsdelivr at runtime. Inline <code>onclick=</code> handlers at 469 and 477 would break under any <code>script-src</code> policy.</p>
+        <div class="impact"><b>Impact</b>A jsdelivr or Tailwind CDN compromise executes arbitrary JS on the page and inside the worker. Self-hosting <code>ort.min.mjs</code> + the wasm files also fixes WEB-2's availability failure.</div>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-9</span>
+          <h3><code>model.onnx</code> is immutably cached for a year at a stable path</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">web/vercel.json:4–8</p>
+        <p><code>public, max-age=31536000, immutable</code> on <code>/model.onnx</code>, which is not content-hashed. Ship a retrained model and returning visitors play the old one for up to a year with no cache-bust available. Meanwhile the JS that would reference a new filename is cached for only an hour, so there's no coherent versioning story. Rename to <code>model.&lt;hash&gt;.onnx</code> and reference it via the constant already at <code>worker.js:18</code>.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">WEB-10</span>
+          <h3>Accessibility: focus is destroyed on every redraw, modals don't trap it</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">web/corintho.js:421–433, 271–295 · web/index.html:190–229, 266–270</p>
+        <p><code>drawBoard</code> does <code>boardElement.innerHTML = ""</code> and rebuilds all 16 tile buttons on every <code>drawGame</code>, so a keyboard user who commits a move has focus reset to <code>&lt;body&gt;</code> immediately, and again when the CPU replies. Tiles carry only <code>aria-label="Cell a4"</code> — no stack contents, no frozen state, no <code>aria-pressed</code>. Overlays never move focus into the dialog, never trap Tab, never restore focus on close, and the background isn't <code>inert</code>. <code>#turn-counter</code> changes from "It's your turn!" to "You won!" with no <code>aria-live</code>, so the result is never announced. Several <code>role="tab"</code> buttons sit outside any <code>tablist</code>, and no panel has <code>role="tabpanel"</code>.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Build &amp; CI <span class="count">4 findings</span></h2>
+    <div class="register">
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CI-1</span>
+          <h3>Nothing in CI builds the Cython extensions or runs a Python test</h3>
+          <span class="chip high">High</span>
+        </div>
+        <p class="loc">.github/workflows/ — doxygen, C++ gtest, isort, black+flake8</p>
+        <p>No job runs <code>setup.py build_ext</code>, and the repo contains zero Python tests (<code>tests/</code> holds only <code>tests/cpp/</code>). The entire Python↔C++ boundary is unverified — PY-1, PY-2, PY-8 and any signature drift between <code>trainer.h</code> and the <code>cdef extern</code> block all land on <code>main</code> green. flake8 is also scoped to <code>corintho_ai/python</code> only, so <code>corintho_ai/rating/*.py</code> is entirely unlinted.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CI-2</span>
+          <h3>The test build and the shipping build are different configurations</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">CMakeLists.txt:14 vs setup.py:26–31</p>
+<pre><code>set(CMAKE_CXX_FLAGS "--coverage -fopenmp -g -pg -O3")</code></pre>
+        <p>Four problems in one line. <code>set</code> <em>replaces</em> rather than appends, discarding toolchain flags. Coverage and <code>-pg</code> profiling are both unconditional, so there's no way to produce a clean or benchmarkable build. <code>-O3</code> without <code>-fno-inline</code> makes the lcov line attribution reported in CI unreliable. And there's no <code>-DNDEBUG</code> — while <code>setup.py</code> and <code>setup_tourney.py</code> both <em>do</em> pass it. So gtest exercises a build with asserts live, and the Cython artifact that actually trains has them compiled out. No <code>-Wall -Wextra</code> either; adding it surfaces the sign-compare warnings on all six <code>assert(searched_.size() &lt;= searches_per_eval_)</code> sites.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CI-3</span>
+          <h3>The vendored gtest isn't the gtest that gets linked</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">CMakeLists.txt:16–17 · run-cpp-tests.yaml:24–28</p>
+        <p><code>googletest/</code> is gitignored and untracked, and the workflow clones only GSL. So in CI, <code>include_directories(googletest/googletest/include)</code> and <code>link_directories(googletest/lib)</code> both point at nothing, and the build silently succeeds against <code>libgtest-dev</code>'s system headers and libs. Locally, where <code>googletest/</code> exists, you compile against vendored headers and link system libs — a genuine ODR hazard. Use <code>FetchContent</code> or <code>find_package(GTest REQUIRED)</code>.</p>
+      </article>
+
+      <article class="finding">
+        <div class="fhead">
+          <span class="fid">CI-4</span>
+          <h3>Path filters that match nothing, and a docs job with three failure modes</h3>
+          <span class="chip med">Medium</span>
+        </div>
+        <p class="loc">run-cpp-tests.yaml:10 · run-lint-cpp.yaml:8 · generate-doxygen.yaml:13–25</p>
+        <p><code>'CMakelists.txt'</code> — GitHub path filters are case-sensitive and the file is <code>CMakeLists.txt</code>, so build-definition pushes never trigger the C++ tests. <code>'tests/cpp/src/*.cpp'</code> matches nothing; the tests are flat at <code>tests/cpp/*.cpp</code>. And the doxygen job runs <code>sudo apt-get install doxygen graphviz</code> with <b>no <code>-y</code></b> (every other workflow has it) — with no TTY, apt-get reads EOF at the prompt and aborts; it also uses the deprecated <code>actions/checkout@v2</code> and never declares <code>permissions: contents: write</code>, which <code>peaceiris/actions-gh-pages</code> needs.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Dead weight <span class="count">~7 MB tracked, unreachable</span></h2>
+    <p class="lede">Everything here was proven unreachable by grepping for its basename and its defined symbols across every build file, workflow, script and source. Nothing was deleted. Most of it is fallout from commit <code>c6539bc</code>, which removed the Cloud Run deployment.</p>
+    <div class="scroller">
+      <table class="files">
+        <thead>
+          <tr><th>Path</th><th class="size">Size</th><th class="why">Why it's dead</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>external/spdlog/</td><td class="size">1.6 MB<br>169 files</td>
+            <td class="why">Zero <code>#include &lt;spdlog/…&gt;</code> anywhere. Not in CMakeLists or any setup.py. Committed as plain files, not a submodule — there is no <code>.gitmodules</code> and <code>git submodule status</code> is empty. A local clone got staged by accident.</td>
+          </tr>
+          <tr>
+            <td>corintho_ai/model/<br>first_run/</td><td class="size">2.8 MB<br>2.8 MB</td>
+            <td class="why">Two tracked Keras SavedModels with zero tracked references. The pipeline writes and reads models at <code>{cwd}/{name}/generations/gen_N/model</code>. <code>first_run/</code>'s only consumer is <code>tflite.py</code>, which is itself gitignored.</td>
+          </tr>
+          <tr>
+            <td>cpp/src/dockermc.cpp<br>cpp/include/dockermc.h</td><td class="size">3.1 KB</td>
+            <td class="why">Absent from the CMakeLists source list and from both setup.py extension lists. Repo-wide <code>grep DockerMC</code> hits only the two files and a comment in <code>web/trainmc.js:40</code>. The Cloud Run wrapper, orphaned. Still gets Doxygen'd.</td>
+          </tr>
+          <tr>
+            <td>python/play.pyx<br>python/play_setup.py<br>python/play_corintho.py<br>scripts/bash/play.sh</td><td class="size">6.6 KB</td>
+            <td class="why">The whole human-play path is uncompilable. <code>play.pyx:15</code> externs from <code>"../cpp/playmc.cpp"</code>, which does not exist — <code>grep -r PlayMC corintho_ai/cpp/</code> returns nothing. <code>play_setup.py</code> also lists <code>../cpp/node.cpp</code> etc., which moved to <code>../cpp/src/</code> in the 2023 reorg. Superseded by the web build.</td>
+          </tr>
+          <tr>
+            <td>flask_script.sh</td><td class="size">174 B</td>
+            <td class="why"><code>cd corintho_ai/docker</code> — deleted. Added by the very same commit that deleted the directory it targets.</td>
+          </tr>
+          <tr>
+            <td>scripts/bash/make.sh<br>lint.sh · tourney.sh · test.sh</td><td class="size">670 B</td>
+            <td class="why">All four reference paths that no longer exist (a <code>cpp/Makefile</code>, <code>corintho_ai/docker/</code>, <code>python/setup_tourney.py</code>, <code>bash/build.sh</code>). None use <code>set -euo pipefail</code>, so <code>train.sh</code> proceeds to training even when the extension build failed — silently training with a stale <code>.so</code>.</td>
+          </tr>
+          <tr>
+            <td>corintho_ai/rating/rating_gd</td><td class="size">27 KB</td>
+            <td class="why">A compiled ELF binary tracked in git. <code>a.out</code> in the same directory is caught by <code>.gitignore</code>'s <code>*.out</code>; this one isn't.</td>
+          </tr>
+          <tr>
+            <td>assets/images/corintho.png<br>web/base.png · capital.png · column.png</td><td class="size">254 KB</td>
+            <td class="why"><code>grep -rn "\.png" web/</code> returns nothing — the board renders pieces with Material Symbols glyphs. The README uses <code>logo.png</code>, not <code>corintho.png</code>.</td>
+          </tr>
+          <tr>
+            <td>rating/rating.py · rating_gd.cpp<br>python/compare_outputs.py<br>python/get_ratings.py</td><td class="size">11.8 KB</td>
+            <td class="why">Stale one-offs. No importer, no caller. Their inputs (<code>results.txt</code>, <code>gd_ratings.txt</code>) were deleted in <code>c6539bc</code>; the surviving paths point at directories that moved. <code>rating.py:150–171</code> also runs 10,000 iterations and never writes the result anywhere.</td>
+          </tr>
+          <tr>
+            <td>rating/tflite_models/*.tflite</td><td class="size">48 MB<br>94 files</td>
+            <td class="why"><b>Uncertain — decide, don't assume.</b> No tracked file names this directory. Written by the gitignored <code>tflite.py</code>; the one reader, <code>compare_outputs.py</code>, has the wrong relative path. Could be a deliberate rating corpus.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <b>Untracked local detritus:</b> ~2.4&nbsp;GB of root zips (<code>train_94.zip</code> alone is 2.0&nbsp;GB), plus <code>generations/</code> at 322&nbsp;MB and ~90&nbsp;MB of build output. All correctly gitignored — <code>git status</code> is clean — so this is disk hygiene, not repo hygiene.
+      <br><br>
+      <b>Separately:</b> <code>corintho-ai-json-key.json</code> is a GCP service-account key sitting in the repo root. It is gitignored and <code>git log --all --</code> confirms it was <b>never committed</b>, so this is not a leak. But it's a live credential for a deployment you retired — worth revoking rather than leaving on disk.
+    </div>
+  </section>
+
+  <section>
+    <h2>Where I'd start</h2>
+    <ol class="plan">
+      <li><b>CPP-1 and CPP-2</b> are one-line fixes with the JS port as a ready-made reference for what correct looks like. They change what the engine believes about positions, so everything else is downstream of them.</li>
+      <li><b>CPP-5</b> is a one-word fix (<code>max_searches</code> → <code>searches_per_eval</code>) that should reclaim most of the self-play memory footprint. Worth measuring before and after — it may raise the ceiling on <code>num_games</code> by two orders of magnitude.</li>
+      <li><b>WEB-1 + WEB-2</b> are the two ways a visitor's game hangs with no recovery. Both are small, and WEB-2's fix makes the fallback the UI already advertises actually true.</li>
+      <li><b>CPP-3 and CPP-4</b> need a moment's thought about the concurrency model, not just an edit. CPP-4 in particular means past tournament results are suspect — worth deciding whether the rating history needs regenerating.</li>
+      <li><b>PY-1</b> is a behaviour change, not a bug fix: turning the replay buffer on will alter training dynamics. Probably wants a controlled comparison rather than a straight merge.</li>
+      <li><b>A differential fuzz harness</b> between <code>web/engine.js</code> and <code>cpp/src/game.cpp</code> — random playouts through both, comparing the 96-bit legal mask each ply — would have caught CPP-1 and CPP-2 from either direction, and is cheap next to maintaining two hand-written copies of the rules.</li>
+    </ol>
+  </section>
+
+  <footer>
+    No files were modified. Branch <code>audit/codebase-review</code>, cut from <code>main</code> at <code>c6539bc</code>.<br>
+    Method: full read of the 5,537 first-party C++/Python/Cython lines, plus <code>-Wall -Wextra -Wpedantic</code> compile of every source, a standalone repro for CPP-2, the existing gtest suite (45/45 pass on the prebuilt binary), and three subagents on the web app, the Python layer, and reachability.
+  </footer>
+
+</div>

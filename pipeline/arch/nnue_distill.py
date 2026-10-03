@@ -182,6 +182,9 @@ def train(a):
         loss.backward()
         opt.step()
         sched.step()
+        if a.clip_w2 > 0:  # int8-friendly layer 2 (small_net.h: x 64)
+            with torch.no_grad():
+                net.l2.weight.clamp_(-a.clip_w2, a.clip_w2)
         if step % a.eval_every == 0 or step == a.steps:
             pred = predict(net, test_states)
             m = t["horizon"] >= 28
@@ -198,6 +201,7 @@ def train(a):
         "tag": a.tag,
         "hidden": a.hidden,
         "min_p": a.min_p,
+        "clip_w2": a.clip_w2,
         "rows": int(len(target)),
         "steps": a.steps,
         "best_step": best_step,
@@ -245,6 +249,7 @@ def main():
     p.add_argument("--hidden", type=int, default=256)
     p.add_argument("--rows", type=int, default=0)
     p.add_argument("--min-p", type=int, default=0)
+    p.add_argument("--clip-w2", type=float, default=0.0)
     p.add_argument("--steps", type=int, default=20000)
     p.add_argument("--batch", type=int, default=4096)
     p.add_argument("--lr", type=float, default=3e-3)

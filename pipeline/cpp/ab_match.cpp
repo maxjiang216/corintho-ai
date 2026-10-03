@@ -34,6 +34,7 @@
 
 #include "game.h"
 #include "move.h"
+#include "small_net.h"
 #include "solver.h"
 #include "trainmc.h"
 #include "util.h"
@@ -57,75 +58,17 @@ double since(Clock::time_point t) {
   return std::chrono::duration<double>(Clock::now() - t).count();
 }
 
-/// 70 -> H -> 32 -> 1, clipped ReLU, tanh (arch/nnue_distill.py Small)
-struct SmallNet {
-  int32_t h{0};
-  // Input-major ([70][h], [h][32]): each input updates independent outputs,
-  // which vectorizes without reassociating sums
-  std::vector<float> w1, b1, w2, b2, w3;
-  float b3{0};
-
-  explicit SmallNet(const std::string &path) {
-    FILE *f = std::fopen(path.c_str(), "rb");
-    if (f == nullptr || std::fread(&h, 4, 1, f) != 1) {
-      std::fprintf(stderr, "cannot read %s\n", path.c_str());
-      std::exit(1);
-    }
-    auto read = [&](std::vector<float> &v, size_t n) {
-      v.resize(n);
-      if (std::fread(v.data(), 4, n, f) != n)
-        std::exit(1);
-    };
-    read(w1, 70 * static_cast<size_t>(h));
-    read(b1, h);
-    std::vector<float> w2_rows;  // stored [32][h]
-    read(w2_rows, 32 * static_cast<size_t>(h));
-    w2.resize(w2_rows.size());
-    for (int32_t k = 0; k < 32; ++k)
-      for (int32_t j = 0; j < h; ++j)
-        w2[static_cast<size_t>(j) * 32 + k] =
-            w2_rows[static_cast<size_t>(k) * h + j];
-    read(b2, 32);
-    read(w3, 32);
-    if (std::fread(&b3, 4, 1, f) != 1)
-      std::exit(1);
-    std::fclose(f);
-  }
-
-  /// Value for the side to move
-  float eval(const Game &game) const {
-    float x[kGameStateSize];
-    game.writeGameState(x);
-    std::vector<float> &a = scratch();
-    a.assign(b1.begin(), b1.end());
-    for (int32_t i = 0; i < 70; ++i) {
-      if (x[i] == 0.0F)
-        continue;
-      const float xi = x[i];
-      const float *w = w1.data() + static_cast<size_t>(i) * h;
-      for (int32_t j = 0; j < h; ++j)
-        a[j] += xi * w[j];
-    }
-    float h2[32];
-    std::copy(b2.begin(), b2.end(), h2);
-    for (int32_t j = 0; j < h; ++j) {
-      const float aj = std::min(std::max(a[j], 0.0F), 1.0F);
-      if (aj == 0.0F)
-        continue;  // clipped ReLU: many activations are 0
-      const float *w = w2.data() + static_cast<size_t>(j) * 32;
-      for (int32_t k = 0; k < 32; ++k)
-        h2[k] += aj * w[k];
-    }
-    float out = b3;
-    for (int32_t k = 0; k < 32; ++k)
-      out += std::min(std::max(h2[k], 0.0F), 1.0F) * w3[k];
-    return std::tanh(out);
-  }
-  static std::vector<float> &scratch() {
-    thread_local std::vector<float> v;
-    return v;
-  }
-};
+/// The small network on a position: int8 (AB_FLOAT=1: float)
+float evaluate(const SmallNet &net, const Game &game) {
+  static const bool use_float =
+      std::getenv("AB_FLOAT") != nullptr && std::atoi(std::getenv("AB_FLOAT"));
+  float x[kGameStateSize];
+  game.writeGameState(x);
+  uint8_t state[kGameStateSize];
+  for (int32_t i = 0; i < kGameStateSize; ++i)
+    state[i] = static_cast<uint8_t>(x[i] * 4.0F + 0.5F);
+  return use_float ? net.evalFloat(state) : net.evalInt8(state);
+}
 
 /// Iterative-deepening negamax with a transposition table
 class AlphaBeta {
@@ -214,7 +157,7 @@ class AlphaBeta {
     // turns it off)
     if (depth <= 0 && !(lines && line_extend_)) {
       PROF_START(t_eval);
-      const float v = net_.eval(game);
+      const float v = evaluate(net_, game);
       PROF_ADD(1, t_eval);
 #ifdef AB_PROFILE
       ++g_prof[4];  // leaves evaluated
@@ -252,7 +195,7 @@ class AlphaBeta {
       if (depth >= order_depth_) {
         Game child = game;
         child.doMove(m);
-        key[m] = static_cast<uint64_t>((1.0F - net_.eval(child)) * 1e6F);
+        key[m] = static_cast<uint64_t>((1.0F - evaluate(net_, child)) * 1e6F);
         key[m] = (uint64_t{2} << 60) - key[m];
         continue;
       }

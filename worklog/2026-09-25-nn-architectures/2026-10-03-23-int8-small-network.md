@@ -157,6 +157,11 @@ node, 36 games, h256-clip):
 
 Evaluation 751 -> 438 cycles per node (-42%), nodes/s +20%.
 
+Same 200 games against MCTS: **106-1-93, score 0.532**, pairs 16-10-74;
+AB 1.72 s per move (depth 10.2, 1.96M nodes/s), MCTS 1.72 s. Within
+noise of the 0.527 and 0.510 before it; three runs in a row at or above
+0.5.
+
 ## Next options
 
 - A larger match (or longer time controls) to settle the result.

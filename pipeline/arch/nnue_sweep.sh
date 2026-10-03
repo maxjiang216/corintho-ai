@@ -2,9 +2,14 @@
 # Entry 24: symmetry-tied and reserve-monotone small networks against the
 # plain h256-clip of entry 23, distilled on the same data, 3 seeds each.
 #   arch/nnue_sweep.sh TARGETS.npz TEST.npz [extra train options]
+# Paths relative to pipeline/ (nnue_distill.py targets / testset outputs).
 # Results: runs/nnue/results.jsonl (tags e24_<variant>_s<seed>).
+set -e
 cd "$(dirname "$0")/.."
 TARGETS=$1 TEST=$2
+for f in "$TARGETS" "$TEST"; do
+  [ -f "$f" ] || { echo "no such file: pipeline/$f (try: ls runs/nnue/*.npz)" >&2; exit 1; }
+done
 shift 2
 EXTRA=("$@")
 run() { .venv/bin/python arch/nnue_distill.py train "$TARGETS" "$TEST" --hidden 256 --clip-w2 1.98 --min-p 20 --steps 80000 --eval-every 4000 "${EXTRA[@]}" "$@"; }

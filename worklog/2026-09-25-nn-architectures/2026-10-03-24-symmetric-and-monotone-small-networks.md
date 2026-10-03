@@ -103,3 +103,32 @@ arch/nnue_sweep.sh TARGETS.npz TEST.npz
 and P 36+ against the teacher and P 23-27 against exact values with entry
 21's table. Then `nnue_distill.py export` and `ab_match --small` for the
 variants worth a match.
+
+## Results (developer's machine, `nnue_sweep.sh`, 3 seeds each)
+
+Training targets as in entry 21: exact values at P <= 27, the AZ teacher's
+values above. The real labels in the test set are the exact values (P 23-27)
+and the game outcomes (all P); outcomes are single noisy +-1 results, so
+most of their ~0.49 error is irreducible. Means of 3 seeds:
+
+| variant | P 23-27 exact MSE / sign | P 28-35 outcome | P 36+ outcome | P 28-35 vs teacher | train |
+|---|---|---|---|---|---|
+| plain | 0.339 / 89.2% | 0.4944 | 0.4916 | 0.0605 | 153 s |
+| mono (64/16) | 0.354 / 88.7% | 0.4996 (+1.1%) | 0.4923 (+0.1%) | 0.0655 | 162 s |
+| tie | 0.367 / 88.6% | 0.5078 (+2.7%) | 0.4961 (+0.9%) | 0.0744 | 188 s |
+| tie + mono | 0.379 / 88.1% | 0.5134 (+3.8%) | 0.4961 (+0.9%) | 0.0796 | 200 s |
+
+Seeds agree closely (plain P 28-35 outcome 0.4940-0.4948, mono
+0.4984-0.5004), so the gaps are real.
+
+- **Tying loses everywhere.** A tied h256 has 32 independent layer-1
+  features against 256; the plain network already trains on a random
+  symmetry per sample (positions stored once), so it learns most of the
+  invariance and tying only removes capacity. The developer: keep the
+  random orientation per sample, no tying.
+- **Monotone costs ~1% on outcomes at P 28-35 and nothing at P 36+;** 4% on
+  exact values at P 23-27 (solved in play). Against the teacher it looks
+  like 8%, but the teacher is not monotone itself, so that measures
+  disagreement with AZ, not error. Open: whether it costs strength
+  (`ab_match` plain vs mono), and whether a larger reserve-aware share
+  (`--mono-m 128/192`) closes the gap.

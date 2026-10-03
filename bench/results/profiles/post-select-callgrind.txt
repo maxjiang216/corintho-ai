@@ -1,0 +1,38 @@
+# callgrind, 1 thread, 3 games x 1600 searches
+# label:    post-select
+# commit:   3a2a5fa
+# dirty:    no
+# cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-22T19:55:35-07:00
+
+# Exact and perfectly repeatable. Use to confirm a change removed the
+# instructions it was meant to remove.
+
+--------------------------------------------------------------------------------
+Ir                   
+--------------------------------------------------------------------------------
+601,836,369 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                    file:function
+--------------------------------------------------------------------------------
+206,405,647 (34.30%)  bench_util.h:main
+195,376,194 (32.46%)  ../corintho_ai/cpp/src/trainmc.cpp:TrainMC::doIteration(float*, float*) [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+ 75,666,833 (12.57%)  ../corintho_ai/cpp/src/node.cpp:TrainMC::doIteration(float*, float*)
+ 47,040,521 ( 7.82%)  ../corintho_ai/cpp/src/game.cpp:Node::initializeEdges()
+ 17,021,036 ( 2.83%)  ../corintho_ai/cpp/include/util.h:Node::initializeEdges()
+ 13,750,647 ( 2.28%)  ../corintho_ai/cpp/src/node.cpp:Node::initializeEdges() [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+ 12,298,016 ( 2.04%)  /usr/include/c++/13/bitset:Node::initializeEdges()
+  8,330,055 ( 1.38%)  ../corintho_ai/cpp/src/game.cpp:TrainMC::doIteration(float*, float*)
+  6,363,043 ( 1.06%)  /usr/include/c++/13/bits/stl_algobase.h:TrainMC::doIteration(float*, float*)
+  3,386,200 ( 0.56%)  /usr/include/x86_64-linux-gnu/bits/string_fortified.h:TrainMC::doIteration(float*, float*)
+  1,902,700 ( 0.32%)  ./string/../sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S:__memcpy_avx_unaligned_erms [/usr/lib/x86_64-linux-gnu/libc.so.6]
+  1,739,350 ( 0.29%)  /usr/include/c++/13/bits/stl_vector.h:TrainMC::doIteration(float*, float*)
+  1,727,723 ( 0.29%)  ../corintho_ai/cpp/src/game.cpp:Game::doMove(int) [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+  1,370,922 ( 0.23%)  ../corintho_ai/cpp/src/node.cpp:Node::~Node()'2 [/home/max/projects/corintho-ai/bench/build/selfplay_bench]
+  1,153,929 ( 0.19%)  ./string/../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:__memset_avx2_unaligned_erms [/usr/lib/x86_64-linux-gnu/libc.so.6]
+    680,025 ( 0.11%)  ../corintho_ai/cpp/include/arena.h:Node::~Node()'2
+    676,772 ( 0.11%)  ../corintho_ai/cpp/include/arena.h:TrainMC::doIteration(float*, float*)
+    621,763 ( 0.10%)  ./elf/./elf/dl-lookup.c:do_lookup_x [/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2]
+    513,443 ( 0.09%)  ../corintho_ai/cpp/include/arena.h:Node::initializeEdges()
+

@@ -1,0 +1,1304 @@
+# cachegrind line-by-line, -O2 without LTO, 3 games
+# label:    sel-incr
+# commit:   eed8ec0
+# dirty:    yes
+# cxxflags: -std=c++17 -O3 -DNDEBUG -g -flto -march=native -fopenmp -Wall -Wextra
+# date:     2026-09-22T19:41:30-07:00
+
+# Built WITHOUT -flto, which collapses line tables. Inlining therefore
+# differs from the production build: use this to find which SOURCE
+# LINES are hot, not to measure how fast anything is.
+
+== branch mispredicts by line ==
+-- Annotated source file: /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/game.cpp
+--------------------------------------------------------------------------------
+Bcm____________ 
+
+-- line 21 ----------------------------------------
+      .              board_[i] = board[i] != 0;
+      .            }
+      .            for (int32_t i = 0; i < 6; ++i) {
+      .              assert(pieces[i] >= 0 && pieces[i] <= 4);
+      .              pieces_[i] = gsl::narrow_cast<int8_t>(pieces[i]);
+      .            }
+      .          }
+      .          
+      0          bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
+      .            // Compute top/bottom/empty/frozen for every space once. The board cannot
+      .            // change during this call.
+      .            SpaceInfo info;
+      0            computeSpaceInfo(info);
+      .            // Find the lines on the board. 85% of positions have none, and those skip
+      .            // the breaking check entirely.
+      .            PresentLine lines[kNumLineShapes];
+      0            const int32_t num_lines = findLines(info, lines);
+      .            // First set all moves to legal
+      0            legal_moves = basicLegalMoves(info);
+      .            // One AND per line, rather than testing every move against every line.
+  8,172  (0.3%)    if (num_lines > 0)
+      0              legal_moves &= lineBreakers(info, lines, num_lines);
+      .            // If there are no legal moves
+      .            // the game is over and
+      .            // the result is determined by if there are any lines
+      0            return num_lines > 0;
+    590  (0.0%)  }
+      .          
+      .          bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+      .            MoveMask mask;
+      .            const bool is_lines = getLegalMoves(mask);
+      .            legal_moves.reset();
+      .            forEachMove(mask, [&legal_moves](int32_t id) { legal_moves[id] = true; });
+      .            return is_lines;
+      .          }
+      .          
+      .          int32_t Game::findLines(const SpaceInfo &info,
+      0                                  PresentLine *out) const noexcept {
+      .            int32_t count = 0;
+ 64,981  (2.2%)    for (int32_t type = 0; type < 3; ++type) {
+      0              const uint32_t p = info.top_plane[type];
+ 15,339  (0.5%)      if (p == 0)
+      .                continue;
+      .              // One shifted AND per direction finds every run of that length on the
+      .              // whole board at once. The start masks stop runs wrapping off an edge.
+      .              uint32_t run3[4];
+      .              uint32_t run4[4];
+      0              uint32_t any = 0;
+ 19,407  (0.7%)      for (int32_t d = 0; d < 4; ++d) {
+      0                const uint32_t stride = static_cast<uint32_t>(kLineStride[d]);
+      0                const uint32_t three = p & (p >> stride) & (p >> (2 * stride));
+      0                run3[d] = three & kRunStart[d][0];
+      0                run4[d] = three & (p >> (3 * stride)) & kRunStart[d][1];
+      0                any |= run3[d];
+      .              }
+  7,009  (0.2%)      if (any == 0)
+      .                continue;  // no line of this type; the common case
+  6,509  (0.2%)      for (int32_t d = 0; d < 4; ++d) {
+      0                uint32_t w = run3[d];
+  8,648  (0.3%)        while (w != 0) {
+      0                  const int32_t start = __builtin_ctz(w);
+      0                  w &= w - 1;
+      0                  const int8_t shape = kRunToShape[d][start][0];
+      0                  if (shape >= 0) {
+      0                    out[count].shape = shape;
+      .                    out[count].type = gsl::narrow_cast<int8_t>(type);
+      0                    ++count;
+      .                  }
+      .                }
+      0                w = run4[d];
+    111  (0.0%)        while (w != 0) {
+      0                  const int32_t start = __builtin_ctz(w);
+      0                  w &= w - 1;
+      0                  const int8_t shape = kRunToShape[d][start][1];
+      0                  if (shape >= 0) {
+      0                    out[count].shape = shape;
+      .                    out[count].type = gsl::narrow_cast<int8_t>(type);
+      0                    ++count;
+      .                  }
+      .                }
+      .              }
+      .            }
+      .            return count;
+      0          }
+      .          
+      0          MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
+      .            const uint32_t all = 0xFFFFU;
+      0            const uint32_t unfrozen = ~static_cast<uint32_t>(info.frozen) & all;
+      .          
+      .            // --- Placements. One expression per piece type, covering all 16 spaces. ---
+      .            // A base needs an empty space. A column needs a space with no column and no
+      .            // capital; empty spaces satisfy that too, since an empty space is never
+      .            // frozen. A capital needs no capital, and not a lone base.
+      .            uint32_t place[3];
+      0            place[kBase] = info.empty;
+      0            place[kColumn] = unfrozen & ~info.has[kColumn] & ~info.has[kCapital] & all;
+      0            place[kCapital] = unfrozen & ~info.has[kCapital] &
+      0                              (~static_cast<uint32_t>(info.has[kBase]) |
+      .                               info.has[kColumn]) & all;
+     36  (0.0%)    for (int32_t p = 0; p < 3; ++p) {
+  8,615  (0.3%)      if (pieces_[to_play_ * 3 + p] == 0)
+      0                place[p] = 0;
+      .            }
+      .          
+      .            // --- Moves. canMove needs bottom(from) - top(to) == 1, and with both
+      .            // spaces occupied each is in {0,1,2}, so only two pairings are possible:
+      .            // a column-bottomed stack onto a base-topped space, or a capital-bottomed
+      .            // stack onto a column-topped one. ---
+      0            const uint32_t src_col = info.has[kColumn] &
+      .                                     ~static_cast<uint32_t>(info.has[kBase]) & unfrozen;
+      0            const uint32_t dst_base = info.top_plane[kBase] & unfrozen;
+      0            const uint32_t src_cap = info.has[kCapital] &
+      .                                     ~static_cast<uint32_t>(info.has[kBase]) &
+      0                                     ~static_cast<uint32_t>(info.has[kColumn]) & unfrozen;
+      0            const uint32_t dst_col = info.top_plane[kColumn] & unfrozen;
+      .          
+      .            MoveMask legal;
+      .            // Place IDs are 48 + piece * 16 + space, so each piece's sixteen placements
+      .            // are contiguous and drop straight in as a shift.
+      0            legal.lo = static_cast<uint64_t>(place[kBase]) << 48;
+      0            legal.hi = static_cast<uint64_t>(place[kColumn]) |
+      0                       (static_cast<uint64_t>(place[kCapital]) << 16);
+      .          
+      .            // For each direction, a source is playable when the matching destination
+      .            // sits one step away. Shifting the destination set back onto the source set
+      .            // tests all sixteen spaces at once; the file masks stop a row wrapping.
+      .            const uint32_t kNotFileD = 0x7777U;  // source may step right
+      .            const uint32_t kNotFileA = 0xEEEEU;  // source may step left
+      0            const uint32_t right = (((dst_base >> 1) & src_col) |
+      0                                  ((dst_col >> 1) & src_cap)) & kNotFileD;
+      0            const uint32_t left = (((dst_base << 1) & src_col) |
+      0                                  ((dst_col << 1) & src_cap)) & kNotFileA;
+      0            const uint32_t down = (((dst_base >> 4) & src_col) |
+      0                                  ((dst_col >> 4) & src_cap)) & all;
+      0            const uint32_t up = (((dst_base << 4) & src_col) |
+      0                                 ((dst_col << 4) & src_cap)) & all;
+      .          
+      .            // Down and up land on contiguous ID ranges, so they shift in directly.
+      0            legal.lo |= static_cast<uint64_t>(down & 0x0FFFU) << 12;
+      0            legal.lo |= static_cast<uint64_t>((up >> 4) & 0x0FFFU) << 36;
+      .            // Right and left do not, since each row contributes three IDs rather than
+      .            // four, so those two walk their set bits.
+      .            uint32_t w = right;
+ 24,603  (0.8%)    while (w != 0) {
+      0              const int32_t c = __builtin_ctz(w);
+      0              w &= w - 1;
+      0              legal.lo |= 1ULL << ((c >> 2) * 3 + (c & 3));
+      .            }
+      .            w = left;
+ 21,021  (0.7%)    while (w != 0) {
+      0              const int32_t c = __builtin_ctz(w);
+      0              w &= w - 1;
+      0              legal.lo |= 1ULL << (24 + (c >> 2) * 3 + (c & 3) - 1);
+      .            }
+      .            return legal;
+    475  (0.0%)  }
+      .          
+      .          MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
+      0                                      int32_t num_lines) const noexcept {
+      .            MoveMask breakers;
+      .            breakers.setAll();
+  2,684  (0.1%)    for (int32_t i = 0; i < num_lines; ++i) {
+      .              const int32_t shape = lines[i].shape;
+      0              const int32_t type = lines[i].type;
+      0              MoveMask mask = kLineBreakTable[shape][type];
+      .              // The one board-dependent case: a stack moved onto the extending space
+      .              // completes a four only if its own top matches the line's type. At most
+      .              // four moves land on any given space, so this walks them directly rather
+      .              // than building a set of every move starting from a space of each type.
+      .              forEachMove(kLineExtendMoves[shape], [&](int32_t id) {
+      0                if (info.top[kMoveTable[id].from] == type)
+      .                  mask.set(id);
+      .              });
+      .              breakers &= mask;
+      .            }
+      .            return breakers;
+      0          }
+      .          
+      .          std::ostream &operator<<(std::ostream &os, const Game &game) {
+      .            // Print board
+      .            for (int32_t row = 0; row < 4; ++row) {
+      .              for (int32_t col = 0; col < 4; ++col) {
+      .                if (game.board(Space{row, col}, kBase))
+      .                  os << 'B';
+      .                else
+-- line 205 ----------------------------------------
+-- line 263 ----------------------------------------
+      .            }
+      .            return table;
+      .          }
+      .          
+      .          constexpr NibbleFloats kNibbleFloats = makeNibbleFloats();
+      .          
+      .          }  // namespace
+      .          
+      0          void Game::writeGameState(float game_state[kGameStateSize]) const noexcept {
+      .            // The old loop tested one bit and stored one float, sixty-four times. The
+      .            // branch is on board contents, so it mispredicts constantly. Expanding a
+      .            // nibble at a time is branchless and copies sixteen bytes per step.
+      .            const uint64_t board = board_.to_ullong();
+ 68,535  (2.3%)    for (int32_t space = 0; space < kBoardSize; ++space) {
+      .              std::memcpy(game_state + space * 4,
+      0                          kNibbleFloats.value[(board >> (space * 4)) & 0xF],
+      .                          4 * sizeof(float));
+      .            }
+      .            // Canonize the pieces
+      8  (0.0%)    for (int32_t i = 0; i < 6; ++i) {
+      0              game_state[4 * kBoardSize + i] =
+      0                  static_cast<float>(pieces_[(to_play_ * 3 + i) % 6]) * 0.25;
+      .            }
+      0          }
+      .          
+      0          void Game::doMove(int32_t move_id) noexcept {
+      .            assert(move_id >= 0 && move_id < kNumMoves);
+      .            // This is not a conclusive check (doesn't factor in lines) but has some use
+      .            // for debugging
+      .            assert(isLegalMove(move_id));
+      .            // Read the decoded move straight out of the table rather than constructing a
+      .            // Move. Move's constructor lives in move.cpp, so without LTO the old code
+      .            // reached it through a PLT call -- visible as `call _ZN4MoveC1Ei@PLT` in the
+      .            // disassembly of this function -- for what is one array read.
+      0            const MoveInfo &move = kMoveTable[move_id];
+      .          
+      .            // The board is four bits per space: three piece bits then a frozen bit, so
+      .            // space s occupies bits [4s, 4s+4). Everything below is one 64-bit word.
+      .            uint64_t b = board_.to_ullong();
+      .            // Clear every frozen bit. (The old sixteen-iteration loop compiled to this
+      .            // same single AND -- GCC had already reduced it -- so this costs nothing
+      .            // extra and only removes the source-level noise.)
+      0            b &= kUnfrozenMask;
+      .          
+      0            const int32_t to_shift = move.to * 4;
+  5,849  (0.2%)    if (move.is_place) {
+      .              // Use a piece
+      0              --pieces_[to_play_ * 3 + move.piece];
+      0              b |= UINT64_C(1) << (to_shift + move.piece);
+      .            } else {
+      0              const int32_t from_shift = move.from * 4;
+      .              // Move the whole stack at once. The old code looped over the three piece
+      .              // types, reading source and destination and OR-ing them per type, which
+      .              // the compiler unrolled into a chain of test/or/andn/cmove. The stack is
+      .              // three adjacent bits, so lifting and depositing it is three operations.
+      0              const uint64_t stack = (b >> from_shift) & kStackMask;
+      0              b &= ~(kStackMask << from_shift);
+      0              b |= stack << to_shift;
+      .            }
+      .            // Freeze the destination. Both branches do this, so it is hoisted out.
+      0            b |= UINT64_C(1) << (to_shift + kFrozen);
+      .          
+      .            board_ = std::bitset<4 * kBoardSize>{b};
+      .            // Switch player
+      0            to_play_ = 1 - to_play_;
+      0          }
+      .          
+      0          void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
+      0            info.empty = 0;
+      .            info.frozen = 0;
+      .            info.top_plane[0] = 0;
+      .            info.top_plane[1] = 0;
+      .            info.top_plane[2] = 0;
+      .            info.has[0] = 0;
+      .            info.has[1] = 0;
+      .            info.has[2] = 0;
+ 65,439  (2.2%)    for (int32_t space_index = 0; space_index < kBoardSize; ++space_index) {
+      .              const int32_t base = space_index * 4;
+      .              const bool has_base = board_[base + kBase];
+      .              const bool has_column = board_[base + kColumn];
+      .              const bool has_capital = board_[base + kCapital];
+      .              // Top is the highest piece present, bottom the lowest. The sentinels
+      .              // match the originals: -1 for an empty top, 3 for an empty bottom.
+589,748 (19.8%)      info.top[space_index] = has_capital  ? kCapital
+      .                                      : has_column ? kColumn
+      .                                      : has_base   ? kBase
+      .                                                   : -1;
+ 79,933  (2.7%)      info.bottom[space_index] = has_base     ? kBase
+      .                                         : has_column ? kColumn
+      .                                         : has_capital ? kCapital
+      .                                                       : 3;
+      0              const uint16_t bit = static_cast<uint16_t>(1u << space_index);
+      .              if (has_base)
+      0                info.has[kBase] |= bit;
+    133  (0.0%)      if (has_column)
+      0                info.has[kColumn] |= bit;
+      0              if (has_capital)
+      0                info.has[kCapital] |= bit;
+  3,431  (0.1%)      if (!(has_base || has_column || has_capital))
+      0                info.empty |= static_cast<uint16_t>(1u << space_index);
+      .              else
+      0                info.top_plane[info.top[space_index]] |=
+      .                    static_cast<uint16_t>(1u << space_index);
+ 75,443  (2.5%)      if (board_[base + kFrozen])
+      0                info.frozen |= static_cast<uint16_t>(1u << space_index);
+      .            }
+      0          }
+      .          
+      .          bool Game::board(Space space, PieceType piece_type) const noexcept {
+      .            assert(space.notNull());
+      .            assert(piece_type >= 0 && piece_type < 3);
+      .            return board_[space.row * 16 + space.col * 4 + piece_type];
+      .          }
+      .          
+      .          bool Game::frozen(Space space) const noexcept {
+-- line 377 ----------------------------------------
+-- line 472 ----------------------------------------
+      .            // Move move
+      .            return canMove(move, info);
+      .          }
+      .          
+      .          bool Game::isLegalMove(int32_t move_id) const noexcept {
+      .            SpaceInfo info;
+      .            computeSpaceInfo(info);
+      .            return isLegalMove(move_id, info);
+      0          }
+
+--------------------------------------------------------------------------------
+-- Annotated source file: /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/node.cpp
+--------------------------------------------------------------------------------
+Bcm____________ 
+
+-- line 7 ----------------------------------------
+      .          #include <utility>
+      .          
+      .          #include <gsl/gsl>
+      .          
+      .          #include "game.h"
+      .          #include "move.h"
+      .          #include "util.h"
+      .          
+      0          Node::Node() : child_id_{0}, depth_{0} {
+      .            // initializeEdges can throw an exception from new
+      0            initializeEdges();
+      .          }
+      .          
+      0          Node::~Node() {
+  1,374  (0.0%)    delete[] edges_;
+ 22,215  (0.7%)    delete next_sibling_;
+ 23,609  (0.8%)    delete first_child_;
+      0          }
+      .          
+      0          Node::Node(const Game &game, int32_t depth)
+      0              : game_{game}, child_id_{0}, depth_{gsl::narrow_cast<int8_t>(depth)} {
+      .            // initializeEdges can throw an exception from new
+      0            initializeEdges();
+      .          }
+      .          
+      0          Node::Node(const Game &game, Node *parent, Node *next_sibling, int32_t move_id,
+      .                     int32_t depth)
+      0              : game_{game}, parent_{parent}, next_sibling_{next_sibling},
+      .                child_id_{gsl::narrow_cast<int8_t>(move_id)},
+      0                depth_{gsl::narrow_cast<int8_t>(depth)} {
+      0            game_.doMove(move_id);
+      .            // initializeEdges can throw an exception from new
+      0            initializeEdges();
+      0          }
+      .          
+      0          Game Node::game() const noexcept {
+      0            return game_;
+      0          }
+      .          
+      0          Node *Node::parent() const noexcept {
+      0            return parent_;
+      0          }
+      .          
+      0          Node *Node::next_sibling() const noexcept {
+      0            return next_sibling_;
+      0          }
+      .          
+      0          Node *Node::first_child() const noexcept {
+      0            return first_child_;
+      0          }
+      .          
+      0          float Node::evaluation() const noexcept {
+      0            return evaluation_;
+      0          }
+      .          
+      0          int32_t Node::visits() const noexcept {
+      0            return visits_;
+      0          }
+      .          
+      0          Result Node::result() const noexcept {
+      0            return result_;
+      0          }
+      .          
+      0          int32_t Node::child_id() const noexcept {
+      0            return child_id_;
+      0          }
+      .          
+      0          int32_t Node::num_legal_moves() const noexcept {
+      0            return num_legal_moves_;
+      0          }
+      .          
+      0          int32_t Node::depth() const noexcept {
+      0            return depth_;
+      0          }
+      .          
+      0          bool Node::all_visited() const noexcept {
+      0            return all_visited_;
+      0          }
+      .          
+      0          int32_t Node::move_id(int32_t i) const noexcept {
+      .            assert(i < num_legal_moves_);
+      0            return edges_[i].move_id;
+      0          }
+      .          
+      0          float Node::probability(int32_t i) const noexcept {
+      .            assert(i < num_legal_moves_);
+      .            assert(denominator_ > 0.0);
+      0            return static_cast<float>(edges_[i].probability) * denominator_;
+      0          }
+      .          
+      0          bool Node::terminal() const noexcept {
+      0            return result_ == kResultLoss || result_ == kResultDraw;
+      0          }
+      .          
+      0          bool Node::known() const noexcept {
+      0            return result_ != kResultNone;
+      0          }
+      .          
+      0          bool Node::won() const noexcept {
+      .            // A terminal position can never be winning for the current player
+      0            return result_ == kDeducedWin;
+      0          }
+      .          
+      0          bool Node::lost() const noexcept {
+      0            return result_ == kResultLoss || result_ == kDeducedLoss;
+      0          }
+      .          
+      0          bool Node::drawn() const noexcept {
+      0            return result_ == kResultDraw || result_ == kDeducedDraw;
+      0          }
+      .          
+      0          const Game &Node::get_game() const noexcept {
+      .            return game_;
+      0          }
+      .          
+      0          void Node::set_next_sibling(Node *next_sibling) noexcept {
+      0            next_sibling_ = next_sibling;
+      0          }
+      .          
+      0          void Node::set_first_child(Node *first_child) noexcept {
+      0            first_child_ = first_child;
+      0          }
+      .          
+      0          void Node::set_evaluation(float evaluation) noexcept {
+      0            evaluation_ = evaluation;
+      0          }
+      .          
+      0          void Node::set_denominator(float denominator) noexcept {
+      .            assert(denominator > 0.0);
+      0            denominator_ = denominator;
+      0          }
+      .          
+      .          void Node::set_visits(int32_t visits) noexcept {
+      .            visits_ = gsl::narrow_cast<int16_t>(visits);
+      .          }
+      .          
+      0          void Node::set_result(Result result) noexcept {
+      0            result_ = result;
+      0          }
+      .          
+      0          void Node::set_all_visited(bool all_visited) noexcept {
+      0            all_visited_ = all_visited;
+      0          }
+      .          
+      0          void Node::set_probability(int32_t i, int32_t probability) noexcept {
+      .            assert(i < num_legal_moves_);
+      0            edges_[i].probability = gsl::narrow_cast<uint16_t>(probability);
+      0          }
+      .          
+      0          void Node::promoteBestEdge(int32_t first) noexcept {
+      .            assert(first < num_legal_moves_);
+      .            int32_t best = first;
+134,668  (4.5%)    for (int32_t i = first + 1; i < num_legal_moves_; ++i) {
+      0              const Edge e = edges_[i];
+      0              const Edge b = edges_[best];
+399,309 (13.4%)      if (e.probability > b.probability ||
+  8,223  (0.3%)          (e.probability == b.probability && e.move_id < b.move_id))
+      0                best = i;
+      .            }
+      0            std::swap(edges_[first], edges_[best]);
+      0          }
+      .          
+      0          void Node::increment_visits() noexcept {
+      0            ++visits_;
+      0          }
+      .          
+      0          void Node::decrement_visits() noexcept {
+      0            --visits_;
+      0          }
+      .          
+      0          void Node::increase_evaluation(float d) noexcept {
+      0            evaluation_ += d;
+      0          }
+      .          
+      0          void Node::decrease_evaluation(float d) noexcept {
+      0            evaluation_ -= d;
+      0          }
+      .          
+      0          void Node::null_parent() noexcept {
+      0            parent_ = nullptr;
+      0          }
+      .          
+      0          void Node::null_next_sibling() noexcept {
+      0            next_sibling_ = nullptr;
+      0          }
+      .          
+      .          int32_t Node::countNodes() const noexcept {
+      .            int32_t counter = 1;
+      .            Node *cur_child = first_child_;
+      .            while (cur_child != nullptr) {
+      .              counter += cur_child->countNodes();
+      .              cur_child = cur_child->next_sibling_;
+      .            }
+      .            return counter;
+      .          }
+      .          
+      .          bool Node::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
+      .            return game_.getLegalMoves(legal_moves);
+      .          }
+      .          
+      0          void Node::writeGameState(float game_state[kGameStateSize]) const noexcept {
+      0            game_.writeGameState(game_state);
+      .          }
+      .          
+      .          void Node::printMainLine(std::ostream *log_file) const {
+      .            Node *cur_child = first_child_;
+      .            Node *best_child = nullptr;
+      .            int32_t max_visits = 0;
+      .            int32_t edge_index = 0;
+      .            float max_eval = 0.0;
+-- line 216 ----------------------------------------
+-- line 262 ----------------------------------------
+      .              while (cur_child != nullptr) {
+      .                cur_child->printKnownLines(log_file);
+      .                cur_child = cur_child->next_sibling_;
+      .              }
+      .              *log_file << " ) ";
+      .            }
+      .          }
+      .          
+      0          void Node::initializeEdges() {
+      0            MoveMask legal_moves;
+      0            bool is_lines = game_.getLegalMoves(legal_moves);
+      0            num_legal_moves_ = gsl::narrow_cast<int8_t>(legal_moves.count());
+      .            // Terminal node
+  1,284  (0.0%)    if (num_legal_moves_ == 0) {
+      .              // Don't set visits to 0. Not sure why we added this.
+      .              // Current player has lost if there are lines
+      0              if (is_lines) {
+      .                result_ = kResultLoss;
+      .                return;
+      .              }
+      .              // If there are no lines and no legal moves, the game is a draw
+      .              result_ = kResultDraw;
+      .              return;
+      .            }
+      .            // Otherwise, allocate edges for the legal moves
+      0            edges_ = new Edge[num_legal_moves_];
+      0            int32_t edge_index = 0;
+      .            // Iterate the set bits rather than testing all 96. The test was one
+      .            // unpredictable branch per legal move, about 26 mispredicts per call.
+      .            forEachMove(legal_moves, [this, &edge_index](int32_t id) {
+      0              edges_[edge_index] = Edge(id, 0);
+      0              ++edge_index;
+      .            });
+      5  (0.0%)  
+
+--------------------------------------------------------------------------------
+-- Annotated source file: /home/max/projects/corintho-ai/bench/../corintho_ai/cpp/src/trainmc.cpp
+--------------------------------------------------------------------------------
+Bcm___________ 
+
+-- line 10 ----------------------------------------
+      .         #include <random>
+      .         #include <vector>
+      .         
+      .         #include <gsl/gsl>
+      .         
+      .         #include "move.h"
+      .         #include "node.h"
+      .         
+      0         TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+      .                          int32_t searches_per_eval, float c_puct, float epsilon,
+      .                          bool testing)
+      0             : max_searches_{max_searches}, searches_per_eval_{searches_per_eval},
+      0               c_puct_{c_puct}, epsilon_{epsilon}, to_eval_{to_eval}, testing_{testing},
+      0               generator_{generator} {
+      .           // We cannot have only 1 search as
+      .           // choosing a move requires having visited at least one child
+      .           assert(max_searches_ > 0);
+      .           assert(searches_per_eval_ > 0);
+      .           assert(c_puct_ > 0.0);
+      .           assert(epsilon_ >= 0.0 && epsilon_ <= 1.0);
+      .           assert(generator_ != nullptr);
+      .           // Two 32-bit outputs make one 64-bit seed. Two statements, so the order in
+      .           // which they are drawn is defined.
+      0           noise_state_ = static_cast<uint64_t>((*generator_)()) << 32;
+      0           noise_state_ |= (*generator_)();
+      .           // seached_ will only ever need this many elements
+      0           searched_.reserve(searches_per_eval_);
+      0         }
+      .         
+      0         TrainMC::~TrainMC() {
+      5 (0.0%)    delete root_;
+      0         }
+      .         
+      .         TrainMC::TrainMC(std::mt19937 *generator, float *to_eval, int32_t max_searches,
+      .                          int32_t searches_per_eval, float c_puct, float epsilon,
+      .                          int32_t board[4 * kBoardSize], int32_t to_play,
+      .                          int32_t pieces[6])
+      .             : TrainMC{generator, to_eval, max_searches, searches_per_eval,
+      .                       c_puct,    epsilon, true} {
+      .           createRoot(Game{board, to_play, pieces}, 0);
+      .         }
+      .         
+      0         Node *TrainMC::root() const noexcept {
+      0           return root_;
+      0         }
+      .         
+      .         float TrainMC::eval() const noexcept {
+      .           return root_->evaluation();
+      .         }
+      .         
+      0         int32_t TrainMC::num_requests() const noexcept {
+      .           return searched_.size();
+      0         }
+      .         
+      .         bool TrainMC::no_requests() const noexcept {
+      .           return searched_.size() == 0;
+      .         }
+      .         
+      0         bool TrainMC::uninitialized() const noexcept {
+      0           return root_ == nullptr;
+      0         }
+      .         
+      .         int32_t TrainMC::num_nodes() const noexcept {
+      .           if (root_ == nullptr) {
+      .             return 0;
+      .           }
+      .           return root_->countNodes();
+      .         }
+      .         
+-- line 78 ----------------------------------------
+-- line 79 ----------------------------------------
+      .         bool TrainMC::done() const noexcept {
+      .           return root_->terminal();
+      .         }
+      .         
+      .         bool TrainMC::drawn() const noexcept {
+      .           return root_->drawn();
+      .         }
+      .         
+      0         void TrainMC::null_root() noexcept {
+      .           assert(root_ != nullptr);
+      3 (0.0%)    delete root_;
+      0           root_ = nullptr;
+      .           cur_ = nullptr;
+      0         }
+      .         
+      .         void TrainMC::writeRequests(float *game_states) const noexcept {
+      .           assert(searched_.size() <= searches_per_eval_);
+      .           for (size_t i = 0; i < searched_.size(); ++i) {
+      .             searched_[i]->writeGameState(game_states + i * kGameStateSize);
+      .           }
+      .         }
+      .         
+-- line 100 ----------------------------------------
+-- line 108 ----------------------------------------
+      .               legal_moves[i] = 1;
+      .             } else {
+      .               legal_moves[i] = 0;
+      .             }
+      .           }
+      .         }
+      .         
+      .         int32_t TrainMC::chooseMove(float game_state[kGameStateSize],
+      0                                     float prob_sample[kNumMoves]) noexcept {
+      .           assert(!uninitialized());
+      .           assert(searched_.size() == 0);
+      8 (0.0%)    if (!testing_) {  // Write samples if we are not testing
+      .             // Before moving down, read the samples from the root node
+      0             root_->writeGameState(game_state);
+      .             // Clear the probability sample
+      .             // We will write the probabilities when we determine which move to do
+      .             std::memset(prob_sample, 0, kNumMoves * sizeof(float));
+      .           }
+      .           // Winning position. Will choose the first winning move.
+      8 (0.0%)    if (root_->won()) {
+      0             return chooseMoveWon(prob_sample);
+      .           }
+      .           // Losing or drawn position. Will choose the best move with the most
+      .           // searches.
+      3 (0.0%)    if (root_->lost() || root_->drawn()) {
+      0             return chooseMoveLostDrawn(prob_sample);
+      .           }
+      .           // Opening move. Temperature is 1 and avoids choosing losing moves.
+     11 (0.0%)    if (root_->depth() < kNumOpeningMoves && !testing_) {
+      0             return chooseMoveOpening(prob_sample);
+      .           }
+      .           // Normal move. Chooses the move with the most searches and avoids choosing
+      .           // losing moves.
+      0           return chooseMoveNormal(prob_sample);
+      0         }
+      .         
+      0         bool TrainMC::doIteration(float eval[], float probs[]) {
+      .           assert(to_eval_ != nullptr);
+      .           assert(searches_done_ <= max_searches_);
+      .           // This is the first iteration of a game
+      5 (0.0%)    if (uninitialized()) {
+      .             // Initialize the Monte Carlo search tree
+      0             root_ = new Node();
+      .             cur_ = root_;
+      .             // "Search" the root node
+      0             searches_done_ = 1;
+      .             // Request an evaluation
+      .             // The result is not deduced at this point
+      0             cur_->writeGameState(to_eval_);
+      .             searched_.push_back(cur_);
+      .             assert(searched_.size() <= searches_per_eval_);
+      0             return false;
+      .           }
+      .           // This occurs when we receive a new root from the opponent
+      .           // We should ignore the all_visited and not increment visit count
+     16 (0.0%)    if (searches_done_ == 0 && root_->visits() == 1 && root_->all_visited()) {
+      0             searches_done_ = 1;
+      .             // We need an evaluation
+      0             cur_->writeGameState(to_eval_);
+      .             searched_.push_back(cur_);
+      .             assert(searched_.size() <= searches_per_eval_);
+      .             return false;
+      .           }
+      .           // At the start of a turn, there are no evaluations
+      5 (0.0%)    if (searched_.size() > 0)
+      0             receiveEval(eval, probs);
+    101 (0.0%)    while (static_cast<int32_t>(searched_.size()) < searches_per_eval_ &&
+  4,235 (0.1%)           searches_done_ < max_searches_ && !root_->known() &&
+      0                  !root_->all_visited()) {
+      0             search();
+      .           }
+      .           // Add a check for the number of requests
+      .           // We should only choose a move if we have received all evaluations
+    686 (0.0%)    return (searches_done_ == max_searches_ || root_->known()) &&
+      .                  searched_.size() == 0;
+      0         }
+      .         
+      .         bool TrainMC::receiveOpponentMove(int32_t move_choice, const Game &game,
+      0                                           int32_t depth) {
+      0           Node *cur = root_->first_child();
+      .           Node *prev = nullptr;
+      3 (0.0%)    while (cur != nullptr) {
+     56 (0.0%)      if (cur->child_id() == move_choice) {
+      0               moveDown(prev);
+      0               return false;
+      .             }
+      .             prev = cur;
+      0             cur = cur->next_sibling();
+      .           }
+      .           // Haven't searched this move yet
+      .           // The current tree is not needed
+      0           delete root_;
+      .           // Copy opponent game state into our root
+      0           root_ = nullptr;
+      .           createRoot(game, depth);
+      .           // We need an evaluation
+      0           cur_->writeGameState(to_eval_);
+      .           searched_.push_back(cur_);
+      .           assert(searched_.size() <= searches_per_eval_);
+      0           searches_done_ = 1;
+      0           return true;
+      2 (0.0%)  }
+      .         
+      0         void TrainMC::createRoot(const Game &game, int32_t depth) {
+      .           assert(root_ == nullptr);
+      0           root_ = new Node(game, depth);
+      .           cur_ = root_;
+      0         }
+      .         
+      .         void TrainMC::getFilteredProbs(float probs[kNumMoves],
+      0                                        float filtered_probs[]) const noexcept {
+      .           // The edges already hold the legal move IDs (still in ascending order here;
+      .           // setProbs reorders them afterwards), so index them directly instead of
+      .           // scanning all 96 moves looking for matches.
+      0           const int32_t num_edges = cur_->num_legal_moves();
+      0           float sum = 0.0;
+ 68,025 (2.3%)    for (int32_t i = 0; i < num_edges; ++i) {
+      0             filtered_probs[i] = probs[cur_->move_id(i)];
+      0             sum += filtered_probs[i];
+      .           }
+      .           // Factoring this out saves division operations
+      0           float scalar = 1.0 / sum * (1 - epsilon_);
+ 63,933 (2.1%)    for (int32_t i = 0; i < num_edges; ++i) {
+      0             filtered_probs[i] *= scalar;
+      .           }
+      0         }
+      .         
+      .         uint64_t TrainMC::nextNoiseBits() noexcept {
+      .           // splitmix64 (Steele, Lea and Flood; constants from Vigna's reference
+      .           // implementation). Passes BigCrush; period 2^64.
+      0           uint64_t z = (noise_state_ += 0x9e3779b97f4a7c15ULL);
+      0           z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+      0           z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+      0           return z ^ (z >> 31);
+      .         }
+      .         
+      0         void TrainMC::generateDirichlet(float dirichlet[]) noexcept {
+      0           const int32_t num_edges = cur_->num_legal_moves();
+      .           // A bucket index needs 10 bits, so each 64-bit draw supplies six. Leftover
+      .           // indices at the end of a node are discarded, so the stream consumed
+      .           // depends only on num_edges and stays reproducible for a seed.
+      .           constexpr int32_t kGammaBits = 10;
+      .           constexpr int32_t kIndicesPerDraw = 64 / kGammaBits;
+      .           static_assert(kNumGammaBuckets == 1 << kGammaBits,
+      .                         "bucket index width must match the gamma table size");
+      0           float sum = 0.0;
+  9,787 (0.3%)    for (int32_t i = 0; i < num_edges; i += kIndicesPerDraw) {
+      .             uint64_t bits = nextNoiseBits();
+      0             const int32_t end = std::min(i + kIndicesPerDraw, num_edges);
+ 58,402 (2.0%)      for (int32_t j = i; j < end; ++j) {
+      0               dirichlet[j] = gamma_samples[bits & (kNumGammaBuckets - 1)];
+      0               bits >>= kGammaBits;
+      0               sum += dirichlet[j];
+      .             }
+      .           }
+      0           float scalar = 1.0 / sum * epsilon_;
+ 64,808 (2.2%)    for (int32_t i = 0; i < num_edges; ++i) {
+      0             dirichlet[i] *= scalar;
+      .           }
+      0         }
+      .         
+      0         void TrainMC::setProbs(float filtered_probs[], float dirichlet[]) noexcept {
+      .           // Combine probabilities and Dirichlet noise
+      0           const int32_t num_edges = cur_->num_legal_moves();
+     26 (0.0%)    float weighted_probs[num_edges];
+      0           float max_prob = 0.0;
+ 64,634 (2.2%)    for (int32_t j = 0; j < num_edges; ++j) {
+      0             weighted_probs[j] = filtered_probs[j] + dirichlet[j];
+      0             max_prob = std::max(weighted_probs[j], max_prob);
+      .           }
+      .           // Scale up probabilities and convert to integers
+      0           float denom = Node::kMaxProbability / max_prob;
+      0           int32_t final_sum = 0;
+124,018 (4.2%)    for (int32_t j = 0; j < num_edges; ++j) {
+      .             // Make all probabilities positive
+      .             // Round to nearest by adding 0.5 and truncating. This is two inline
+      .             // instructions; lround is a libm call (~30 instructions) because it must
+      .             // handle NaN, overflow and negative halves, none of which occur here: the
+      .             // value is always in (0, 511]. Over every float in (0, 511.5] the result
+      .             // matches lround except x = 0.49999997, which the clamp to 1 absorbs.
+      .             int32_t prob = std::max(
+      0                 1, static_cast<int32_t>(weighted_probs[j] * denom + 0.5f));
+      0             cur_->set_probability(j, prob);
+      0             final_sum += prob;
+      .           }
+      0           cur_->set_denominator(1.0 / static_cast<float>(final_sum));
+      .           // chooseNext scores only the first unvisited edge, so it must be the best
+      .           // one. No child exists yet, so that is index 0.
+      .           assert(cur_->first_child() == nullptr);
+      0           cur_->promoteBestEdge(0);
+      7 (0.0%)  }
+      .         
+      0         void TrainMC::receiveEval(float eval[], float probs[]) noexcept {
+      .           assert(eval != nullptr);
+      .           assert(probs != nullptr);
+  4,313 (0.1%)    for (size_t i = 0; i < searched_.size(); ++i) {
+      0             cur_ = searched_[i];
+     17 (0.0%)      float filtered_probs[cur_->num_legal_moves()];
+      0             getFilteredProbs(probs + kNumMoves * i, filtered_probs);
+      .             // Generate Dirichlet noise
+     26 (0.0%)      float dirichlet[cur_->num_legal_moves()];
+      0             generateDirichlet(dirichlet);
+      .             // Set probabilities
+      0             setProbs(filtered_probs, dirichlet);
+      .             // Propagate the evaluation up the tree
+      0             float cur_eval = eval[i];
+ 39,074 (1.3%)      while (cur_->parent() != nullptr) {
+      .               // Correct default +1 evaluation
+      0               cur_->increase_evaluation(cur_eval - 1.0);
+      .               // Reset this marker
+      0               cur_->set_all_visited(false);
+      0               cur_eval *= -1.0;
+      0               cur_ = cur_->parent();
+      .             }
+      .             // Propagate to the root
+      0             cur_->increase_evaluation(cur_eval - 1.0);
+      0           }
+      0           root_->set_all_visited(false);
+      .           searched_.clear();
+      2 (0.0%)  }
+      .         
+      0         int32_t TrainMC::chooseHighProbMove() const noexcept {
+      0           int32_t max_prob = 0;
+      0           int32_t choice = 0;
+     44 (0.0%)    for (int32_t i = 0; i < root_->num_legal_moves(); ++i) {
+      1 (0.0%)      if (root_->probability(i) > max_prob) {
+      0               max_prob = root_->probability(i);
+      0               choice = root_->move_id(i);
+      .             }
+      .           }
+      .           return choice;
+      0         }
+      .         
+      0         int32_t TrainMC::chooseMoveWon(float prob_sample[kNumMoves]) noexcept {
+      0           Node *cur = root_->first_child();
+      0           Node *prev = nullptr;
+      .           Node *best_prev = nullptr;
+      .           int32_t choice = 0;
+      .           // If the root is a deduced win, find the first winning move
+      .           // There should only ever be 1 winning move, since after it is found,
+      .           // the node is not searched again
+      .           // Temperature is 0 in this case, even in the opening.
+      0           while (cur != nullptr) {
+      .             // Winning moves lead to lost positions
+     12 (0.0%)      if (cur->lost()) {
+      0               choice = cur->child_id();
+      .               best_prev = prev;
+      0               break;
+      .             }
+      .             prev = cur;
+      0             cur = cur->next_sibling();
+      .           }
+      .           // Set the probability of the winning move to 1
+      0           if (prob_sample != nullptr)
+      0             prob_sample[choice] = 1.0;
+      .           // Move down the tree
+      0           moveDown(best_prev);
+      .           return choice;
+      0         }
+      .         
+      0         int32_t TrainMC::chooseMoveLostDrawn(float prob_sample[kNumMoves]) noexcept {
+      0           int32_t max_visits = 0;
+      0           Node *cur = root_->first_child();
+      0           Node *prev = nullptr;
+      0           Node *best_prev = nullptr;
+      0           int32_t choice = 0;
+      .           // For losing and drawn positions, find the move with the most searches
+      .           // The most searched line is likely the one with the longest and/or hardest
+      .           // to find win or draw which is practically better. The logic is the same in
+      .           // both cases except we avoid choosing losing moves in a drawn position.
+      .           // Temperature is 0 in this case, even in the opening.
+      3 (0.0%)    while (cur != nullptr) {
+      5 (0.0%)      if (cur->visits() > max_visits && (root_->lost() || !cur->won())) {
+      0               choice = cur->child_id();
+      0               best_prev = prev;
+      0               max_visits = cur->visits();
+      .             }
+      .             prev = cur;
+      0             cur = cur->next_sibling();
+      .           }
+      0           if (prob_sample != nullptr)
+      0             prob_sample[choice] = 1.0;
+      0           moveDown(best_prev);
+      .           return choice;
+      0         }
+      .         
+      0         int32_t TrainMC::chooseMoveOpening(float prob_sample[kNumMoves]) noexcept {
+      .           assert(root_->depth() < kNumOpeningMoves);
+      .           assert(!testing_);
+      .           assert(!root_->known());
+      .           Node *best_prev = nullptr;
+      0           int32_t choice = chooseHighProbMove();
+      .           // Count the number of visits to non-losing moves
+      .           // Which will be the denominator for the probabilities
+      0           int32_t visits = 0;
+      0           Node *cur = root_->first_child();
+     30 (0.0%)    while (cur != nullptr) {
+      .             // Exclude losing moves
+     10 (0.0%)      if (!cur->won()) {
+      0               visits += cur->visits();
+      .             }
+      0             cur = cur->next_sibling();
+      .           }
+      0           float denominator = 1.0 / static_cast<float>(visits);
+      0           cur = root_->first_child();
+      .           // Write the probability sample
+      0           if (prob_sample != nullptr) {
+     29 (0.0%)      while (cur != nullptr) {
+      .               // Exclude losing moves
+     11 (0.0%)        if (!cur->won()) {
+      0                 prob_sample[cur->child_id()] =
+      0                     static_cast<float>(cur->visits()) * denominator;
+      .               }
+      .               best_prev = cur;
+      0               cur = cur->next_sibling();
+      .             }
+      .           }
+      .           // 1 search or all losing moves
+     18 (0.0%)    if (visits == 0) {
+      .             prob_sample[choice] = 1.0;
+      .             // Reset tree (we likely won't use any of it anyways)
+      .             Node *new_root =
+      .                 new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+      .             delete root_;
+      .             root_ = new_root;
+      .             cur_ = root_;
+      .             searches_done_ = 0;
+      .             return choice;
+      .           }
+      .           // Choose a random move weighted by the number of visits
+      0           int32_t target = (*generator_)() % visits;
+      0           int32_t total = 0;
+      0           cur = root_->first_child();
+      0           best_prev = nullptr;
+     31 (0.0%)    while (cur != nullptr) {
+      .             // Exclude losing moves
+      3 (0.0%)      if (!cur->won()) {
+      0               total += cur->visits();
+     19 (0.0%)        if (total > target) {
+      0                 choice = cur->child_id();
+      0                 break;
+      .               }
+      .             }
+      .             best_prev = cur;
+      0             cur = cur->next_sibling();
+      .           }
+      0           moveDown(best_prev);
+      .           return choice;
+      3 (0.0%)  }
+      .         
+      0         int32_t TrainMC::chooseMoveNormal(float prob_sample[kNumMoves]) noexcept {
+      .           assert(!root_->known());
+      0           int32_t max_visits = 0;
+      0           float max_eval = 0.0;
+      0           Node *cur = root_->first_child();
+      0           Node *prev = nullptr;
+      0           Node *best_prev = nullptr;
+      .           // If there are no children (1 search) or all children are losing moves,
+      .           // choose based on probabilities
+      0           int32_t choice = chooseHighProbMove();
+      .           // Choose the move with the most searches.
+      .           // Break ties with evaluation.
+      .           // We never choose losing moves and treat draws as having evaluation 0.
+     37 (0.0%)    while (cur != nullptr) {
+     59 (0.0%)      if (!cur->won()) {
+      0               float eval = cur->evaluation();
+      0               if (cur->result() == kResultDraw || cur->result() == kDeducedDraw) {
+      .                 eval = 0.0;
+      .               }
+     83 (0.0%)        if (cur->visits() > max_visits ||
+      0                   (cur->visits() == max_visits && eval > max_eval)) {
+      0                 choice = cur->child_id();
+      0                 best_prev = prev;
+      0                 max_visits = cur->visits();
+      0                 max_eval = eval;
+      .               }
+      .             }
+      .             prev = cur;
+      0             cur = cur->next_sibling();
+      .           }
+      1 (0.0%)    if (prob_sample != nullptr)
+      0             prob_sample[choice] = 1.0;
+      .           // 1 search or all losing moves
+      0           if (max_visits == 0) {
+      .             // Reset tree (we likely won't use any of it anyways)
+      .             Node *new_root =
+      .                 new Node(root_->game(), nullptr, nullptr, choice, root_->depth() + 1);
+      .             delete root_;
+      .             root_ = new_root;
+      .             cur_ = root_;
+      .             searches_done_ = 0;
+      .             return choice;
+      .           }
+      .         
+      0           moveDown(best_prev);
+      .           return choice;
+      2 (0.0%)  }
+      .         
+      0         void TrainMC::moveDown(Node *prev) noexcept {
+      .           // Extricate the node we want
+      .           Node *new_root;
+      .           // Chosen node is first child
+     10 (0.0%)    if (prev == nullptr) {
+      0             new_root = root_->first_child();
+      0             root_->set_first_child(new_root->next_sibling());
+      .           } else {
+      0             new_root = prev->next_sibling();
+      0             prev->set_next_sibling(new_root->next_sibling());
+      .           }
+      .           // Remove new root from the tree
+      .           // So that it is not deleted with the old root
+      0           new_root->null_next_sibling();
+      0           new_root->null_parent();
+      0           delete root_;
+      0           root_ = new_root;
+      .           cur_ = root_;
+      0           searches_done_ = 0;
+      .           assert(searched_.size() == 0);
+      0         }
+      .         
+      0         void TrainMC::propagateTerminal() noexcept {
+      .           // We can only deduce more results from new terminal nodes
+      .           assert(cur_->terminal());
+      0           Node *cur = cur_;
+    446 (0.0%)    while (cur != root_) {
+      .             // We only need one loss to deduce a win
+     14 (0.0%)      if (cur->lost()) {
+      0               cur = cur->parent();
+      0               cur->set_result(kDeducedWin);
+      .             } else {
+      0               cur = cur->parent();
+      0               Node *cur_child = cur->first_child();
+      .               // Position has a drawing move
+      .               bool has_draw = false;
+      0               int32_t edge_index = 0;
+    118 (0.0%)        while (cur_child != nullptr) {
+      .                 // If there is an unknown or unvisited move, we can deduce no further
+    345 (0.0%)          if (cur_child->child_id() != cur->move_id(edge_index) ||
+      0                     !cur_child->known()) {
+      .                   return;
+      .                 }
+      0                 if (cur->drawn()) {
+      0                   has_draw = true;
+      .                 }
+      0                 cur_child = cur_child->next_sibling();
+      0                 ++edge_index;
+      .               }
+      .               // There are unvisited moves after the last visited move
+     27 (0.0%)        if (edge_index < cur->num_legal_moves())
+      .                 return;
+      .               // No winning or unknown moves
+      .               // If there are any drawing moves, the position is a draw
+      4 (0.0%)        if (has_draw) {
+      .                 cur->set_result(kDeducedDraw);
+      .               }
+      .               // Otherwise, there are only losing moves, so the position is a loss
+      .               else {
+      0                 cur->set_result(kDeducedLoss);
+      .               }
+      .             }
+      .           }
+      0         }
+      .         
+      0         TrainMC::ChooseNextOutput TrainMC::chooseNext() noexcept {
+      .           // An unvisited edge scores prior * c_puct * sqrt(N), in which only the prior
+      .           // varies, so among unvisited edges only the highest prior can win. The
+      .           // visited edges are kept as a prefix of the edge array, in the order they
+      .           // were expanded, and the first edge after them is always the best
+      .           // unvisited one (setProbs and promoteBestEdge maintain this). So score the
+      .           // children, then that one edge; the other unvisited edges cannot win.
+      0           float max_eval = kNegInf;
+      0           Node *best = nullptr;
+      .           // Factor this value out, as it is expense to compute
+      2 (0.0%)    const float v_sqrt = c_puct_ * sqrt(static_cast<float>(cur_->visits()));
+      0           int32_t edge_index = 0;
+      .           // Last child in the list: a new node is inserted after it
+      .           Node *last = nullptr;
+215,722 (7.2%)    for (Node *child = cur_->first_child(); child != nullptr;
+      0                child = child->next_sibling(), ++edge_index) {
+      .             assert(child->child_id() == cur_->move_id(edge_index));
+      .             last = child;
+      .             // Don't all_visited nodes or won or lost positions
+      .             // We search draws since the number of searches they have
+      .             // makes a difference in choose_move
+      .             // as they are not automatically chosen or excluded
+135,769 (4.5%)      if ((child->known() && !child->drawn()) || child->all_visited())
+      .               continue;
+      .             float u;
+      .             // Known draw, use evaluation 0
+  1,089 (0.0%)      if (child->drawn()) {
+      .               u = cur_->probability(edge_index) * v_sqrt;
+      .             } else {
+      0               const float visits = static_cast<float>(child->visits());
+      0               u = -1.0 * child->evaluation() / visits +
+      0                   cur_->probability(edge_index) * v_sqrt / (visits + 1.0);
+      .             }
+      0             if (u > max_eval) {
+      0               max_eval = u;
+      .               best = child;
+      .             }
+      .           }
+      .           // The best unvisited edge, if any
+      0           const int32_t num_edges = cur_->num_legal_moves();
+ 62,621 (2.1%)    if (edge_index < num_edges) {
+      0             const float u = cur_->probability(edge_index) * v_sqrt;
+ 47,700 (1.6%)      if (u > max_eval) {
+      0               const int32_t choice = cur_->move_id(edge_index);
+      .               // This edge is about to become a child; line up its successor.
+    977 (0.0%)        if (edge_index + 1 < num_edges)
+      0                 cur_->promoteBestEdge(edge_index + 1);
+      0               return ChooseNextOutput{ChooseNextOutput::Type::kNew, choice, last};
+      .             }
+      .           }
+      .           // No possible moves
+      7 (0.0%)    if (best == nullptr) {
+      0             return ChooseNextOutput{ChooseNextOutput::Type::kNone, -1, nullptr};
+      .           }
+      .           // Existing node
+      0           return ChooseNextOutput{ChooseNextOutput::Type::kVisited, best->child_id(),
+      0                                   best};
+      0         }
+      .         
+      0         void TrainMC::search() {
+      .           // I feel that this should be the case anyways
+      .           // but it is sometimes not, so we set it here.
+      .           // It's insignificant and too hard to debug
+      0           cur_ = root_;
+      0           ++searches_done_;
+      3 (0.0%)    while (!cur_->terminal()) {
+      .             // Choose the next node to move down to
+      0             ChooseNextOutput res = chooseNext();
+      0             cur_->increment_visits();
+      .             // We use a default evaluation of 1.0 before we have a neural net
+      .             // evaluation This helps diversify the searches. In particular, the second
+      .             // player has a large advantage in Corintho, so most positions the first
+      .             // player plays has only losing moves. In such a position, a move getting
+      .             // a 0.0 evaluation search will improve its evaluation and will very
+      .             // likely be searched again before neural net evaluations are received.
+      .             // This drastically decreases the effective number of searches. Most
+      .             // pessimistically, with 1600 searches and 16 searches per evaluation, we
+      .             // effectively get 100 searches. Change the default value from 0.0 to 1.0
+      .             // empirically drastically improved improvement rate. Note that every node
+      .             // visited gets this default, as opposed to a leaf node getting it and
+      .             // having it propagate the normal way. This ensures that visited nodes are
+      .             // maximally unlikely to get visited again.
+      0             cur_->increase_evaluation(1.0);
+      .             // If no nodes were searched, this means all nodes are all_visited
+      .             // or won or lost positions
+      .             // This node is then all_visited
+      2 (0.0%)      if (res.type == ChooseNextOutput::Type::kNone) {
+      0               cur_->set_all_visited();
+      .               // Since no search was done
+      .               // We need to undo the visit count and default 1.0 evaluation
+      4 (0.0%)        while (cur_->parent() != nullptr) {
+      0                 cur_->decrement_visits();
+      0                 cur_->decrease_evaluation(1.0);
+      0                 cur_ = cur_->parent();
+      .               }
+      .               // Remove search from root
+      0               cur_->decrement_visits();
+      0               cur_->decrease_evaluation(1.0);
+      0               --searches_done_;
+      0               return;
+      .             }
+      .             // New node at the beginning of the list
+ 26,439 (0.9%)      if (res.type == ChooseNextOutput::Type::kNew && res.node == nullptr) {
+      0               cur_->set_first_child(new Node(cur_->get_game(), cur_,
+      .                                              cur_->first_child(), res.choice,
+      0                                              cur_->depth() + 1));
+      0               cur_ = cur_->first_child();
+      0               break;
+      .             }
+      .             // New node somewhere else in the list
+      .             if (res.type == ChooseNextOutput::Type::kNew) {
+      0               res.node->set_next_sibling(new Node(cur_->get_game(), cur_,
+      .                                                   res.node->next_sibling(), res.choice,
+      0                                                   cur_->depth() + 1));
+      0               cur_ = res.node->next_sibling();
+      .               break;
+      .             }
+      .             // Existing node, continue searching
+      0             cur_ = res.node;
+      .           }
+      .           // Terminal node
+      .           // This is usually a new node
+      .           // But may be a drawn node that has been searched before
+     81 (0.0%)    if (cur_->terminal()) {
+      .             // Propagate the result
+      0             propagateTerminal();
+      .             // In a decisive terminal state, the person to play is always the loser
+      .             // Otherwise the evaluation is 0.0 for a draw.
+      0             float cur_eval = -1.0;
+     23 (0.0%)      if (cur_->drawn()) {
+      0               cur_eval = 0.0;
+      .             }
+      0             cur_->set_evaluation(cur_eval);
+    654 (0.0%)      while (cur_->parent() != nullptr) {
+      0               cur_ = cur_->parent();
+      .               // Correct default +1.0 evaluation
+      0               cur_->increase_evaluation(cur_eval - 1.0);
+      0               cur_eval *= -1.0;
+      .             }
+      .           }
+      .           // Otherwise, request an evaluation for the new node
+      .           else {
+      .             // Default +1 evaluation for new node
+      0             cur_->set_evaluation(1.0);
+      .             // Write game in correct position
+      0             cur_->writeGameState(to_eval_ + searched_.size() * kGameStateSize);
+      .             // Record the node in searched_
+      .             searched_.push_back(cur_);
+      .             assert(searched_.size() <= searches_per_eval_);
+      .           }
+      .           // Reset cur for next search
+      .           // Try not doing this?
+      0           cur_ = root_;
+      0         
+
+--------------------------------------------------------------------------------

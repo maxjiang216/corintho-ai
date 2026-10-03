@@ -80,10 +80,37 @@ is now even with MCTS on the CPU at ~2 s per move (from 0.285 in entry
 22's first version). Within noise of 0.5; a larger match would settle
 whether it is ahead.
 
+## Incremental first layer
+
+The developer: "what about the incremental thing". Re-profiled first
+(int8 h256, 36 games, `-DAB_PROFILE`): evaluation 71% of a node's time
+(including the conversion of each position to floats and back to bytes),
+move ordering 21%, move generation ~6%, child setup 2%.
+
+The 64 board inputs are the bits of the board word (`Game::key`), so each
+search frame keeps layer 1's board part and a child's is its parent's
+plus the rows of bits turned on minus the rows of bits turned off; the 6
+reserve inputs (counts 0-4, the side to move's first) are added at a leaf
+from precomputed rows [slot][count]. No float conversion. Same integers as
+the full int8 evaluation: `AB_CHECK_INCREMENTAL=1` compares every leaf
+(18 games, no mismatch). `AB_INCREMENTAL=0` turns it off.
+
+Same 200 games:
+
+| | |
+|---|---|
+| AB vs MCTS | **104-3-93, score 0.527** |
+| pairs (AB-MCTS-split) | 15-9-76 |
+| per move | AB 1.73 s, depth 10.0, **1457k nodes/s** (+30%); MCTS 1.69 s |
+
+Over the day: 0.285 -> 0.527 against MCTS with the AZ network at equal
+CPU time, the last within noise of even. Openings are paired (each played
+twice, colours swapped) and identical across all runs (seed 1).
+
 ## Next options
 
 - A larger match (or longer time controls) to settle the result.
-- Incremental first layer (now a larger share of the time).
+- Move ordering is now the next cost (21% before the incremental layer).
 - A better small network: more data, longer training (the learning curve
   had not flattened, entry 21).
 - Alpha-beta self-play with this engine (randomized openings, labels from

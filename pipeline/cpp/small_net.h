@@ -104,6 +104,61 @@ class SmallNet {
       for (int32_t j = 0; j < h; ++j)
         acc[j] += x * w[j];
     }
+    return fromAccumulator(acc);
+  }
+
+  /// Incremental evaluation (entry 23). A move changes only a few of the
+  /// 64 board inputs (the bits of the board word), so layer 1's board part
+  /// is kept per position and updated by the changed bits; the 6 reserve
+  /// inputs (counts 0-4, the side to move's first) are added at evaluation
+  /// from precomputed rows. Same integers as evalInt8, so the same result.
+  /// @param acc h int32: the bias plus the board bits' rows
+  void boardAccumulator(uint64_t board, int32_t *acc) const {
+    std::copy(b1q_.begin(), b1q_.end(), acc);
+    for (; board != 0; board &= board - 1)
+      addRow(acc, board_rows_.data() +
+                      static_cast<size_t>(__builtin_ctzll(board)) * h_);
+  }
+  /// The child's board accumulator from its parent's
+  void updateAccumulator(const int32_t *parent, uint64_t parent_board,
+                         uint64_t child_board, int32_t *child) const {
+    std::copy(parent, parent + h_, child);
+    for (uint64_t on = child_board & ~parent_board; on != 0; on &= on - 1)
+      addRow(child, board_rows_.data() +
+                        static_cast<size_t>(__builtin_ctzll(on)) * h_);
+    for (uint64_t off = parent_board & ~child_board; off != 0; off &= off - 1)
+      subRow(child, board_rows_.data() +
+                        static_cast<size_t>(__builtin_ctzll(off)) * h_);
+  }
+  /// Value for the side to move from a board accumulator and the reserve
+  /// counts (side to move's three first, as the network inputs)
+  float evalIncremental(const int32_t *board_acc,
+                        const int32_t reserves[6]) const {
+    alignas(32) int32_t acc_buf[kMaxHidden];
+    int32_t *__restrict acc = acc_buf;
+    std::copy(board_acc, board_acc + h_, acc);
+    for (int32_t i = 0; i < 6; ++i)
+      if (reserves[i] != 0)
+        addRow(acc, reserve_rows_.data() +
+                        (static_cast<size_t>(i) * 5 + reserves[i]) * h_);
+    return fromAccumulator(acc);
+  }
+
+ private:
+  void addRow(int32_t *__restrict acc, const int32_t *__restrict row) const {
+    for (int32_t j = 0; j < h_; ++j)
+      acc[j] += row[j];
+  }
+  void subRow(int32_t *__restrict acc, const int32_t *__restrict row) const {
+    for (int32_t j = 0; j < h_; ++j)
+      acc[j] -= row[j];
+  }
+
+  /// Layers 2 and 3 from layer 1's accumulator
+  float fromAccumulator(const int32_t *__restrict acc) const {
+    alignas(32) uint8_t act_buf[kMaxHidden];
+    uint8_t *__restrict act = act_buf;
+    const int32_t h = h_;
     for (int32_t j = 0; j < h; ++j)
       act[j] = static_cast<uint8_t>(std::min(std::max(acc[j] >> 3, 0), 127));
     __m256i sum[4] = {_mm256_setzero_si256(), _mm256_setzero_si256(),
@@ -128,7 +183,6 @@ class SmallNet {
     return output(h2, 1.0F / (127.0F * w2_scale_));
   }
 
- private:
   float output(const float *h2, float scale) const {
     float out = b3_;
     for (int32_t k = 0; k < 32; ++k)
@@ -144,6 +198,18 @@ class SmallNet {
     b1q_.resize(h_);
     for (int32_t j = 0; j < h_; ++j)
       b1q_[j] = static_cast<int32_t>(std::lround(b1_[j] * 1016.0F));
+    // Incremental rows: a board bit is input 4; reserve slot i with count c
+    board_rows_.resize(64 * static_cast<size_t>(h_));
+    for (int32_t b = 0; b < 64; ++b)
+      for (int32_t j = 0; j < h_; ++j)
+        board_rows_[static_cast<size_t>(b) * h_ + j] =
+            4 * w1q_[static_cast<size_t>(b) * h_ + j];
+    reserve_rows_.resize(6 * 5 * static_cast<size_t>(h_));
+    for (int32_t i = 0; i < 6; ++i)
+      for (int32_t c = 0; c < 5; ++c)
+        for (int32_t j = 0; j < h_; ++j)
+          reserve_rows_[(static_cast<size_t>(i) * 5 + c) * h_ + j] =
+              c * w1q_[static_cast<size_t>(64 + i) * h_ + j];
     // Layer 2: weights x 64, saturated at +-127 (|w| <= 1.98, as NNUE
     // clips them in training); SMALL_NET_W2_SCALE overrides the scale
     const char *env = std::getenv("SMALL_NET_W2_SCALE");
@@ -167,6 +233,7 @@ class SmallNet {
   float b3_{0};
   std::vector<int16_t> w1q_;
   std::vector<int32_t> b1q_;
+  std::vector<int32_t> board_rows_, reserve_rows_;
   std::vector<int8_t> w2q_;
   float b2q_[32]{};
   float w2_scale_{1};

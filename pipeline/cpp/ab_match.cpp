@@ -95,13 +95,18 @@ class AlphaBeta {
     std::vector<int32_t> moves;
     forEachMove(legal, [&](int32_t m) { moves.push_back(m); });
     Result best{moves[0], 0, 0.0F, 0};
+    alignas(32) int32_t root_acc[SmallNet::kMaxHidden];
+    alignas(32) int32_t child_acc[SmallNet::kMaxHidden];
+    net_.boardAccumulator(boardOf(root), root_acc);
     for (int32_t depth = 1; depth <= 64; ++depth) {
       float alpha = -kInf, best_score = -kInf;
       int32_t best_move = moves[0], done = 0;
       for (int32_t m : moves) {
         Game child = root;
         child.doMove(m);
-        const float s = -search(child, depth - 1, -kInf, -alpha, 1);
+        net_.updateAccumulator(root_acc, boardOf(root), boardOf(child),
+                               child_acc);
+        const float s = -search(child, child_acc, depth - 1, -kInf, -alpha, 1);
         if (aborted_)
           break;
         ++done;
@@ -140,8 +145,35 @@ class AlphaBeta {
   };
   enum : int8_t { kExact, kLower, kUpper };
 
-  float search(const Game &game, int32_t depth, float alpha, float beta,
-               int32_t ply) {
+  static uint64_t boardOf(const Game &game) {
+    uint64_t board, rest;
+    game.key(board, rest);
+    return board;
+  }
+  /// The value at a leaf: from the incremental accumulator (AB_INCREMENTAL,
+  /// default on) or the full evaluation
+  float leafValue(const Game &game, const int32_t *acc) const {
+    if (!incremental_)
+      return evaluate(net_, game);
+    uint64_t board, rest;
+    game.key(board, rest);
+    const int32_t to_play = static_cast<int32_t>(rest & 1);
+    int32_t reserves[6];
+    for (int32_t i = 0; i < 6; ++i)
+      reserves[i] = static_cast<int32_t>(
+          (rest >> (4 + 4 * ((to_play * 3 + i) % 6))) & 0xF);
+    const float v = net_.evalIncremental(acc, reserves);
+    if (check_incremental_ && v != evaluate(net_, game)) {
+      std::fprintf(stderr, "incremental %.6f != full %.6f\n", v,
+                   evaluate(net_, game));
+      std::abort();
+    }
+    return v;
+  }
+
+  /// @param acc the board accumulator of game (SmallNet::boardAccumulator)
+  float search(const Game &game, const int32_t *acc, int32_t depth,
+               float alpha, float beta, int32_t ply) {
     if ((++nodes_ & 1023) == 0 && since(start_) > seconds_)
       aborted_ = true;
     if (aborted_)
@@ -157,7 +189,7 @@ class AlphaBeta {
     // turns it off)
     if (depth <= 0 && !(lines && line_extend_)) {
       PROF_START(t_eval);
-      const float v = evaluate(net_, game);
+      const float v = leafValue(game, acc);
       PROF_ADD(1, t_eval);
 #ifdef AB_PROFILE
       ++g_prof[4];  // leaves evaluated
@@ -230,15 +262,19 @@ class AlphaBeta {
     const float alpha0 = alpha;
     float best = -kInf;
     int32_t best_move = moves[0];
+    alignas(32) int32_t child_acc[SmallNet::kMaxHidden];
+    const uint64_t parent_board = boardOf(game);
     for (int32_t i = 0; i < n; ++i) {
       PROF_START(t_child);
       Game child = game;
       child.doMove(moves[i]);
+      if (incremental_)
+        net_.updateAccumulator(acc, parent_board, boardOf(child), child_acc);
       PROF_ADD(3, t_child);
       // Principal variation search: later moves with a null window first
       float s;
       if (i == 0) {
-        s = -search(child, depth - 1, -beta, -alpha, ply + 1);
+        s = -search(child, child_acc, depth - 1, -beta, -alpha, ply + 1);
       } else {
         // Late-move reductions: a late quiet move is first searched
         // shallower; only one that beats alpha gets the full depth
@@ -246,11 +282,13 @@ class AlphaBeta {
         int32_t r = 0;
         if (lmr_ && quiet && depth >= 3 && i >= 3 && !lines)
           r = i >= 8 ? 2 : 1;
-        s = -search(child, depth - 1 - r, -alpha - 1e-4F, -alpha, ply + 1);
+        s = -search(child, child_acc, depth - 1 - r, -alpha - 1e-4F, -alpha,
+                    ply + 1);
         if (r > 0 && s > alpha && !aborted_)
-          s = -search(child, depth - 1, -alpha - 1e-4F, -alpha, ply + 1);
+          s = -search(child, child_acc, depth - 1, -alpha - 1e-4F, -alpha,
+                      ply + 1);
         if (s > alpha && s < beta && !aborted_)
-          s = -search(child, depth - 1, -beta, -alpha, ply + 1);
+          s = -search(child, child_acc, depth - 1, -beta, -alpha, ply + 1);
       }
       if (aborted_)
         return 0.0F;
@@ -275,6 +313,9 @@ class AlphaBeta {
   }
 
   const SmallNet &net_;
+  bool incremental_{getenv("AB_INCREMENTAL") == nullptr ||
+                    atoi(getenv("AB_INCREMENTAL")) != 0};
+  bool check_incremental_{getenv("AB_CHECK_INCREMENTAL") != nullptr};
   bool lmr_{getenv("AB_LMR") == nullptr || atoi(getenv("AB_LMR")) != 0};
   bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
                     atoi(getenv("AB_LINE_EXTEND")) != 0};

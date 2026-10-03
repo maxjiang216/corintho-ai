@@ -95,6 +95,9 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSolver_1_1Entry.html">Entry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">16 bytes: the board word, and one word packing the rest of the key (side to move, 6 reserve counts in 3 bits each: bits 0-18), score  <a href="structSolver_1_1Entry.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSolver_1_1LineStep.html">LineStep</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">One position of a solved line (playOut)  <a href="structSolver_1_1LineStep.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -103,6 +106,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a926f43bb8968fa2ac8551cdd5e5199ee" id="r_a926f43bb8968fa2ac8551cdd5e5199ee"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSolver.html#a926f43bb8968fa2ac8551cdd5e5199ee">solve</a> (const <a class="el" href="classGame.html">Game</a> &amp;game, uint64_t max_nodes)</td></tr>
 <tr class="memdesc:a926f43bb8968fa2ac8551cdd5e5199ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve a position.  <br /></td></tr>
 <tr class="separator:a926f43bb8968fa2ac8551cdd5e5199ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab83a5ae75a482e5a117b25d531675a16" id="r_ab83a5ae75a482e5a117b25d531675a16"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSolver.html#ab83a5ae75a482e5a117b25d531675a16">playOut</a> (<a class="el" href="classGame.html">Game</a> game, uint64_t max_nodes, std::vector&lt; <a class="el" href="structSolver_1_1LineStep.html">LineStep</a> &gt; &amp;line)</td></tr>
+<tr class="memdesc:ab83a5ae75a482e5a117b25d531675a16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Play a position out to the end of the game with exact values (worklog 2026-09-25-nn-architectures, entry 19)  <br /></td></tr>
+<tr class="separator:ab83a5ae75a482e5a117b25d531675a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9b67cffd67dc4fd96583ace7ae9fce9e" id="r_a9b67cffd67dc4fd96583ace7ae9fce9e"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSolver.html#a9b67cffd67dc4fd96583ace7ae9fce9e">tableMove</a> (const <a class="el" href="classGame.html">Game</a> &amp;game) const noexcept</td></tr>
+<tr class="memdesc:a9b67cffd67dc4fd96583ace7ae9fce9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The move stored for a position in the table, or -1.  <br /></td></tr>
+<tr class="separator:a9b67cffd67dc4fd96583ace7ae9fce9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e9024082072ca5ddfc87f34c5f413af" id="r_a8e9024082072ca5ddfc87f34c5f413af"><td class="memItemLeft" align="right" valign="top"><a id="a8e9024082072ca5ddfc87f34c5f413af" name="a8e9024082072ca5ddfc87f34c5f413af"></a>
 uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>nodes</b> () const noexcept</td></tr>
 <tr class="memdesc:a8e9024082072ca5ddfc87f34c5f413af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Positions visited by the last solve. <br /></td></tr>
@@ -135,6 +144,10 @@ Private Member Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>recordCutoff</b> (uint64_t board, uint64_t rest, int32_t move)</td></tr>
 <tr class="memdesc:a394dcd81c7ff39e3e90bf0231df362cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">A quiet move cut off: credit it in the history table. <br /></td></tr>
 <tr class="separator:a394dcd81c7ff39e3e90bf0231df362cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab50843e3c50763c404a6b46c7fadbf55" id="r_ab50843e3c50763c404a6b46c7fadbf55"><td class="memItemLeft" align="right" valign="top"><a id="ab50843e3c50763c404a6b46c7fadbf55" name="ab50843e3c50763c404a6b46c7fadbf55"></a>
+int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>winningMove</b> (const <a class="el" href="classGame.html">Game</a> &amp;game, const <a class="el" href="structMoveMask.html">MoveMask</a> &amp;legal, uint64_t max_nodes)</td></tr>
+<tr class="memdesc:ab50843e3c50763c404a6b46c7fadbf55"><td class="mdescLeft">&#160;</td><td class="mdescRight">For a won position: an immediate win, else the table's move if it wins; -1 if neither, -2 if a solve reached max_nodes. <br /></td></tr>
+<tr class="separator:ab50843e3c50763c404a6b46c7fadbf55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c3acf00be6ba726a682ed0e2478e72a" id="r_a9c3acf00be6ba726a682ed0e2478e72a"><td class="memItemLeft" align="right" valign="top"><a id="a9c3acf00be6ba726a682ed0e2478e72a" name="a9c3acf00be6ba726a682ed0e2478e72a"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>store</b> (uint64_t board, uint64_t rest, int32_t best, int32_t alpha0, int32_t beta, int32_t best_move)</td></tr>
 <tr class="memdesc:a9c3acf00be6ba726a682ed0e2478e72a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Store a result with its bound and best move; returns best. <br /></td></tr>
@@ -208,6 +221,49 @@ static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab83a5ae75a482e5a117b25d531675a16" name="ab83a5ae75a482e5a117b25d531675a16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab83a5ae75a482e5a117b25d531675a16">&#9670;&#160;</a></span>playOut()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Solver::playOut </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classGame.html">Game</a>&#160;</td>
+          <td class="paramname"><em>game</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>max_nodes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="structSolver_1_1LineStep.html">LineStep</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>line</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Play a position out to the end of the game with exact values (worklog 2026-09-25-nn-architectures, entry 19) </p>
+<p>Every child is solved at every ply. The winner plays an immediate win if it has one, else the winning move whose solve visited the fewest positions (with a warm table: the move the search already proved; a stand-in for the shortest win). The loser plays the move whose refutation visited the most positions (a stand-in for the longest defence). A drawn side plays the drawing move that leaves the opponent the most losing replies. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">line</td><td>Receives one step per move played, the last one ending the game </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>false if a solve reached max_nodes (line is then incomplete) </dd></dl>
+
+</div>
+</div>
 <a id="a925659b814825edab69db0641cad98c1" name="a925659b814825edab69db0641cad98c1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a925659b814825edab69db0641cad98c1">&#9670;&#160;</a></span>search()</h2>
 
@@ -302,6 +358,35 @@ static constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>1, 0 or -1 for the side to move, or kUnknown </dd></dl>
+
+</div>
+</div>
+<a id="a9b67cffd67dc4fd96583ace7ae9fce9e" name="a9b67cffd67dc4fd96583ace7ae9fce9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9b67cffd67dc4fd96583ace7ae9fce9e">&#9670;&#160;</a></span>tableMove()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t Solver::tableMove </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classGame.html">Game</a> &amp;&#160;</td>
+          <td class="paramname"><em>game</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The move stored for a position in the table, or -1. </p>
+<p>After a solve that found a win, the winning move it proved </p>
 
 </div>
 </div>

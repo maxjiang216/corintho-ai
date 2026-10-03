@@ -256,6 +256,10 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>solveLeaf</b> ()</td>
 <tr class="memitem:a3b32bfe59187ae6cc4d41e5c1945a332" id="r_a3b32bfe59187ae6cc4d41e5c1945a332"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#a3b32bfe59187ae6cc4d41e5c1945a332">search</a> ()</td></tr>
 <tr class="memdesc:a3b32bfe59187ae6cc4d41e5c1945a332"><td class="mdescLeft">&#160;</td><td class="mdescRight">Repeated move down the Monte Carlo search tree until a terminal or unsearched node is reached.  <br /></td></tr>
 <tr class="separator:a3b32bfe59187ae6cc4d41e5c1945a332"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4693a9bc47f31124054e376457517a0e" id="r_a4693a9bc47f31124054e376457517a0e"><td class="memItemLeft" align="right" valign="top"><a id="a4693a9bc47f31124054e376457517a0e" name="a4693a9bc47f31124054e376457517a0e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>budgetLeft</b> () const noexcept</td></tr>
+<tr class="memdesc:a4693a9bc47f31124054e376457517a0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether this move's search may start another search. <br /></td></tr>
+<tr class="separator:a4693a9bc47f31124054e376457517a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -311,6 +315,10 @@ Static Private Attributes</h2></td></tr>
 <tr class="memitem:ae628c8118700970988e3c0c68a3c4f21" id="r_ae628c8118700970988e3c0c68a3c4f21"><td class="memItemLeft" align="right" valign="top">static constexpr int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21">kNumOpeningMoves</a> = 6</td></tr>
 <tr class="memdesc:ae628c8118700970988e3c0c68a3c4f21"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of initial moves to consider "opening" moves.  <br /></td></tr>
 <tr class="separator:ae628c8118700970988e3c0c68a3c4f21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22b74a7c77259f85dbfed59ed46c29a2" id="r_a22b74a7c77259f85dbfed59ed46c29a2"><td class="memItemLeft" align="right" valign="top"><a id="a22b74a7c77259f85dbfed59ed46c29a2" name="a22b74a7c77259f85dbfed59ed46c29a2"></a>
+static constexpr int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>kMaxRootVisits</b> = 32000</td></tr>
+<tr class="memdesc:a22b74a7c77259f85dbfed59ed46c29a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Root visits at which a search stops early: <a class="el" href="classNode.html" title="A node in the Monte Carlo search tree.">Node</a> counts visits in int16_t. Never reached with a tree per player (max ~7.7k); a tree shared by both players carries more over (entry 17). <br /></td></tr>
+<tr class="separator:a22b74a7c77259f85dbfed59ed46c29a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Class for Monte Carlo tree search. </p>

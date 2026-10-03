@@ -94,53 +94,58 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;game.h&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="foldopen" id="foldopen00018" data-start="{" data-end="};">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="structSolveJob.html">   18</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structSolveJob.html">SolveJob</a> {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keyword">static</span> <span class="keyword">constexpr</span> int8_t kWaiting = 3;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <a class="code hl_class" href="classGame.html">Game</a> game;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  uint64_t max_nodes{0};  <span class="comment">// 0: the pool&#39;s default</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  std::atomic&lt;int8_t&gt; result{kWaiting};</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>};</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;solver.h&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="};">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="structSolveJob.html">   19</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structSolveJob.html">SolveJob</a> {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keyword">static</span> <span class="keyword">constexpr</span> int8_t kWaiting = 3;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <a class="code hl_class" href="classGame.html">Game</a> game;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  uint64_t max_nodes{0};  <span class="comment">// 0: the pool&#39;s default</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="structSolveJob.html#a100057ec9a2f50b1b185c168bdff5aad">   25</a></span>  <span class="keywordtype">bool</span> <a class="code hl_variable" href="structSolveJob.html#a100057ec9a2f50b1b185c168bdff5aad">play_out</a>{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  std::vector&lt;Solver::LineStep&gt; line{};</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  std::atomic&lt;int8_t&gt; result{kWaiting};</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>};</div>
 </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="foldopen" id="foldopen00033" data-start="{" data-end="};">
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="classSolverPool.html">   33</a></span><span class="keyword">class </span><a class="code hl_class" href="classSolverPool.html">SolverPool</a> {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a>(int32_t num_threads, int32_t log2_table, uint64_t max_nodes);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <a class="code hl_class" href="classSolverPool.html">~SolverPool</a>();</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a>(<span class="keyword">const</span> <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;operator=(<span class="keyword">const</span> <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  std::shared_ptr&lt;SolveJob&gt; submit(<span class="keyword">const</span> <a class="code hl_class" href="classGame.html">Game</a> &amp;game, uint64_t max_nodes = 0);</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="classSolverPool.html#ab7e58f42688b480d99aac696c6aa9a48">   42</a></span>  <span class="keyword">static</span> int32_t <a class="code hl_function" href="classSolverPool.html#ab7e58f42688b480d99aac696c6aa9a48">wait</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structSolveJob.html">SolveJob</a> &amp;job);</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  uint64_t max_nodes() const noexcept { <span class="keywordflow">return</span> max_nodes_; }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="};">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="classSolverPool.html">   38</a></span><span class="keyword">class </span><a class="code hl_class" href="classSolverPool.html">SolverPool</a> {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a>(int32_t num_threads, int32_t log2_table, uint64_t max_nodes);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <a class="code hl_class" href="classSolverPool.html">~SolverPool</a>();</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a>(<span class="keyword">const</span> <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;operator=(<span class="keyword">const</span> <a class="code hl_class" href="classSolverPool.html">SolverPool</a> &amp;) = <span class="keyword">delete</span>;</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">   47</a></span>  uint64_t <a class="code hl_function" href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">solves</a>() const noexcept { <span class="keywordflow">return</span> solves_.load(); }</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  uint64_t capped() const noexcept { <span class="keywordflow">return</span> capped_.load(); }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="keywordtype">double</span> seconds() const noexcept;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keywordtype">double</span> max_seconds() const noexcept;</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> private:</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <span class="keywordtype">void</span> run(int32_t index);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  int32_t log2_table_;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  uint64_t max_nodes_;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  std::mutex mutex_;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  std::condition_variable wake_;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  std::deque&lt;std::shared_ptr&lt;<a class="code hl_struct" href="structSolveJob.html">SolveJob</a>&gt;&gt; queue_;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keywordtype">bool</span> stop_{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  std::atomic&lt;uint64_t&gt; solves_{0}, capped_{0}, nanos_{0}, max_nanos_{0};</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  std::vector&lt;std::thread&gt; threads_;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>};</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  std::shared_ptr&lt;SolveJob&gt; submit(<span class="keyword">const</span> <a class="code hl_class" href="classGame.html">Game</a> &amp;game, uint64_t max_nodes = 0,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                                   <span class="keywordtype">bool</span> play_out = <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classSolverPool.html#ab7e58f42688b480d99aac696c6aa9a48">   48</a></span>  <span class="keyword">static</span> int32_t <a class="code hl_function" href="classSolverPool.html#ab7e58f42688b480d99aac696c6aa9a48">wait</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structSolveJob.html">SolveJob</a> &amp;job);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  uint64_t max_nodes() const noexcept { <span class="keywordflow">return</span> max_nodes_; }</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">   53</a></span>  uint64_t <a class="code hl_function" href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">solves</a>() const noexcept { <span class="keywordflow">return</span> solves_.load(); }</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  uint64_t capped() const noexcept { <span class="keywordflow">return</span> capped_.load(); }</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="keywordtype">double</span> seconds() const noexcept;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="keywordtype">double</span> max_seconds() const noexcept;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> private:</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keywordtype">void</span> run(int32_t index);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  int32_t log2_table_;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  uint64_t max_nodes_;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  std::mutex mutex_;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  std::condition_variable wake_;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  std::deque&lt;std::shared_ptr&lt;<a class="code hl_struct" href="structSolveJob.html">SolveJob</a>&gt;&gt; queue_;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keywordtype">bool</span> stop_{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  std::atomic&lt;uint64_t&gt; solves_{0}, capped_{0}, nanos_{0}, max_nanos_{0};</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  std::vector&lt;std::thread&gt; threads_;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>};</div>
 </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="aclassGame_html"><div class="ttname"><a href="classGame.html">Game</a></div><div class="ttdoc">Represents a Corintho game state.</div><div class="ttdef"><b>Definition</b> game.h:19</div></div>
-<div class="ttc" id="aclassSolverPool_html"><div class="ttname"><a href="classSolverPool.html">SolverPool</a></div><div class="ttdoc">Threads that solve self-play positions off the engine's critical path (worklog 2026-09-25-nn-architec...</div><div class="ttdef"><b>Definition</b> solver_pool.h:33</div></div>
-<div class="ttc" id="aclassSolverPool_html_a4cacf4f4a8e9d208e628b34007680ef9"><div class="ttname"><a href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">SolverPool::solves</a></div><div class="ttdeci">uint64_t solves() const noexcept</div><div class="ttdoc">Totals so far: solves finished, of which capped; seconds spent solving (summed over threads); the lon...</div><div class="ttdef"><b>Definition</b> solver_pool.h:47</div></div>
+<div class="ttc" id="aclassSolverPool_html"><div class="ttname"><a href="classSolverPool.html">SolverPool</a></div><div class="ttdoc">Threads that solve self-play positions off the engine's critical path (worklog 2026-09-25-nn-architec...</div><div class="ttdef"><b>Definition</b> solver_pool.h:38</div></div>
+<div class="ttc" id="aclassSolverPool_html_a4cacf4f4a8e9d208e628b34007680ef9"><div class="ttname"><a href="classSolverPool.html#a4cacf4f4a8e9d208e628b34007680ef9">SolverPool::solves</a></div><div class="ttdeci">uint64_t solves() const noexcept</div><div class="ttdoc">Totals so far: solves finished, of which capped; seconds spent solving (summed over threads); the lon...</div><div class="ttdef"><b>Definition</b> solver_pool.h:53</div></div>
 <div class="ttc" id="aclassSolverPool_html_ab7e58f42688b480d99aac696c6aa9a48"><div class="ttname"><a href="classSolverPool.html#ab7e58f42688b480d99aac696c6aa9a48">SolverPool::wait</a></div><div class="ttdeci">static int32_t wait(const SolveJob &amp;job)</div><div class="ttdoc">Block until the job has a result; returns it.</div></div>
-<div class="ttc" id="astructSolveJob_html"><div class="ttname"><a href="structSolveJob.html">SolveJob</a></div><div class="ttdoc">A position waiting for (or given) an exact result.</div><div class="ttdef"><b>Definition</b> solver_pool.h:18</div></div>
+<div class="ttc" id="astructSolveJob_html"><div class="ttname"><a href="structSolveJob.html">SolveJob</a></div><div class="ttdoc">A position waiting for (or given) an exact result.</div><div class="ttdef"><b>Definition</b> solver_pool.h:19</div></div>
+<div class="ttc" id="astructSolveJob_html_a100057ec9a2f50b1b185c168bdff5aad"><div class="ttname"><a href="structSolveJob.html#a100057ec9a2f50b1b185c168bdff5aad">SolveJob::play_out</a></div><div class="ttdeci">bool play_out</div><div class="ttdoc">Also play the position out with exact values (entry 19); an empty line after a known result means the...</div><div class="ttdef"><b>Definition</b> solver_pool.h:25</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

@@ -160,6 +160,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>setSolver</b> (<a cla
 <tr class="memitem:a476bddef21a9088c137e8d94102f5846" id="r_a476bddef21a9088c137e8d94102f5846"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classTrainer.html#a476bddef21a9088c137e8d94102f5846">setNodeSolver</a> (int32_t max_horizon, uint64_t max_nodes, int32_t model=-1)</td></tr>
 <tr class="memdesc:a476bddef21a9088c137e8d94102f5846"><td class="mdescLeft">&#160;</td><td class="mdescRight">Solve search leaves with horizon P &lt;= max_horizon exactly, giving up after max_nodes (entry 15); call before the first iteration.  <br /></td></tr>
 <tr class="separator:a476bddef21a9088c137e8d94102f5846"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b8b0d991815cac1331899370b63ecb9" id="r_a0b8b0d991815cac1331899370b63ecb9"><td class="memItemLeft" align="right" valign="top"><a id="a0b8b0d991815cac1331899370b63ecb9" name="a0b8b0d991815cac1331899370b63ecb9"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setSharedTree</b> (bool shared)</td></tr>
+<tr class="memdesc:a0b8b0d991815cac1331899370b63ecb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Both sides of each game search one tree (entry 17); call before the first iteration, training only. <br /></td></tr>
+<tr class="separator:a0b8b0d991815cac1331899370b63ecb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4349870963fe7fa8070a1a0c2666057" id="r_ad4349870963fe7fa8070a1a0c2666057"><td class="memItemLeft" align="right" valign="top"><a id="ad4349870963fe7fa8070a1a0c2666057" name="ad4349870963fe7fa8070a1a0c2666057"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setRelabel</b> (<a class="el" href="classSolverPool.html">SolverPool</a> *pool, int32_t max_horizon)</td></tr>
+<tr class="memdesc:ad4349870963fe7fa8070a1a0c2666057"><td class="mdescLeft">&#160;</td><td class="mdescRight">Label samples at P &lt;= max_horizon by exact solution (entry 20); call before the first iteration, training only, not with setSolver. <br /></td></tr>
+<tr class="separator:ad4349870963fe7fa8070a1a0c2666057"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7ca68a332430db4efda09dfd6e2b8a0" id="r_af7ca68a332430db4efda09dfd6e2b8a0"><td class="memItemLeft" align="right" valign="top"><a id="af7ca68a332430db4efda09dfd6e2b8a0" name="af7ca68a332430db4efda09dfd6e2b8a0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>relabelCounts</b> (int64_t &amp;relabelled, int64_t &amp;changed) const</td></tr>
+<tr class="memdesc:af7ca68a332430db4efda09dfd6e2b8a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">After finalizeSolves: samples given an exact label, and of them the ones whose game outcome label differed. <br /></td></tr>
+<tr class="separator:af7ca68a332430db4efda09dfd6e2b8a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d19aa279f1ff5feeba5bd371d414a71" id="r_a2d19aa279f1ff5feeba5bd371d414a71"><td class="memItemLeft" align="right" valign="top"><a id="a2d19aa279f1ff5feeba5bd371d414a71" name="a2d19aa279f1ff5feeba5bd371d414a71"></a>
 int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>numAdjudicated</b> () const noexcept</td></tr>
 <tr class="memdesc:a2d19aa279f1ff5feeba5bd371d414a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Games ended by exact solution so far. <br /></td></tr>

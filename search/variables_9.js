@@ -5,8 +5,9 @@ var searchData=
   ['kchunk_2',['kChunk',['../classArena.html#a678d75aec05940c2816cc11fed48a30f',1,'Arena']]],
   ['kmaxedges_3',['kMaxEdges',['../classNode.html#abc687cf487509d138f885e92257d74e8',1,'Node']]],
   ['kmaxprobability_4',['kMaxProbability',['../classNode.html#a58a6aba98b35d1354482fd83d86cfe6f',1,'Node']]],
-  ['knumopeningmoves_5',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]],
-  ['kskipchild_6',['kSkipChild',['../classNode.html#acc2453def88a76691af735d8d25643ef',1,'Node']]],
-  ['ksmall_7',['kSmall',['../classArena.html#ac6d73e9820a6d12e01a88817ff359eab',1,'Arena']]],
-  ['kunknown_8',['kUnknown',['../classSolver.html#a9cac0c9cf6dd1d7533db31658095c0fd',1,'Solver']]]
+  ['kmaxrootvisits_5',['kMaxRootVisits',['../classTrainMC.html#a22b74a7c77259f85dbfed59ed46c29a2',1,'TrainMC']]],
+  ['knumopeningmoves_6',['kNumOpeningMoves',['../classTrainMC.html#ae628c8118700970988e3c0c68a3c4f21',1,'TrainMC']]],
+  ['kskipchild_7',['kSkipChild',['../classNode.html#acc2453def88a76691af735d8d25643ef',1,'Node']]],
+  ['ksmall_8',['kSmall',['../classArena.html#ac6d73e9820a6d12e01a88817ff359eab',1,'Arena']]],
+  ['kunknown_9',['kUnknown',['../classSolver.html#a9cac0c9cf6dd1d7533db31658095c0fd',1,'Solver']]]
 ];

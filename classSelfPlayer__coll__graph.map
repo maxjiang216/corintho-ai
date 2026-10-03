@@ -1,7 +1,7 @@
 <map id="SelfPlayer" name="SelfPlayer">
-<area shape="rect" id="Node000001" title="A training match with 2 TrainMC players." alt="" coords="85,391,173,416"/>
+<area shape="rect" id="Node000001" title="A training match with 2 TrainMC players." alt="" coords="85,405,173,431"/>
 <area shape="rect" id="Node000002" href="$classTrainMC.html" title="Class for Monte Carlo tree search." alt="" coords="39,303,113,328"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,340,96,365,117,389,113,392,91,368,80,342"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,341,87,361,96,380,116,403,112,407,91,383,82,362,77,342"/>
 <area shape="rect" id="Node000003" href="$classNode.html" title="A node in the Monte Carlo search tree." alt="" coords="48,191,104,216"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,230,79,302,73,302,73,230"/>
 <area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="119,192,127,196,131,204,122,214,105,216,104,211,120,209,125,203,123,200,117,197"/>
@@ -12,5 +12,5 @@
 <area shape="rect" id="Node000006" href="$structNode_1_1Edge.html" title="A legal move and its probability weight, packed in 16 bits." alt="" coords="109,5,205,31"/>
 <area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="160,45,160,93,155,93,155,45"/>
 <area shape="rect" id="Node000007" href="$classSolverPool.html" title="Threads that solve self&#45;play positions off the engine&#39;s critical path (worklog 2026&#45;09&#45;25&#45;nn&#45;architec..." alt="" coords="137,303,228,328"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="172,342,156,368,140,392,135,389,151,365,167,339"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="175,342,156,383,140,407,136,404,151,380,170,340"/>
 </map>

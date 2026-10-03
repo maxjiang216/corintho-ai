@@ -19,6 +19,12 @@ alpha-beta engine (worklog 2026-09-25-nn-architectures, entry 21).
         the exact values and the outcomes; appends to
         runs/nnue/results.jsonl.
 
+    python arch/nnue_distill.py train ... --tie --mono-m 64 --mono-m2 16
+        Weights tied across the board symmetries; monotone in the reserves
+        (Small, entry 24).
+    python arch/nnue_distill.py export MODEL.pt OUT.bin
+        small_net.h's file (ab_match --small).
+
 Inputs are the 70 network inputs (64 board bits, 6 reserve counts / 4).
 """
 import argparse
@@ -38,7 +44,7 @@ import export  # noqa: E402
 import model as M  # noqa: E402
 from features import symmetries  # noqa: E402
 
-DEV = "cuda"
+DEV = "cuda" if torch.cuda.is_available() else "cpu"
 SOLVE_P = 27
 
 
@@ -97,19 +103,114 @@ def testset(a):
     print(f"{a.out}: {len(states):,} positions, {len(idx)} exact")
 
 
-class Small(nn.Module):
-    """70 -> hidden -> 32 -> 1, clipped ReLU (NNUE-style, quantizable)"""
+def symmetry_tables():
+    """The 8 state symmetries as gather indices (x_k = x[sym[k]]), their
+    inverses, and rel[l][k], the symmetry taking l to k (l^-1 k)"""
+    sym = symmetries()[0]
+    inv = np.argsort(sym, axis=1)
+    key = {tuple(r): k for k, r in enumerate(sym)}
+    # x[sym[m]][sym[k]] = x[sym[m][sym[k]]]: the product of m and k
+    prod = np.array(
+        [[key[tuple(sym[m][sym[k]])] for k in range(8)] for m in range(8)]
+    )
+    ident = key[tuple(range(sym.shape[1]))]
+    inverse = [int(np.where(prod[m] == ident)[0][0]) for m in range(8)]
+    rel = np.array([[prod[inverse[l]][k] for k in range(8)] for l in range(8)])
+    return sym, inv, rel
 
-    def __init__(self, hidden):
+
+class Small(nn.Module):
+    """70 -> hidden -> 32 -> 1, clipped ReLU (NNUE-style, quantizable).
+
+    tie: weights tied across the 8 board symmetries (entry 24). Units come
+    in orbits of 8, one per symmetry: layer-1 unit (g, k) sees the board
+    under symmetry k with group g's weights, layer 2 is equivariant
+    (W2[(q, l), (g, k)] depends only on l^-1 k) and the output weight is
+    shared by an orbit, so the value is exactly invariant. Same dense
+    network at inference.
+
+    mono_m, mono_m2: the last mono_m layer-1 units and the last mono_m2
+    layer-2 units are reserve-aware; the others never see the reserves.
+    Reserve-aware units take the side to move's reserves with weights >= 0
+    and the opponent's with weights <= 0, and every weight downstream of
+    them is >= 0, so the value never decreases with more of one's own
+    pieces or fewer of the opponent's (entry 24, option B). Kept by
+    projection after each step (project()).
+    """
+
+    def __init__(self, hidden, tie=False, mono_m=0, mono_m2=0):
         super().__init__()
-        self.l1 = nn.Linear(70, hidden)
-        self.l2 = nn.Linear(hidden, 32)
-        self.l3 = nn.Linear(32, 1)
+        r = 8 if tie else 1
+        assert hidden % r == 0 and 32 % r == 0
+        assert mono_m % r == 0 and mono_m2 % r == 0
+        assert mono_m <= hidden and mono_m2 <= 32
+        assert (mono_m > 0) == (mono_m2 > 0), "mono needs both layers"
+        self.hidden, self.tie, self.r = hidden, tie, r
+        g, q = hidden // r, 32 // r
+        self.mono = mono_m > 0
+        self.m1, self.m2 = g - mono_m // r, q - mono_m2 // r  # first M group
+        u = lambda shape, fan: nn.Parameter(  # noqa: E731
+            torch.empty(shape).uniform_(-(fan**-0.5), fan**-0.5)
+        )
+        self.w1, self.b1 = u((g, 70), 70), u((g,), 70)
+        self.w2, self.b2 = u((q, g, r), hidden), u((q,), hidden)
+        self.w3, self.b3 = u((q,), 32), u((1,), 32)
+        if tie:
+            sym, inv, rel = symmetry_tables()
+            self.register_buffer("inv", torch.from_numpy(inv))
+            self.register_buffer("rel", torch.from_numpy(rel))
+        self.project()
+
+    @torch.no_grad()
+    def project(self):
+        if not self.mono:
+            return
+        m1, m2 = self.m1, self.m2
+        self.w1[:m1, 64:70] = 0  # board-only units
+        self.w1[m1:, 64:67].clamp_(min=0)  # side to move's reserves
+        self.w1[m1:, 67:70].clamp_(max=0)  # the opponent's
+        self.w2[:m2, m1:] = 0  # board-only layer-2 units
+        self.w2[m2:, m1:].clamp_(min=0)
+        self.w3[m2:].clamp_(min=0)
+
+    def dense(self):
+        """(W1 [h, 70], b1, W2 [32, h], b2, W3 [1, 32], b3)"""
+        r = self.r
+        if not self.tie:
+            return (
+                self.w1,
+                self.b1,
+                self.w2[:, :, 0],
+                self.b2,
+                self.w3[None],
+                self.b3,
+            )
+        g, q = self.w1.shape[0], self.w2.shape[0]
+        # Unit (g, k) = g * 8 + k: W1[(g, k), sym[k][j]] = w1[g, j]
+        w1 = self.w1[:, self.inv].reshape(g * r, 70)
+        w2 = self.w2[:, :, self.rel]  # [q, g, l, k]
+        w2 = w2.permute(0, 2, 1, 3).reshape(q * r, g * r)
+        rep = lambda v: v.repeat_interleave(r)  # noqa: E731
+        return w1, rep(self.b1), w2, rep(self.b2), rep(self.w3)[None], self.b3
 
     def forward(self, x):
-        h = torch.clamp(self.l1(x), 0, 1)
-        h = torch.clamp(self.l2(h), 0, 1)
-        return torch.tanh(self.l3(h)).squeeze(1)
+        w1, b1, w2, b2, w3, b3 = self.dense()
+        h = torch.clamp(nn.functional.linear(x, w1, b1), 0, 1)
+        h = torch.clamp(nn.functional.linear(h, w2, b2), 0, 1)
+        return torch.tanh(nn.functional.linear(h, w3, b3)).squeeze(1)
+
+    @torch.no_grad()
+    def dense_state(self):
+        """state_dict of the plain network (l1, l2, l3), for any variant"""
+        w1, b1, w2, b2, w3, b3 = (t.detach().clone() for t in self.dense())
+        return {
+            "l1.weight": w1,
+            "l1.bias": b1,
+            "l2.weight": w2,
+            "l2.bias": b2,
+            "l3.weight": w3,
+            "l3.bias": b3,
+        }
 
 
 @torch.no_grad()
@@ -162,10 +263,20 @@ def train(a):
     test_states = torch.from_numpy(t["states"]).to(DEV)
     sym = torch.from_numpy(symmetries()[0]).to(DEV)
     torch.manual_seed(a.seed)
-    net = Small(a.hidden).to(DEV)
-    opt = torch.optim.AdamW(net.parameters(), lr=a.lr, weight_decay=1e-4)
+    net = Small(a.hidden, a.tie, a.mono_m, a.mono_m2).to(DEV)
+    # A tied layer-2 or output weight moves its 8 copies together, so the
+    # output moves ~8x as far per step: at the full rate layer 2 sometimes
+    # saturated for good (1 seed in 6 on a synthetic target; 0 at 1/8)
+    lr2 = a.lr / net.r
+    opt = torch.optim.AdamW(
+        [
+            {"params": [net.w1, net.b1], "lr": a.lr},
+            {"params": [net.w2, net.b2, net.w3, net.b3], "lr": lr2},
+        ],
+        weight_decay=1e-4,
+    )
     sched = torch.optim.lr_scheduler.OneCycleLR(
-        opt, max_lr=a.lr, total_steps=a.steps, pct_start=0.05
+        opt, max_lr=[a.lr, lr2], total_steps=a.steps, pct_start=0.05
     )
     g = torch.Generator(device=DEV).manual_seed(a.seed)
     t0 = time.time()
@@ -184,7 +295,8 @@ def train(a):
         sched.step()
         if a.clip_w2 > 0:  # int8-friendly layer 2 (small_net.h: x 64)
             with torch.no_grad():
-                net.l2.weight.clamp_(-a.clip_w2, a.clip_w2)
+                net.w2.clamp_(-a.clip_w2, a.clip_w2)
+        net.project()
         if step % a.eval_every == 0 or step == a.steps:
             pred = predict(net, test_states)
             m = t["horizon"] >= 28
@@ -196,12 +308,16 @@ def train(a):
                 }
     net.load_state_dict(best_state)
     pred = predict(net, test_states)
-    params = sum(p.numel() for p in net.parameters())
+    params = sum(p.numel() for p in net.parameters())  # free, incl. zeros
     result = {
         "tag": a.tag,
         "hidden": a.hidden,
         "min_p": a.min_p,
         "clip_w2": a.clip_w2,
+        "tie": a.tie,
+        "mono_m": a.mono_m,
+        "mono_m2": a.mono_m2,
+        "seed": a.seed,
         "rows": int(len(target)),
         "steps": a.steps,
         "best_step": best_step,
@@ -211,12 +327,32 @@ def train(a):
     }
     os.makedirs("runs/nnue/models", exist_ok=True)
     torch.save(
-        {"hidden": a.hidden, "model": net.state_dict()},
+        {"hidden": a.hidden, "model": net.dense_state()},
         f"runs/nnue/models/{a.tag}.pt",
     )
     with open("runs/nnue/results.jsonl", "a") as f:
         f.write(json.dumps(result) + "\n")
     print(json.dumps(result))
+
+
+def export_bin(a):
+    """A trained model (.pt) as small_net.h's file: int32 hidden, W1
+    input-major [70][h], b1, W2 [32][h], b2, W3 [32], b3, float32"""
+    ck = torch.load(a.model, map_location="cpu")
+    w = {k: v.float().numpy() for k, v in ck["model"].items()}
+    h = np.array([ck["hidden"]], np.int32)
+    with open(a.out, "wb") as f:
+        h.tofile(f)
+        for x in (
+            w["l1.weight"].T,
+            w["l1.bias"],
+            w["l2.weight"],
+            w["l2.bias"],
+            w["l3.weight"][0],
+            w["l3.bias"],
+        ):
+            np.ascontiguousarray(x, np.float32).tofile(f)
+    print(f"{a.out}: hidden {ck['hidden']}")
 
 
 def reference(a):
@@ -250,12 +386,18 @@ def main():
     p.add_argument("--rows", type=int, default=0)
     p.add_argument("--min-p", type=int, default=0)
     p.add_argument("--clip-w2", type=float, default=0.0)
+    p.add_argument("--tie", action="store_true")
+    p.add_argument("--mono-m", type=int, default=0)
+    p.add_argument("--mono-m2", type=int, default=0)
     p.add_argument("--steps", type=int, default=20000)
     p.add_argument("--batch", type=int, default=4096)
     p.add_argument("--lr", type=float, default=3e-3)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--eval-every", type=int, default=2000)
     p.add_argument("--tag", default="small")
+    p = sub.add_parser("export")
+    p.add_argument("model")
+    p.add_argument("out")
     p = sub.add_parser("reference")
     p.add_argument("test")
     p.add_argument("model")
@@ -266,6 +408,7 @@ def main():
         "testset": testset,
         "train": train,
         "reference": reference,
+        "export": export_bin,
     }[a.cmd](a)
 
 

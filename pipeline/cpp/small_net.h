@@ -130,6 +130,25 @@ class SmallNet {
       subRow(child, board_rows_.data() +
                         static_cast<size_t>(__builtin_ctzll(off)) * h_);
   }
+  /// Value for the side to move from the parent's board accumulator, in
+  /// one pass (the child's own accumulator is never stored: lazy, entry 23)
+  float evalFromParent(const int32_t *parent, uint64_t parent_board,
+                       uint64_t board, const int32_t reserves[6]) const {
+    alignas(32) int32_t acc_buf[kMaxHidden];
+    int32_t *__restrict acc = acc_buf;
+    std::copy(parent, parent + h_, acc);
+    for (uint64_t on = board & ~parent_board; on != 0; on &= on - 1)
+      addRow(acc, board_rows_.data() +
+                      static_cast<size_t>(__builtin_ctzll(on)) * h_);
+    for (uint64_t off = parent_board & ~board; off != 0; off &= off - 1)
+      subRow(acc, board_rows_.data() +
+                      static_cast<size_t>(__builtin_ctzll(off)) * h_);
+    for (int32_t i = 0; i < 6; ++i)
+      if (reserves[i] != 0)
+        addRow(acc, reserve_rows_.data() +
+                        (static_cast<size_t>(i) * 5 + reserves[i]) * h_);
+    return fromAccumulator(acc);
+  }
   /// Value for the side to move from a board accumulator and the reserve
   /// counts (side to move's three first, as the network inputs)
   float evalIncremental(const int32_t *board_acc,

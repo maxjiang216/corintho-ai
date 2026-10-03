@@ -96,17 +96,16 @@ class AlphaBeta {
     forEachMove(legal, [&](int32_t m) { moves.push_back(m); });
     Result best{moves[0], 0, 0.0F, 0};
     alignas(32) int32_t root_acc[SmallNet::kMaxHidden];
-    alignas(32) int32_t child_acc[SmallNet::kMaxHidden];
-    net_.boardAccumulator(boardOf(root), root_acc);
+    const uint64_t root_board = boardOf(root);
+    net_.boardAccumulator(root_board, root_acc);
     for (int32_t depth = 1; depth <= 64; ++depth) {
       float alpha = -kInf, best_score = -kInf;
       int32_t best_move = moves[0], done = 0;
       for (int32_t m : moves) {
         Game child = root;
         child.doMove(m);
-        net_.updateAccumulator(root_acc, boardOf(root), boardOf(child),
-                               child_acc);
-        const float s = -search(child, child_acc, depth - 1, -kInf, -alpha, 1);
+        const float s =
+            -search(child, root_acc, root_board, depth - 1, -kInf, -alpha, 1);
         if (aborted_)
           break;
         ++done;
@@ -152,7 +151,8 @@ class AlphaBeta {
   }
   /// The value at a leaf: from the incremental accumulator (AB_INCREMENTAL,
   /// default on) or the full evaluation
-  float leafValue(const Game &game, const int32_t *acc) const {
+  float leafValue(const Game &game, const int32_t *from_acc,
+                  uint64_t from_board) const {
     if (!incremental_)
       return evaluate(net_, game);
     uint64_t board, rest;
@@ -162,7 +162,7 @@ class AlphaBeta {
     for (int32_t i = 0; i < 6; ++i)
       reserves[i] = static_cast<int32_t>(
           (rest >> (4 + 4 * ((to_play * 3 + i) % 6))) & 0xF);
-    const float v = net_.evalIncremental(acc, reserves);
+    const float v = net_.evalFromParent(from_acc, from_board, board, reserves);
     if (check_incremental_ && v != evaluate(net_, game)) {
       std::fprintf(stderr, "incremental %.6f != full %.6f\n", v,
                    evaluate(net_, game));
@@ -171,9 +171,11 @@ class AlphaBeta {
     return v;
   }
 
-  /// @param acc the board accumulator of game (SmallNet::boardAccumulator)
-  float search(const Game &game, const int32_t *acc, int32_t depth,
-               float alpha, float beta, int32_t ply) {
+  /// @param from_acc, from_board the parent's board accumulator and board
+  /// word: this node's own accumulator is computed only when needed (at a
+  /// leaf, in one pass; or before expanding), lazily (entry 23)
+  float search(const Game &game, const int32_t *from_acc, uint64_t from_board,
+               int32_t depth, float alpha, float beta, int32_t ply) {
     if ((++nodes_ & 1023) == 0 && since(start_) > seconds_)
       aborted_ = true;
     if (aborted_)
@@ -189,7 +191,7 @@ class AlphaBeta {
     // turns it off)
     if (depth <= 0 && !(lines && line_extend_)) {
       PROF_START(t_eval);
-      const float v = leafValue(game, acc);
+      const float v = leafValue(game, from_acc, from_board);
       PROF_ADD(1, t_eval);
 #ifdef AB_PROFILE
       ++g_prof[4];  // leaves evaluated
@@ -284,7 +286,10 @@ class AlphaBeta {
     const float alpha0 = alpha;
     float best = -kInf;
     int32_t best_move = moves[0];
-    alignas(32) int32_t child_acc[SmallNet::kMaxHidden];
+    // This node's accumulator, for its children
+    alignas(32) int32_t acc[SmallNet::kMaxHidden];
+    if (incremental_)
+      net_.updateAccumulator(from_acc, from_board, board, acc);
     for (int32_t i = 0; i < n; ++i) {
       // Pick the best remaining move only when it is needed: a cutoff
       // usually comes after one or two moves, so sorting all of them
@@ -303,13 +308,11 @@ class AlphaBeta {
       PROF_START(t_child);
       Game child = game;
       child.doMove(moves[i]);
-      if (incremental_)
-        net_.updateAccumulator(acc, parent_board, boardOf(child), child_acc);
       PROF_ADD(3, t_child);
       // Principal variation search: later moves with a null window first
       float s;
       if (i == 0) {
-        s = -search(child, child_acc, depth - 1, -beta, -alpha, ply + 1);
+        s = -search(child, acc, board, depth - 1, -beta, -alpha, ply + 1);
       } else {
         // Late-move reductions: a late quiet move is first searched
         // shallower; only one that beats alpha gets the full depth
@@ -317,13 +320,13 @@ class AlphaBeta {
         int32_t r = 0;
         if (lmr_ && quiet && depth >= 3 && i >= 3 && !lines)
           r = i >= 8 ? 2 : 1;
-        s = -search(child, child_acc, depth - 1 - r, -alpha - 1e-4F, -alpha,
+        s = -search(child, acc, board, depth - 1 - r, -alpha - 1e-4F, -alpha,
                     ply + 1);
         if (r > 0 && s > alpha && !aborted_)
-          s = -search(child, child_acc, depth - 1, -alpha - 1e-4F, -alpha,
+          s = -search(child, acc, board, depth - 1, -alpha - 1e-4F, -alpha,
                       ply + 1);
         if (s > alpha && s < beta && !aborted_)
-          s = -search(child, child_acc, depth - 1, -beta, -alpha, ply + 1);
+          s = -search(child, acc, board, depth - 1, -beta, -alpha, ply + 1);
       }
       if (aborted_)
         return 0.0F;

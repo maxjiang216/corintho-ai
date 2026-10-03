@@ -107,6 +107,32 @@ Over the day: 0.285 -> 0.527 against MCTS with the AZ network at equal
 CPU time, the last within noise of even. Openings are paired (each played
 twice, colours swapped) and identical across all runs (seed 1).
 
+## Cheaper move ordering and lazy accumulators
+
+Profile with the incremental layer (TSC cycles per node): evaluation 615,
+move ordering 416 (of which the sort 179, counting replies of line-making
+moves 100, the per-move copy + doMove + line test ~137), child copy +
+doMove + accumulator update 323, move generation 111.
+
+- **Line test on the board word** (the developer: "a small lookup table to
+  figure out if a move makes a line?"). `Game::hasLine` already tests all
+  runs with a few shifted ANDs, so a table has little to beat; instead
+  `Game::boardHasLine(word)` (refactor `7ea9b04`, digest unchanged) on the
+  child's word computed as doMove does, no Game copy, the move made only
+  for line-making moves. `AB_CHECK_LINES=1`: no mismatch. Ordering 416 ->
+  400 cycles: as expected, the copy and move were cheap.
+- **Lazy move picking:** the best remaining move is picked when needed
+  instead of sorting all of them; sort 178 -> 124 cycles.
+  Both: 200 games 100-4-96 (0.510), 1.51M nodes/s.
+- **Lazy accumulators** (Stockfish's approach, the developer's choice over
+  in-place update with undo): a node gets its parent's accumulator and
+  board word and computes its own only when needed: at a leaf in one pass
+  (parent + changed board rows + reserve rows), or before expanding.
+  Nodes that return early (table hits, game over, immediate wins) compute
+  nothing, and a leaf no longer copies twice. `AB_CHECK_INCREMENTAL=1`:
+  every leaf equal to the full int8 evaluation. 1.57M -> 1.63M nodes/s,
+  0.64 -> 0.61 us per node; evaluation is now 68% of the timed cycles.
+
 ## Next options
 
 - A larger match (or longer time controls) to settle the result.

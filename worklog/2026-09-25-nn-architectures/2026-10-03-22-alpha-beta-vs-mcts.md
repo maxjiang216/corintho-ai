@@ -89,9 +89,15 @@ Same 200 games (seed 1, equal time):
 | + the solver's ordering (line-making moves by fewest replies, an immediate win returned at once; quiet moves by type, then history) | 0.328 | 1-37-62 | 6.9 | 195k |
 | + search on while a line stands at depth 0 (`AB_LINE_EXTEND`) | 0.345 | 3-35-62 | 6.7 | 241k |
 
+| + late-move reductions (`AB_LMR`): from the 4th quiet move at depth >= 3, 1 ply less (2 from the 9th), re-searched at full depth if it beats alpha; none while a line stands | 0.372 | 2-30-68 | 7.9 | 206k |
+| + the whole time: no early stop; a move that beats the previous best in an unfinished iteration is played | **0.445** | **12-22-66** | 8.1 | 241k |
+
+Seconds per move in the last two runs: AB 1.42 vs MCTS 2.28 (MCTS's time
+varies with load), then AB 1.78 vs MCTS 1.79: only the last run is at
+equal time.
+
 (200 games: about +-0.035 per score.) The solver's ordering gives 1.4
-plies; the line extension is within noise. Together ~+45 Elo; still
-~110 Elo behind MCTS at equal time. Next levers: late-move reductions
-(selectivity), incremental evaluation, using all of the time (a new
-iteration starts only with half the time left: AB used 1.49 s vs MCTS
-1.72 s).
+plies; the line extension is within noise; late-move reductions 1.2
+plies more. At equal time AB now scores 0.445 (~-40 Elo, about 1.5
+standard errors from even). Next levers: incremental evaluation, int8,
+a larger match to settle the gap.

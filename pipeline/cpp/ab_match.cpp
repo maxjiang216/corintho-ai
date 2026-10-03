@@ -142,29 +142,33 @@ class AlphaBeta {
     Result best{moves[0], 0, 0.0F, 0};
     for (int32_t depth = 1; depth <= 64; ++depth) {
       float alpha = -kInf, best_score = -kInf;
-      int32_t best_move = moves[0];
+      int32_t best_move = moves[0], done = 0;
       for (int32_t m : moves) {
         Game child = root;
         child.doMove(m);
         const float s = -search(child, depth - 1, -kInf, -alpha, 1);
         if (aborted_)
           break;
+        ++done;
         if (s > best_score) {
           best_score = s;
           best_move = m;
         }
         alpha = std::max(alpha, s);
       }
-      if (aborted_)
+      if (aborted_) {
+        // Out of time mid-iteration: the previous best (searched first) and
+        // any move that beat it at this depth are valid results
+        if (done > 0 && best_move != best.move)
+          best.move = best_move;
         break;
+      }
       best = {best_move, depth, best_score, nodes_};
       // The best move first in the next iteration
       std::stable_partition(moves.begin(), moves.end(),
                             [&](int32_t m) { return m == best_move; });
       if (std::abs(best_score) > 1.5F)
         break;  // a forced result
-      if (since(start_) > 0.5 * seconds_)
-        break;  // the next depth would not finish
     }
     best.nodes = nodes_;
     return best;
@@ -265,7 +269,15 @@ class AlphaBeta {
       if (i == 0) {
         s = -search(child, depth - 1, -beta, -alpha, ply + 1);
       } else {
-        s = -search(child, depth - 1, -alpha - 1e-4F, -alpha, ply + 1);
+        // Late-move reductions: a late quiet move is first searched
+        // shallower; only one that beats alpha gets the full depth
+        const bool quiet = (key[moves[i]] >> 60) == 1;
+        int32_t r = 0;
+        if (lmr_ && quiet && depth >= 3 && i >= 3 && !lines)
+          r = i >= 8 ? 2 : 1;
+        s = -search(child, depth - 1 - r, -alpha - 1e-4F, -alpha, ply + 1);
+        if (r > 0 && s > alpha && !aborted_)
+          s = -search(child, depth - 1, -alpha - 1e-4F, -alpha, ply + 1);
         if (s > alpha && s < beta && !aborted_)
           s = -search(child, depth - 1, -beta, -alpha, ply + 1);
       }
@@ -292,6 +304,7 @@ class AlphaBeta {
   }
 
   const SmallNet &net_;
+  bool lmr_{getenv("AB_LMR") == nullptr || atoi(getenv("AB_LMR")) != 0};
   bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
                     atoi(getenv("AB_LINE_EXTEND")) != 0};
   /// The solver's move ordering (AB_SOLVER_ORDER=0: table move and history)

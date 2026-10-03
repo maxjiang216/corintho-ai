@@ -217,6 +217,7 @@ class AlphaBeta {
     // capital, each group by history. AB_ORDER_DEPTH: from this depth up,
     // by the network's value of each child instead.
     uint64_t key[kNumMoves];
+    const uint64_t parent_board = board;
     PROF_START(t_order);
     for (int32_t i = 0; i < n; ++i) {
       const int32_t m = moves[i];
@@ -232,12 +233,35 @@ class AlphaBeta {
         continue;
       }
       if (solver_order_) {
-        Game child = game;
-        child.doMove(m);
-        if (child.hasLine()) {
+        // The child's board word as Game::doMove makes it (frozen bits do
+        // not matter to lines): no Game copy, no move made unless it makes
+        // a line (entry 23)
+        uint64_t b = parent_board;
+        const MoveInfo &mi = kMoveTable[m];
+        if (mi.is_place) {
+          b |= uint64_t{1} << (mi.to * 4 + mi.piece);
+        } else {
+          const uint64_t stack = (b >> (mi.from * 4)) & kStackMask;
+          b &= ~(kStackMask << (mi.from * 4));
+          b |= stack << (mi.to * 4);
+        }
+        const bool makes_line = Game::boardHasLine(b);
+        if (check_lines_) {
+          Game child = game;
+          child.doMove(m);
+          if (child.hasLine() != makes_line) {
+            std::fprintf(stderr, "line test mismatch, move %d\n", m);
+            std::abort();
+          }
+        }
+        if (makes_line) {
+          Game child = game;
+          child.doMove(m);
+          PROF_START(t_replies);
           MoveMask replies;
           child.getLegalMoves(replies);
           const int32_t r = replies.count();
+          PROF_ADD(6, t_replies);
           if (r == 0)  // the opponent is stuck with a line: a win
             return kMate - 0.01F * static_cast<float>(ply + 1);
           key[m] =
@@ -253,8 +277,6 @@ class AlphaBeta {
       }
       key[m] = static_cast<uint64_t>(history_[side][m]);
     }
-    std::sort(moves, moves + n,
-              [&](int32_t a, int32_t b) { return key[a] > key[b]; });
     PROF_ADD(2, t_order);
 #ifdef AB_PROFILE
     ++g_prof[5];  // interior nodes expanded
@@ -263,8 +285,21 @@ class AlphaBeta {
     float best = -kInf;
     int32_t best_move = moves[0];
     alignas(32) int32_t child_acc[SmallNet::kMaxHidden];
-    const uint64_t parent_board = boardOf(game);
     for (int32_t i = 0; i < n; ++i) {
+      // Pick the best remaining move only when it is needed: a cutoff
+      // usually comes after one or two moves, so sorting all of them
+      // first was mostly wasted (selection, stable as std::stable_sort)
+      PROF_START(t_sort);
+      int32_t pick = i;
+      for (int32_t j = i + 1; j < n; ++j)
+        if (key[moves[j]] > key[moves[pick]])
+          pick = j;
+      if (pick != i) {
+        const int32_t chosen = moves[pick];
+        std::copy_backward(moves + i, moves + pick, moves + pick + 1);
+        moves[i] = chosen;
+      }
+      PROF_ADD(7, t_sort);
       PROF_START(t_child);
       Game child = game;
       child.doMove(moves[i]);
@@ -316,6 +351,7 @@ class AlphaBeta {
   bool incremental_{getenv("AB_INCREMENTAL") == nullptr ||
                     atoi(getenv("AB_INCREMENTAL")) != 0};
   bool check_incremental_{getenv("AB_CHECK_INCREMENTAL") != nullptr};
+  bool check_lines_{getenv("AB_CHECK_LINES") != nullptr};
   bool lmr_{getenv("AB_LMR") == nullptr || atoi(getenv("AB_LMR")) != 0};
   bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
                     atoi(getenv("AB_LINE_EXTEND")) != 0};
@@ -561,6 +597,9 @@ int main(int argc, char **argv) {
     std::printf("%-20s %5.1f%% of timed cycles, %6.0f cycles per node\n",
                 names[i], 100.0 * prof_total[i] / cycles,
                 prof_total[i] / all_nodes);
+  std::printf("  within ordering: replies of line-making moves %.0f, sort "
+              "%.0f cycles per node\n",
+              prof_total[6] / all_nodes, prof_total[7] / all_nodes);
   std::printf("leaves evaluated %.1f%% of nodes, interior expanded %.1f%%\n",
               100.0 * prof_total[4] / all_nodes,
               100.0 * prof_total[5] / all_nodes);

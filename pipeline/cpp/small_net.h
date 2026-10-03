@@ -26,9 +26,15 @@
 class SmallNet {
  public:
   static constexpr int32_t kMaxHidden = 2048;
+  /// Incremental accumulators are 16-bit: the layer-1 sums of every
+  /// position measured fit with room to spare (max 11896 of 32767), and
+  /// wrap-around in intermediate sums cancels, so the results are the same
+  /// integers as the 32-bit full evaluation, twice as many per instruction
+  /// (entry 23)
+  using Acc = int16_t;
   explicit SmallNet(const std::string &path) {
     FILE *f = std::fopen(path.c_str(), "rb");
-    if (f == nullptr || std::fread(&h_, 4, 1, f) != 1 || h_ % 32 != 0 ||
+    if (f == nullptr || std::fread(&h_, 4, 1, f) != 1 || h_ % 64 != 0 ||
         h_ > kMaxHidden) {
       std::fprintf(stderr, "cannot read %s\n", path.c_str());
       std::exit(1);
@@ -58,8 +64,8 @@ class SmallNet {
 
   int32_t hidden() const noexcept { return h_; }
 
-  /// Value for the side to move, float
-  float evalFloat(const uint8_t *state) const {
+  /// Before the tanh, float
+  float rawFloat(const uint8_t *state) const {
     // Stack arrays and restrict pointers: with thread_local vectors the
     // compiler could not rule out aliasing and did not vectorize
     alignas(32) float a[kMaxHidden];
@@ -87,9 +93,28 @@ class SmallNet {
     }
     return output(h2, 1.0F);
   }
+  /// Value for the side to move, float
+  float evalFloat(const uint8_t *state) const {
+    return std::tanh(rawFloat(state));
+  }
 
   /// Value for the side to move, 8-bit
   float evalInt8(const uint8_t *state) const {
+    return std::tanh(rawInt8(state));
+  }
+  /// A search score: the value before the tanh, / 8. The tanh only
+  /// reshapes values, and alpha-beta only compares them, so the search
+  /// skips it (entry 23); / 8 keeps every score within +-0.9 (the raw output
+  /// spans about -4.7..7.2), below the win and loss scores.
+  static constexpr float kScoreScale = 0.125F;
+  float scoreInt8(const uint8_t *state) const {
+    return kScoreScale * rawInt8(state);
+  }
+  float scoreFloat(const uint8_t *state) const {
+    return kScoreScale * rawFloat(state);
+  }
+  /// Before the tanh, 8-bit
+  float rawInt8(const uint8_t *state) const {
     alignas(32) int32_t acc_buf[kMaxHidden];
     alignas(32) uint8_t act_buf[kMaxHidden];
     int32_t *__restrict acc = acc_buf;
@@ -113,73 +138,130 @@ class SmallNet {
   /// inputs (counts 0-4, the side to move's first) are added at evaluation
   /// from precomputed rows. Same integers as evalInt8, so the same result.
   /// @param acc h int32: the bias plus the board bits' rows
-  void boardAccumulator(uint64_t board, int32_t *acc) const {
-    std::copy(b1q_.begin(), b1q_.end(), acc);
-    for (; board != 0; board &= board - 1)
-      addRow(acc, board_rows_.data() +
-                      static_cast<size_t>(__builtin_ctzll(board)) * h_);
+  /// Accumulators of a position (Game::key's board and rest words): two
+  /// views, [t * h, t * h + h) for side t to move, each with layer 1's bias,
+  /// board rows and reserve rows (the reserve inputs list the side to
+  /// move's three counts first, so the views differ only there)
+  void rootAccumulators(uint64_t board, uint64_t rest, Acc *acc) const {
+    for (int32_t t = 0; t < 2; ++t) {
+      Acc *view = acc + static_cast<size_t>(t) * h_;
+      std::copy(b1q16_.begin(), b1q16_.end(), view);
+      for (uint64_t bits = board; bits != 0; bits &= bits - 1)
+        addRow(view, boardRow(__builtin_ctzll(bits)));
+      for (int32_t i = 0; i < 6; ++i) {
+        const int32_t c = count(rest, (3 * t + i) % 6);
+        for (int32_t k = 0; k < c; ++k)
+          addRow(view, reserveRow(i));
+      }
+    }
   }
-  /// The child's board accumulator from its parent's
-  void updateAccumulator(const int32_t *parent, uint64_t parent_board,
-                         uint64_t child_board, int32_t *child) const {
-    std::copy(parent, parent + h_, child);
-    for (uint64_t on = child_board & ~parent_board; on != 0; on &= on - 1)
-      addRow(child, board_rows_.data() +
-                        static_cast<size_t>(__builtin_ctzll(on)) * h_);
-    for (uint64_t off = parent_board & ~child_board; off != 0; off &= off - 1)
-      subRow(child, board_rows_.data() +
-                        static_cast<size_t>(__builtin_ctzll(off)) * h_);
+  /// A child's two views from its parent's: the changed board bits, and the
+  /// changed reserve count (a placement takes one piece)
+  void updateAccumulators(const Acc *parent, uint64_t parent_board,
+                          uint64_t parent_rest, uint64_t board, uint64_t rest,
+                          Acc *child) const {
+    for (int32_t t = 0; t < 2; ++t)
+      updateView(parent + static_cast<size_t>(t) * h_, parent_board,
+                 parent_rest, board, rest, t,
+                 child + static_cast<size_t>(t) * h_);
   }
-  /// Value for the side to move from the parent's board accumulator, in
-  /// one pass (the child's own accumulator is never stored: lazy, entry 23)
-  float evalFromParent(const int32_t *parent, uint64_t parent_board,
-                       uint64_t board, const int32_t reserves[6]) const {
-    alignas(32) int32_t acc_buf[kMaxHidden];
-    int32_t *__restrict acc = acc_buf;
-    std::copy(parent, parent + h_, acc);
+  /// Search score (scoreInt8) of a child from its parent's views, in one
+  /// pass, building only the view of the child's side to move (lazy,
+  /// entry 23)
+  float scoreFromParent(const Acc *parent, uint64_t parent_board,
+                        uint64_t parent_rest, uint64_t board,
+                        uint64_t rest) const {
+    const int32_t t = static_cast<int32_t>(rest & 1);
+    // The rows to add and subtract (changed board bits, the changed reserve
+    // count), then the activations straight from parent + rows, a block of
+    // 64 at a time in registers: no accumulator stored (fused, entry 23)
+    const Acc *add[72], *sub[72];  // at most 64 board bits + 4 reserves
+    int32_t na = 0, ns = 0;
     for (uint64_t on = board & ~parent_board; on != 0; on &= on - 1)
-      addRow(acc, board_rows_.data() +
-                      static_cast<size_t>(__builtin_ctzll(on)) * h_);
+      add[na++] = boardRow(__builtin_ctzll(on));
     for (uint64_t off = parent_board & ~board; off != 0; off &= off - 1)
-      subRow(acc, board_rows_.data() +
-                      static_cast<size_t>(__builtin_ctzll(off)) * h_);
-    for (int32_t i = 0; i < 6; ++i)
-      if (reserves[i] != 0)
-        addRow(acc, reserve_rows_.data() +
-                        (static_cast<size_t>(i) * 5 + reserves[i]) * h_);
-    return fromAccumulator(acc);
-  }
-  /// Value for the side to move from a board accumulator and the reserve
-  /// counts (side to move's three first, as the network inputs)
-  float evalIncremental(const int32_t *board_acc,
-                        const int32_t reserves[6]) const {
-    alignas(32) int32_t acc_buf[kMaxHidden];
-    int32_t *__restrict acc = acc_buf;
-    std::copy(board_acc, board_acc + h_, acc);
-    for (int32_t i = 0; i < 6; ++i)
-      if (reserves[i] != 0)
-        addRow(acc, reserve_rows_.data() +
-                        (static_cast<size_t>(i) * 5 + reserves[i]) * h_);
-    return fromAccumulator(acc);
+      sub[ns++] = boardRow(__builtin_ctzll(off));
+    for (int32_t piece = 0; piece < 6; ++piece) {
+      int32_t d = count(rest, piece) - count(parent_rest, piece);
+      const Acc *row = reserveRow((piece - 3 * t + 6) % 6);
+      for (; d > 0; --d)
+        add[na++] = row;
+      for (; d < 0; ++d)
+        sub[ns++] = row;
+    }
+    const Acc *base = parent + static_cast<size_t>(t) * h_;
+    alignas(32) uint8_t act[kMaxHidden];
+    for (int32_t j0 = 0; j0 < h_; j0 += 64) {
+      Acc v[64];
+      for (int32_t j = 0; j < 64; ++j)
+        v[j] = base[j0 + j];
+      for (int32_t k = 0; k < na; ++k)
+        for (int32_t j = 0; j < 64; ++j)
+          v[j] = static_cast<Acc>(v[j] + add[k][j0 + j]);
+      for (int32_t k = 0; k < ns; ++k)
+        for (int32_t j = 0; j < 64; ++j)
+          v[j] = static_cast<Acc>(v[j] - sub[k][j0 + j]);
+      for (int32_t j = 0; j < 64; ++j)
+        act[j0 + j] = static_cast<uint8_t>(
+            std::min(std::max(static_cast<int32_t>(v[j]) >> 3, 0), 127));
+    }
+    return kScoreScale * fromActivations(act);
   }
 
  private:
-  void addRow(int32_t *__restrict acc, const int32_t *__restrict row) const {
-    for (int32_t j = 0; j < h_; ++j)
-      acc[j] += row[j];
+  static int32_t count(uint64_t rest, int32_t piece) {
+    return static_cast<int32_t>((rest >> (4 + 4 * piece)) & 0xF);
   }
-  void subRow(int32_t *__restrict acc, const int32_t *__restrict row) const {
+  const Acc *boardRow(int32_t bit) const {
+    return board_rows_.data() + static_cast<size_t>(bit) * h_;
+  }
+  /// One piece in reserve slot i (slot 0-2: the side to move's)
+  const Acc *reserveRow(int32_t slot) const {
+    return reserve_rows_.data() + static_cast<size_t>(slot) * h_;
+  }
+  void updateView(const Acc *parent, uint64_t parent_board,
+                  uint64_t parent_rest, uint64_t board, uint64_t rest,
+                  int32_t t, Acc *__restrict out) const {
+    std::copy(parent, parent + h_, out);
+    for (uint64_t on = board & ~parent_board; on != 0; on &= on - 1)
+      addRow(out, boardRow(__builtin_ctzll(on)));
+    for (uint64_t off = parent_board & ~board; off != 0; off &= off - 1)
+      subRow(out, boardRow(__builtin_ctzll(off)));
+    for (int32_t piece = 0; piece < 6; ++piece) {
+      const int32_t d = count(rest, piece) - count(parent_rest, piece);
+      if (d == 0)
+        continue;
+      const Acc *row = reserveRow((piece - 3 * t + 6) % 6);
+      for (int32_t k = 0; k < d; ++k)
+        addRow(out, row);
+      for (int32_t k = 0; k > d; --k)
+        subRow(out, row);
+    }
+  }
+  template <typename T>
+  void addRow(T *__restrict acc, const T *__restrict row) const {
     for (int32_t j = 0; j < h_; ++j)
-      acc[j] -= row[j];
+      acc[j] = static_cast<T>(acc[j] + row[j]);
+  }
+  template <typename T>
+  void subRow(T *__restrict acc, const T *__restrict row) const {
+    for (int32_t j = 0; j < h_; ++j)
+      acc[j] = static_cast<T>(acc[j] - row[j]);
   }
 
   /// Layers 2 and 3 from layer 1's accumulator
-  float fromAccumulator(const int32_t *__restrict acc) const {
+  template <typename T> float fromAccumulator(const T *__restrict acc) const {
     alignas(32) uint8_t act_buf[kMaxHidden];
     uint8_t *__restrict act = act_buf;
     const int32_t h = h_;
     for (int32_t j = 0; j < h; ++j)
-      act[j] = static_cast<uint8_t>(std::min(std::max(acc[j] >> 3, 0), 127));
+      act[j] = static_cast<uint8_t>(
+          std::min(std::max(static_cast<int32_t>(acc[j]) >> 3, 0), 127));
+    return fromActivations(act_buf);
+  }
+
+  /// Layers 2 and 3 from layer 1's clipped activations (uint8, 0-127)
+  float fromActivations(const uint8_t *act_buf) const {
     __m256i sum[4] = {_mm256_setzero_si256(), _mm256_setzero_si256(),
                       _mm256_setzero_si256(), _mm256_setzero_si256()};
     const uint32_t *groups = reinterpret_cast<const uint32_t *>(act_buf);
@@ -202,11 +284,12 @@ class SmallNet {
     return output(h2, 1.0F / (127.0F * w2_scale_));
   }
 
+  /// Layer 3, before the tanh
   float output(const float *h2, float scale) const {
     float out = b3_;
     for (int32_t k = 0; k < 32; ++k)
       out += std::min(std::max(h2[k] * scale, 0.0F), 1.0F) * w3_[k];
-    return std::tanh(out);
+    return out;
   }
 
   void quantize(const std::vector<float> &w2_rows) {
@@ -222,13 +305,13 @@ class SmallNet {
     for (int32_t b = 0; b < 64; ++b)
       for (int32_t j = 0; j < h_; ++j)
         board_rows_[static_cast<size_t>(b) * h_ + j] =
-            4 * w1q_[static_cast<size_t>(b) * h_ + j];
-    reserve_rows_.resize(6 * 5 * static_cast<size_t>(h_));
+            static_cast<Acc>(4 * w1q_[static_cast<size_t>(b) * h_ + j]);
+    reserve_rows_.resize(6 * static_cast<size_t>(h_));
     for (int32_t i = 0; i < 6; ++i)
-      for (int32_t c = 0; c < 5; ++c)
-        for (int32_t j = 0; j < h_; ++j)
-          reserve_rows_[(static_cast<size_t>(i) * 5 + c) * h_ + j] =
-              c * w1q_[static_cast<size_t>(64 + i) * h_ + j];
+      for (int32_t j = 0; j < h_; ++j)
+        reserve_rows_[static_cast<size_t>(i) * h_ + j] =
+            static_cast<Acc>(w1q_[static_cast<size_t>(64 + i) * h_ + j]);
+    b1q16_.assign(b1q_.begin(), b1q_.end());
     // Layer 2: weights x 64, saturated at +-127 (|w| <= 1.98, as NNUE
     // clips them in training); SMALL_NET_W2_SCALE overrides the scale
     const char *env = std::getenv("SMALL_NET_W2_SCALE");
@@ -252,7 +335,7 @@ class SmallNet {
   float b3_{0};
   std::vector<int16_t> w1q_;
   std::vector<int32_t> b1q_;
-  std::vector<int32_t> board_rows_, reserve_rows_;
+  std::vector<Acc> board_rows_, reserve_rows_, b1q16_;
   std::vector<int8_t> w2q_;
   float b2q_[32]{};
   float w2_scale_{1};

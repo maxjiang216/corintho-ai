@@ -58,7 +58,7 @@ double since(Clock::time_point t) {
   return std::chrono::duration<double>(Clock::now() - t).count();
 }
 
-/// The small network on a position: int8 (AB_FLOAT=1: float)
+/// The small network's search score on a position: int8 (AB_FLOAT=1: float)
 float evaluate(const SmallNet &net, const Game &game) {
   static const bool use_float =
       std::getenv("AB_FLOAT") != nullptr && std::atoi(std::getenv("AB_FLOAT"));
@@ -67,7 +67,7 @@ float evaluate(const SmallNet &net, const Game &game) {
   uint8_t state[kGameStateSize];
   for (int32_t i = 0; i < kGameStateSize; ++i)
     state[i] = static_cast<uint8_t>(x[i] * 4.0F + 0.5F);
-  return use_float ? net.evalFloat(state) : net.evalInt8(state);
+  return use_float ? net.scoreFloat(state) : net.scoreInt8(state);
 }
 
 /// Iterative-deepening negamax with a transposition table
@@ -95,17 +95,18 @@ class AlphaBeta {
     std::vector<int32_t> moves;
     forEachMove(legal, [&](int32_t m) { moves.push_back(m); });
     Result best{moves[0], 0, 0.0F, 0};
-    alignas(32) int32_t root_acc[SmallNet::kMaxHidden];
-    const uint64_t root_board = boardOf(root);
-    net_.boardAccumulator(root_board, root_acc);
+    alignas(32) SmallNet::Acc root_acc[2 * SmallNet::kMaxHidden];
+    uint64_t root_board, root_rest;
+    root.key(root_board, root_rest);
+    net_.rootAccumulators(root_board, root_rest, root_acc);
     for (int32_t depth = 1; depth <= 64; ++depth) {
       float alpha = -kInf, best_score = -kInf;
       int32_t best_move = moves[0], done = 0;
       for (int32_t m : moves) {
         Game child = root;
         child.doMove(m);
-        const float s =
-            -search(child, root_acc, root_board, depth - 1, -kInf, -alpha, 1);
+        const float s = -search(child, root_acc, root_board, root_rest,
+                                depth - 1, -kInf, -alpha, 1);
         if (aborted_)
           break;
         ++done;
@@ -151,18 +152,14 @@ class AlphaBeta {
   }
   /// The value at a leaf: from the incremental accumulator (AB_INCREMENTAL,
   /// default on) or the full evaluation
-  float leafValue(const Game &game, const int32_t *from_acc,
-                  uint64_t from_board) const {
+  float leafValue(const Game &game, const SmallNet::Acc *from_acc,
+                  uint64_t from_board, uint64_t from_rest) const {
     if (!incremental_)
       return evaluate(net_, game);
     uint64_t board, rest;
     game.key(board, rest);
-    const int32_t to_play = static_cast<int32_t>(rest & 1);
-    int32_t reserves[6];
-    for (int32_t i = 0; i < 6; ++i)
-      reserves[i] = static_cast<int32_t>(
-          (rest >> (4 + 4 * ((to_play * 3 + i) % 6))) & 0xF);
-    const float v = net_.evalFromParent(from_acc, from_board, board, reserves);
+    const float v =
+        net_.scoreFromParent(from_acc, from_board, from_rest, board, rest);
     if (check_incremental_ && v != evaluate(net_, game)) {
       std::fprintf(stderr, "incremental %.6f != full %.6f\n", v,
                    evaluate(net_, game));
@@ -171,11 +168,13 @@ class AlphaBeta {
     return v;
   }
 
-  /// @param from_acc, from_board the parent's board accumulator and board
-  /// word: this node's own accumulator is computed only when needed (at a
-  /// leaf, in one pass; or before expanding), lazily (entry 23)
-  float search(const Game &game, const int32_t *from_acc, uint64_t from_board,
-               int32_t depth, float alpha, float beta, int32_t ply) {
+  /// @param from_acc, from_board, from_rest the parent's two accumulator
+  /// views (SmallNet::rootAccumulators) and Game::key words: this node's own
+  /// are computed only when needed (at a leaf, in one pass; or before
+  /// expanding), lazily (entry 23)
+  float search(const Game &game, const SmallNet::Acc *from_acc,
+               uint64_t from_board, uint64_t from_rest, int32_t depth,
+               float alpha, float beta, int32_t ply) {
     if ((++nodes_ & 1023) == 0 && since(start_) > seconds_)
       aborted_ = true;
     if (aborted_)
@@ -191,7 +190,7 @@ class AlphaBeta {
     // turns it off)
     if (depth <= 0 && !(lines && line_extend_)) {
       PROF_START(t_eval);
-      const float v = leafValue(game, from_acc, from_board);
+      const float v = leafValue(game, from_acc, from_board, from_rest);
       PROF_ADD(1, t_eval);
 #ifdef AB_PROFILE
       ++g_prof[4];  // leaves evaluated
@@ -287,9 +286,10 @@ class AlphaBeta {
     float best = -kInf;
     int32_t best_move = moves[0];
     // This node's accumulator, for its children
-    alignas(32) int32_t acc[SmallNet::kMaxHidden];
+    alignas(32) SmallNet::Acc acc[2 * SmallNet::kMaxHidden];
     if (incremental_)
-      net_.updateAccumulator(from_acc, from_board, board, acc);
+      net_.updateAccumulators(from_acc, from_board, from_rest, board, rest,
+                              acc);
     for (int32_t i = 0; i < n; ++i) {
       // Pick the best remaining move only when it is needed: a cutoff
       // usually comes after one or two moves, so sorting all of them
@@ -312,7 +312,8 @@ class AlphaBeta {
       // Principal variation search: later moves with a null window first
       float s;
       if (i == 0) {
-        s = -search(child, acc, board, depth - 1, -beta, -alpha, ply + 1);
+        s = -search(child, acc, board, rest, depth - 1, -beta, -alpha,
+                    ply + 1);
       } else {
         // Late-move reductions: a late quiet move is first searched
         // shallower; only one that beats alpha gets the full depth
@@ -320,13 +321,14 @@ class AlphaBeta {
         int32_t r = 0;
         if (lmr_ && quiet && depth >= 3 && i >= 3 && !lines)
           r = i >= 8 ? 2 : 1;
-        s = -search(child, acc, board, depth - 1 - r, -alpha - 1e-4F, -alpha,
-                    ply + 1);
+        s = -search(child, acc, board, rest, depth - 1 - r, -alpha - 1e-4F,
+                    -alpha, ply + 1);
         if (r > 0 && s > alpha && !aborted_)
-          s = -search(child, acc, board, depth - 1, -alpha - 1e-4F, -alpha,
-                      ply + 1);
+          s = -search(child, acc, board, rest, depth - 1, -alpha - 1e-4F,
+                      -alpha, ply + 1);
         if (s > alpha && s < beta && !aborted_)
-          s = -search(child, acc, board, depth - 1, -beta, -alpha, ply + 1);
+          s = -search(child, acc, board, rest, depth - 1, -beta, -alpha,
+                      ply + 1);
       }
       if (aborted_)
         return 0.0F;

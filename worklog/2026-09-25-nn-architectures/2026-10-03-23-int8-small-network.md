@@ -133,6 +133,30 @@ doMove + accumulator update 323, move generation 111.
   every leaf equal to the full int8 evaluation. 1.57M -> 1.63M nodes/s,
   0.64 -> 0.61 us per node; evaluation is now 68% of the timed cycles.
 
+## Faster evaluation without changing the network
+
+The developer chose four of the options (and asked about two others:
+branch-free sparsity in layer 2 helps only with very sparse activations,
+and here only 13.7% of 4-groups are all zero though 60% of activations
+are; below 8 bits there is no hardware support, layer 2 is already at
+x86's int8 floor). Measured on 200k test positions first: layer 1's sums
+reach at most 11896 in their integer units (int16 holds 32767); the
+pre-tanh output spans -4.7..7.2.
+
+Each step checked exact with `AB_CHECK_INCREMENTAL=1` (every leaf equal
+to the full 32-bit int8 evaluation, 18 games); profiled (TSC cycles per
+node, 36 games, h256-clip):
+
+| step | evaluation cycles/node | nodes/s |
+|---|---|---|
+| before (lazy accumulators) | 751 | 1.63M |
+| drop the tanh: search scores are the raw output / 8 (alpha-beta only compares; / 8 keeps them within +-0.9, below win/loss scores) | | |
+| int16 accumulators (wrap-around in intermediate sums cancels) | | |
+| reserves in the sums: two views, one per side to move, each with bias, board rows and reserve rows; a placement updates one reserve row in each | 480 (the three together) | 1.88M |
+| fused leaf: activations computed from parent + changed rows in 64-wide blocks, no accumulator stored | **438** | **1.96M** |
+
+Evaluation 751 -> 438 cycles per node (-42%), nodes/s +20%.
+
 ## Next options
 
 - A larger match (or longer time controls) to settle the result.

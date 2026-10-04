@@ -160,3 +160,12 @@ STEPS double (up to MAX_POSITIONS, 3.2M). The schedule is kept in
 `$RUN/schedule` across restarts. KEEP_DATA=0 deletes positions that have
 left the training window. Checked at toy size with a stand-in match
 (constant score): doubles after 2 stalls, continues after a restart.
+
+`arch/ab_run.sh start|stop|status|log`: one command (the developer: too many
+steps to restart). `start` builds, stops any running loop, and starts
+ab_loop.sh in its own process group (setsid), so `stop` ends it and all its
+children; defaults are the overnight settings (ADAPT=1, 400k positions,
+40k steps, 400-game matches, 200 generations, KEEP_DATA=0, a progress line
+every 60 s). `status` prints the schedule, every match and the latest
+line. Checked here at toy size (stand-in match): start, status, stop with
+no process left, restart continuing the schedule.

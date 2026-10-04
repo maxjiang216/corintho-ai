@@ -22,6 +22,11 @@ alpha-beta engine (worklog 2026-09-25-nn-architectures, entry 21).
     python arch/nnue_distill.py train ... --tie --mono-m 64 --mono-m2 16
         Weights tied across the board symmetries; monotone in the reserves
         (Small, entry 24).
+    python arch/nnue_distill.py init OUT.pt [--mono-m 64 --mono-m2 16]
+        A freshly initialized network (self-play from scratch).
+    python arch/nnue_distill.py mix OUT.npz GEN.npy [...] --lam L
+        Targets from ab_selfplay generations (entry 25); train with
+        --init PREVIOUS.pt --select last.
     python arch/nnue_distill.py export MODEL.pt OUT.bin
         small_net.h's file (ab_match --small).
 
@@ -264,6 +269,8 @@ def train(a):
     sym = torch.from_numpy(symmetries()[0]).to(DEV)
     torch.manual_seed(a.seed)
     net = Small(a.hidden, a.tie, a.mono_m, a.mono_m2).to(DEV)
+    if a.init:  # warm start from a saved model (self-play generations)
+        load_dense(net, torch.load(a.init, map_location=DEV)["model"])
     # A tied layer-2 or output weight moves its 8 copies together, so the
     # output moves ~8x as far per step: at the full rate layer 2 sometimes
     # saturated for good (1 seed in 6 on a synthetic target; 0 at 1/8)
@@ -297,7 +304,9 @@ def train(a):
             with torch.no_grad():
                 net.w2.clamp_(-a.clip_w2, a.clip_w2)
         net.project()
-        if step % a.eval_every == 0 or step == a.steps:
+        if a.select == "teacher" and (
+            step % a.eval_every == 0 or step == a.steps
+        ):
             pred = predict(net, test_states)
             m = t["horizon"] >= 28
             score = float(np.mean((pred[m] - t["teacher"][m]) ** 2))
@@ -306,7 +315,10 @@ def train(a):
                 best_state = {
                     k: v.clone() for k, v in net.state_dict().items()
                 }
-    net.load_state_dict(best_state)
+    if best_state is not None:
+        net.load_state_dict(best_state)
+    else:  # --select last: no checkpoint chosen on the test set
+        best_step = a.steps
     pred = predict(net, test_states)
     params = sum(p.numel() for p in net.parameters())  # free, incl. zeros
     result = {
@@ -325,14 +337,54 @@ def train(a):
         "train_s": round(time.time() - t0, 1),
         **report(pred, t),
     }
-    os.makedirs("runs/nnue/models", exist_ok=True)
-    torch.save(
-        {"hidden": a.hidden, "model": net.dense_state()},
-        f"runs/nnue/models/{a.tag}.pt",
-    )
-    with open("runs/nnue/results.jsonl", "a") as f:
+    out = a.out or f"runs/nnue/models/{a.tag}.pt"
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    torch.save({"hidden": a.hidden, "model": net.dense_state()}, out)
+    results = a.results or "runs/nnue/results.jsonl"
+    with open(results, "a") as f:
         f.write(json.dumps(result) + "\n")
     print(json.dumps(result))
+
+
+def load_dense(net, w):
+    """Load a dense state (dense_state()) into an untied Small"""
+    assert not net.tie, "warm starts are for untied networks"
+    with torch.no_grad():
+        net.w1.copy_(w["l1.weight"])
+        net.b1.copy_(w["l1.bias"])
+        net.w2.copy_(w["l2.weight"][:, :, None])
+        net.b2.copy_(w["l2.bias"])
+        net.w3.copy_(w["l3.weight"][0])
+        net.b3.copy_(w["l3.bias"])
+    net.project()
+
+
+def init(a):
+    """A freshly initialized network (generation 0 of self-play from
+    scratch): random weights, monotone in the reserves if asked"""
+    torch.manual_seed(a.seed)
+    net = Small(a.hidden, False, a.mono_m, a.mono_m2)
+    os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
+    torch.save({"hidden": a.hidden, "model": net.dense_state()}, a.out)
+    print(f"{a.out}: hidden {a.hidden}, mono {a.mono_m}/{a.mono_m2}")
+
+
+def mix(a):
+    """Training targets from ab_selfplay generations (entry 25): the exact
+    value where solved, else lam x search value + (1 - lam) x outcome"""
+    rows = np.concatenate([np.load(p) for p in a.gens])
+    states = rows[:, :70].astype(np.uint8)
+    search, outcome, exact = rows[:, 70], rows[:, 71], rows[:, 72]
+    horizon = rows[:, 73].astype(np.int64)
+    solved = np.isfinite(exact)
+    target = np.where(
+        solved, exact, a.lam * search + (1 - a.lam) * outcome
+    ).astype(np.float32)
+    np.savez(a.out, states=states, target=target, horizon=horizon)
+    print(
+        f"{a.out}: {len(target):,} positions from {len(a.gens)} generations, "
+        f"lambda {a.lam}, {solved.mean():.1%} exact"
+    )
 
 
 def export_bin(a):
@@ -395,6 +447,25 @@ def main():
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--eval-every", type=int, default=2000)
     p.add_argument("--tag", default="small")
+    p.add_argument("--init", default="", help="warm start from MODEL.pt")
+    p.add_argument(
+        "--select",
+        choices=["teacher", "last"],
+        default="teacher",
+        help="checkpoint: best vs the test set's teacher, or the last step",
+    )
+    p.add_argument("--out", default="", help="model path")
+    p.add_argument("--results", default="", help="results .jsonl")
+    p = sub.add_parser("init")
+    p.add_argument("out")
+    p.add_argument("--hidden", type=int, default=256)
+    p.add_argument("--mono-m", type=int, default=0)
+    p.add_argument("--mono-m2", type=int, default=0)
+    p.add_argument("--seed", type=int, default=0)
+    p = sub.add_parser("mix")
+    p.add_argument("out")
+    p.add_argument("gens", nargs="+")
+    p.add_argument("--lam", type=float, default=0.5)
     p = sub.add_parser("export")
     p.add_argument("model")
     p.add_argument("out")
@@ -409,6 +480,8 @@ def main():
         "train": train,
         "reference": reference,
         "export": export_bin,
+        "init": init,
+        "mix": mix,
     }[a.cmd](a)
 
 

@@ -12,6 +12,14 @@
 # exists is skipped, so the loop can be stopped and restarted, and
 # POSITIONS or LAM changed between generations. Self-play progress goes to
 # progress.log every REPORT seconds (30).
+#
+# Growing generations (ADAPT=1): each match against MCTS (MATCH_GAMES games)
+# is compared with the best so far; after STALL_EVALS matches in a row
+# without beating it by STALL_MARGIN, POSITIONS and STEPS double (up to
+# MAX_POSITIONS). The schedule lives in $RUN/schedule (positions, steps,
+# best score, stalls), so a restart continues it; delete the file to
+# start the schedule over from POSITIONS and STEPS. KEEP_DATA=0 deletes each
+# generation's positions once they leave the training window.
 set -e
 cd "$(dirname "$0")/.."
 RUN=${RUN:-runs/ab-1}
@@ -25,6 +33,12 @@ LAM0=${LAM0:-0.3}       # lambda at generation 1, rising by LAM_STEP a
 LAM_STEP=${LAM_STEP:-0.05}  # generation up to LAM1
 LAM1=${LAM1:-0.8}
 EVAL=${EVAL:-5}
+MATCH_GAMES=${MATCH_GAMES:-200}
+ADAPT=${ADAPT:-0}
+STALL_EVALS=${STALL_EVALS:-2}
+STALL_MARGIN=${STALL_MARGIN:-0.01}
+MAX_POSITIONS=${MAX_POSITIONS:-3200000}
+KEEP_DATA=${KEEP_DATA:-1}
 AZ=${AZ:-runs/solve-0/gen_5/model.onnx}
 TEST=${TEST:-runs/nnue/test.npz}
 NET_ARGS="--hidden 256 --mono-m 64 --mono-m2 16"
@@ -32,6 +46,16 @@ PY=.venv/bin/python
 D=arch/nnue_distill.py
 mkdir -p "$RUN"
 log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$RUN/progress.log"; }
+
+BEST=0 STALLS=0
+if [ "$ADAPT" = 1 ]; then
+  if [ -f "$RUN/schedule" ]; then
+    read -r POSITIONS STEPS BEST STALLS < "$RUN/schedule"
+  else
+    echo "$POSITIONS $STEPS $BEST $STALLS" > "$RUN/schedule"
+  fi
+  log "schedule: $POSITIONS positions, $STEPS steps, best $BEST, stalls $STALLS"
+fi
 
 if [ ! -f "$RUN/gen_0/net.bin" ]; then
   mkdir -p "$RUN/gen_0"
@@ -63,12 +87,29 @@ for g in $(seq 1 "$GENS"); do
       2> >(sed "s/^/  gen $g train: /" >> "$RUN/progress.log")
     rm "$G/targets.npz"
     $PY $D export "$G/net.pt" "$G/net.bin"
+    if [ "$KEEP_DATA" = 0 ] && [ $((g - WINDOW + 1)) -gt 1 ]; then
+      rm -f "$RUN/gen_$((g - WINDOW))/data.npy"
+    fi
   fi
   if [ $((g % EVAL)) -eq 0 ] && [ ! -f "$G/match.txt" ]; then
     log "gen $g: match against MCTS"
-    build/ab_match --small "$G/net.bin" --az "$AZ" --games 200 \
+    build/ab_match --small "$G/net.bin" --az "$AZ" --games "$MATCH_GAMES" \
       --threads "$THREADS" --ab-seconds 2 --mcts-searches 11000 --seed 1 \
       2>/dev/null > "$G/match.tmp" && mv "$G/match.tmp" "$G/match.txt"
     log "gen $g: $(head -1 "$G/match.txt")"
+    if [ "$ADAPT" = 1 ]; then
+      score=$(sed -n 's/.*(score \([0-9.]*\),.*/\1/p' "$G/match.txt" | head -1)
+      if python3 -c "import sys; sys.exit(0 if $score > $BEST + $STALL_MARGIN else 1)"; then
+        BEST=$score STALLS=0
+      else
+        STALLS=$((STALLS + 1))
+      fi
+      if [ "$STALLS" -ge "$STALL_EVALS" ] && [ "$POSITIONS" -lt "$MAX_POSITIONS" ]; then
+        POSITIONS=$((POSITIONS * 2)) STEPS=$((STEPS * 2)) STALLS=0
+        log "stalled: now $POSITIONS positions, $STEPS steps per generation"
+      fi
+      echo "$POSITIONS $STEPS $BEST $STALLS" > "$RUN/schedule"
+      log "schedule: best $BEST, stalls $STALLS"
+    fi
   fi
 done

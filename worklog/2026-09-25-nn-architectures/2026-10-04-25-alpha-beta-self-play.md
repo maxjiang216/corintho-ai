@@ -145,3 +145,14 @@ finer measurement (longer matches, or generation against generation).
 standard errors above even). With 5-15 (0.550, 0.583, 0.555): still rising,
 slowly (~+0.003 per generation); the "plateau" at 15 was noise. Run
 continues to generation 30 at 200k positions.
+
+## Growing generations (overnight)
+
+The developer: double the training and test games, and scale again when
+progress stalls. `ab_loop.sh` ADAPT=1: after each match against MCTS
+(MATCH_GAMES), a score that does not beat the best so far by STALL_MARGIN
+(0.01) counts as a stall; after STALL_EVALS (2) in a row, POSITIONS and
+STEPS double (up to MAX_POSITIONS, 3.2M). The schedule is kept in
+`$RUN/schedule` across restarts. KEEP_DATA=0 deletes positions that have
+left the training window. Checked at toy size with a stand-in match
+(constant score): doubles after 2 stalls, continues after a restart.

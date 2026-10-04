@@ -36,7 +36,7 @@ Settled in discussion (entry 24 and before):
   exact scores and the rest fail low.
 - `ab_selfplay`: games on --threads threads. --opening random moves
   (default 4), redrawn if the position up to symmetry was already used;
-  then a fixed-depth search (--depth, default 6) for both sides. For the
+  then a fixed-depth search (--depth, default 5; 6 at first) for both sides. For the
   first --temp-plies moves after the opening (10) the move is sampled with
   probabilities exp((s - best) / T) over the moves within 4T of the best,
   T falling linearly from --temp (0.05 in search-score units, 0.4 before
@@ -81,6 +81,16 @@ positions (play after the first solved position is imperfect).
 A two-generation loop at toy size (1,500 positions, depth 4, 200 steps)
 ran end to end. `ab_match` compiles unchanged against ONNX Runtime's
 headers (also with `-DAB_PROFILE`).
+
+## Depth 5, progress by time
+
+The developer: depth 6 is too slow on the real run; progress lines by
+time, not by games. Same 3,000 positions, 4 threads: depth 4 3 s, depth 5
+9 s, depth 6 26 s. Default now depth 5 (~3x faster than 6, ~350
+positions/s on 4 threads). `ab_selfplay --report-seconds` (30) prints
+positions, rate, time left and the first player's results so far;
+`nnue_distill.py train --report-seconds` prints step and loss; `ab_loop.sh`
+sends both to progress.log (REPORT, default 30 s).
 
 ## To run
 

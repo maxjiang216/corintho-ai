@@ -288,6 +288,7 @@ def train(a):
     g = torch.Generator(device=DEV).manual_seed(a.seed)
     t0 = time.time()
     best, best_step, best_state = 1e9, 0, None
+    last_report = time.time()
     for step in range(1, a.steps + 1):
         net.train()
         idx = torch.randint(
@@ -296,6 +297,14 @@ def train(a):
         k = torch.randint(0, 8, (a.batch,), device=DEV, generator=g)
         x = torch.gather(states[idx], 1, sym[k]).float() * 0.25
         loss = ((net(x) - target[idx]) ** 2).mean()
+        if a.report_seconds and time.time() - last_report >= a.report_seconds:
+            last_report = time.time()
+            print(
+                f"{last_report - t0:.0f} s: step {step}/{a.steps}, "
+                f"loss {loss.item():.4f}",
+                file=sys.stderr,
+                flush=True,
+            )
         opt.zero_grad(set_to_none=True)
         loss.backward()
         opt.step()
@@ -456,6 +465,12 @@ def main():
     )
     p.add_argument("--out", default="", help="model path")
     p.add_argument("--results", default="", help="results .jsonl")
+    p.add_argument(
+        "--report-seconds",
+        type=float,
+        default=0,
+        help="a progress line on stderr every this many seconds",
+    )
     p = sub.add_parser("init")
     p.add_argument("out")
     p.add_argument("--hidden", type=int, default=256)

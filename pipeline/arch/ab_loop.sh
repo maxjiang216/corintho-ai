@@ -10,13 +10,14 @@
 # trained from network g-1 (warm start). Every EVAL generations, network g
 # plays MCTS (ab_match, as in entry 23). Resumable: a step whose output
 # exists is skipped, so the loop can be stopped and restarted, and
-# POSITIONS or LAM changed between generations.
+# POSITIONS or LAM changed between generations. Self-play progress goes to
+# progress.log every REPORT seconds (30).
 set -e
 cd "$(dirname "$0")/.."
 RUN=${RUN:-runs/ab-1}
 GENS=${GENS:-30}
 POSITIONS=${POSITIONS:-200000}
-DEPTH=${DEPTH:-6}
+DEPTH=${DEPTH:-5}
 THREADS=${THREADS:-18}
 WINDOW=${WINDOW:-4}
 STEPS=${STEPS:-20000}
@@ -44,7 +45,9 @@ for g in $(seq 1 "$GENS"); do
     log "gen $g: self-play, $POSITIONS positions, depth $DEPTH"
     build/ab_selfplay --small "$P/net.bin" --out "$G/data.tmp.npy" \
       --positions "$POSITIONS" --threads "$THREADS" --depth "$DEPTH" \
-      --seed "$g" 2>"$G/selfplay.err" | tee "$G/selfplay.txt"
+      --seed "$g" --report-seconds "${REPORT:-30}" \
+      2> >(tee -a "$G/selfplay.err" | sed "s/^/  gen $g: /" >> "$RUN/progress.log") \
+      | tee "$G/selfplay.txt"
     mv "$G/data.tmp.npy" "$G/data.npy"
   fi
   if [ ! -f "$G/net.bin" ]; then
@@ -56,7 +59,8 @@ for g in $(seq 1 "$GENS"); do
     $PY $D train "$G/targets.npz" "$TEST" $NET_ARGS --clip-w2 1.98 \
       --min-p 20 --steps "$STEPS" --init "$P/net.pt" --select last \
       --out "$G/net.pt" --results "$RUN/results.jsonl" --tag "gen_$g" \
-      --seed "$g" > "$G/train.txt"
+      --seed "$g" --report-seconds "${REPORT:-30}" > "$G/train.txt" \
+      2> >(sed "s/^/  gen $g train: /" >> "$RUN/progress.log")
     rm "$G/targets.npz"
     $PY $D export "$G/net.pt" "$G/net.bin"
   fi

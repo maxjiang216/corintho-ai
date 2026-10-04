@@ -2,8 +2,9 @@
 // network (worklog 2026-09-25-nn-architectures, entry 25).
 //
 //   ab_selfplay --small NET.bin --out GEN.npy [--positions 200000]
-//               [--threads 18] [--depth 6] [--opening 4] [--temp 0.05]
+//               [--threads 18] [--depth 5] [--opening 4] [--temp 0.05]
 //               [--temp-plies 10] [--solve-p 27] [--min-p 20] [--seed 1]
+//               [--report-seconds 30]
 //
 // Each game starts with --opening random legal moves (openings deduplicated
 // up to the board symmetries), then both sides play a fixed-depth alpha-beta
@@ -119,7 +120,9 @@ int main(int argc, char **argv) {
   }
   const int64_t target = static_cast<int64_t>(a.num("positions", 200000));
   const int32_t threads = static_cast<int32_t>(a.num("threads", 18));
-  const int32_t depth = static_cast<int32_t>(a.num("depth", 6));
+  const int32_t depth = static_cast<int32_t>(a.num("depth", 5));
+  // A progress line every this many seconds (stderr)
+  const double report_seconds = a.num("report-seconds", 30);
   const int32_t opening = static_cast<int32_t>(a.num("opening", 4));
   const float temp = static_cast<float>(a.num("temp", 0.05));
   const int32_t temp_plies = static_cast<int32_t>(a.num("temp-plies", 10));
@@ -137,6 +140,7 @@ int main(int argc, char **argv) {
   uint64_t nodes = 0;
   double search_seconds = 0;
   const auto t0 = Clock::now();
+  double last_report = 0;
 
   auto worker = [&]() {
     AlphaBeta search{net, 20};
@@ -251,10 +255,23 @@ int main(int argc, char **argv) {
       ++results[first + 1];
       nodes += game_nodes;
       search_seconds += game_seconds;
-      if (games % 200 == 0)
-        std::fprintf(stderr, "%lld games, %lld positions, %.0f s\n",
+      const double now = since(t0);
+      if (now - last_report >= report_seconds) {
+        last_report = now;
+        const double done = static_cast<double>(written.load());
+        const double rate = done / std::max(1e-9, now);
+        std::fprintf(stderr,
+                     "%.0f s: %lld/%lld positions (%.0f/s, about %.0f s "
+                     "left), %lld games, first player %lld-%lld-%lld\n",
+                     now, static_cast<long long>(written.load()),
+                     static_cast<long long>(target), rate,
+                     std::max(0.0, static_cast<double>(target) - done) /
+                         std::max(1e-9, rate),
                      static_cast<long long>(games),
-                     static_cast<long long>(written.load()), since(t0));
+                     static_cast<long long>(results[2]),
+                     static_cast<long long>(results[1]),
+                     static_cast<long long>(results[0]));
+      }
     }
   };
   std::vector<std::thread> pool;

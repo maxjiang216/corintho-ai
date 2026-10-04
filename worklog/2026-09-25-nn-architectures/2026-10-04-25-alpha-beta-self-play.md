@@ -140,3 +140,8 @@ Generations 12-17 (lambda 0.8): the first player at 39-40%, loss flat at
 200-game matches is +-0.05): likely a plateau at ~0.55-0.58 with 200k
 positions per generation. Next: more positions per generation (500k), and
 finer measurement (longer matches, or generation against generation).
+
+**Generation 20 against MCTS: 117-8-75, score 0.605** (~+74 Elo, ~3
+standard errors above even). With 5-15 (0.550, 0.583, 0.555): still rising,
+slowly (~+0.003 per generation); the "plateau" at 15 was noise. Run
+continues to generation 30 at 200k positions.

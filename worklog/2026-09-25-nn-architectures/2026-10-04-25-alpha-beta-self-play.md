@@ -174,3 +174,11 @@ Overnight run started with `ab_run.sh start` at generation 29 (400k
 positions, 40k steps, 400-game matches). **Generation 30 against MCTS
 (400 games): 239-8-153, score 0.608** (+-0.024), the same level as 20 and 25;
 only two generations of 400k data so far. Baseline for the stall rule: 0.608.
+
+**Generation 35 (400 games): 235-15-150, score 0.606**, the same as 30
+(0.608), and generations 32-35 trained only on 400k data: doubling the
+data has not moved the score (stall 1 of 2; 800k after generation 40 if
+it stays flat). If larger generations do not help either, the next levers:
+a larger network (h512), deeper self-play search (depth 6), and
+generation-against-generation matches in case MCTS at 2 s per move is
+the ceiling of the measure.

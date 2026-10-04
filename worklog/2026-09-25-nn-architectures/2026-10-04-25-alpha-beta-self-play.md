@@ -133,3 +133,10 @@ generation 11.
 **Generation 10 against MCTS: 115-3-82, score 0.583** (gen 5: 0.550;
 distilled: 0.490-0.495). About 2.4 standard errors above even (~+58 Elo),
 47 minutes from a blank network, and still rising.
+
+Generations 12-17 (lambda 0.8): the first player at 39-40%, loss flat at
+0.16-0.17. **Generation 15 against MCTS: 108-6-86, score 0.555.** With 5:
+0.550 and 10: 0.583, within noise of each other (a difference of two
+200-game matches is +-0.05): likely a plateau at ~0.55-0.58 with 200k
+positions per generation. Next: more positions per generation (500k), and
+finer measurement (longer matches, or generation against generation).

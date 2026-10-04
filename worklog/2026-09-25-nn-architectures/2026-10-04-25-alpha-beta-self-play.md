@@ -146,6 +146,10 @@ standard errors above even). With 5-15 (0.550, 0.583, 0.555): still rising,
 slowly (~+0.003 per generation); the "plateau" at 15 was noise. Run
 continues to generation 30 at 200k positions.
 
+**Generation 25 against MCTS: 120-1-79, score 0.603**, the same as 20
+(0.605): at 200k positions per generation the run levels off around 0.60
+(5-25: 0.550, 0.583, 0.555, 0.605, 0.603).
+
 ## Growing generations (overnight)
 
 The developer: double the training and test games, and scale again when

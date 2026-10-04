@@ -99,3 +99,29 @@ make build/ab_selfplay build/ab_match
 arch/ab_loop.sh                       # runs/ab-1, 30 generations
 POSITIONS=500000 arch/ab_loop.sh      # later generations larger
 ```
+
+## Run ab-1 (developer's machine, 18 threads), first generations
+
+Defaults: 200k positions per generation, depth 5, window 4, 20k steps,
+lambda 0.3 + 0.05 per generation. ~1,000-1,240 positions/s (faster as the
+network improves), ~3.5-4 minutes per generation with training (~45 s).
+
+| gen | first player W-D-L (self-play) | first player share |
+|---|---|---|
+| 1 | 6017-53-6715 (partial) | 47% |
+| 2 | 5008-95-6194 | 45% |
+| 3 | 4150-65-5881 | 41% |
+| 4 | 3741-74-5607 | 40% |
+| 5 | 3790-80-5693 | 40% |
+| 6 | 4080-81-6127 | 40% |
+| 7 | 4133-105-6180 | 40% |
+
+The second player's advantage returns as the network learns, then holds
+at ~40% for the first player (the AZ runs reached ~9%).
+
+**Generation 5 against MCTS** (entry 23's match, the same 200 paired games):
+107-6-87, **score 0.550**, against 0.490 (plain) and 0.495 (monotone) for
+the networks distilled from AZ (entry 24). From a blank network in 21
+minutes; about 1.4 standard errors above even, and above the distilled
+networks by ~0.055 on identical openings. To be confirmed by generations
+10 and 15.

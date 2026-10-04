@@ -132,3 +132,29 @@ Seeds agree closely (plain P 28-35 outcome 0.4940-0.4948, mono
   disagreement with AZ, not error. Open: whether it costs strength
   (`ab_match` plain vs mono), and whether a larger reserve-aware share
   (`--mono-m 128/192`) closes the gap.
+
+## Reserve-aware share, and the match
+
+Larger reserve-aware shares (seed 0) do not close the gap: the cost is the
+constraint, not the split.
+
+| mono split | P 23-27 exact | P 28-35 outcome | P 36+ outcome |
+|---|---|---|---|
+| 64/16 (3 seeds) | 0.354 | 0.4996 | 0.4923 |
+| 128/16 | 0.353 | 0.4998 | 0.4920 |
+| 192/24 | 0.361 | 0.5005 | 0.4927 |
+| plain (3 seeds) | 0.339 | 0.4944 | 0.4916 |
+
+`ab_match` against MCTS (`runs/solve-0/gen_5`), entry 23's settings (200
+games, seed 1, AB 2 s, MCTS 11,000 searches, 18 threads), seed-0 networks
+in int8:
+
+| network | AB vs MCTS | score | pairs (AB-MCTS-split) | depth | nodes/s |
+|---|---|---|---|---|---|
+| plain h256 | 97-2-101 | 0.490 | 14-16-70 | 10.4 | 2.22M |
+| mono 64/16 | 97-4-99 | 0.495 | 15-17-68 | 10.4 | 2.13M |
+
+Equal within noise (+-0.035): the monotone constraint costs no measurable
+strength, so it stays (64/16) for AB self-play, for its guarantee. Both are
+within noise of entry 23's 0.532 (that network trained on all P, these on
+P >= 20).

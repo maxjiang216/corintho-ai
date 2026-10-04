@@ -125,3 +125,11 @@ the networks distilled from AZ (entry 24). From a blank network in 21
 minutes; about 1.4 standard errors above even, and above the distilled
 networks by ~0.055 on identical openings. To be confirmed by generations
 10 and 15.
+
+Generations 8-11: the first player at 39-40% (gen 10: 4275-116-6615);
+self-play 1,200-1,320 positions/s; lambda reaches its cap (0.8) at
+generation 11.
+
+**Generation 10 against MCTS: 115-3-82, score 0.583** (gen 5: 0.550;
+distilled: 0.490-0.495). About 2.4 standard errors above even (~+58 Elo),
+47 minutes from a blank network, and still rising.

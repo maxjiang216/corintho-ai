@@ -169,3 +169,8 @@ children; defaults are the overnight settings (ADAPT=1, 400k positions,
 every 60 s). `status` prints the schedule, every match and the latest
 line. Checked here at toy size (stand-in match): start, status, stop with
 no process left, restart continuing the schedule.
+
+Overnight run started with `ab_run.sh start` at generation 29 (400k
+positions, 40k steps, 400-game matches). **Generation 30 against MCTS
+(400 games): 239-8-153, score 0.608** (+-0.024), the same level as 20 and 25;
+only two generations of 400k data so far. Baseline for the stall rule: 0.608.

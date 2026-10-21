@@ -184,8 +184,9 @@ over all 31,250 valid `rest` words. The multiply tricks work because the
 counts are at most 4: no byte sum exceeds 24, so nothing carries.
 `synth_reserves.py` extends the synthesizer with add, sub and
 multiply-by-constant and a precondition on the input; lengths 1 and 2 are
-UNSAT. The search for something shorter than 7 is still running (see
-*Next steps*).
+UNSAT (67 s for length 2). At length 3 the query timed out after 600 s
+with no answer, so lengths 3-6 are open. With symbolic constants, the
+64-bit multiplier bit-blasts into a large SAT problem.
 
 Gates: `verify` PASS, `rulecheck` PASS, `golden` game `d8f9bd2d22ee9731`
 and engine `2fb48873bf620b61` (both unchanged), and `solver_bench` P <= 24
@@ -242,7 +243,8 @@ a line run this code, so its share was always going to be small.
 ## Next steps
 
 - `synth_reserves.py`: whether the reserve sum fits in 3-6 operations
-  (lengths 1-2 UNSAT).
+  (lengths 1-2 UNSAT, length 3 timed out at 600 s). A longer timeout, or
+  restricting multiplier constants to sparse patterns, might settle it.
 
 - Re-time the solver on the i7-12700H with clang-20, three interleaved
   rounds, to settle the wall-time question.

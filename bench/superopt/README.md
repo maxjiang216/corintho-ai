@@ -8,7 +8,7 @@ legal-move kernels (worklog 2026-09-25-nn-architectures, entry 24):
 |---|---|---|
 | `synth.py` | the shortest straight-line program for a kernel | CEGIS synthesis. Trying lengths 1, 2, ... in turn, an UNSAT query at length N-1 proves nothing shorter exists for the instruction set |
 | `prove.py` | is a rewrite equal to the code it replaces? | a proof over all 2^64 board words: UNSAT for "some board where they differ" |
-| `synth_reserves.py` | the shortest reserve sum, with add/sub/multiply and an input precondition | lengths 1-2 UNSAT; still searching |
+| `synth_reserves.py` | the shortest reserve sum, with add/sub/multiply and an input precondition | lengths 1-2 UNSAT; length 3 timed out (600 s) |
 | `sketch.py` | can a fixed shape of program, with its shifts and masks left free, do the job with fewer terms? | CEGIS over the symbolic parameters; UNSAT proves no parameters work |
 
 `kernels.py` holds z3 models of the C++ (`game.cpp`), current and

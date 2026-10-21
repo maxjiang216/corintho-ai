@@ -107,6 +107,27 @@ def main():
             == k.horizon_reserves_current(pieces),
         ),
     )
+    # lineBreakers: bit `id` of moves_from(tops) is tops' bit at the move's
+    # source, for every stack move, so ANDing with a shape's extend moves
+    # gives what the per-move loop built
+    tops16 = z3.BitVec("tops", 16)
+    tops = z3.ZeroExt(48, tops16)
+    m = k.moves_from(tops)
+    src = k.move_from_squares()
+    ok &= prove(
+        "moves_from == per-move source test",
+        z3.And(
+            [
+                z3.Extract(i, i, m) == z3.Extract(src[i], src[i], tops16)
+                for i in range(48)
+            ]
+            + [z3.Extract(63, 48, m) == 0]
+        ),
+    )
+    ok &= prove(
+        "moves_from: portable == pext",
+        k.moves_from_portable(tops) == m,
+    )
 
     sys.exit(0 if ok else 1)
 

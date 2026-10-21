@@ -183,3 +183,55 @@ def horizon_reserves_current(pieces):
 
 def horizon_reserves_mul(pieces):
     return shr(reserve_bytes(pieces) * 0x010101010101, 40) & 0xFF
+
+
+# --- Line breaking by extension (Game::lineBreakers) -----------------------
+
+
+def move_from_squares():
+    """The source square of each stack-move ID 0-47, from the ID layout
+    basicLegalMoves writes: right (row * 3 + col), down (12 + from), left
+    (24 + row * 3 + col - 1), up (36 + from - 4)"""
+    src = {}
+    for row in range(4):
+        for col in range(4):
+            sq = 4 * row + col
+            if col <= 2:
+                src[row * 3 + col] = sq
+            if sq <= 11:
+                src[12 + sq] = sq
+            if col >= 1:
+                src[24 + row * 3 + col - 1] = sq
+            if sq >= 4:
+                src[36 + sq - 4] = sq
+    return [src[i] for i in range(48)]
+
+
+def moves_from(tops):
+    """Every stack move whose source is set in the 16-bit `tops`, as move
+    ID bits (zero-extended 64-bit input)"""
+    return (
+        pext(tops, 0x7777)
+        | ((tops & 0x0FFF) << 12)
+        | (pext(tops, 0xEEEE) << 24)
+        | (shr(tops, 4) << 36)
+    )
+
+
+def moves_from_portable(tops):
+    """movesFrom's non-BMI2 path"""
+    right = (
+        (tops & 0x7)
+        | (shr(tops, 1) & 0x38)
+        | (shr(tops, 2) & 0x1C0)
+        | (shr(tops, 3) & 0xE00)
+    )
+    left = (
+        (shr(tops, 1) & 0x7)
+        | (shr(tops, 2) & 0x38)
+        | (shr(tops, 3) & 0x1C0)
+        | (shr(tops, 4) & 0xE00)
+    )
+    return (
+        right | ((tops & 0x0FFF) << 12) | (left << 24) | (shr(tops, 4) << 36)
+    )

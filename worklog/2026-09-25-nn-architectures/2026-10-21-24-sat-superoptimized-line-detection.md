@@ -19,6 +19,9 @@
   `pext` and multiply tricks, all proven. Together with the line change,
   the solver at P <= 24 goes 2.973G -> 2.622G instructions (-11.8%), and
   P <= 27 wall time 6.12 -> 5.80 s (-5%).
+- `lineBreakers`: the per-move extend loop becomes one AND with a
+  lazily built "moves from tops of this type" word. Cumulative: 2.575G
+  instructions (-13.4%), P <= 27 wall time -8%.
 - Line detection alone at P <= 24: 2.973G -> 2.797G instructions (-5.9%), identical
   results and node counts. `getLegalMoves` micro: 53-57 -> 47 ns (-12 to
   -17%). Solver wall time at P <= 27 is within noise.
@@ -196,14 +199,41 @@ and P <= 27 with identical results and node counts.
 Mean wall time is 6.12 -> 5.80 s (-5%). A synthesis job was running on
 another core, so the noise is still about +-0.15 s.
 
+## Line breaking by extension
+
+`lineBreakers` walked each line's extending moves (up to four) with a
+`ctz`, a `kMoveTable` load and a shift test each. A per-shape `pext` /
+`pdep` pair cannot replace that walk. For extend square e the sources in
+board order are e-4, e-1, e+1, e+4, but their move IDs come in the order
+e-1, e-4, e+1, e+4, so a gather-then-deposit would swap the first two.
+
+What works: `movesFrom(top_plane[type])` gives every stack move whose
+source is topped by that type, laid out by move ID. It costs two `pext`,
+and down and up are plain shifts. Each line then needs one AND with the
+shape's extending moves. The word is built lazily, once per type: a four
+and its two threes share it. `prove.py` shows that bit `id` of
+`movesFrom(tops)` is the tops bit at that move's source for all 48 stack
+moves, and that the portable non-BMI2 path (each row shifted down by its
+index) equals the `pext` one. The Python move layout was also checked
+against a dump of the C++ `kMoveTable`.
+
+Gates as above: identical, including on a `-march=x86-64` build (no
+BMI2), which exercises the portable paths of `key` and `movesFrom`.
+
+| measure | main | + key and reserves | + lineBreakers |
+|---|---|---|---|
+| callgrind, solver P <= 24 | 2,973M | 2,622M | 2,575M (-13.4% total) |
+| solver P <= 27 wall, 3 interleaved rounds | 5.92 / 6.30 / 6.44 s | 5.64 / 6.08 / 5.97 s | 5.55 / 5.73 / 5.90 s |
+
+Mean wall time is 6.22 -> 5.73 s (-8%) against main. Only positions with
+a line run this code, so its share was always going to be small.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move
   planes have to come out as contiguous 16-bit move-ID fields, so the
   `pext` calls come back at the end. A count by hand gives about 20+4
   operations against the current 24, which is not worth the risk.
-  `lineBreakers` (5.5%) is table lookups and a short loop, not a bitwise
-  kernel.
 - Incremental line detection (a child's lines must pass through the
   moved-to space, if the breaking rule holds) could save more. Its
   correctness rests on the rules, not on bit identities, so a SAT proof

@@ -44,6 +44,8 @@ PROVED  key rest: portable == loop
 PROVED  packRest: pext == loop
 PROVED  reserve sum: multiply == loop
 PROVED  horizon reserves: multiply == loop
+PROVED  moves_from == per-move source test
+PROVED  moves_from: portable == pext
 ```
 
 ```

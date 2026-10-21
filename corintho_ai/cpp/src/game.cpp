@@ -56,6 +56,27 @@ static_assert((topNibbles(0x3ULL) & kPieceBits) == 0x2ULL);  // base, column
 static_assert((topNibbles(0x9ULL) & kPieceBits) == 0x1ULL);  // frozen base
 static_assert((topNibbles(0x50ULL) & kPieceBits) == 0x40ULL);  // space 1
 
+/// @brief Every stack move whose source space is in `spaces`, as move-ID
+/// bits of a MoveMask's low word
+/// @details The four directions' IDs are contiguous blocks (see
+/// basicLegalMoves): right and left drop the one column that cannot step
+/// that way, down and up are the board shifted into place. Proven equal to
+/// testing each move's source by bench/superopt/prove.py (entry 24).
+uint64_t movesFrom(uint32_t spaces) noexcept {
+#if defined(__BMI2__)
+  const uint64_t right = _pext_u64(spaces, 0x7777U);
+  const uint64_t left = _pext_u64(spaces, 0xEEEEU);
+#else
+  // Row r's three admitted columns move down by r (right) or r + 1 (left)
+  const uint64_t right = (spaces & 0x7U) | ((spaces >> 1) & 0x38U) |
+                         ((spaces >> 2) & 0x1C0U) | ((spaces >> 3) & 0xE00U);
+  const uint64_t left = ((spaces >> 1) & 0x7U) | ((spaces >> 2) & 0x38U) |
+                        ((spaces >> 3) & 0x1C0U) | ((spaces >> 4) & 0xE00U);
+#endif
+  return right | static_cast<uint64_t>(spaces & 0x0FFFU) << 12 | left << 24 |
+         static_cast<uint64_t>(spaces >> 4) << 36;
+}
+
 }  // namespace
 
 Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
@@ -273,26 +294,26 @@ MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
                             int32_t num_lines) const noexcept {
   MoveMask breakers;
   breakers.setAll();
+  // Per type, every stack move whose source is topped by that type, built
+  // the first time a line of that type needs it (a four and its two threes
+  // share one)
+  uint64_t from_type[3];
+  uint32_t built = 0;
   for (int32_t i = 0; i < num_lines; ++i) {
     const int32_t shape = lines[i].shape;
     const int32_t type = lines[i].type;
     MoveMask mask = kLineBreakTable[shape][type];
     // The one board-dependent case: a stack moved onto the extending space
-    // completes a four only if its own top matches the line's type. At most
-    // four moves land on any given space, so this walks them directly rather
-    // than building a set of every move starting from a space of each type.
-    // A stack's top is `type` exactly when its bit is set in top_plane[type],
-    // so each candidate move is one branch-free bit test (entry 11). The
+    // completes a four only if its own top matches the line's type. Those
+    // are the shape's extending moves that start from a space topped by
+    // the type: one AND, instead of a bit test per move (entry 24). The
     // extending moves are all move-moves, whose IDs lie in the low word.
-    const uint32_t tops = info.top_plane[type];
-    uint64_t w = kLineExtendMoves[shape].lo;
-    assert(kLineExtendMoves[shape].hi == 0);
-    while (w != 0) {
-      const int32_t id = __builtin_ctzll(w);
-      w &= w - 1;
-      mask.lo |= static_cast<uint64_t>((tops >> kMoveTable[id].from) & 1U)
-                 << id;
+    if (((built >> type) & 1U) == 0) {
+      from_type[type] = movesFrom(info.top_plane[type]);
+      built |= 1U << type;
     }
+    assert(kLineExtendMoves[shape].hi == 0);
+    mask.lo |= from_type[type] & kLineExtendMoves[shape].lo;
     breakers &= mask;
   }
   return breakers;

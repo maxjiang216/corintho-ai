@@ -83,6 +83,12 @@ land only on bit 3. My first version, `u = b & 0x7777...; u & ~(u >> 1 |
 u >> 2 & M1)`, used 6 instructions. I had written a comment claiming it
 was minimal; the synthesizer disproved that.
 
+With bit 3 required to be zero as well (`synth_tops.py --clean-bit3`),
+n = 5 is UNSAT (375 s) and n = 6 timed out at 600 s. The hand-written
+version above is clean and has 6 instructions, so 6 is the minimum
+there. Leaving junk in bit 3, which nothing reads, saves exactly one
+instruction.
+
 ## Proofs
 
 `python3 bench/superopt/prove.py` (each under 0.1 s):

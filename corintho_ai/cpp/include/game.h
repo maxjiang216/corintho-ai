@@ -181,8 +181,10 @@ class Game {
   /// @brief Find every line shape currently holding a single top type
   /// @details No subsumption: a four and both of its threes are all recorded,
   /// because covering one end of a four leaves a three standing.
+  /// @details Works on the board word directly, all three types at once,
+  /// so it needs no SpaceInfo.
   /// @return The number of lines written to `out`
-  int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
+  int32_t findLines(PresentLine *out) const noexcept;
 
   /// @brief Every move legal by placement and movement rules, ignoring lines
   /// @details All 48 placements reduce to three mask expressions and all 48

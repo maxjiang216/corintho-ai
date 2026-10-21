@@ -34,8 +34,10 @@ W = 64
 MASK = (1 << W) - 1
 
 # Opcodes. Binary ops take two earlier values; *_c ops take one value and a
-# symbolic constant; shifts take one value and a symbolic amount.
-OPS = [
+# symbolic constant; shifts take one value and a symbolic amount. The
+# arithmetic ops (add, sub, mul_c) are opt-in: multipliers bit-blast into
+# large SAT problems.
+BITWISE_OPS = [
     "and",
     "or",
     "xor",
@@ -47,6 +49,31 @@ OPS = [
     "or_c",
     "andn_c",
 ]
+ARITH_OPS = ["add", "sub", "mul_c"]
+OPS = BITWISE_OPS + ARITH_OPS
+BINARY = ("and", "or", "xor", "andn", "add", "sub")
+COMMUTATIVE = ("and", "or", "xor", "add")
+
+
+def _apply(op: str, a, b, k):
+    """One instruction's result, on ints or z3 bit-vectors"""
+    is_z3 = isinstance(a, z3.ExprRef)
+    v = {
+        "and": lambda: a & b,
+        "or": lambda: a | b,
+        "xor": lambda: a ^ b,
+        "andn": lambda: ~a & b,
+        "not": lambda: ~a,
+        "shr": lambda: z3.LShR(a, k) if is_z3 else a >> k,
+        "shl": lambda: a << k,
+        "and_c": lambda: a & k,
+        "or_c": lambda: a | k,
+        "andn_c": lambda: ~a & k,
+        "add": lambda: a + b,
+        "sub": lambda: a - b,
+        "mul_c": lambda: a * k,
+    }[op]()
+    return v if is_z3 else v & MASK
 
 
 @dataclass
@@ -69,38 +96,17 @@ class Insn:
             "and_c": f"{a} & {self.k:#018x}",
             "or_c": f"{a} | {self.k:#018x}",
             "andn_c": f"~{a} & {self.k:#018x}",
+            "add": f"{a} + {b}",
+            "sub": f"{a} - {b}",
+            "mul_c": f"{a} * {self.k:#018x}",
         }[self.op]
 
 
 def run(prog: list[Insn], x):
     """Evaluate a concrete program on an int or a z3 bit-vector"""
     vals = [x]
-    is_z3 = isinstance(x, z3.ExprRef)
     for i in prog:
-        a, b = vals[i.a], vals[i.b]
-        if i.op == "and":
-            v = a & b
-        elif i.op == "or":
-            v = a | b
-        elif i.op == "xor":
-            v = a ^ b
-        elif i.op == "andn":
-            v = ~a & b
-        elif i.op == "not":
-            v = ~a
-        elif i.op == "shr":
-            v = z3.LShR(a, i.k) if is_z3 else a >> i.k
-        elif i.op == "shl":
-            v = a << i.k
-        elif i.op == "and_c":
-            v = a & i.k
-        elif i.op == "or_c":
-            v = a | i.k
-        else:
-            v = ~a & i.k
-        if not is_z3:
-            v &= MASK
-        vals.append(v)
+        vals.append(_apply(i.op, vals[i.a], vals[i.b], i.k))
     return vals[-1]
 
 
@@ -116,6 +122,7 @@ def _symbolic(
     s = z3.SolverFor("QF_BV")
     s.set("timeout", timeout_ms)
     opc = [z3.BitVec(f"op{i}", 4) for i in range(n)]
+    assert len(OPS) <= 16
     sa = [z3.BitVec(f"a{i}", 4) for i in range(n)]
     sb = [z3.BitVec(f"b{i}", 4) for i in range(n)]
     sk = [z3.BitVec(f"k{i}", W) for i in range(n)]
@@ -132,13 +139,9 @@ def _symbolic(
         )
         # Symmetry breaking: commutative ops take a <= b, and the last value
         # must be used (no dead tail); unused operands pinned to 0
-        comm = z3.Or([opc[i] == OPS.index(o) for o in ("and", "or", "xor")])
+        comm = z3.Or([opc[i] == OPS.index(o) for o in COMMUTATIVE])
         s.add(z3.Implies(comm, z3.ULT(sa[i], sb[i])))
-        unary = z3.Not(
-            z3.Or(
-                [opc[i] == OPS.index(o) for o in ("and", "or", "xor", "andn")]
-            )
-        )
+        unary = z3.Not(z3.Or([opc[i] == OPS.index(o) for o in BINARY]))
         s.add(z3.Implies(unary, sb[i] == 0))
     # Every intermediate is used by a later instruction (otherwise a shorter
     # program exists)
@@ -156,43 +159,9 @@ def _symbolic(
         for i in range(n):
             a, b = sel(vals, sa[i]), sel(vals, sb[i])
             k = sk[i]
-            v = z3.If(
-                opc[i] == OPS.index("and"),
-                a & b,
-                z3.If(
-                    opc[i] == OPS.index("or"),
-                    a | b,
-                    z3.If(
-                        opc[i] == OPS.index("xor"),
-                        a ^ b,
-                        z3.If(
-                            opc[i] == OPS.index("andn"),
-                            ~a & b,
-                            z3.If(
-                                opc[i] == OPS.index("not"),
-                                ~a,
-                                z3.If(
-                                    opc[i] == OPS.index("shr"),
-                                    z3.LShR(a, k),
-                                    z3.If(
-                                        opc[i] == OPS.index("shl"),
-                                        a << k,
-                                        z3.If(
-                                            opc[i] == OPS.index("and_c"),
-                                            a & k,
-                                            z3.If(
-                                                opc[i] == OPS.index("or_c"),
-                                                a | k,
-                                                ~a & k,
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
-            )
+            v = _apply(ops[-1], a, b, k)
+            for o in ops[:-1]:
+                v = z3.If(opc[i] == OPS.index(o), _apply(o, a, b, k), v)
             vals.append(v)
         s.add((vals[-1] ^ spec(ex)) & care == 0)
     r = s.check()
@@ -206,11 +175,13 @@ def _symbolic(
     return r, prog
 
 
-def verify(prog: list[Insn], spec, care: int):
-    """None if prog equals spec on every input (under care), else a
-    counterexample"""
+def verify(prog: list[Insn], spec, care: int, pre=None):
+    """None if prog equals spec on every input (under care) that satisfies
+    pre, else a counterexample"""
     x = z3.BitVec("x", W)
     s = z3.SolverFor("QF_BV")
+    if pre is not None:
+        s.add(pre(x))
     s.add((run(prog, x) ^ spec(x)) & care != 0)
     if s.check() == z3.unsat:
         return None
@@ -225,16 +196,23 @@ def synthesize(
     seeds=(0, MASK, 0x0123456789ABCDEF, 0xFEDCBA9876543210),
     timeout_ms: int = 600_000,
     log=print,
+    pre=None,
 ):
     """The shortest program for spec, with a proof of minimality
 
     @param spec Python function of an int or a z3 bit-vector
     @param care Output bits that matter; others may be anything
+    @param pre Precondition on the input (a z3 predicate): the program need
+        only be right where it holds. Seeds that violate it are dropped.
     @return (program, list of (n, verdict, seconds)) where verdict is 'unsat'
         for each length proven impossible
     """
-    ops = ops or OPS
-    examples = list(seeds)
+    ops = ops or BITWISE_OPS
+    examples = [
+        x
+        for x in seeds
+        if pre is None or z3.is_true(z3.simplify(pre(z3.BitVecVal(x, W))))
+    ]
     trail = []
     for n in range(1, max_n + 1):
         t0 = time.time()
@@ -247,7 +225,7 @@ def synthesize(
                     f"{len(examples)} examples)"
                 )
                 break
-            cex = verify(prog, spec, care)
+            cex = verify(prog, spec, care, pre)
             if cex is None:
                 trail.append((n, "found", time.time() - t0))
                 log(

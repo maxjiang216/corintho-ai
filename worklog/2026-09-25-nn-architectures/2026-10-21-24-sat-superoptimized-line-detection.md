@@ -15,7 +15,11 @@
   code for every board word.
 - The top-of-stack kernel is the synthesizer's: 5 instructions, proven
   minimal (no 4-instruction program exists). My hand-written version had 6.
-- Solver at P <= 24: 2.973G -> 2.797G instructions (-5.9%), identical
+- Position key, `packRest` and the reserve sums: loops replaced with
+  `pext` and multiply tricks, all proven. Together with the line change,
+  the solver at P <= 24 goes 2.973G -> 2.622G instructions (-11.8%), and
+  P <= 27 wall time 6.12 -> 5.80 s (-5%).
+- Line detection alone at P <= 24: 2.973G -> 2.797G instructions (-5.9%), identical
   results and node counts. `getLegalMoves` micro: 53-57 -> 47 ns (-12 to
   -17%). Solver wall time at P <= 27 is within noise.
 
@@ -156,6 +160,42 @@ work: four is minimal for this shape. A shortcut, if one exists, needs a
 differently shaped program (shared intermediate terms, say), which is
 beyond what exact synthesis can search at this size (~25 instructions).
 
+## Position key and reserve sums
+
+Second round, same method. Every node and every child (the prefetch loop)
+calls `Game::key`, which packed the six reserve counts with a six-step
+loop. `packRest` repacked them with another loop, and `store` and
+`recordCutoff` added them up with a third. `Game::horizon` had the same
+sum over the raw bytes.
+
+| routine | was | now |
+|---|---|---|
+| `Game::key` | 6-step loop | one 6-byte load, one `pext` (portable: three shift-or-mask steps) |
+| `packRest` | 6-step loop | one `pext` with mask `0x7777771` |
+| reserve sum (`restReserves`) | 6-step loop | add odd and even nibbles pairwise into bytes, one multiply, 7 operations |
+| `Game::horizon` reserves | 6-step loop | one load, one multiply by `0x010101010101` |
+
+Each is proven equal to its loop for every reserve count 0-4
+(`prove.py`). The reserve sum was also checked exhaustively in Python
+over all 31,250 valid `rest` words. The multiply tricks work because the
+counts are at most 4: no byte sum exceeds 24, so nothing carries.
+`synth_reserves.py` extends the synthesizer with add, sub and
+multiply-by-constant and a precondition on the input; lengths 1 and 2 are
+UNSAT. The search for something shorter than 7 is still running (see
+*Next steps*).
+
+Gates: `verify` PASS, `rulecheck` PASS, `golden` game `d8f9bd2d22ee9731`
+and engine `2fb48873bf620b61` (both unchanged), and `solver_bench` P <= 24
+and P <= 27 with identical results and node counts.
+
+| measure | main | line detection | + key and reserves |
+|---|---|---|---|
+| callgrind, solver P <= 24 | 2,973M | 2,797M | 2,622M (-11.8% total) |
+| solver P <= 27 wall, 3 interleaved rounds | 6.13 / 6.20 / 6.03 s | 6.01 / 5.83 / 6.00 s | 5.66 / 5.77 / 5.97 s |
+
+Mean wall time is 6.12 -> 5.80 s (-5%). A synthesis job was running on
+another core, so the noise is still about +-0.15 s.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move
@@ -170,6 +210,9 @@ beyond what exact synthesis can search at this size (~25 instructions).
   over board words cannot cover it.
 
 ## Next steps
+
+- `synth_reserves.py`: whether the reserve sum fits in 3-6 operations
+  (lengths 1-2 UNSAT).
 
 - Re-time the solver on the i7-12700H with clang-20, three interleaved
   rounds, to settle the wall-time question.

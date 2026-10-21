@@ -110,3 +110,76 @@ def has_line_nibbles(b):
             t & shr(t, s) & shr(t, 2 * s) & nibble_spread(RUN_START[d][0])
         )
     return any_ != 0
+
+
+# --- Position key (Game::key, solver.cpp packRest) ------------------------
+
+
+def pext(x, mask: int):
+    """_pext_u64 with a constant mask: the masked bits of x, packed low"""
+    bits = [z3.Extract(i, i, x) for i in range(64) if (mask >> i) & 1]
+    return z3.ZeroExt(64 - len(bits), z3.Concat(*reversed(bits)))
+
+
+def key_rest_current(pieces, to_play):
+    """Game::key's rest: side to move in bit 0, reserve i in bits 4 + 4i"""
+    rest = z3.ZeroExt(63, to_play)
+    for i in range(6):
+        rest = rest | (z3.ZeroExt(56, pieces[i]) << (4 + 4 * i))
+    return rest
+
+
+def reserve_bytes(pieces):
+    """The six reserves as one memcpy'd little-endian word"""
+    return z3.ZeroExt(16, z3.Concat(*reversed(pieces)))
+
+
+def key_rest_pext(pieces, to_play):
+    return (pext(reserve_bytes(pieces), 0x0F0F0F0F0F0F) << 4) | z3.ZeroExt(
+        63, to_play
+    )
+
+
+def key_rest_portable(pieces, to_play):
+    x = reserve_bytes(pieces)
+    x = (x | shr(x, 4)) & 0x00FF00FF00FF
+    x = (x | shr(x, 8)) & 0x0000FFFF0000FFFF
+    x = (x | shr(x, 16)) & 0xFFFFFF
+    return (x << 4) | z3.ZeroExt(63, to_play)
+
+
+def pack_rest_current(rest):
+    """solver.cpp packRest: side to move, then 3 bits per reserve"""
+    out = rest & 1
+    for i in range(6):
+        out = out | ((shr(rest, 4 + 4 * i) & 7) << (1 + 3 * i))
+    return out
+
+
+def pack_rest_pext(rest):
+    return pext(rest, 0x7777771)
+
+
+def rest_reserves_current(rest):
+    """The reserve-sum loop in Solver::store and recordCutoff"""
+    total = z3.BitVecVal(0, 64)
+    for i in range(6):
+        total = total + (shr(rest, 4 + 4 * i) & 0xF)
+    return total
+
+
+def rest_reserves_mul(rest):
+    pairs = (rest & 0x0F0F0F0) + (shr(rest, 4) & 0x0F0F0F0)
+    return shr(pairs * 0x10101, 20) & 0xFF
+
+
+def horizon_reserves_current(pieces):
+    """Game::horizon's loop over the six reserve bytes"""
+    total = z3.BitVecVal(0, 64)
+    for p in pieces:
+        total = total + z3.ZeroExt(56, p)
+    return total
+
+
+def horizon_reserves_mul(pieces):
+    return shr(reserve_bytes(pieces) * 0x010101010101, 40) & 0xFF

@@ -72,6 +72,42 @@ def main():
                 )
     ok &= prove("runs_nibbles == findLines run3/run4", z3.And(claims))
 
+    # Game::key and packRest, for every reserve count 0-4
+    pieces = [z3.BitVec(f"p{i}", 8) for i in range(6)]
+    to_play = z3.BitVec("to_play", 1)
+    in_range = z3.And([z3.ULE(p, 4) for p in pieces])
+    current = k.key_rest_current(pieces, to_play)
+    ok &= prove(
+        "key rest: pext == loop",
+        z3.Implies(in_range, k.key_rest_pext(pieces, to_play) == current),
+    )
+    ok &= prove(
+        "key rest: portable == loop",
+        z3.Implies(in_range, k.key_rest_portable(pieces, to_play) == current),
+    )
+    ok &= prove(
+        "packRest: pext == loop",
+        z3.Implies(
+            in_range,
+            k.pack_rest_pext(current) == k.pack_rest_current(current),
+        ),
+    )
+    ok &= prove(
+        "reserve sum: multiply == loop",
+        z3.Implies(
+            in_range,
+            k.rest_reserves_mul(current) == k.rest_reserves_current(current),
+        ),
+    )
+    ok &= prove(
+        "horizon reserves: multiply == loop",
+        z3.Implies(
+            in_range,
+            k.horizon_reserves_mul(pieces)
+            == k.horizon_reserves_current(pieces),
+        ),
+    )
+
     sys.exit(0 if ok else 1)
 
 

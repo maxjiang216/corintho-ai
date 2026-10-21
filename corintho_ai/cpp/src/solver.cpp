@@ -33,12 +33,30 @@ constexpr std::array<int32_t, kNumMoves> kQuietRank = makeQuietRank();
 // The rest of a Game::key (side to move in bit 0, reserve i in bits
 // 4 + 4i, each 0-4) in 19 bits: side to move, then 3 bits per reserve
 uint64_t packRest(uint64_t rest) {
+#if defined(__BMI2__)
+  // Bit 0 and the low three bits of each reserve nibble, packed in order:
+  // one pext (proven equal to the loop, bench/superopt/prove.py)
+  return _pext_u64(rest, 0x7777771ULL);
+#else
   uint64_t out = rest & 1;
   for (int32_t i = 0; i < 6; ++i)
     out |= ((rest >> (4 + 4 * i)) & 7) << (1 + 3 * i);
   return out;
+#endif
 }
 constexpr uint64_t kRestMask = (uint64_t{1} << 19) - 1;
+
+// The six reserves of a Game::key `rest` word, summed. Odd and even
+// reserves are added pairwise into three bytes (each at most 8), and one
+// multiply adds the bytes into the top one (at most 24, no carries).
+// Proven equal to the loop for every reserve count 0-4 by
+// bench/superopt/prove.py (entry 24).
+constexpr uint64_t restReserves(uint64_t rest) {
+  const uint64_t pairs = (rest & 0x0F0F0F0) + ((rest >> 4) & 0x0F0F0F0);
+  return ((pairs * 0x10101) >> 20) & 0xFF;
+}
+static_assert(restReserves(0x4444441) == 24);
+static_assert(restReserves(0x0432101) == 10);
 
 // Which of a bucket's four boards equal `board`, as bits 0-3
 uint32_t boardMatches(const Solver::Bucket &bucket, uint64_t board) {
@@ -252,9 +270,7 @@ void statsRecord(uint64_t board, uint64_t rest, int32_t move, int32_t phase,
                  int32_t k, int32_t n_moves, int32_t replies, bool cut,
                  uint64_t cost) {
   const MoveInfo &info = kMoveTable[move];
-  uint64_t reserves = 0;
-  for (int32_t i = 0; i < 6; ++i)
-    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const uint64_t reserves = restReserves(rest);
   const int32_t occupied = __builtin_popcountll(
       (board | board >> 1 | board >> 2) & 0x1111111111111111ULL);
   int32_t frozen = -1;
@@ -463,9 +479,7 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
 void Solver::recordCutoff(uint64_t board, uint64_t rest, int32_t move) {
   // Weight by the horizon P = 2 x reserves + occupied spaces squared, so
   // cutoffs high in the tree count most
-  uint64_t reserves = 0;
-  for (int32_t i = 0; i < 6; ++i)
-    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const uint64_t reserves = restReserves(rest);
   const uint64_t occupied = static_cast<uint64_t>(__builtin_popcountll(
       (board | board >> 1 | board >> 2) & 0x1111111111111111ULL));
   const uint64_t p = 2 * reserves + occupied;
@@ -479,9 +493,7 @@ int32_t Solver::store(uint64_t board, uint64_t rest, int32_t best,
   const int32_t bound = best <= alpha0 ? kUpper
                         : best >= beta ? kLower
                                        : kExact;
-  uint64_t reserves = 0;
-  for (int32_t i = 0; i < 6; ++i)
-    reserves += (rest >> (4 + 4 * i)) & 0xF;
+  const uint64_t reserves = restReserves(rest);
   const uint64_t p = 2 * reserves + static_cast<uint64_t>(__builtin_popcountll(
                                         (board | board >> 1 | board >> 2) &
                                         0x1111111111111111ULL));

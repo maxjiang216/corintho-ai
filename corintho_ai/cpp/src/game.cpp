@@ -107,20 +107,37 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+              "horizon and key read the reserves as a little-endian word");
+
 int32_t Game::horizon() const noexcept {
   const uint64_t b = board_.to_ullong();
-  int32_t reserves = 0;
-  for (int32_t i = 0; i < 6; ++i)
-    reserves += pieces_[i];
+  // The six reserves in one load; the multiply adds every byte into byte 5
+  // (at most 24, so no byte carries). Proven by bench/superopt/prove.py.
+  uint64_t bytes = 0;
+  std::memcpy(&bytes, pieces_, sizeof(pieces_));
+  const int32_t reserves =
+      static_cast<int32_t>(((bytes * 0x010101010101ULL) >> 40) & 0xFF);
   return 2 * reserves +
          __builtin_popcountll((b | b >> 1 | b >> 2) & 0x1111111111111111ULL);
 }
 
 void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   board = board_.to_ullong();
-  rest = static_cast<uint64_t>(to_play_);
-  for (int32_t i = 0; i < 6; ++i)
-    rest |= static_cast<uint64_t>(pieces_[i]) << (4 + 4 * i);
+  // The six reserves in one load, a byte each (little-endian), then each
+  // byte's low nibble packed together: the same word the old six-step loop
+  // built. Proven equal for every reserve count 0-4 by
+  // bench/superopt/prove.py (entry 24).
+  uint64_t bytes = 0;
+  std::memcpy(&bytes, pieces_, sizeof(pieces_));
+#if defined(__BMI2__)
+  const uint64_t reserves = _pext_u64(bytes, 0x0F0F0F0F0F0FULL);
+#else
+  bytes = (bytes | bytes >> 4) & 0x00FF00FF00FFULL;
+  bytes = (bytes | bytes >> 8) & 0x0000FFFF0000FFFFULL;
+  const uint64_t reserves = (bytes | bytes >> 16) & 0xFFFFFFULL;
+#endif
+  rest = reserves << 4 | static_cast<uint64_t>(to_play_);
 }
 
 void Game::lineSpaces(uint16_t by_type[3]) const noexcept {

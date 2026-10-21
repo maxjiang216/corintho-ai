@@ -12,9 +12,8 @@ from __future__ import annotations
 import sys
 import time
 
-import z3
-
 import kernels as k
+import z3
 
 
 def prove(name, claim):
@@ -36,13 +35,22 @@ def main():
     # Nibble tops match computeSpaceInfo's top planes, bit for bit
     t = k.tops_nibbles(b)
     p = k.top_planes(b)
-    ok &= prove("tops_nibbles == top_plane[0..2]", z3.And([
-        z3.Extract(4 * s + ty, 4 * s + ty, t)
-        == z3.Extract(s, s, p[ty])
-        for s in range(16) for ty in range(3)]))
+    ok &= prove(
+        "tops_nibbles == top_plane[0..2]",
+        z3.And(
+            [
+                z3.Extract(4 * s + ty, 4 * s + ty, t)
+                == z3.Extract(s, s, p[ty])
+                for s in range(16)
+                for ty in range(3)
+            ]
+        ),
+    )
 
-    ok &= prove("has_line_nibbles == boardHasLine",
-                k.has_line_nibbles(b) == k.has_line_current(b))
+    ok &= prove(
+        "has_line_nibbles == boardHasLine",
+        k.has_line_nibbles(b) == k.has_line_current(b),
+    )
 
     # findLines: the same runs, type by type and direction by direction
     run3, run4 = k.find_lines_current(b)
@@ -54,10 +62,14 @@ def main():
         claims.append(r4 & ~k.nibble_spread(0xFFFF) == 0)
         for s in range(16):
             for ty in range(3):
-                claims.append(z3.Extract(4 * s + ty, 4 * s + ty, r3)
-                              == z3.Extract(s, s, run3[ty][d]))
-                claims.append(z3.Extract(4 * s + ty, 4 * s + ty, r4)
-                              == z3.Extract(s, s, run4[ty][d]))
+                claims.append(
+                    z3.Extract(4 * s + ty, 4 * s + ty, r3)
+                    == z3.Extract(s, s, run3[ty][d])
+                )
+                claims.append(
+                    z3.Extract(4 * s + ty, 4 * s + ty, r4)
+                    == z3.Extract(s, s, run4[ty][d])
+                )
     ok &= prove("runs_nibbles == findLines run3/run4", z3.And(claims))
 
     sys.exit(0 if ok else 1)

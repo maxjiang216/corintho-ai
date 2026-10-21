@@ -15,8 +15,12 @@ M1 = 0x1111111111111111
 
 # util.h
 LINE_STRIDE = [1, 4, 5, 3]
-RUN_START = [(0x3333, 0x1111), (0x00FF, 0x000F), (0x0033, 0x0001),
-             (0x00CC, 0x0008)]
+RUN_START = [
+    (0x3333, 0x1111),
+    (0x00FF, 0x000F),
+    (0x0033, 0x0001),
+    (0x00CC, 0x0008),
+]
 
 
 def shr(x, k):
@@ -38,6 +42,7 @@ def nibble_spread(m16: int, low_bits: int = 0x7) -> int:
 
 # --- Current code ----------------------------------------------------------
 
+
 def top_planes(b):
     """computeSpaceInfo's top_plane[base, column, capital], 16-bit each"""
     base, col, cap = (pext_nibbles(b, k) for k in range(3))
@@ -52,8 +57,12 @@ def has_line_current(b):
     any_ = z3.BitVecVal(0, W)
     for d in range(4):
         s = LINE_STRIDE[d]
-        any_ = any_ | (planes & shr(planes, s) & shr(planes, 2 * s)
-                       & lanes(RUN_START[d][0]))
+        any_ = any_ | (
+            planes
+            & shr(planes, s)
+            & shr(planes, 2 * s)
+            & lanes(RUN_START[d][0])
+        )
     return any_ != 0
 
 
@@ -72,6 +81,7 @@ def find_lines_current(b):
 
 
 # --- Nibble domain ---------------------------------------------------------
+
 
 def tops_nibbles(b):
     """Bit k of space s's nibble set when its top piece is type k. The
@@ -96,6 +106,7 @@ def has_line_nibbles(b):
     any_ = z3.BitVecVal(0, W)
     for d in range(4):
         s = 4 * LINE_STRIDE[d]
-        any_ = any_ | (t & shr(t, s) & shr(t, 2 * s)
-                       & nibble_spread(RUN_START[d][0]))
+        any_ = any_ | (
+            t & shr(t, s) & shr(t, 2 * s) & nibble_spread(RUN_START[d][0])
+        )
     return any_ != 0

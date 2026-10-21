@@ -15,9 +15,8 @@ from __future__ import annotations
 import sys
 import time
 
-import z3
-
 import kernels as k
+import z3
 
 
 def term_sum(t, params):
@@ -28,8 +27,14 @@ def term_sum(t, params):
 
 
 def solve(n_terms: int, timeout_ms: int = 1_800_000):
-    params = [(z3.BitVec(f"a{i}", 64), z3.BitVec(f"b{i}", 64),
-               z3.BitVec(f"c{i}", 64)) for i in range(n_terms)]
+    params = [
+        (
+            z3.BitVec(f"a{i}", 64),
+            z3.BitVec(f"b{i}", 64),
+            z3.BitVec(f"c{i}", 64),
+        )
+        for i in range(n_terms)
+    ]
     s = z3.SolverFor("QF_BV")
     s.set("timeout", timeout_ms)
     for i, (a, b, _) in enumerate(params):
@@ -42,20 +47,26 @@ def solve(n_terms: int, timeout_ms: int = 1_800_000):
         s.push()
         for ex in examples:
             bv = z3.BitVecVal(ex, 64)
-            s.add((term_sum(k.tops_nibbles(bv), params) != 0)
-                  == z3.simplify(k.has_line_current(bv)))
+            s.add(
+                (term_sum(k.tops_nibbles(bv), params) != 0)
+                == z3.simplify(k.has_line_current(bv))
+            )
         r = s.check()
         if r != z3.sat:
             s.pop()
             return r, None, len(examples), time.time() - t0
         m = s.model()
-        concrete = [tuple(m.eval(v, model_completion=True).as_long()
-                          for v in p) for p in params]
+        concrete = [
+            tuple(m.eval(v, model_completion=True).as_long() for v in p)
+            for p in params
+        ]
         s.pop()
         x = z3.BitVec("x", 64)
         v = z3.SolverFor("QF_BV")
-        v.add((term_sum(k.tops_nibbles(x), concrete) != 0)
-              != k.has_line_current(x))
+        v.add(
+            (term_sum(k.tops_nibbles(x), concrete) != 0)
+            != k.has_line_current(x)
+        )
         if v.check() == z3.unsat:
             return z3.sat, concrete, len(examples), time.time() - t0
         examples.append(v.model().eval(x, model_completion=True).as_long())

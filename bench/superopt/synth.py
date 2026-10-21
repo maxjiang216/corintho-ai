@@ -35,8 +35,18 @@ MASK = (1 << W) - 1
 
 # Opcodes. Binary ops take two earlier values; *_c ops take one value and a
 # symbolic constant; shifts take one value and a symbolic amount.
-OPS = ["and", "or", "xor", "andn", "not", "shr", "shl", "and_c", "or_c",
-       "andn_c"]
+OPS = [
+    "and",
+    "or",
+    "xor",
+    "andn",
+    "not",
+    "shr",
+    "shl",
+    "and_c",
+    "or_c",
+    "andn_c",
+]
 
 
 @dataclass
@@ -94,8 +104,14 @@ def run(prog: list[Insn], x):
     return vals[-1]
 
 
-def _symbolic(n: int, examples: list[int], spec, care: int, ops: list[str],
-              timeout_ms: int):
+def _symbolic(
+    n: int,
+    examples: list[int],
+    spec,
+    care: int,
+    ops: list[str],
+    timeout_ms: int,
+):
     """One synthesis query: some n-instruction program fits every example"""
     s = z3.SolverFor("QF_BV")
     s.set("timeout", timeout_ms)
@@ -108,14 +124,21 @@ def _symbolic(n: int, examples: list[int], spec, care: int, ops: list[str],
         s.add(z3.Or([opc[i] == o for o in allowed]))
         s.add(z3.ULE(sa[i], i), z3.ULE(sb[i], i))  # operands: earlier values
         # Shifts by 1..63 only
-        is_shift = z3.Or(opc[i] == OPS.index("shr"), opc[i] == OPS.index("shl"))
-        s.add(z3.Implies(is_shift, z3.And(z3.UGE(sk[i], 1), z3.ULE(sk[i], 63))))
+        is_shift = z3.Or(
+            opc[i] == OPS.index("shr"), opc[i] == OPS.index("shl")
+        )
+        s.add(
+            z3.Implies(is_shift, z3.And(z3.UGE(sk[i], 1), z3.ULE(sk[i], 63)))
+        )
         # Symmetry breaking: commutative ops take a <= b, and the last value
         # must be used (no dead tail); unused operands pinned to 0
         comm = z3.Or([opc[i] == OPS.index(o) for o in ("and", "or", "xor")])
         s.add(z3.Implies(comm, z3.ULT(sa[i], sb[i])))
-        unary = z3.Not(z3.Or([opc[i] == OPS.index(o)
-                              for o in ("and", "or", "xor", "andn")]))
+        unary = z3.Not(
+            z3.Or(
+                [opc[i] == OPS.index(o) for o in ("and", "or", "xor", "andn")]
+            )
+        )
         s.add(z3.Implies(unary, sb[i] == 0))
     # Every intermediate is used by a later instruction (otherwise a shorter
     # program exists)
@@ -133,16 +156,43 @@ def _symbolic(n: int, examples: list[int], spec, care: int, ops: list[str],
         for i in range(n):
             a, b = sel(vals, sa[i]), sel(vals, sb[i])
             k = sk[i]
-            v = z3.If(opc[i] == OPS.index("and"), a & b,
-                z3.If(opc[i] == OPS.index("or"), a | b,
-                z3.If(opc[i] == OPS.index("xor"), a ^ b,
-                z3.If(opc[i] == OPS.index("andn"), ~a & b,
-                z3.If(opc[i] == OPS.index("not"), ~a,
-                z3.If(opc[i] == OPS.index("shr"), z3.LShR(a, k),
-                z3.If(opc[i] == OPS.index("shl"), a << k,
-                z3.If(opc[i] == OPS.index("and_c"), a & k,
-                z3.If(opc[i] == OPS.index("or_c"), a | k,
-                      ~a & k)))))))))
+            v = z3.If(
+                opc[i] == OPS.index("and"),
+                a & b,
+                z3.If(
+                    opc[i] == OPS.index("or"),
+                    a | b,
+                    z3.If(
+                        opc[i] == OPS.index("xor"),
+                        a ^ b,
+                        z3.If(
+                            opc[i] == OPS.index("andn"),
+                            ~a & b,
+                            z3.If(
+                                opc[i] == OPS.index("not"),
+                                ~a,
+                                z3.If(
+                                    opc[i] == OPS.index("shr"),
+                                    z3.LShR(a, k),
+                                    z3.If(
+                                        opc[i] == OPS.index("shl"),
+                                        a << k,
+                                        z3.If(
+                                            opc[i] == OPS.index("and_c"),
+                                            a & k,
+                                            z3.If(
+                                                opc[i] == OPS.index("or_c"),
+                                                a | k,
+                                                ~a & k,
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
             vals.append(v)
         s.add((vals[-1] ^ spec(ex)) & care == 0)
     r = s.check()
@@ -167,9 +217,15 @@ def verify(prog: list[Insn], spec, care: int):
     return s.model().eval(x, model_completion=True).as_long()
 
 
-def synthesize(spec, care: int = MASK, max_n: int = 8, ops=None,
-               seeds=(0, MASK, 0x0123456789ABCDEF, 0xFEDCBA9876543210),
-               timeout_ms: int = 600_000, log=print):
+def synthesize(
+    spec,
+    care: int = MASK,
+    max_n: int = 8,
+    ops=None,
+    seeds=(0, MASK, 0x0123456789ABCDEF, 0xFEDCBA9876543210),
+    timeout_ms: int = 600_000,
+    log=print,
+):
     """The shortest program for spec, with a proof of minimality
 
     @param spec Python function of an int or a z3 bit-vector
@@ -186,14 +242,18 @@ def synthesize(spec, care: int = MASK, max_n: int = 8, ops=None,
             r, prog = _symbolic(n, examples, spec, care, ops, timeout_ms)
             if prog is None:
                 trail.append((n, str(r), time.time() - t0))
-                log(f"  n={n}: {r} ({time.time() - t0:.1f}s, "
-                    f"{len(examples)} examples)")
+                log(
+                    f"  n={n}: {r} ({time.time() - t0:.1f}s, "
+                    f"{len(examples)} examples)"
+                )
                 break
             cex = verify(prog, spec, care)
             if cex is None:
                 trail.append((n, "found", time.time() - t0))
-                log(f"  n={n}: found ({time.time() - t0:.1f}s, "
-                    f"{len(examples)} examples)")
+                log(
+                    f"  n={n}: found ({time.time() - t0:.1f}s, "
+                    f"{len(examples)} examples)"
+                )
                 return prog, trail
             examples.append(cex)
         if r != z3.unsat:
@@ -203,5 +263,6 @@ def synthesize(spec, care: int = MASK, max_n: int = 8, ops=None,
 
 def render(prog: list[Insn], input_name: str = "b") -> str:
     names = [input_name] + [f"v{i + 1}" for i in range(len(prog))]
-    return "\n".join(f"  v{i + 1} = {insn.render(names)}"
-                     for i, insn in enumerate(prog))
+    return "\n".join(
+        f"  v{i + 1} = {insn.render(names)}" for i, insn in enumerate(prog)
+    )

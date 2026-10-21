@@ -8,6 +8,8 @@
 - A small z3-based superoptimizer (`bench/superopt/`): CEGIS synthesis
   of shortest straight-line programs with a minimality proof, equivalence
   proofs over all 2^64 board words, and sketch queries.
+- Sketch query: K = 3 masked run terms cannot detect lines (UNSAT); at
+  K = 4 the solver rediscovered the four hand-written directions.
 - Line detection moved into the board's own nibble layout. All three
   piece types are tested at once, with no `pext`. Proven equal to the old
   code for every board word.
@@ -130,8 +132,23 @@ node's time (entries 22-23), so the effect there is smaller again.
 
 `python3 bench/superopt/sketch.py 4 3` fixes the shape `OR_k (t & t >> a_k
 & t >> b_k & C_k)`, leaves every shift and mask symbolic, and asks
-whether K = 3 terms can replace the four directions. Result: see *Next
-steps*.
+whether K = 3 terms can replace the four directions.
+
+```
+K=4: sat after 130 examples, 400.0s
+  t & t >> 4  & t >> 8  & 0x0077007700770077   rows
+  t & t >> 12 & t >> 24 & 0x0000000077007700   d4-a1 diagonals
+  t & t >> 16 & t >> 32 & 0x0000000077777777   columns
+  t & t >> 20 & t >> 40 & 0x0000000000770077   a4-d1 diagonals
+K=3: unsat after 63 examples, 21.3s
+```
+
+Given only "a line exists" as the spec, the K = 4 search rediscovered
+exactly the hand-written directions and edge masks (`kRunStartNibbles`).
+K = 3 is UNSAT, so no choice of shifts and masks lets three such terms
+work: four is minimal for this shape. A shortcut, if one exists, needs a
+differently shaped program (shared intermediate terms, say), which is
+beyond what exact synthesis can search at this size (~25 instructions).
 
 ## Not done
 
@@ -148,6 +165,5 @@ steps*.
 
 ## Next steps
 
-- Sketch result pending when this entry was written (see the PR).
 - Re-time the solver on the i7-12700H with clang-20, three interleaved
   rounds, to settle the wall-time question.

@@ -39,3 +39,9 @@ PROVED  tops_nibbles == top_plane[0..2]
 PROVED  has_line_nibbles == boardHasLine
 PROVED  runs_nibbles == findLines run3/run4
 ```
+
+```
+$ python3 sketch.py 4 3
+K=4: sat after 130 examples, 400.0s     (the four hand-written directions)
+K=3: unsat after 63 examples, 21.3s     (three terms cannot work)
+```

@@ -672,6 +672,15 @@ results and nodes (24,702,005 at P <= 27) are unchanged. Time at P <= 27, 4
 interleaved rounds: 3.43 -> 3.35 s (-2.4%, overlapping); `getLegalMoves`
 micro about equal (36.5-38.2 ns). Kept as a small gain at no cost in code.
 
+## lineMakingMoves where a line stands: measured, not adopted
+
+Using the mask in every position (no per-child `hasLine` fallback where a
+line stands) gives identical results and nodes at P <= 27 and P <= 29, but
+time is only 3.47 -> 3.43 s (4 interleaved rounds, within noise).
+Positions with a line are few and have few legal moves. It is confirmed
+empirically (1.97M legal moves, no mismatches) but not proven, so the
+fallback stays.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move
@@ -685,11 +694,10 @@ micro about equal (36.5-38.2 ns). Kept as a small gain at no cost in code.
   (lengths 1-2 UNSAT, length 3 timed out at 600 s). A longer timeout, or
   restricting multiplier constants to sparse patterns, might settle it.
 
-- `lineMakingMoves` also holds where a line stands. Legal moves must
-  break or extend every line, so any line afterwards passes through the
-  destination. Checked on 1,972,659 legal moves of 836,022 line
-  positions: 0 mismatches. Proving it needs the breaking rule
-  (`kLineBreakTable`) in the model; then the per-child fallback can go.
+- `lineMakingMoves` also holds where a line stands (1,972,659 legal moves,
+  0 mismatches), but dropping the fallback gains about 1%: not worth an
+  unproven change unless the proof (the breaking rule in the model) is
+  done for its own sake.
 - Run `ab_match` with `AB_CHECK_LINES=1` on the i7-12700H (it could not
   run here), then compare nodes/s with and without the mask.
 - Parents with a line still ask each child. Covering them needs the

@@ -488,6 +488,61 @@ opponent only has to show "at least a draw" to refute, and stops there.
 Reaching that 13.7% would need a different search scheme (for example,
 questions that assume draws are impossible); not tried.
 
+## Quiet-move ordering: the ceiling and what fails to reach it
+
+**Ceiling.** An instrumented copy computed an oracle cost bottom-up: at a
+node that cut off, only the cutting child's subtree counts (as if it had
+been tried first); at a node that failed low, every child's counts. P <= 27:
+**6.9M nodes against the actual 29.8M**, so perfect ordering could need
+about a quarter of the nodes. This is approximate: a different order also
+changes windows and table contents. 88.2% of cutoff nodes already cut on
+the first move. The waste is at the rest, nearly all where a quiet move
+cuts: 46.8M of 50.6M nested waste, often found 5th-16th.
+
+**Where the waste is.** For each late quiet cutoff at P >= 16, the
+cutting move was logged against every quiet move tried before it at the
+same node (same window and table, so unbiased between the pair): 1.08M
+pairs. Waste by type, cost-weighted:
+
+| failed, then cut by | stack | base | column | capital |
+|---|---|---|---|---|
+| stack | 2.6% | 0.7% | 2.1% | 2.1% |
+| base | | 24.1% | 10.6% | 10.1% |
+| column | | | 20.5% | 16.0% |
+| capital | | | | 11.2% |
+
+Most waste is placements failing before other placements of the same type,
+and these look alike. Within a group, no cheap feature separates the cutter
+from the failures: destination occupied, distance to the frozen square,
+the opponent's replies and line-making moves are all near 50% (weak
+exceptions: capital cutters leave the opponent fewer replies; stack cutters
+move shorter stacks). By destination, cutters sit in high-numbered squares
+and failures in low ones, asymmetrically. That is an artifact of breaking
+history ties by move ID, not geometry.
+
+**Tried, all worse or flat** (P <= 27; current: 29.77M nodes, 5.83 s):
+
+| ordering change | nodes | wall |
+|---|---|---|
+| killer moves (two per horizon P, before all quiet moves) | 28.92M | 6.11 s |
+| fewest opponent line-making moves first, within groups | 40.15M | 9.73 s |
+| the same, across groups | 55.30M | 13.88 s |
+| most opponent line-making moves first, within groups | 29.78M | 7.16 s |
+| the same, across groups | 129.6M | 29.3 s |
+| fewest opponent replies first, within groups | 36.32M | 8.36 s |
+| most opponent replies first, within groups | 31.57M | 6.99 s |
+| budgeted probes of every quiet child (16-256 nodes, P >= 16-20) | 110-253M | 21-41 s |
+
+The move-type groups (stack, base, column, capital) matter enormously:
+every across-group variant is far worse. History within the groups is
+the best simple order found. Results were identical in every variant.
+
+**Reading.** The 4x is real, but no cheap local feature predicts the
+cutting placement. Reaching it needs a learned predictor, which is what an
+AlphaZero policy head is. The offline test is cheap: score a candidate
+model by how often it ranks the logged cutter first, against history,
+before touching the solver.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move

@@ -543,6 +543,58 @@ AlphaZero policy head is. The offline test is cheap: score a candidate
 model by how often it ranks the logged cutter first, against history,
 before touching the solver.
 
+## Tiny models for move ordering, and a rule that works
+
+The developer asked whether tiny decision trees or other cheap
+heuristics could improve the order. Tools: `bench/ordering/`.
+
+**Biased data fails.** Logging every quiet candidate at each quiet cutoff
+(13.8M candidates, 1.48M decisions, P >= 16) and fitting trees or
+logistic models for "is this the cutter?" gave nothing: no model put the
+cutter first more often than the current order (66.4%). A pairwise model
+(cutter minus each earlier failure) learned weight +8.7 on the history
+rank: in every pair the cutter was tried later, so "later is better" is
+built into the data. It inverted the order (cutter first 33%).
+
+**Unbiased labels.** At one in eight decisions with P >= 16 where only
+quiet moves remain, every quiet child was searched with the same window:
+429k candidates in 45.6k decisions that have a quiet cutter. Results
+stayed identical. Now any order can be scored exactly offline: the cost of
+the moves ahead of its first cutter, plus that cutter. On the held-out
+half:
+
+- 35% of quiet candidates cut. The task is finding a cheap cutter, not
+  the cutter.
+- Current order: 4.01M nodes, cutter first 63%. Oracle (the cheapest
+  cutter alone): 0.67x.
+- Trees for P(cut) find cutters more often (first up to 73.5%) but cost
+  1.1-1.25x: they choose expensive cutters.
+- Ranking by P(cut) over a cost tree's prediction: 0.86-0.87x (depths
+  3-4). Kept inside the type groups, every model is about 1.2x.
+- A depth-1 tree split on the reserve left after a placement. As a rule
+  on top of the current order ("a placement leaving the mover one or no
+  pieces of its type goes last"): 0.949x offline.
+
+**In the solver** (results identical, P <= 27 / P <= 29 nodes):
+
+| rule | P <= 27 | P <= 29 |
+|---|---|---|
+| current | 29.77M | 152.8M |
+| demote placements leaving <= 1 | **24.70M (0.830x)** | **129.6M (0.848x)** |
+| leaving exactly 0 only | 31.50M | 168.7M |
+| leaving exactly 1 only | 32.98M | |
+| leaving <= 2 | 29.51M | |
+| leaving <= 1, one group later instead of last | 26.90M | |
+
+Adopted: leaving <= 1, last. Wall time at P <= 27, 3 interleaved rounds
+against the previous commit: 5.51 -> 4.82 s (-12.5%). P <= 24 nodes
+2.197M -> 2.007M. `verify`, `rulecheck` and the golden digests are
+unchanged. Why only the pair of thresholds together helps is not
+understood: each alone hurts.
+
+Not yet tried in the solver: the P(cut)/cost trees (0.86x offline, but
+they cross the type groups and need features per child at every node).
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move

@@ -50,7 +50,7 @@ constexpr uint64_t kRestMask = (uint64_t{1} << 19) - 1;
 // reserves are added pairwise into three bytes (each at most 8), and one
 // multiply adds the bytes into the top one (at most 24, no carries).
 // Proven equal to the loop for every reserve count 0-4 by
-// bench/superopt/prove.py (entry 24).
+// bench/superopt/prove.py (entry 26).
 constexpr uint64_t restReserves(uint64_t rest) {
   const uint64_t pairs = (rest & 0x0F0F0F0) + ((rest >> 4) & 0x0F0F0F0);
   return ((pairs * 0x10101) >> 20) & 0xFF;
@@ -392,7 +392,7 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   // stuck with a line), and they force replies. Their legal moves are
   // generated here, the others' only if the search reaches them. With no
   // line standing, one pass over the board says which moves make one
-  // (entry 24); otherwise each child is asked.
+  // (entry 26); otherwise each child is asked.
   const MoveMask making = lines ? MoveMask{} : game.lineMakingMoves();
   // Placements that would leave the mover one or none of that piece type
   // go after every other quiet move (rank + 4). At P <= 27 this took nodes
@@ -400,14 +400,14 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   // results identical. Found with unbiased labels (every quiet move of
   // sampled positions searched) and tiny decision trees; demoting only the
   // last piece (+6%) or only the second-to-last (+11%) makes it worse
-  // (entry 24).
+  // (entry 26).
   int32_t scarce_rank[3];
   for (int32_t piece = 0; piece < 3; ++piece) {
     const uint64_t left = (rest >> (4 + 4 * ((rest & 1) * 3 + piece))) & 0xF;
     scarce_rank[piece] = left <= 2 ? 4 : 0;
   }
   // Forced inline: left to itself the inliner made this a call per child,
-  // which cost more than the line checks saved (entry 24)
+  // which cost more than the line checks saved (entry 26)
   forEachMove(
       legal, [&](int32_t m) __attribute__((always_inline)) {
         if (win || m == table_move)

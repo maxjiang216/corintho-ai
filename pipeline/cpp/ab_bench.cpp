@@ -1,5 +1,5 @@
-// Fixed-depth benchmark of ab_match's AlphaBeta: nodes, nodes/s and a
-// digest of the moves chosen (worklog 2026-09-25-nn-architectures, entry 24)
+// Fixed-depth benchmark of the AlphaBeta engine (alphabeta.h): nodes, nodes/s and a
+// digest of the moves chosen (worklog 2026-09-25-nn-architectures, entry 26)
 //
 //   ab_bench NET POSITIONS.bin MIN_P MAX_P COUNT
 //   e.g. AB_MAX_DEPTH=6 build/ab_bench NET ../bench/results/solver-positions.bin 32 40 300
@@ -9,9 +9,17 @@
 // should not change the search can be checked exactly, and timed. Speed and
 // node counts do not need a trained network: arch/random_small_net.py
 // writes a random one.
-#define main ab_match_main
-#include "ab_match.cpp"
-#undef main
+#include <cstdio>
+#include <cstdlib>
+#include <vector>
+
+#include "alphabeta.h"
+#include "game.h"
+#include "small_net.h"
+
+using ab::AlphaBeta;
+using ab::Clock;
+using ab::since;
 
 int main(int argc, char **argv) {
   if (argc < 6) {

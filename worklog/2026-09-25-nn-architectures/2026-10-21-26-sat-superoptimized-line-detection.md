@@ -1,4 +1,4 @@
-# 24 — SAT superoptimization of line detection
+# 26 — SAT superoptimization of line detection
 
 2026-10-21. `bench/superopt/` (new), `corintho_ai/cpp/src/game.cpp`
 (`boardHasLine`, `findLines`, new `topNibbles`).

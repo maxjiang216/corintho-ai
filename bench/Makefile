@@ -87,7 +87,7 @@ $(BUILD)/parity.o: parity.cpp | $(BUILD)
 $(BUILD)/dfpn.o: dfpn.cpp | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
-# Proof-number search prototype (worklog entry 24); not part of `all`
+# Proof-number search prototype (worklog entry 26); not part of `all`
 $(BUILD)/dfpn: $(BUILD)/dfpn.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 

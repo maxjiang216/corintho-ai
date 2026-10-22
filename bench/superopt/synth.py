@@ -20,7 +20,7 @@ The instruction set is what x86-64 with BMI1 executes in one instruction:
 and, or, xor, andn (~a & b), not, shifts by a constant, and and/or/andn with
 a 64-bit constant (a mov-imm64 plus the op; constants are hoisted out of
 the hot loops, so they are counted as free). Worklog
-2026-09-25-nn-architectures, entry 24.
+2026-09-25-nn-architectures, entry 26.
 """
 
 from __future__ import annotations

@@ -59,7 +59,7 @@ class Game {
   /// @details Exact for every move the placement and stacking rules allow
   /// (so for every legal move); other bits are meaningless. One pass over
   /// the board instead of a doMove and a hasLine per move. Proven by
-  /// bench/superopt/prove.py (worklog entry 24).
+  /// bench/superopt/prove.py (worklog entry 26).
   MoveMask lineMakingMoves() const noexcept;
   /// @brief Legal moves when no line stands (the caller knows, e.g. from
   /// hasLine): placement and movement rules only, no line search

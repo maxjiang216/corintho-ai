@@ -2,7 +2,7 @@
 
 z3 (`pip install z3-solver`) solves bit-vector problems by bit-blasting
 them to SAT. These scripts use it three ways on the engine's line and
-legal-move kernels (worklog 2026-09-25-nn-architectures, entry 24):
+legal-move kernels (worklog 2026-09-25-nn-architectures, entry 26):
 
 | script | question | answer |
 |---|---|---|

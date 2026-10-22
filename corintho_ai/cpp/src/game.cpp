@@ -25,7 +25,7 @@ namespace {
 /// space boundary only ever land on bit 3, which every caller masks off.
 /// Found by bench/superopt/synth.py, which also proved that no program of
 /// four instructions (and, or, xor, andn, not, shifts, constants) computes
-/// it; it replaces four pext and their combination (entry 24).
+/// it; it replaces four pext and their combination (entry 26).
 constexpr uint64_t topNibbles(uint64_t b) noexcept {
   const uint64_t c = (b & 0x6666666666666666ULL) >> 1;
   return b & ~c & ~(c >> 1);
@@ -61,7 +61,7 @@ static_assert((topNibbles(0x50ULL) & kPieceBits) == 0x40ULL);  // space 1
 /// @details The four directions' IDs are contiguous blocks (see
 /// basicLegalMoves): right and left drop the one column that cannot step
 /// that way, down and up are the board shifted into place. Proven equal to
-/// testing each move's source by bench/superopt/prove.py (entry 24).
+/// testing each move's source by bench/superopt/prove.py (entry 26).
 uint64_t movesFrom(uint32_t spaces) noexcept {
 #if defined(__BMI2__)
   const uint64_t right = _pext_u64(spaces, 0x7777U);
@@ -115,7 +115,7 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
 MoveMask Game::breakersOfLines(const SpaceInfo &info,
                                bool &lines) const noexcept {
   // findLines and lineBreakers in one pass: each run found is ANDed in at
-  // once, with no list of lines in between (entry 24). The same runs, in
+  // once, with no list of lines in between (entry 26). The same runs, in
   // the same layout, as findLines.
   const uint64_t t = topNibbles(board_.to_ullong());
   uint64_t run3[4];
@@ -197,7 +197,7 @@ void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   // The six reserves in one load, a byte each (little-endian), then each
   // byte's low nibble packed together: the same word the old six-step loop
   // built. Proven equal for every reserve count 0-4 by
-  // bench/superopt/prove.py (entry 24).
+  // bench/superopt/prove.py (entry 26).
   uint64_t bytes = 0;
   std::memcpy(&bytes, pieces_, sizeof(pieces_));
 #if defined(__BMI2__)
@@ -227,7 +227,7 @@ void Game::lineSpaces(uint16_t by_type[3]) const noexcept {
 int32_t Game::findLines(PresentLine *out) const noexcept {
   // All three types at once, in the board's own layout: bit k of a space's
   // nibble is set when its top is type k, and a run of equal tops is a
-  // shifted AND, four bits per space (entry 24)
+  // shifted AND, four bits per space (entry 26)
   const uint64_t t = topNibbles(board_.to_ullong());
   uint64_t run3[4];
   uint64_t run4[4];
@@ -748,7 +748,7 @@ bool Game::boardHasLine(uint64_t b) noexcept {
   // Shifts are whole spaces, so bit k of a nibble only ever meets bit k of
   // another and the types never mix; the run masks keep runs on the board.
   // Proven equal to the 16-bit-lane version on all 2^64 words by
-  // bench/superopt/prove.py (entry 24).
+  // bench/superopt/prove.py (entry 26).
   const uint64_t t = topNibbles(b);
   uint64_t any = 0;
   for (int32_t d = 0; d < 4; ++d) {

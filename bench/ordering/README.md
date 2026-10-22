@@ -1,6 +1,6 @@
 # Quiet-move ordering from unbiased labels
 
-Worklog 2026-09-25-nn-architectures, entry 24.
+Worklog 2026-09-25-nn-architectures, entry 26.
 
 Statistics gathered under the solver's own move order are biased: the move
 that cuts off is, by construction, tried after the moves that failed. So

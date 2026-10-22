@@ -4,7 +4,8 @@
 #
 #   make            build build/corintho_play
 #   make build/ab_match   alpha-beta vs MCTS match tool (entry 22)
-#   make build/ab_bench   fixed-depth alpha-beta benchmark (entry 24)
+#   make build/ab_bench   fixed-depth alpha-beta benchmark (entry 26)
+#   make build/ab_selfplay   alpha-beta self-play positions (entry 25)
 #   make clean
 
 ifeq ($(origin CXX),default)
@@ -51,10 +52,14 @@ $(BUILD)/corintho_play: $(OBJS)
 $(BUILD)/ab_match: $(BUILD)/ab_match.o $(CORE:%=$(BUILD)/%.o)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-# Fixed-depth benchmark of ab_match's alpha-beta (worklog entry 24); not
-# part of `all`
+# Fixed-depth benchmark of alphabeta.h's search (worklog entry 26): CPU
+# only, no ONNX Runtime; not part of `all`
 $(BUILD)/ab_bench: $(BUILD)/ab_bench.o $(CORE:%=$(BUILD)/%.o)
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ -fopenmp -flto -O3 -march=native -o $@
+# Alpha-beta self-play (worklog entry 25): CPU only, no ONNX Runtime; not
+# part of `all`
+$(BUILD)/ab_selfplay: $(BUILD)/ab_selfplay.o $(CORE:%=$(BUILD)/%.o)
+	$(CXX) $^ -fopenmp -flto -O3 -march=native -o $@
 
 # Rules-derived features for pipeline/arch (legal-move masks, line spaces),
 # loaded by Python through ctypes; position-independent, so built separately

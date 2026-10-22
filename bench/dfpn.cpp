@@ -1,6 +1,6 @@
 // df-pn prototype for Corintho's exact result, against the alpha-beta solver
 //
-// Worklog 2026-09-25-nn-architectures, entry 24: not faster than the
+// Worklog 2026-09-25-nn-architectures, entry 26: not faster than the
 // alpha-beta solver; kept as the record of that experiment.
 //
 // Question 1: does the side to move at the root win? Negamax df-pn (Nagai

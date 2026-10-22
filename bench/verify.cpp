@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
   std::printf("\n");
 
   // Game::lineMakingMoves against making each legal move and asking
-  // hasLine, wherever no line stands (worklog entry 24)
+  // hasLine, wherever no line stands (worklog entry 26)
   int64_t making_checked = 0, making_lines = 0;
   for (size_t idx = 0; idx < corpus.size(); ++idx) {
     const Game &game = corpus[idx];

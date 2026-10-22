@@ -427,6 +427,67 @@ only my moves that interfere with it need searching. Candidates: proof-number se
 parked item), which spends effort where a proof looks cheapest, and
 better ordering of quiet moves (entry 10).
 
+## Proof-number search (df-pn), prototyped
+
+`bench/dfpn.cpp` (`make build/dfpn`): negamax df-pn (Nagai 2002) with the
+1 + eps threshold trick (Pawlewicz and Lew 2007, eps 0.25), on the `Game`
+API, checked against the alpha-beta solver's answer on every position.
+The input is `bench/results/solver-hard27.txt`, the hardest 10% of the
+P <= 27 set by alpha-beta nodes (527 positions, 96.3% of all nodes),
+hardest first.
+
+Draws are rare (6% of positions), which the prototype exploits as the
+developer suggested. It asks "does the side to move win?" (a draw counts
+as no), and every proof records whether it leaned on a draw. A "no"
+whose proof never touched a draw is already a proof of a loss, so the
+second question ("at least a draw?") runs only otherwise, and it starts
+from the first question's draw-free solved positions, which hold either
+way.
+
+Steps on the way, by expansions (30 hardest unless noted):
+
+- Plain df-pn, leaves at (1, 1): 3.1x alpha-beta's nodes on 20
+  mid-difficulty positions.
+- df-pn+, a new position's disproof number set to its legal-move count:
+  -43% expansions on those 20 (237k -> 136k).
+- Second question reusing the first's draw-free results: -36% on the
+  hardest draw (1.72M -> 1.10M), -40% on losses (e.g. 1.38M -> 0.82M,
+  0.83M -> 0.45M).
+
+Final, 30 hardest positions, 0 mismatches, second question on 16:
+
+| result | positions | df-pn fewer on | geomean df-pn exp / alpha-beta nodes | total ratio |
+|---|---|---|---|---|
+| win | 14 | 7 | 0.86 | 1.22 |
+| loss | 14 | 3 | 1.44 | 1.60 |
+| draw | 2 | 0 | 1.45 | 1.33 |
+| all | 30 | 10 | | 1.37 (19.8M vs 14.4M) |
+
+Picking the cheaper method per position by oracle would save 15% of
+alpha-beta's nodes, and a df-pn expansion (which generates every child)
+costs more than an alpha-beta node. The prototype runs about 35x
+slower per expansion, mostly hash-map and allocation overhead, so its
+times say nothing. The upside is real but rare: position 5123 (a win)
+takes df-pn 2,030 expansions and alpha-beta 361,949, because alpha-beta's
+order committed to a large subtree while a short proof existed. The tuned
+alpha-beta ordering (table move, fewest replies, move type, history; entry
+08 measured up to 7.5x from ordering) beats proof numbers on most hard
+positions, and especially on losses. Stopped here. The remaining levers
+(the solver's history as leaf estimates, correcting for transposition
+double counting) are bounded by that 15%.
+
+### Rare draws in the alpha-beta solver
+
+The same idea, applied to the solver: a fail-soft first pass returning
+-1 has already proven a loss, so its second pass could be skipped.
+Sound, results identical, but it saves 1,404 of 29.8M nodes, since those
+second passes already cost one node each (a table hit at the root). The
+second pass costs 4.08M nodes (13.7%), almost all on about 920 positions
+where the first pass returned 0, mostly losses: under the null window the
+opponent only has to show "at least a draw" to refute, and stops there.
+Reaching that 13.7% would need a different search scheme (for example,
+questions that assume draws are impossible); not tried.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move

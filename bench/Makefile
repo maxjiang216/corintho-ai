@@ -84,6 +84,13 @@ $(BUILD)/rulecheck.o: rulecheck.cpp bench_util.h | $(BUILD)
 $(BUILD)/parity.o: parity.cpp | $(BUILD)
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
 
+$(BUILD)/dfpn.o: dfpn.cpp | $(BUILD)
+	$(CXX) $(CXXFLAGS) $(DEPFLAGS) $(INC) -c $< -o $@
+
+# Proof-number search prototype (worklog entry 24); not part of `all`
+$(BUILD)/dfpn: $(BUILD)/dfpn.o $(CORE)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
 $(BUILD)/micro_bench: $(BUILD)/micro.o $(CORE)
 	$(CXX) $^ $(LDFLAGS) -o $@
 

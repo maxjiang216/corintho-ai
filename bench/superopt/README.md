@@ -46,6 +46,8 @@ PROVED  reserve sum: multiply == loop
 PROVED  horizon reserves: multiply == loop
 PROVED  moves_from == per-move source test
 PROVED  moves_from: portable == pext
+PROVED  lineMakingMoves == hasLine(child), 96 moves
+PROVED  lineMakingMoves: no bits beyond move 95
 ```
 
 ```

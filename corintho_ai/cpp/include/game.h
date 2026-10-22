@@ -54,6 +54,13 @@ class Game {
   /// @brief hasLine for a board word (4 bits per space), without a Game:
   /// lines depend on the board alone
   static bool boardHasLine(uint64_t board) noexcept;
+  /// @brief The moves that leave a line standing, for a position where no
+  /// line stands: bit m is hasLine() of the position after move m
+  /// @details Exact for every move the placement and stacking rules allow
+  /// (so for every legal move); other bits are meaningless. One pass over
+  /// the board instead of a doMove and a hasLine per move. Proven by
+  /// bench/superopt/prove.py (worklog entry 24).
+  MoveMask lineMakingMoves() const noexcept;
   /// @brief Legal moves when no line stands (the caller knows, e.g. from
   /// hasLine): placement and movement rules only, no line search
   void getLegalMovesNoLines(MoveMask &legal_moves) const noexcept;

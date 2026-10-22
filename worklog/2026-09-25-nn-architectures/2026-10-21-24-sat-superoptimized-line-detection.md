@@ -22,6 +22,10 @@
 - `lineBreakers`: the per-move extend loop becomes one AND with a
   lazily built "moves from tops of this type" word. Cumulative: 2.575G
   instructions (-13.4%), P <= 27 wall time -8%.
+- Incremental line check (`Game::lineMakingMoves`): which moves make a
+  line, for all moves at once, proven for all 96 moves under the
+  placement and stacking rules. Solver and `ab_match` use it where no line
+  stands. Solver P <= 27 wall time against main: 6.25 -> 5.38 s (-14%).
 - Line detection alone at P <= 24: 2.973G -> 2.797G instructions (-5.9%), identical
   results and node counts. `getLegalMoves` micro: 53-57 -> 47 ns (-12 to
   -17%). Solver wall time at P <= 27 is within noise.
@@ -229,16 +233,95 @@ BMI2), which exercises the portable paths of `key` and `movesFrom`.
 Mean wall time is 6.22 -> 5.73 s (-8%) against main. Only positions with
 a line run this code, so its share was always going to be small.
 
+## Incremental line check: every child at once
+
+The solver's classification loop made each child (`doMove`) and asked
+`hasLine()` of it, to find the line-making children. `ab_match`'s move
+ordering does the same with a hand-built child board word (entry 23).
+
+`Game::lineMakingMoves()` answers for every move of a position in one
+branch-free pass, when no line stands. The idea:
+
+- With no line standing, a line after a move must run through the space
+  the move lands on. That is the only space whose top changes: a stack
+  move's source empties, and an empty space is in no line.
+- So for each space and type: would topping this space with this type
+  complete a run of three? The space is a run's first, middle or last
+  cell, and the other two must already carry that top. That is three
+  shifted ANDs per direction, for all types at once in the nibble layout.
+- A placement of type k on x makes a line iff bit k of x's nibble is set.
+  One `pext` per type drops all 16 placements into their move IDs.
+- A stack keeps its top and its source empties. In the move's own
+  direction, only the runs through the destination that avoid the source
+  count: for a right move, the destination must be a run's first cell;
+  for a left move, its last; likewise down and up with columns. The
+  arriving top is the tops word shifted from source to destination. A
+  hit has at most one bit per nibble, so adding 7 carries it into bit 3,
+  and one `pext` per direction gathers the hits into move IDs.
+
+It only applies where no line stands, about 85% of positions. Otherwise
+each child is still asked.
+
+### Proof, and what it rests on
+
+`prove.py` checks each of the 96 moves: for every board word with no line
+on which the move passes the placement and stacking rules (canPlace /
+canMove, reserves aside), bit m equals `hasLine` of the board after
+`doMove`. The legality condition is needed. It is what makes the
+destination's new top the placed piece or the moving stack's top; an
+arbitrary OR of two stacks need not have that top.
+
+The proof is not vacuous. The precondition is satisfiable, and a mutant
+that counts every row run for right moves (ignoring the emptied source)
+fails on all 12 right moves. The first version of the proof "failed" on
+every stack move for a different reason: `top`/`bottom` returned
+integers, which takes the query outside pure bit-vector logic, so the
+`QF_BV` solver answered "unknown". They are bit-vectors now.
+
+`bench/verify` now also compares `lineMakingMoves` against `doMove` +
+`hasLine` for every legal move of every line-free corpus position:
+5,129,926 moves, 448,039 of which make a line, no mismatches. That also
+checks the model's legality assumption against the real generator. It
+passes on the native and the non-BMI2 build.
+
+### Cost: an inlining trap
+
+The first measurement was 2.575G -> 2.865G instructions (+11%). In
+isolation the batch is cheap: 6.4 ns per position, against 80-115 ns for
+`doMove` + `hasLine` over its ~15 legal moves (a microbenchmark at
+P <= 30). The function-level profile showed the cause. The per-child
+classification lambda had stopped being inlined into `Solver::search`,
+so it became a call per child that reloaded every captured variable.
+Keeping `lineMakingMoves` out of line did not bring it back; marking the
+lambda `always_inline` did (clang and GCC both accept the attribute).
+
+After that, instructions are flat: 2.567G -> 2.570G. At these solver
+nodes the batch costs about what the per-child checks did. Wall time
+fell anyway, presumably because the per-child check was a dependent
+chain right after each `doMove`:
+
+| solver P <= 27 wall, interleaved, pinned | before | after |
+|---|---|---|
+| 10 rounds against the previous commit | mean 5.65 s | mean 5.23-5.42 s; faster in 9 of 10 |
+| last 6 rounds | 5.78 5.32 5.73 5.72 5.87 5.49 | 5.13 5.07 5.37 5.30 5.36 5.17 |
+| 4 rounds against main | 6.50 6.38 6.02 6.10 (mean 6.25) | 5.54 5.33 5.34 5.32 (mean 5.38, -14%) |
+
+These ran on a quiet machine (no synthesis job). Solver results and
+node counts are identical at P <= 24 and P <= 27, on both builds.
+
+`ab_match` uses the mask too, and keeps its `AB_CHECK_LINES` comparison
+against the real child. It compiles cleanly (against the ONNX Runtime
+1.20.1 CPU headers). It could not be run here: there is no small-network
+file in the repository, and this Xeon lacks the AVX-VNNI that
+`small_net.h` needs. To check it on the i7-12700H, run a match with
+`AB_CHECK_LINES=1`; any disagreement aborts.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move
   planes have to come out as contiguous 16-bit move-ID fields, so the
   `pext` calls come back at the end. A count by hand gives about 20+4
   operations against the current 24, which is not worth the risk.
-- Incremental line detection (a child's lines must pass through the
-  moved-to space, if the breaking rule holds) could save more. Its
-  correctness rests on the rules, not on bit identities, so a SAT proof
-  over board words cannot cover it.
 
 ## Next steps
 
@@ -246,5 +329,9 @@ a line run this code, so its share was always going to be small.
   (lengths 1-2 UNSAT, length 3 timed out at 600 s). A longer timeout, or
   restricting multiplier constants to sparse patterns, might settle it.
 
+- Run `ab_match` with `AB_CHECK_LINES=1` on the i7-12700H (it could not
+  run here), then compare nodes/s with and without the mask.
+- Parents with a line still ask each child. Covering them needs the
+  breaking rule in the proof, too.
 - Re-time the solver on the i7-12700H with clang-20, three interleaved
   rounds, to settle the wall-time question.

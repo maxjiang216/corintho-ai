@@ -128,6 +128,32 @@ def main():
         "moves_from: portable == pext",
         k.moves_from_portable(tops) == m,
     )
+    # lineMakingMoves: with no line standing, bit m says whether move m
+    # leaves one, for every move the placement and stacking rules allow
+    lo, hi = k.line_making_moves(b)
+    no_line = z3.Not(k.has_line_nibbles(b))
+    bad = []
+    for m, move in enumerate(k.moves()):
+        bit = (
+            z3.Extract(m, m, lo) if m < 64 else z3.Extract(m - 64, m - 64, hi)
+        )
+        child = k.has_line_nibbles(k.do_move_board(b, move))
+        claim = z3.Implies(
+            z3.And(no_line, k.basic_legal(b, move)), (bit == 1) == child
+        )
+        s_ = z3.SolverFor("QF_BV")
+        s_.add(z3.Not(claim))
+        if s_.check() != z3.unsat:
+            bad.append(m)
+    ok &= prove(
+        "lineMakingMoves == hasLine(child), 96 moves", z3.BoolVal(not bad)
+    )
+    if bad:
+        print(f"  moves that fail: {bad}")
+    ok &= prove(
+        "lineMakingMoves: no bits beyond move 95",
+        z3.Extract(63, 32, hi) == 0,
+    )
 
     sys.exit(0 if ok else 1)
 

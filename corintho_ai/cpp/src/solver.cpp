@@ -390,24 +390,30 @@ int32_t Solver::search(const Game &game, const MoveMask &legal, bool lines,
   int32_t win_move = -1;
   // Line-making children first: only they can win at once (the opponent
   // stuck with a line), and they force replies. Their legal moves are
-  // generated here, the others' only if the search reaches them.
-  forEachMove(legal, [&](int32_t m) {
-    if (win || m == table_move)
-      return;
-    Child &c = *new (&children[n])
-                   Child{game, {}, m, kNumMoves + 1 + kQuietRank[m], false};
-    c.game.doMove(m);
-    if (c.game.hasLine()) {
-      c.lines = c.game.getLegalMoves(c.legal);
-      c.replies = c.legal.count();
-      if (c.replies == 0) {
-        win = true;  // the opponent is stuck with a line on the board
-        win_move = m;
-        return;
-      }
-    }
-    ++n;
-  });
+  // generated here, the others' only if the search reaches them. With no
+  // line standing, one pass over the board says which moves make one
+  // (entry 24); otherwise each child is asked.
+  const MoveMask making = lines ? MoveMask{} : game.lineMakingMoves();
+  // Forced inline: left to itself the inliner made this a call per child,
+  // which cost more than the line checks saved (entry 24)
+  forEachMove(
+      legal, [&](int32_t m) __attribute__((always_inline)) {
+        if (win || m == table_move)
+          return;
+        Child &c = *new (&children[n]) Child{
+            game, {}, m, kNumMoves + 1 + kQuietRank[m], false};
+        c.game.doMove(m);
+        if (lines ? c.game.hasLine() : making.test(m)) {
+          c.lines = c.game.getLegalMoves(c.legal);
+          c.replies = c.legal.count();
+          if (c.replies == 0) {
+            win = true;  // the opponent is stuck with a line on the board
+            win_move = m;
+            return;
+          }
+        }
+        ++n;
+      });
   if (win) {
     best = 1;
     best_move = win_move;

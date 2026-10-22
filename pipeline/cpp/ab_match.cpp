@@ -219,6 +219,10 @@ class AlphaBeta {
     // by the network's value of each child instead.
     uint64_t key[kNumMoves];
     const uint64_t parent_board = board;
+    // With no line standing, one pass over the board says which moves make
+    // one (Game::lineMakingMoves, worklog entry 24)
+    const MoveMask making =
+        solver_order_ && !lines ? game.lineMakingMoves() : MoveMask{};
     PROF_START(t_order);
     for (int32_t i = 0; i < n; ++i) {
       const int32_t m = moves[i];
@@ -234,19 +238,24 @@ class AlphaBeta {
         continue;
       }
       if (solver_order_) {
-        // The child's board word as Game::doMove makes it (frozen bits do
-        // not matter to lines): no Game copy, no move made unless it makes
-        // a line (entry 23)
-        uint64_t b = parent_board;
-        const MoveInfo &mi = kMoveTable[m];
-        if (mi.is_place) {
-          b |= uint64_t{1} << (mi.to * 4 + mi.piece);
+        // Else the child's board word as Game::doMove makes it (frozen
+        // bits do not matter to lines): no Game copy, no move made unless
+        // it makes a line (entry 23)
+        bool makes_line;
+        if (!lines) {
+          makes_line = making.test(m);
         } else {
-          const uint64_t stack = (b >> (mi.from * 4)) & kStackMask;
-          b &= ~(kStackMask << (mi.from * 4));
-          b |= stack << (mi.to * 4);
+          uint64_t b = parent_board;
+          const MoveInfo &mi = kMoveTable[m];
+          if (mi.is_place) {
+            b |= uint64_t{1} << (mi.to * 4 + mi.piece);
+          } else {
+            const uint64_t stack = (b >> (mi.from * 4)) & kStackMask;
+            b &= ~(kStackMask << (mi.from * 4));
+            b |= stack << (mi.to * 4);
+          }
+          makes_line = Game::boardHasLine(b);
         }
-        const bool makes_line = Game::boardHasLine(b);
         if (check_lines_) {
           Game child = game;
           child.doMove(m);

@@ -477,6 +477,97 @@ static_assert(gatherNibbleBits(0x0101010101010101ULL) == 0x5555U);
 
 }  // namespace
 
+namespace {
+
+/// @brief A board-word mask: `bits` in the nibble of each space in `spaces`
+constexpr uint64_t spreadBits(uint16_t spaces, uint64_t bits) noexcept {
+  uint64_t out = 0;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    if ((spaces >> s) & 1U)
+      out |= bits << (4 * s);
+  return out;
+}
+
+/// @brief Bit 3 of each nibble gathered into a 16-bit plane, then the
+/// spaces of `keep` compressed in order (a pext of both steps at once)
+template <uint16_t keep> uint64_t gatherHits(uint64_t x) noexcept {
+#if defined(__BMI2__)
+  constexpr uint64_t kMask = spreadBits(keep, 8);  // folded, not looped
+  return _pext_u64(x, kMask);
+#else
+  const uint32_t plane = gatherNibbleBits(x >> 3);
+  if constexpr (keep == 0xEEEE)  // rows' columns 1-3, three per row
+    return ((plane >> 1) & 0x7U) | ((plane >> 2) & 0x38U) |
+           ((plane >> 3) & 0x1C0U) | ((plane >> 4) & 0xE00U);
+  else if constexpr (keep == 0x7777)  // rows' columns 0-2
+    return (plane & 0x7U) | ((plane >> 1) & 0x38U) | ((plane >> 2) & 0x1C0U) |
+           ((plane >> 3) & 0xE00U);
+  else if constexpr (keep == 0xFFF0)  // rows 1-3
+    return plane >> 4;
+  else  // 0x0FFF, rows 0-2
+    return plane & 0x0FFFU;
+#endif
+}
+
+/// @brief Bit `piece` of every nibble gathered into a 16-bit plane
+uint64_t gatherPiece(uint64_t x, int32_t piece) noexcept {
+#if defined(__BMI2__)
+  return _pext_u64(x, 0x1111111111111111ULL << piece);
+#else
+  return gatherNibbleBits(x >> piece);
+#endif
+}
+
+}  // namespace
+
+MoveMask Game::lineMakingMoves() const noexcept {
+  assert(!hasLine());
+  // With no line standing, a line after a move runs through the space the
+  // move lands on, since that is the only space whose top changes (the
+  // source of a stack move empties, and an empty space is in no line). So
+  // for each space and type: would topping this space with this type
+  // complete a run of three? The space is a run's first, middle or last
+  // cell, and the other two must already carry that top. The nibble layout
+  // tests every type at once, as in boardHasLine.
+  const uint64_t t = topNibbles(board_.to_ullong()) & kPieceBits;
+  uint64_t first[4], mid[4], last[4], full[4];
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t s = 4 * static_cast<uint32_t>(kLineStride[d]);
+    const uint64_t start = kRunStartNibbles[d][0];
+    const uint64_t up1 = t >> s, dn1 = t << s;
+    first[d] = up1 & (t >> (2 * s)) & start;
+    mid[d] = dn1 & up1 & (start << s);
+    last[d] = dn1 & (t << (2 * s)) & (start << (2 * s));
+    full[d] = first[d] | mid[d] | last[d];
+  }
+  const uint64_t diagonal = full[kDirDiagA] | full[kDirDiagB];
+  const uint64_t any = full[kDirRow] | full[kDirCol] | diagonal;
+
+  // A stack keeps its top, and its source empties: in the move's own
+  // direction only the runs through the destination that avoid the source
+  // count. A hit is the destination's completing types ANDed with the
+  // arriving top (at most one bit per nibble); adding 7 carries it into
+  // bit 3, where gatherHits reads it.
+  const auto hits = [](uint64_t w, uint64_t arriving) {
+    return (w & arriving) + kPieceBits;
+  };
+  const uint64_t right =
+      hits(first[kDirRow] | full[kDirCol] | diagonal, t << 4);
+  const uint64_t left = hits(last[kDirRow] | full[kDirCol] | diagonal, t >> 4);
+  const uint64_t down =
+      hits(full[kDirRow] | first[kDirCol] | diagonal, t << 16);
+  const uint64_t up = hits(full[kDirRow] | last[kDirCol] | diagonal, t >> 16);
+
+  // Move IDs as in basicLegalMoves, indexed here by destination: right
+  // lands on columns 1-3, left on 0-2, down on rows 1-3, up on rows 0-2
+  MoveMask making;
+  making.lo = gatherHits<0xEEEE>(right) | gatherHits<0xFFF0>(down) << 12 |
+              gatherHits<0x7777>(left) << 24 | gatherHits<0x0FFF>(up) << 36 |
+              gatherPiece(any, kBase) << 48;
+  making.hi = gatherPiece(any, kColumn) | gatherPiece(any, kCapital) << 16;
+  return making;
+}
+
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
   const uint64_t b = board_.to_ullong();
 #if defined(__BMI2__)

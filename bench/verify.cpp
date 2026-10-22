@@ -207,6 +207,35 @@ int main(int argc, char **argv) {
               100.0 * cov.many_legal / cov.positions);
   std::printf("\n");
 
+  // Game::lineMakingMoves against making each legal move and asking
+  // hasLine, wherever no line stands (worklog entry 24)
+  int64_t making_checked = 0, making_lines = 0;
+  for (size_t idx = 0; idx < corpus.size(); ++idx) {
+    const Game &game = corpus[idx];
+    if (game.hasLine())
+      continue;
+    MoveMask legal;
+    game.getLegalMovesNoLines(legal);
+    const MoveMask making = game.lineMakingMoves();
+    forEachMove(legal, [&](int32_t m) {
+      Game child = game;
+      child.doMove(m);
+      ++making_checked;
+      making_lines += child.hasLine();
+      if (making.test(m) == child.hasLine())
+        return;
+      ++mismatches;
+      char desc[64];
+      describeMove(m, desc, sizeof(desc));
+      std::printf("=== lineMakingMoves MISMATCH at corpus position %zu, "
+                  "%s: mask=%d hasLine=%d ===\n",
+                  idx, desc, making.test(m), child.hasLine());
+    });
+  }
+  std::printf("lineMakingMoves: %lld legal moves checked, %lld make a line\n\n",
+              static_cast<long long>(making_checked),
+              static_cast<long long>(making_lines));
+
   if (mismatches == 0) {
     std::printf("PASS: %zu positions, identical on every one.\n", corpus.size());
     return 0;

@@ -316,6 +316,82 @@ file in the repository, and this Xeon lacks the AVX-VNNI that
 `small_net.h` needs. To check it on the i7-12700H, run a match with
 `AB_CHECK_LINES=1`; any disagreement aborts.
 
+## Where the incremental check's time saving comes from
+
+Instructions were flat, but wall time fell. Measured three ways.
+
+**Hardware counters** are not available: `perf_event_open` gives ENOENT
+for every hardware event (this VM exposes no PMU).
+
+**valgrind branch and cache simulation**, solver P <= 24, before and
+after:
+
+| | before | after |
+|---|---|---|
+| instructions | 2,566.8M | 2,561.5M |
+| L1 data / last-level misses | 2.893M / 307k | 2.896M / 307k |
+| conditional branches | 167.8M | 178.1M |
+| mispredicts | 18.00M | 16.15M |
+
+Caches are unchanged. About 10M more branches came with 1.86M fewer
+mispredicts: 0.85M fewer in `search`, and 1.28M fewer in
+`getLegalMoves`, whose code did not change (its branches now follow a
+different branch history; that part may be particular to valgrind's
+simple predictor).
+
+**Five builds that differ only in the classification branch** (5
+interleaved rounds, P <= 27):
+
+| variant | mean wall |
+|---|---|
+| A: per-child `hasLine` (the old code) | 5.58 s |
+| B: the mask (the new code) | 5.37 s |
+| C: B, but the branch waits for `doMove`'s result (no extra work) | 5.59 s |
+| D: B, but the branch waits for the child's `hasLine` | 5.88 s |
+| E: B, plus `hasLine` computed but never waited on | 5.67 s |
+
+C settles it. Making the branch merely wait until `doMove` has produced
+the child, with no extra instructions, gives back the whole gain. The
+saving comes from the branch being decidable early. Its condition used to
+sit at the end of the chain copy, `doMove`, `hasLine`, so each mispredict
+(about 10% of branches) was found late and threw away more work. Now it
+is a bit test on a word computed before the loop. E shows the `hasLine`
+work was not free either, even off the branch's path. The same reasoning
+may apply to other data-dependent branches in `search`, such as the
+`c.replies == 0` win test and the comparisons in the child sort.
+
+## Solver search ideas, measured
+
+Three ideas for pruning faster without a network, measured before
+building any of them (all exact; P <= 24 / 27 position set):
+
+- **Symmetry-reduced table** (the 8 board symmetries). Within a solve,
+  1,899,318 distinct positions are stored, 1,897,753 up to symmetry: a
+  ratio of 1.001. A mid-game board is already asymmetric and its search
+  almost never reaches a mirror image. Not worth building.
+- **Threat-space search** (attacker plays only line-making moves, every
+  reply tried). It proves 62% of won positions at P <= 24 and 53% at
+  P <= 27, but the solver already proves those in 3-6 nodes, since it
+  tries line-making moves first and returns an immediate win. Nothing to
+  gain.
+- **Where the solver's nodes go:** extremely concentrated. The hardest 1%
+  of positions take 65% of all nodes, and the hardest 10% take 96%; the
+  median position takes 7-39 nodes. Wins (48%) and losses (46%) share
+  them about equally.
+- **Enhanced transposition cutoffs** (look up every child before searching
+  the first). At every node: -12.4% nodes but +2.5% time, because the
+  lookups cost more than the small subtrees near the leaves they save.
+  Only at P >= 22: -3.8% nodes at P <= 29, but time 28.22 -> 27.88 s
+  (3 rounds, overlapping), and no difference at P <= 27 against the same
+  commit. An earlier, seemingly -3.5% result compared against a slower
+  baseline run. Not committed. Self-play caps solves by nodes rather than
+  time, so the node saving would count for slightly more there.
+
+What is left for the hard 1% is changing what gets searched, not making
+each node cheaper. Candidates: proof-number search (df-pn, entry 15's
+parked item), which spends effort where a proof looks cheapest, and
+better ordering of quiet moves (entry 10).
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move
@@ -329,6 +405,11 @@ file in the repository, and this Xeon lacks the AVX-VNNI that
   (lengths 1-2 UNSAT, length 3 timed out at 600 s). A longer timeout, or
   restricting multiplier constants to sparse patterns, might settle it.
 
+- `lineMakingMoves` also holds where a line stands. Legal moves must
+  break or extend every line, so any line afterwards passes through the
+  destination. Checked on 1,972,659 legal moves of 836,022 line
+  positions: 0 mismatches. Proving it needs the breaking rule
+  (`kLineBreakTable`) in the model; then the per-child fallback can go.
 - Run `ab_match` with `AB_CHECK_LINES=1` on the i7-12700H (it could not
   run here), then compare nodes/s with and without the mask.
 - Parents with a line still ask each child. Covering them needs the

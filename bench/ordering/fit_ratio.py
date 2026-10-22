@@ -1,9 +1,5 @@
 import numpy as np
-from sklearn.tree import (
-    DecisionTreeClassifier,
-    DecisionTreeRegressor,
-    export_text,
-)
+from sklearn import tree
 
 exec(
     open(__file__.replace("fit_ratio", "fit_oracle"))
@@ -42,13 +38,13 @@ lc = np.log1p(cost)
 for dc in (1, 2, 3, 4):
     for dr in (1, 2, 3, 4):
         pc = (
-            DecisionTreeClassifier(max_depth=dc, min_samples_leaf=100)
+            tree.DecisionTreeClassifier(max_depth=dc, min_samples_leaf=100)
             .fit(X[tr], cut[tr])
             .predict_proba(X)[:, 1]
         )
-        reg = DecisionTreeRegressor(max_depth=dr, min_samples_leaf=100).fit(
-            X[tr], lc[tr]
-        )
+        reg = tree.DecisionTreeRegressor(
+            max_depth=dr, min_samples_leaf=100
+        ).fit(X[tr], lc[tr])
         score = np.log(pc + 1e-3) - reg.predict(X)
         oc, f = order_cost(score, test)
         og, fg = order_cost(-a["type"].astype(float) * 100 + score, test)

@@ -98,19 +98,68 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   // change during this call.
   SpaceInfo info;
   computeSpaceInfo(info);
-  // Find the lines on the board. 85% of positions have none, and those skip
-  // the breaking check entirely.
-  PresentLine lines[kNumLineShapes];
-  const int32_t num_lines = findLines(lines);
   // First set all moves to legal
   legal_moves = basicLegalMoves(info);
-  // One AND per line, rather than testing every move against every line.
-  if (num_lines > 0)
-    legal_moves &= lineBreakers(info, lines, num_lines);
+  // Then one AND per line standing, rather than testing every move against
+  // every line. 85% of positions have none, and those skip it entirely.
+  bool lines;
+  const MoveMask breakers = breakersOfLines(info, lines);
+  if (lines)
+    legal_moves &= breakers;
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
-  return num_lines > 0;
+  return lines;
+}
+
+MoveMask Game::breakersOfLines(const SpaceInfo &info,
+                               bool &lines) const noexcept {
+  // findLines and lineBreakers in one pass: each run found is ANDed in at
+  // once, with no list of lines in between (entry 24). The same runs, in
+  // the same layout, as findLines.
+  const uint64_t t = topNibbles(board_.to_ullong());
+  uint64_t run3[4];
+  uint64_t run4[4];
+  uint64_t any = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t stride = 4 * static_cast<uint32_t>(kLineStride[d]);
+    const uint64_t three = t & (t >> stride) & (t >> (2 * stride));
+    run3[d] = three & kRunStartNibbles[d][0];
+    run4[d] = three & (t >> (3 * stride)) & kRunStartNibbles[d][1];
+    any |= run3[d];
+  }
+  MoveMask breakers;
+  breakers.setAll();
+  lines = any != 0;
+  if (!lines)
+    return breakers;
+  uint64_t from_type[3];
+  uint32_t built = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    for (int32_t n = 0; n < 2; ++n) {
+      for (uint64_t w = n == 0 ? run3[d] : run4[d]; w != 0; w &= w - 1) {
+        const int32_t bit = __builtin_ctzll(w);
+        const int32_t shape = kRunToShape[d][bit >> 2][n];
+        if (shape < 0)
+          continue;
+        const int32_t type = bit & 3;
+        MoveMask mask = kLineBreakTable[shape][type];
+        // Four of the five ways to break a line are constant per shape and
+        // type (kLineBreakTable). The fifth depends on the board: a stack
+        // moved onto the extending space completes a four only if its own
+        // top matches the line's type, so it breaks the three exactly then.
+        // One AND with every move from a space topped by the type (entry
+        // 24); the extending moves are all move-moves, in the low word.
+        if (((built >> type) & 1U) == 0) {
+          from_type[type] = movesFrom(info.top_plane[type]);
+          built |= 1U << type;
+        }
+        mask.lo |= from_type[type] & kLineExtendMoves[shape].lo;
+        breakers &= mask;
+      }
+    }
+  }
+  return breakers;
 }
 
 void Game::getLegalMovesNoLines(MoveMask &legal_moves) const noexcept {
@@ -288,35 +337,6 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   }
 #endif
   return legal;
-}
-
-MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
-                            int32_t num_lines) const noexcept {
-  MoveMask breakers;
-  breakers.setAll();
-  // Per type, every stack move whose source is topped by that type, built
-  // the first time a line of that type needs it (a four and its two threes
-  // share one)
-  uint64_t from_type[3];
-  uint32_t built = 0;
-  for (int32_t i = 0; i < num_lines; ++i) {
-    const int32_t shape = lines[i].shape;
-    const int32_t type = lines[i].type;
-    MoveMask mask = kLineBreakTable[shape][type];
-    // The one board-dependent case: a stack moved onto the extending space
-    // completes a four only if its own top matches the line's type. Those
-    // are the shape's extending moves that start from a space topped by
-    // the type: one AND, instead of a bit test per move (entry 24). The
-    // extending moves are all move-moves, whose IDs lie in the low word.
-    if (((built >> type) & 1U) == 0) {
-      from_type[type] = movesFrom(info.top_plane[type]);
-      built |= 1U << type;
-    }
-    assert(kLineExtendMoves[shape].hi == 0);
-    mask.lo |= from_type[type] & kLineExtendMoves[shape].lo;
-    breakers &= mask;
-  }
-  return breakers;
 }
 
 std::ostream &operator<<(std::ostream &os, const Game &game) {

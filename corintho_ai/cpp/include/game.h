@@ -198,15 +198,14 @@ class Game {
   /// moves to a shifted AND per direction, replacing 96 per-move calls.
   MoveMask basicLegalMoves(const SpaceInfo &info) const noexcept;
 
-  /// @brief The set of moves that break every line currently on the board
-  /// @details One mask per line, ANDed together, rather than testing every
-  /// move against every line. Four of the five ways to break a line are
-  /// constant per shape and type and come straight from kLineBreakTable. The
-  /// fifth -- moving a stack onto the extending space -- is the only one that
-  /// depends on the board, and is masked by which moves currently start from a
-  /// space topped by the line's type.
-  MoveMask lineBreakers(const SpaceInfo &info, const PresentLine *lines,
-                        int32_t num_lines) const noexcept;
+  /// @brief The set of moves that break every line currently on the board,
+  /// and whether any line stands
+  /// @details The lines are found as in findLines, and each one's mask is
+  /// ANDed in as it is found, rather than testing every move against every
+  /// line. Four of the five ways to break a line are constant per shape and
+  /// type and come straight from kLineBreakTable. The fifth, moving a stack
+  /// onto the extending space, depends on the board.
+  MoveMask breakersOfLines(const SpaceInfo &info, bool &lines) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)

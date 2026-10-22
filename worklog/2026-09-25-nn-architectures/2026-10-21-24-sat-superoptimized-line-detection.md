@@ -658,6 +658,20 @@ for ones that cross the type groups. A single run that looked faster
 (onto an empty square last: 3.75 s against an earlier 4.92 s) was the
 machine change. Interleaved, it was slower.
 
+## findLines and lineBreakers fused
+
+Full legal-move generation in the solver runs almost only for children
+that make a line (5.69M of 5.72M calls at P <= 25), and there `findLines`
+cost about 149 instructions and `lineBreakers` 78 per call (callgrind,
+no-inline). `Game::breakersOfLines` finds the runs as `findLines` does and
+ANDs each one's break mask in at once, with no list of lines in between.
+`lineBreakers` is gone; `findLines` remains for `lineSpaces`.
+
+verify (native and non-BMI2), rulecheck, the golden digests, and solver
+results and nodes (24,702,005 at P <= 27) are unchanged. Time at P <= 27, 4
+interleaved rounds: 3.43 -> 3.35 s (-2.4%, overlapping); `getLegalMoves`
+micro about equal (36.5-38.2 ns). Kept as a small gain at no cost in code.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move

@@ -387,8 +387,43 @@ building any of them (all exact; P <= 24 / 27 position set):
   baseline run. Not committed. Self-play caps solves by nodes rather than
   time, so the node saving would count for slightly more there.
 
+- **How far apart transpositions are.** An instrumented copy of the
+  solver tracked each node's ancestors. On every table cutoff it found the
+  lowest common ancestor of the storing and the probing node (P <= 27:
+  4.06M cutoffs, saving 32.6M nodes, about 8 each). Plies up from each to
+  that ancestor:
+
+  | (prober, storer) | share of hits | share of nodes saved |
+  |---|---|---|
+  | (2, 2), the "a b / b a" swap | 0% | 0% |
+  | (3, 3) | 14.6% | 20.1% |
+  | (4, 4) | 15.3% | 24.2% |
+  | (5, 5), (6, 6) | 17.1% | 15.5% |
+  | (7, 7)-(10, 10) | 23.4% | 11.1% |
+  | beyond 10, or the other null-window pass | 21.2% | 24.5% |
+
+  Two-ply swaps never transpose here. Every move freezes its destination
+  and unfreezes the previous one, so "a b" and "b a" leave different
+  squares frozen. Short-range hits (3-4 plies) are 44% of the saving, so
+  a small local cache could not replace the table.
+- **Skipping the table near the leaves** (no probe, store or child
+  prefetch below P = K): node counts are identical up to K = 8 (no useful
+  hit happens there anyway), and the time is unchanged for K = 4-12. At
+  these solve sizes the table is cache-resident and cheap.
+- **Threat-space search inside the tree** (a budgeted forcing-only
+  search at each node that needs a win, before the full search). It
+  proves a win at 8.0M of 11.3M calls (P >= 12): about 72% of such nodes
+  have a forced win. It cuts solver nodes by up to 13% but costs more
+  than it saves (5.58 s -> 5.67-6.05 s; results identical). Those are
+  exactly the wins the line-first ordering already proves in a node or
+  two. The solver's ordering already acts as a threat-space search.
+
 What is left for the hard 1% is changing what gets searched, not making
-each node cheaper. Candidates: proof-number search (df-pn, entry 15's
+each node cheaper. The hard part is proving that no win exists (wins and
+losses take about equal nodes), and forcing searches cannot prove a
+negative. Relevance-zone pruning (Allis's dependency-based search) is
+the threat-space idea that could: when the opponent has a forced win,
+only my moves that interfere with it need searching. Candidates: proof-number search (df-pn, entry 15's
 parked item), which spends effort where a proof looks cheapest, and
 better ordering of quiet moves (entry 10).
 

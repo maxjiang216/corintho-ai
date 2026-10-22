@@ -6,7 +6,8 @@ var searchData=
   ['board_3',['board',['../classGame.html#a0a231fd714902fc55cd41bfad13db482',1,'Game']]],
   ['board_5f_4',['board_',['../classGame.html#a5006458c1bf61c6593482488043b7835',1,'Game']]],
   ['boardhasline_5',['boardHasLine',['../classGame.html#a8e3466677163cb1c6c5f79f0efdbfe29',1,'Game']]],
-  ['bottom_6',['bottom',['../structGame_1_1SpaceInfo.html#ac354689d687c244ec76031474246a0c1',1,'Game::SpaceInfo::bottom()'],['../classGame.html#aad4b6539b41b9f7f0c3d700e1918ea64',1,'Game::bottom()']]],
-  ['bucket_7',['Bucket',['../structSolver_1_1Bucket.html',1,'Solver']]],
-  ['budgetleft_8',['budgetLeft',['../classTrainMC.html#a4693a9bc47f31124054e376457517a0e',1,'TrainMC']]]
+  ['bottom_6',['bottom',['../structGame_1_1SpaceInfo.html#ac354689d687c244ec76031474246a0c1',1,'Game::SpaceInfo::bottom()'],['../classGame.html#aad4b6539b41b9f7f0c3d700e1918ea64',1,'Game::bottom(Space space) const noexcept']]],
+  ['breakersoflines_7',['breakersOfLines',['../classGame.html#af1b74a54cbb58236fb17ef79d92cd8e6',1,'Game']]],
+  ['bucket_8',['Bucket',['../structSolver_1_1Bucket.html',1,'Solver']]],
+  ['budgetleft_9',['budgetLeft',['../classTrainMC.html#a4693a9bc47f31124054e376457517a0e',1,'TrainMC']]]
 ];

@@ -134,6 +134,9 @@ int32_t&#160;</td><td class="memItemRight" valign="bottom"><b>horizon</b> () con
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasLine</b> () const noexcept</td></tr>
 <tr class="memdesc:a82e50c4cc5f2da201d5240c0062d04e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a line stands on the board (cheaper than getLegalMoves) <br /></td></tr>
 <tr class="separator:a82e50c4cc5f2da201d5240c0062d04e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19d6867c2745a2a74a88b2da304c40da" id="r_a19d6867c2745a2a74a88b2da304c40da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMoveMask.html">MoveMask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a19d6867c2745a2a74a88b2da304c40da">lineMakingMoves</a> () const noexcept</td></tr>
+<tr class="memdesc:a19d6867c2745a2a74a88b2da304c40da"><td class="mdescLeft">&#160;</td><td class="mdescRight">The moves that leave a line standing, for a position where no line stands: bit m is <a class="el" href="classGame.html#a82e50c4cc5f2da201d5240c0062d04e6" title="Whether a line stands on the board (cheaper than getLegalMoves)">hasLine()</a> of the position after move m.  <br /></td></tr>
+<tr class="separator:a19d6867c2745a2a74a88b2da304c40da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19ed5bf7cffb7383140864399f7ce5d6" id="r_a19ed5bf7cffb7383140864399f7ce5d6"><td class="memItemLeft" align="right" valign="top"><a id="a19ed5bf7cffb7383140864399f7ce5d6" name="a19ed5bf7cffb7383140864399f7ce5d6"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>getLegalMovesNoLines</b> (<a class="el" href="structMoveMask.html">MoveMask</a> &amp;legal_moves) const noexcept</td></tr>
 <tr class="memdesc:a19ed5bf7cffb7383140864399f7ce5d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Legal moves when no line stands (the caller knows, e.g. from hasLine): placement and movement rules only, no line search. <br /></td></tr>
@@ -198,15 +201,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>computeSpaceInfo</b> 
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isLegalMove</b> (int32_t move_id) const noexcept</td></tr>
 <tr class="memdesc:aaeab89abce55b4cf91919f5a4de090eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overload that computes its own <a class="el" href="structGame_1_1SpaceInfo.html" title="Per-space state, computed once per legal-move generation.">SpaceInfo</a>, for the doMove assert. <br /></td></tr>
 <tr class="separator:aaeab89abce55b4cf91919f5a4de090eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2318f4f735d788594cb93ab7f0e63f13" id="r_a2318f4f735d788594cb93ab7f0e63f13"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a2318f4f735d788594cb93ab7f0e63f13">findLines</a> (const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;info, <a class="el" href="structGame_1_1PresentLine.html">PresentLine</a> *out) const noexcept</td></tr>
-<tr class="memdesc:a2318f4f735d788594cb93ab7f0e63f13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find every line shape currently holding a single top type.  <br /></td></tr>
-<tr class="separator:a2318f4f735d788594cb93ab7f0e63f13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a261231771593ab47b256bb3cabc4fa27" id="r_a261231771593ab47b256bb3cabc4fa27"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a261231771593ab47b256bb3cabc4fa27">findLines</a> (<a class="el" href="structGame_1_1PresentLine.html">PresentLine</a> *out) const noexcept</td></tr>
+<tr class="memdesc:a261231771593ab47b256bb3cabc4fa27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find every line shape currently holding a single top type.  <br /></td></tr>
+<tr class="separator:a261231771593ab47b256bb3cabc4fa27"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2b50fa922512cb718bd95eca1499358" id="r_ac2b50fa922512cb718bd95eca1499358"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMoveMask.html">MoveMask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#ac2b50fa922512cb718bd95eca1499358">basicLegalMoves</a> (const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;info) const noexcept</td></tr>
 <tr class="memdesc:ac2b50fa922512cb718bd95eca1499358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Every move legal by placement and movement rules, ignoring lines.  <br /></td></tr>
 <tr class="separator:ac2b50fa922512cb718bd95eca1499358"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20a0418147c59d100695f9152bec9713" id="r_a20a0418147c59d100695f9152bec9713"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMoveMask.html">MoveMask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#a20a0418147c59d100695f9152bec9713">lineBreakers</a> (const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;info, const <a class="el" href="structGame_1_1PresentLine.html">PresentLine</a> *lines, int32_t num_lines) const noexcept</td></tr>
-<tr class="memdesc:a20a0418147c59d100695f9152bec9713"><td class="mdescLeft">&#160;</td><td class="mdescRight">The set of moves that break every line currently on the board.  <br /></td></tr>
-<tr class="separator:a20a0418147c59d100695f9152bec9713"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1b74a54cbb58236fb17ef79d92cd8e6" id="r_af1b74a54cbb58236fb17ef79d92cd8e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structMoveMask.html">MoveMask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGame.html#af1b74a54cbb58236fb17ef79d92cd8e6">breakersOfLines</a> (const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;info, bool &amp;lines) const noexcept</td></tr>
+<tr class="memdesc:af1b74a54cbb58236fb17ef79d92cd8e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">The set of moves that break every line currently on the board, and whether any line stands.  <br /></td></tr>
+<tr class="separator:af1b74a54cbb58236fb17ef79d92cd8e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -326,6 +329,45 @@ The game state does not know if it is a terminal state This is deduced by the <a
 
 <p>Finds the bottom piece of a stack. </p>
 <p>This is used in legal move generation </p><dl class="section return"><dt>Returns</dt><dd>The index of the bottom piece of the stack or 3 if the stack is empty </dd></dl>
+
+</div>
+</div>
+<a id="af1b74a54cbb58236fb17ef79d92cd8e6" name="af1b74a54cbb58236fb17ef79d92cd8e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af1b74a54cbb58236fb17ef79d92cd8e6">&#9670;&#160;</a></span>breakersOfLines()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structMoveMask.html">MoveMask</a> Game::breakersOfLines </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>lines</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The set of moves that break every line currently on the board, and whether any line stands. </p>
+<p>The lines are found as in findLines, and each one's mask is ANDed in as it is found, rather than testing every move against every line. Four of the five ways to break a line are constant per shape and type and come straight from kLineBreakTable. The fifth, moving a stack onto the extending space, depends on the board. </p>
 
 </div>
 </div>
@@ -477,8 +519,8 @@ The game state does not know if it is a terminal state This is deduced by the <a
 
 </div>
 </div>
-<a id="a2318f4f735d788594cb93ab7f0e63f13" name="a2318f4f735d788594cb93ab7f0e63f13"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2318f4f735d788594cb93ab7f0e63f13">&#9670;&#160;</a></span>findLines()</h2>
+<a id="a261231771593ab47b256bb3cabc4fa27" name="a261231771593ab47b256bb3cabc4fa27"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a261231771593ab47b256bb3cabc4fa27">&#9670;&#160;</a></span>findLines()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -489,19 +531,9 @@ The game state does not know if it is a terminal state This is deduced by the <a
         <tr>
           <td class="memname">int32_t Game::findLines </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;&#160;</td>
-          <td class="paramname"><em>info</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype"><a class="el" href="structGame_1_1PresentLine.html">PresentLine</a> *&#160;</td>
-          <td class="paramname"><em>out</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramname"><em>out</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -512,7 +544,8 @@ The game state does not know if it is a terminal state This is deduced by the <a
 </div><div class="memdoc">
 
 <p>Find every line shape currently holding a single top type. </p>
-<p>No subsumption: a four and both of its threes are all recorded, because covering one end of a four leaves a three standing. </p><dl class="section return"><dt>Returns</dt><dd>The number of lines written to <code>out</code> </dd></dl>
+<p>No subsumption: a four and both of its threes are all recorded, because covering one end of a four leaves a three standing.</p>
+<p>Works on the board word directly, all three types at once, so it needs no <a class="el" href="structGame_1_1SpaceInfo.html" title="Per-space state, computed once per legal-move generation.">SpaceInfo</a>. </p><dl class="section return"><dt>Returns</dt><dd>The number of lines written to <code>out</code> </dd></dl>
 
 </div>
 </div>
@@ -694,8 +727,8 @@ The game state does not know if it is a terminal state This is deduced by the <a
 
 </div>
 </div>
-<a id="a20a0418147c59d100695f9152bec9713" name="a20a0418147c59d100695f9152bec9713"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a20a0418147c59d100695f9152bec9713">&#9670;&#160;</a></span>lineBreakers()</h2>
+<a id="a19d6867c2745a2a74a88b2da304c40da" name="a19d6867c2745a2a74a88b2da304c40da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19d6867c2745a2a74a88b2da304c40da">&#9670;&#160;</a></span>lineMakingMoves()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -704,38 +737,21 @@ The game state does not know if it is a terminal state This is deduced by the <a
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structMoveMask.html">MoveMask</a> Game::lineBreakers </td>
+          <td class="memname"><a class="el" href="structMoveMask.html">MoveMask</a> Game::lineMakingMoves </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structGame_1_1SpaceInfo.html">SpaceInfo</a> &amp;&#160;</td>
-          <td class="paramname"><em>info</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structGame_1_1PresentLine.html">PresentLine</a> *&#160;</td>
-          <td class="paramname"><em>lines</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int32_t&#160;</td>
-          <td class="paramname"><em>num_lines</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>The set of moves that break every line currently on the board. </p>
-<p>One mask per line, ANDed together, rather than testing every move against every line. Four of the five ways to break a line are constant per shape and type and come straight from kLineBreakTable. The fifth &ndash; moving a stack onto the extending space &ndash; is the only one that depends on the board, and is masked by which moves currently start from a space topped by the line's type. </p>
+<p>The moves that leave a line standing, for a position where no line stands: bit m is <a class="el" href="classGame.html#a82e50c4cc5f2da201d5240c0062d04e6" title="Whether a line stands on the board (cheaper than getLegalMoves)">hasLine()</a> of the position after move m. </p>
+<p>Exact for every move the placement and stacking rules allow (so for every legal move); other bits are meaningless. One pass over the board instead of a doMove and a hasLine per move. Proven by bench/superopt/prove.py (worklog entry 26). </p>
 
 </div>
 </div>

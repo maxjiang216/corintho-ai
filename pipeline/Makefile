@@ -4,6 +4,7 @@
 #
 #   make            build build/corintho_play
 #   make build/ab_match   alpha-beta vs MCTS match tool (entry 22)
+#   make build/ab_bench   fixed-depth alpha-beta benchmark (entry 24)
 #   make clean
 
 ifeq ($(origin CXX),default)
@@ -48,6 +49,11 @@ $(BUILD)/corintho_play: $(OBJS)
 # Alpha-beta with a small value network against MCTS, on the CPU (worklog
 # entry 22); not part of `all`
 $(BUILD)/ab_match: $(BUILD)/ab_match.o $(CORE:%=$(BUILD)/%.o)
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+# Fixed-depth benchmark of ab_match's alpha-beta (worklog entry 24); not
+# part of `all`
+$(BUILD)/ab_bench: $(BUILD)/ab_bench.o $(CORE:%=$(BUILD)/%.o)
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 # Rules-derived features for pipeline/arch (legal-move masks, line spaces),

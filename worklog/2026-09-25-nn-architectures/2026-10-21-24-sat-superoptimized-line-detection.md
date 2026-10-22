@@ -595,6 +595,69 @@ understood: each alone hurts.
 Not yet tried in the solver: the P(cut)/cost trees (0.86x offline, but
 they cross the type groups and need features per child at every node).
 
+## The alpha-beta engine, benchmarked without a trained network
+
+`pipeline/cpp/ab_bench.cpp` (`make build/ab_bench`) runs `ab_match`'s
+`AlphaBeta::choose` on solver-set positions to a fixed depth
+(`AB_MAX_DEPTH`, new) and prints nodes, nodes/s and an FNV digest of the
+moves chosen. There is no trained small network in the repository.
+`pipeline/arch/random_small_net.py` writes a random one, which is enough
+for speed and for checking that a change leaves the search unchanged, but
+not for strength. The session's machine changed partway through: from
+here on it has AVX-VNNI (`avx_vnni` in `/proc/cpuinfo`) and runs the solver
+about 1.4x faster, so only interleaved comparisons count.
+
+300 positions at P 32-40, depth 6 (5.9 on average; forced results stop
+early), random h256 network:
+
+- Against `main` (same harness and `AB_MAX_DEPTH` patch): identical nodes
+  (23,884,083) and moves digest (`d86f327cc7f45fef`). Time 6.09 -> 5.62 s
+  (3 interleaved rounds), from the shared line, key and incremental-check
+  work.
+- `AB_CHECK_LINES=1` (each `lineMakingMoves` answer checked against the
+  real child): the whole run completed, so there were no mismatches.
+- Profile (callgrind, no-inline build, depth 5, 100 positions): network
+  evaluation is about 75-80% (`scoreFromParent` 34%, `fromActivations`
+  16%, clipping and output most of the rest); game logic about 5%.
+- **AVX2 fallback for the int8 layer** (`small_net.h` `dotAdd`): vpdpbusd
+  where AVX-VNNI exists, else `maddubs` + `madd`. Exact here, since
+  activations are at most 127 and weights within +-127, so a pair is at
+  most 32,258 and never saturates int16. Identical nodes and digest; about
+  5% slower than VNNI (5.82 against 5.56 s). The int8 network now runs on
+  CPUs without AVX-VNNI, and under valgrind.
+- Tried, reverted: a SIMD-built list of non-zero activation groups in
+  `fromActivations` instead of a branch per group. Even on the dense random
+  network (5.79-6.49 against 6.21-6.33 s), 8% slower on a sparse one.
+- **The solver's scarce-placement rule in `ab_match`'s quiet ordering**
+  (`AB_SCARCE`, default on): nodes -3.7% (random network) and -5.3% (a
+  sparser random network), time equal to -4%. Needs confirming with a real
+  network, which orders children differently.
+
+## A second round of ordering rules: offline screening misleads
+
+Oracle labels collected again with the scarce rule in place (P <= 27:
+30.4k decisions; P <= 29: 314k), then every single-feature rule (a value
+first or last, a feature ascending or descending) scored offline. The
+best were fewest opponent replies first across all quiet moves (0.88x /
+0.91x), onto an empty square last (0.93x / 0.96x), base placements last
+(0.97x / 0.98x). In the solver (results identical in each case):
+
+| rule | nodes P <= 27 | time vs current, interleaved |
+|---|---|---|
+| fewest opponent replies first, all quiet moves | 4.4x | 4.8x |
+| the same, only at P >= 22 | 2.8x | 2.8x |
+| onto an empty square last | 1.09x (P <= 29: 1.24x) | +6% (P <= 29: +26%) |
+| base placements last | 1.93x | 2.0x |
+| onto a column-topped square first | 1.011x | about equal |
+
+None adopted. The offline score measures each candidate's cost in the
+current order, after the earlier candidates have filled the table, so
+moves late in the order look cheap. It works as a filter for rules that
+stay close to the current order (the scarce rule did), not as a predictor
+for ones that cross the type groups. A single run that looked faster
+(onto an empty square last: 3.75 s against an earlier 4.92 s) was the
+machine change. Interleaved, it was slower.
+
 ## Not done
 
 - `basicLegalMoves` (7%) in the nibble layout. Its placement and move

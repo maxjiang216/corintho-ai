@@ -99,7 +99,7 @@ class AlphaBeta {
     uint64_t root_board, root_rest;
     root.key(root_board, root_rest);
     net_.rootAccumulators(root_board, root_rest, root_acc);
-    for (int32_t depth = 1; depth <= 64; ++depth) {
+    for (int32_t depth = 1; depth <= max_depth_; ++depth) {
       float alpha = -kInf, best_score = -kInf;
       int32_t best_move = moves[0], done = 0;
       for (int32_t m : moves) {
@@ -279,9 +279,14 @@ class AlphaBeta {
           continue;
         }
         const MoveInfo &info = kMoveTable[m];
-        const uint64_t rank = info.is_place ? 1 + info.piece : 0;
+        uint64_t rank = info.is_place ? 1 + info.piece : 0;
+        // The solver's rule (worklog entry 24): a placement that would
+        // leave the mover one or none of its piece type goes last
+        if (scarce_order_ && info.is_place &&
+            ((rest >> (4 + 4 * (side * 3 + info.piece))) & 0xF) <= 2)
+          rank += 4;
         key[m] =
-            (uint64_t{1} << 60) + ((3 - rank) << 40) +
+            (uint64_t{1} << 60) + ((7 - rank) << 40) +
             std::min<uint64_t>(history_[side][m], (uint64_t{1} << 40) - 1);
         continue;
       }
@@ -366,6 +371,12 @@ class AlphaBeta {
                     atoi(getenv("AB_INCREMENTAL")) != 0};
   bool check_incremental_{getenv("AB_CHECK_INCREMENTAL") != nullptr};
   bool check_lines_{getenv("AB_CHECK_LINES") != nullptr};
+  bool scarce_order_{getenv("AB_SCARCE") == nullptr ||
+                     atoi(getenv("AB_SCARCE")) != 0};
+  /// Iterative deepening stops after this depth (AB_MAX_DEPTH; for fixed-
+  /// depth benchmarks, where node counts are deterministic)
+  int32_t max_depth_{getenv("AB_MAX_DEPTH") ? atoi(getenv("AB_MAX_DEPTH"))
+                                            : 64};
   bool lmr_{getenv("AB_LMR") == nullptr || atoi(getenv("AB_LMR")) != 0};
   bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
                     atoi(getenv("AB_LINE_EXTEND")) != 0};

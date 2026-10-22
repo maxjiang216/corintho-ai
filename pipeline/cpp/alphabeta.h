@@ -81,6 +81,7 @@ class AlphaBeta {
     uint64_t root_board, root_rest;
     root.key(root_board, root_rest);
     net_.rootAccumulators(root_board, root_rest, root_acc);
+    max_depth = std::min(max_depth, max_depth_);
     for (int32_t depth = 1; depth <= max_depth; ++depth) {
       float alpha = -kInf, best_score = -kInf;
       int32_t best_move = moves[0], done = 0;
@@ -238,6 +239,10 @@ class AlphaBeta {
     // by the network's value of each child instead.
     uint64_t key[kNumMoves];
     const uint64_t parent_board = board;
+    // With no line standing, one pass over the board says which moves make
+    // one (Game::lineMakingMoves, worklog entry 26)
+    const MoveMask making =
+        solver_order_ && !lines ? game.lineMakingMoves() : MoveMask{};
     PROF_START(t_order);
     for (int32_t i = 0; i < n; ++i) {
       const int32_t m = moves[i];
@@ -253,19 +258,24 @@ class AlphaBeta {
         continue;
       }
       if (solver_order_) {
-        // The child's board word as Game::doMove makes it (frozen bits do
-        // not matter to lines): no Game copy, no move made unless it makes
-        // a line (entry 23)
-        uint64_t b = parent_board;
-        const MoveInfo &mi = kMoveTable[m];
-        if (mi.is_place) {
-          b |= uint64_t{1} << (mi.to * 4 + mi.piece);
+        // Else the child's board word as Game::doMove makes it (frozen
+        // bits do not matter to lines): no Game copy, no move made unless
+        // it makes a line (entry 23)
+        bool makes_line;
+        if (!lines) {
+          makes_line = making.test(m);
         } else {
-          const uint64_t stack = (b >> (mi.from * 4)) & kStackMask;
-          b &= ~(kStackMask << (mi.from * 4));
-          b |= stack << (mi.to * 4);
+          uint64_t b = parent_board;
+          const MoveInfo &mi = kMoveTable[m];
+          if (mi.is_place) {
+            b |= uint64_t{1} << (mi.to * 4 + mi.piece);
+          } else {
+            const uint64_t stack = (b >> (mi.from * 4)) & kStackMask;
+            b &= ~(kStackMask << (mi.from * 4));
+            b |= stack << (mi.to * 4);
+          }
+          makes_line = Game::boardHasLine(b);
         }
-        const bool makes_line = Game::boardHasLine(b);
         if (check_lines_) {
           Game child = game;
           child.doMove(m);
@@ -289,9 +299,14 @@ class AlphaBeta {
           continue;
         }
         const MoveInfo &info = kMoveTable[m];
-        const uint64_t rank = info.is_place ? 1 + info.piece : 0;
+        uint64_t rank = info.is_place ? 1 + info.piece : 0;
+        // The solver's rule (worklog entry 26): a placement that would
+        // leave the mover one or none of its piece type goes last
+        if (scarce_order_ && info.is_place &&
+            ((rest >> (4 + 4 * (side * 3 + info.piece))) & 0xF) <= 2)
+          rank += 4;
         key[m] =
-            (uint64_t{1} << 60) + ((3 - rank) << 40) +
+            (uint64_t{1} << 60) + ((7 - rank) << 40) +
             std::min<uint64_t>(history_[side][m], (uint64_t{1} << 40) - 1);
         continue;
       }
@@ -376,6 +391,12 @@ class AlphaBeta {
                     atoi(getenv("AB_INCREMENTAL")) != 0};
   bool check_incremental_{getenv("AB_CHECK_INCREMENTAL") != nullptr};
   bool check_lines_{getenv("AB_CHECK_LINES") != nullptr};
+  bool scarce_order_{getenv("AB_SCARCE") == nullptr ||
+                     atoi(getenv("AB_SCARCE")) != 0};
+  /// Iterative deepening stops after this depth (AB_MAX_DEPTH; for fixed-
+  /// depth benchmarks, where node counts are deterministic)
+  int32_t max_depth_{getenv("AB_MAX_DEPTH") ? atoi(getenv("AB_MAX_DEPTH"))
+                                            : 64};
   bool lmr_{getenv("AB_LMR") == nullptr || atoi(getenv("AB_LMR")) != 0};
   bool line_extend_{getenv("AB_LINE_EXTEND") == nullptr ||
                     atoi(getenv("AB_LINE_EXTEND")) != 0};

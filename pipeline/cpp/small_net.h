@@ -7,7 +7,7 @@
 //
 // int8: layer 1 accumulates int32 (weights x 254, i.e. activations scaled
 // 127 with 3 fractional bits), clipped to [0, 127] as uint8. Layer 2 is
-// uint8 x int8 -> int32 with AVX-VNNI (vpdpbusd), the weights laid out
+// uint8 x int8 -> int32 with AVX-VNNI (vpdpbusd; AVX2 elsewhere, exact), the weights laid out
 // [H/4][32][4] so that 4 activations at a time update all 32 outputs and
 // groups of 4 zero activations are skipped. Layer 3 (32 -> 1) is float.
 #ifndef PIPELINE_SMALL_NET_H
@@ -272,8 +272,7 @@ class SmallNet {
       const __m256i *w =
           reinterpret_cast<const __m256i *>(w2q_.data() + g * 128);
       for (int32_t r = 0; r < 4; ++r)
-        sum[r] =
-            _mm256_dpbusd_avx_epi32(sum[r], in, _mm256_loadu_si256(w + r));
+        sum[r] = dotAdd(sum[r], in, _mm256_loadu_si256(w + r));
     }
     alignas(32) int32_t out[32];
     for (int32_t r = 0; r < 4; ++r)
@@ -282,6 +281,21 @@ class SmallNet {
     for (int32_t k = 0; k < 32; ++k)
       h2[k] = static_cast<float>(out[k]) + b2q_[k];
     return output(h2, 1.0F / (127.0F * w2_scale_));
+  }
+
+  /// sum + (four uint8 x int8 products added per int32 lane): vpdpbusd
+  /// where AVX-VNNI exists, else its AVX2 equivalent. maddubs saturates
+  /// pairs to int16, but activations are at most 127 and weights within
+  /// +-127, so a pair is at most 2 x 127 x 127 = 32258: never saturates,
+  /// and the two give identical sums.
+  static __m256i dotAdd(__m256i sum, __m256i u8, __m256i s8) noexcept {
+#if defined(__AVXVNNI__)
+    return _mm256_dpbusd_avx_epi32(sum, u8, s8);
+#else
+    const __m256i pairs = _mm256_maddubs_epi16(u8, s8);
+    return _mm256_add_epi32(sum,
+                            _mm256_madd_epi16(pairs, _mm256_set1_epi16(1)));
+#endif
   }
 
   /// Layer 3, before the tanh

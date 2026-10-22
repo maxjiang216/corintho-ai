@@ -14,6 +14,71 @@
 #include "move.h"
 #include "util.h"
 
+namespace {
+
+/// @brief Bit k of each space's nibble set when the space's top piece is
+/// type k (base, column, capital); bit 3 is garbage (the frozen bit)
+/// @details The top is the highest piece present, so a piece is the top
+/// when no piece above it is. c brings each nibble's column and capital
+/// bits down one place, onto base and column; c >> 1 brings the capital
+/// down onto base. Each clears what it lands on. Bits that slide across a
+/// space boundary only ever land on bit 3, which every caller masks off.
+/// Found by bench/superopt/synth.py, which also proved that no program of
+/// four instructions (and, or, xor, andn, not, shifts, constants) computes
+/// it; it replaces four pext and their combination (entry 26).
+constexpr uint64_t topNibbles(uint64_t b) noexcept {
+  const uint64_t c = (b & 0x6666666666666666ULL) >> 1;
+  return b & ~c & ~(c >> 1);
+}
+
+/// @brief A 16-bit space mask spread to the board's layout: the three piece
+/// bits of each chosen space's nibble
+constexpr uint64_t spreadNibbles(uint16_t spaces) noexcept {
+  uint64_t out = 0;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    if ((spaces >> s) & 1U)
+      out |= UINT64_C(7) << (4 * s);
+  return out;
+}
+
+/// @brief kRunStart in the board's layout, for runs of all types at once
+constexpr uint64_t kRunStartNibbles[4][2] = {
+    {spreadNibbles(kRunStart[0][0]), spreadNibbles(kRunStart[0][1])},
+    {spreadNibbles(kRunStart[1][0]), spreadNibbles(kRunStart[1][1])},
+    {spreadNibbles(kRunStart[2][0]), spreadNibbles(kRunStart[2][1])},
+    {spreadNibbles(kRunStart[3][0]), spreadNibbles(kRunStart[3][1])},
+};
+
+constexpr uint64_t kPieceBits = 0x7777777777777777ULL;
+static_assert((topNibbles(0x0ULL) & kPieceBits) == 0x0ULL);
+static_assert((topNibbles(0x7ULL) & kPieceBits) == 0x4ULL);  // capital on top
+static_assert((topNibbles(0x3ULL) & kPieceBits) == 0x2ULL);  // base, column
+static_assert((topNibbles(0x9ULL) & kPieceBits) == 0x1ULL);  // frozen base
+static_assert((topNibbles(0x50ULL) & kPieceBits) == 0x40ULL);  // space 1
+
+/// @brief Every stack move whose source space is in `spaces`, as move-ID
+/// bits of a MoveMask's low word
+/// @details The four directions' IDs are contiguous blocks (see
+/// basicLegalMoves): right and left drop the one column that cannot step
+/// that way, down and up are the board shifted into place. Proven equal to
+/// testing each move's source by bench/superopt/prove.py (entry 26).
+uint64_t movesFrom(uint32_t spaces) noexcept {
+#if defined(__BMI2__)
+  const uint64_t right = _pext_u64(spaces, 0x7777U);
+  const uint64_t left = _pext_u64(spaces, 0xEEEEU);
+#else
+  // Row r's three admitted columns move down by r (right) or r + 1 (left)
+  const uint64_t right = (spaces & 0x7U) | ((spaces >> 1) & 0x38U) |
+                         ((spaces >> 2) & 0x1C0U) | ((spaces >> 3) & 0xE00U);
+  const uint64_t left = ((spaces >> 1) & 0x7U) | ((spaces >> 2) & 0x38U) |
+                        ((spaces >> 3) & 0x1C0U) | ((spaces >> 4) & 0xE00U);
+#endif
+  return right | static_cast<uint64_t>(spaces & 0x0FFFU) << 12 | left << 24 |
+         static_cast<uint64_t>(spaces >> 4) << 36;
+}
+
+}  // namespace
+
 Game::Game(int32_t board[4 * kBoardSize], int32_t to_play,
            int32_t pieces[6]) noexcept
     : to_play_{gsl::narrow_cast<int8_t>(to_play)} {
@@ -33,19 +98,68 @@ bool Game::getLegalMoves(MoveMask &legal_moves) const noexcept {
   // change during this call.
   SpaceInfo info;
   computeSpaceInfo(info);
-  // Find the lines on the board. 85% of positions have none, and those skip
-  // the breaking check entirely.
-  PresentLine lines[kNumLineShapes];
-  const int32_t num_lines = findLines(info, lines);
   // First set all moves to legal
   legal_moves = basicLegalMoves(info);
-  // One AND per line, rather than testing every move against every line.
-  if (num_lines > 0)
-    legal_moves &= lineBreakers(info, lines, num_lines);
+  // Then one AND per line standing, rather than testing every move against
+  // every line. 85% of positions have none, and those skip it entirely.
+  bool lines;
+  const MoveMask breakers = breakersOfLines(info, lines);
+  if (lines)
+    legal_moves &= breakers;
   // If there are no legal moves
   // the game is over and
   // the result is determined by if there are any lines
-  return num_lines > 0;
+  return lines;
+}
+
+MoveMask Game::breakersOfLines(const SpaceInfo &info,
+                               bool &lines) const noexcept {
+  // findLines and lineBreakers in one pass: each run found is ANDed in at
+  // once, with no list of lines in between (entry 26). The same runs, in
+  // the same layout, as findLines.
+  const uint64_t t = topNibbles(board_.to_ullong());
+  uint64_t run3[4];
+  uint64_t run4[4];
+  uint64_t any = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t stride = 4 * static_cast<uint32_t>(kLineStride[d]);
+    const uint64_t three = t & (t >> stride) & (t >> (2 * stride));
+    run3[d] = three & kRunStartNibbles[d][0];
+    run4[d] = three & (t >> (3 * stride)) & kRunStartNibbles[d][1];
+    any |= run3[d];
+  }
+  MoveMask breakers;
+  breakers.setAll();
+  lines = any != 0;
+  if (!lines)
+    return breakers;
+  uint64_t from_type[3];
+  uint32_t built = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    for (int32_t n = 0; n < 2; ++n) {
+      for (uint64_t w = n == 0 ? run3[d] : run4[d]; w != 0; w &= w - 1) {
+        const int32_t bit = __builtin_ctzll(w);
+        const int32_t shape = kRunToShape[d][bit >> 2][n];
+        if (shape < 0)
+          continue;
+        const int32_t type = bit & 3;
+        MoveMask mask = kLineBreakTable[shape][type];
+        // Four of the five ways to break a line are constant per shape and
+        // type (kLineBreakTable). The fifth depends on the board: a stack
+        // moved onto the extending space completes a four only if its own
+        // top matches the line's type, so it breaks the three exactly then.
+        // One AND with every move from a space topped by the type (entry
+        // 24); the extending moves are all move-moves, in the low word.
+        if (((built >> type) & 1U) == 0) {
+          from_type[type] = movesFrom(info.top_plane[type]);
+          built |= 1U << type;
+        }
+        mask.lo |= from_type[type] & kLineExtendMoves[shape].lo;
+        breakers &= mask;
+      }
+    }
+  }
+  return breakers;
 }
 
 void Game::getLegalMovesNoLines(MoveMask &legal_moves) const noexcept {
@@ -63,27 +177,44 @@ bool Game::getLegalMoves(std::bitset<kNumMoves> &legal_moves) const noexcept {
   return is_lines;
 }
 
+static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+              "horizon and key read the reserves as a little-endian word");
+
 int32_t Game::horizon() const noexcept {
   const uint64_t b = board_.to_ullong();
-  int32_t reserves = 0;
-  for (int32_t i = 0; i < 6; ++i)
-    reserves += pieces_[i];
+  // The six reserves in one load; the multiply adds every byte into byte 5
+  // (at most 24, so no byte carries). Proven by bench/superopt/prove.py.
+  uint64_t bytes = 0;
+  std::memcpy(&bytes, pieces_, sizeof(pieces_));
+  const int32_t reserves =
+      static_cast<int32_t>(((bytes * 0x010101010101ULL) >> 40) & 0xFF);
   return 2 * reserves +
          __builtin_popcountll((b | b >> 1 | b >> 2) & 0x1111111111111111ULL);
 }
 
 void Game::key(uint64_t &board, uint64_t &rest) const noexcept {
   board = board_.to_ullong();
-  rest = static_cast<uint64_t>(to_play_);
-  for (int32_t i = 0; i < 6; ++i)
-    rest |= static_cast<uint64_t>(pieces_[i]) << (4 + 4 * i);
+  // The six reserves in one load, a byte each (little-endian), then each
+  // byte's low nibble packed together: the same word the old six-step loop
+  // built. Proven equal for every reserve count 0-4 by
+  // bench/superopt/prove.py (entry 26).
+  uint64_t bytes = 0;
+  std::memcpy(&bytes, pieces_, sizeof(pieces_));
+#if defined(__BMI2__)
+  const uint64_t reserves = _pext_u64(bytes, 0x0F0F0F0F0F0FULL);
+#else
+  bytes = (bytes | bytes >> 4) & 0x00FF00FF00FFULL;
+  bytes = (bytes | bytes >> 8) & 0x0000FFFF0000FFFFULL;
+  const uint64_t reserves = (bytes | bytes >> 16) & 0xFFFFFFULL;
+#endif
+  rest = reserves << 4 | static_cast<uint64_t>(to_play_);
 }
 
 void Game::lineSpaces(uint16_t by_type[3]) const noexcept {
   SpaceInfo info;
   computeSpaceInfo(info);
   PresentLine lines[kNumLineShapes];
-  const int32_t num_lines = findLines(info, lines);
+  const int32_t num_lines = findLines(lines);
   by_type[0] = by_type[1] = by_type[2] = 0;
   for (int32_t i = 0; i < num_lines; ++i) {
     const LineShape &shape = kLineShapes[lines[i].shape];
@@ -93,47 +224,34 @@ void Game::lineSpaces(uint16_t by_type[3]) const noexcept {
   }
 }
 
-int32_t Game::findLines(const SpaceInfo &info,
-                        PresentLine *out) const noexcept {
+int32_t Game::findLines(PresentLine *out) const noexcept {
+  // All three types at once, in the board's own layout: bit k of a space's
+  // nibble is set when its top is type k, and a run of equal tops is a
+  // shifted AND, four bits per space (entry 26)
+  const uint64_t t = topNibbles(board_.to_ullong());
+  uint64_t run3[4];
+  uint64_t run4[4];
+  uint64_t any = 0;
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t stride = 4 * static_cast<uint32_t>(kLineStride[d]);
+    const uint64_t three = t & (t >> stride) & (t >> (2 * stride));
+    run3[d] = three & kRunStartNibbles[d][0];
+    run4[d] = three & (t >> (3 * stride)) & kRunStartNibbles[d][1];
+    any |= run3[d];
+  }
+  if (any == 0)
+    return 0;  // no line; the common case
   int32_t count = 0;
-  for (int32_t type = 0; type < 3; ++type) {
-    const uint32_t p = info.top_plane[type];
-    if (p == 0)
-      continue;
-    // One shifted AND per direction finds every run of that length on the
-    // whole board at once. The start masks stop runs wrapping off an edge.
-    uint32_t run3[4];
-    uint32_t run4[4];
-    uint32_t any = 0;
-    for (int32_t d = 0; d < 4; ++d) {
-      const uint32_t stride = static_cast<uint32_t>(kLineStride[d]);
-      const uint32_t three = p & (p >> stride) & (p >> (2 * stride));
-      run3[d] = three & kRunStart[d][0];
-      run4[d] = three & (p >> (3 * stride)) & kRunStart[d][1];
-      any |= run3[d];
-    }
-    if (any == 0)
-      continue;  // no line of this type; the common case
-    for (int32_t d = 0; d < 4; ++d) {
-      uint32_t w = run3[d];
+  for (int32_t d = 0; d < 4; ++d) {
+    for (int32_t n = 0; n < 2; ++n) {
+      uint64_t w = n == 0 ? run3[d] : run4[d];
       while (w != 0) {
-        const int32_t start = __builtin_ctz(w);
+        const int32_t bit = __builtin_ctzll(w);
         w &= w - 1;
-        const int8_t shape = kRunToShape[d][start][0];
+        const int8_t shape = kRunToShape[d][bit >> 2][n];
         if (shape >= 0) {
           out[count].shape = shape;
-          out[count].type = gsl::narrow_cast<int8_t>(type);
-          ++count;
-        }
-      }
-      w = run4[d];
-      while (w != 0) {
-        const int32_t start = __builtin_ctz(w);
-        w &= w - 1;
-        const int8_t shape = kRunToShape[d][start][1];
-        if (shape >= 0) {
-          out[count].shape = shape;
-          out[count].type = gsl::narrow_cast<int8_t>(type);
+          out[count].type = gsl::narrow_cast<int8_t>(bit & 3);
           ++count;
         }
       }
@@ -219,35 +337,6 @@ MoveMask Game::basicLegalMoves(const SpaceInfo &info) const noexcept {
   }
 #endif
   return legal;
-}
-
-MoveMask Game::lineBreakers(const SpaceInfo &info, const PresentLine *lines,
-                            int32_t num_lines) const noexcept {
-  MoveMask breakers;
-  breakers.setAll();
-  for (int32_t i = 0; i < num_lines; ++i) {
-    const int32_t shape = lines[i].shape;
-    const int32_t type = lines[i].type;
-    MoveMask mask = kLineBreakTable[shape][type];
-    // The one board-dependent case: a stack moved onto the extending space
-    // completes a four only if its own top matches the line's type. At most
-    // four moves land on any given space, so this walks them directly rather
-    // than building a set of every move starting from a space of each type.
-    // A stack's top is `type` exactly when its bit is set in top_plane[type],
-    // so each candidate move is one branch-free bit test (entry 11). The
-    // extending moves are all move-moves, whose IDs lie in the low word.
-    const uint32_t tops = info.top_plane[type];
-    uint64_t w = kLineExtendMoves[shape].lo;
-    assert(kLineExtendMoves[shape].hi == 0);
-    while (w != 0) {
-      const int32_t id = __builtin_ctzll(w);
-      w &= w - 1;
-      mask.lo |= static_cast<uint64_t>((tops >> kMoveTable[id].from) & 1U)
-                 << id;
-    }
-    breakers &= mask;
-  }
-  return breakers;
 }
 
 std::ostream &operator<<(std::ostream &os, const Game &game) {
@@ -408,6 +497,97 @@ static_assert(gatherNibbleBits(0x0101010101010101ULL) == 0x5555U);
 
 }  // namespace
 
+namespace {
+
+/// @brief A board-word mask: `bits` in the nibble of each space in `spaces`
+constexpr uint64_t spreadBits(uint16_t spaces, uint64_t bits) noexcept {
+  uint64_t out = 0;
+  for (int32_t s = 0; s < kBoardSize; ++s)
+    if ((spaces >> s) & 1U)
+      out |= bits << (4 * s);
+  return out;
+}
+
+/// @brief Bit 3 of each nibble gathered into a 16-bit plane, then the
+/// spaces of `keep` compressed in order (a pext of both steps at once)
+template <uint16_t keep> uint64_t gatherHits(uint64_t x) noexcept {
+#if defined(__BMI2__)
+  constexpr uint64_t kMask = spreadBits(keep, 8);  // folded, not looped
+  return _pext_u64(x, kMask);
+#else
+  const uint32_t plane = gatherNibbleBits(x >> 3);
+  if constexpr (keep == 0xEEEE)  // rows' columns 1-3, three per row
+    return ((plane >> 1) & 0x7U) | ((plane >> 2) & 0x38U) |
+           ((plane >> 3) & 0x1C0U) | ((plane >> 4) & 0xE00U);
+  else if constexpr (keep == 0x7777)  // rows' columns 0-2
+    return (plane & 0x7U) | ((plane >> 1) & 0x38U) | ((plane >> 2) & 0x1C0U) |
+           ((plane >> 3) & 0xE00U);
+  else if constexpr (keep == 0xFFF0)  // rows 1-3
+    return plane >> 4;
+  else  // 0x0FFF, rows 0-2
+    return plane & 0x0FFFU;
+#endif
+}
+
+/// @brief Bit `piece` of every nibble gathered into a 16-bit plane
+uint64_t gatherPiece(uint64_t x, int32_t piece) noexcept {
+#if defined(__BMI2__)
+  return _pext_u64(x, 0x1111111111111111ULL << piece);
+#else
+  return gatherNibbleBits(x >> piece);
+#endif
+}
+
+}  // namespace
+
+MoveMask Game::lineMakingMoves() const noexcept {
+  assert(!hasLine());
+  // With no line standing, a line after a move runs through the space the
+  // move lands on, since that is the only space whose top changes (the
+  // source of a stack move empties, and an empty space is in no line). So
+  // for each space and type: would topping this space with this type
+  // complete a run of three? The space is a run's first, middle or last
+  // cell, and the other two must already carry that top. The nibble layout
+  // tests every type at once, as in boardHasLine.
+  const uint64_t t = topNibbles(board_.to_ullong()) & kPieceBits;
+  uint64_t first[4], mid[4], last[4], full[4];
+  for (int32_t d = 0; d < 4; ++d) {
+    const uint32_t s = 4 * static_cast<uint32_t>(kLineStride[d]);
+    const uint64_t start = kRunStartNibbles[d][0];
+    const uint64_t up1 = t >> s, dn1 = t << s;
+    first[d] = up1 & (t >> (2 * s)) & start;
+    mid[d] = dn1 & up1 & (start << s);
+    last[d] = dn1 & (t << (2 * s)) & (start << (2 * s));
+    full[d] = first[d] | mid[d] | last[d];
+  }
+  const uint64_t diagonal = full[kDirDiagA] | full[kDirDiagB];
+  const uint64_t any = full[kDirRow] | full[kDirCol] | diagonal;
+
+  // A stack keeps its top, and its source empties: in the move's own
+  // direction only the runs through the destination that avoid the source
+  // count. A hit is the destination's completing types ANDed with the
+  // arriving top (at most one bit per nibble); adding 7 carries it into
+  // bit 3, where gatherHits reads it.
+  const auto hits = [](uint64_t w, uint64_t arriving) {
+    return (w & arriving) + kPieceBits;
+  };
+  const uint64_t right =
+      hits(first[kDirRow] | full[kDirCol] | diagonal, t << 4);
+  const uint64_t left = hits(last[kDirRow] | full[kDirCol] | diagonal, t >> 4);
+  const uint64_t down =
+      hits(full[kDirRow] | first[kDirCol] | diagonal, t << 16);
+  const uint64_t up = hits(full[kDirRow] | last[kDirCol] | diagonal, t >> 16);
+
+  // Move IDs as in basicLegalMoves, indexed here by destination: right
+  // lands on columns 1-3, left on 0-2, down on rows 1-3, up on rows 0-2
+  MoveMask making;
+  making.lo = gatherHits<0xEEEE>(right) | gatherHits<0xFFF0>(down) << 12 |
+              gatherHits<0x7777>(left) << 24 | gatherHits<0x0FFF>(up) << 36 |
+              gatherPiece(any, kBase) << 48;
+  making.hi = gatherPiece(any, kColumn) | gatherPiece(any, kCapital) << 16;
+  return making;
+}
+
 void Game::computeSpaceInfo(SpaceInfo &info) const noexcept {
   const uint64_t b = board_.to_ullong();
 #if defined(__BMI2__)
@@ -563,31 +743,17 @@ constexpr bool everyRunIsAShape() {
 static_assert(everyRunIsAShape());
 
 bool Game::boardHasLine(uint64_t b) noexcept {
-  // Branch-free: the three top planes, packed into 16-bit lanes of one word,
-  // then one shifted AND per direction for all three types at once. A lane
-  // shifted right spills its low bits into the lane below, but only onto
-  // positions the run masks exclude: every admitted run lies within its lane
-  // (entry 08). pext gathers a piece's bit from all 16 nibbles at once.
-#if defined(__BMI2__)
-  const uint64_t nibble = 0x1111111111111111ULL;
-  const uint64_t base = _pext_u64(b, nibble << kBase);
-  const uint64_t column = _pext_u64(b, nibble << kColumn);
-  const uint64_t capital = _pext_u64(b, nibble << kCapital);
-#else
-  const uint64_t base = gatherNibbleBits(b >> kBase);
-  const uint64_t column = gatherNibbleBits(b >> kColumn);
-  const uint64_t capital = gatherNibbleBits(b >> kCapital);
-#endif
-  const uint64_t planes =
-      (base & ~column & ~capital) | (column & ~capital) << 16 | capital << 32;
-  constexpr auto lanes = [](uint16_t m) {
-    return static_cast<uint64_t>(m) * 0x0000000100010001ULL;
-  };
+  // Branch-free, and no pext: the three top planes stay interleaved in the
+  // board's nibbles, so one shifted AND per direction covers every type.
+  // Shifts are whole spaces, so bit k of a nibble only ever meets bit k of
+  // another and the types never mix; the run masks keep runs on the board.
+  // Proven equal to the 16-bit-lane version on all 2^64 words by
+  // bench/superopt/prove.py (entry 26).
+  const uint64_t t = topNibbles(b);
   uint64_t any = 0;
   for (int32_t d = 0; d < 4; ++d) {
-    const uint32_t s = static_cast<uint32_t>(kLineStride[d]);
-    any |=
-        planes & (planes >> s) & (planes >> (2 * s)) & lanes(kRunStart[d][0]);
+    const uint32_t s = 4 * static_cast<uint32_t>(kLineStride[d]);
+    any |= t & (t >> s) & (t >> (2 * s)) & kRunStartNibbles[d][0];
   }
   return any != 0;
 }

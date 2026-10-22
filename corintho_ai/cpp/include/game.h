@@ -54,6 +54,13 @@ class Game {
   /// @brief hasLine for a board word (4 bits per space), without a Game:
   /// lines depend on the board alone
   static bool boardHasLine(uint64_t board) noexcept;
+  /// @brief The moves that leave a line standing, for a position where no
+  /// line stands: bit m is hasLine() of the position after move m
+  /// @details Exact for every move the placement and stacking rules allow
+  /// (so for every legal move); other bits are meaningless. One pass over
+  /// the board instead of a doMove and a hasLine per move. Proven by
+  /// bench/superopt/prove.py (worklog entry 26).
+  MoveMask lineMakingMoves() const noexcept;
   /// @brief Legal moves when no line stands (the caller knows, e.g. from
   /// hasLine): placement and movement rules only, no line search
   void getLegalMovesNoLines(MoveMask &legal_moves) const noexcept;
@@ -181,23 +188,24 @@ class Game {
   /// @brief Find every line shape currently holding a single top type
   /// @details No subsumption: a four and both of its threes are all recorded,
   /// because covering one end of a four leaves a three standing.
+  /// @details Works on the board word directly, all three types at once,
+  /// so it needs no SpaceInfo.
   /// @return The number of lines written to `out`
-  int32_t findLines(const SpaceInfo &info, PresentLine *out) const noexcept;
+  int32_t findLines(PresentLine *out) const noexcept;
 
   /// @brief Every move legal by placement and movement rules, ignoring lines
   /// @details All 48 placements reduce to three mask expressions and all 48
   /// moves to a shifted AND per direction, replacing 96 per-move calls.
   MoveMask basicLegalMoves(const SpaceInfo &info) const noexcept;
 
-  /// @brief The set of moves that break every line currently on the board
-  /// @details One mask per line, ANDed together, rather than testing every
-  /// move against every line. Four of the five ways to break a line are
-  /// constant per shape and type and come straight from kLineBreakTable. The
-  /// fifth -- moving a stack onto the extending space -- is the only one that
-  /// depends on the board, and is masked by which moves currently start from a
-  /// space topped by the line's type.
-  MoveMask lineBreakers(const SpaceInfo &info, const PresentLine *lines,
-                        int32_t num_lines) const noexcept;
+  /// @brief The set of moves that break every line currently on the board,
+  /// and whether any line stands
+  /// @details The lines are found as in findLines, and each one's mask is
+  /// ANDed in as it is found, rather than testing every move against every
+  /// line. Four of the five ways to break a line are constant per shape and
+  /// type and come straight from kLineBreakTable. The fifth, moving a stack
+  /// onto the extending space, depends on the board.
+  MoveMask breakersOfLines(const SpaceInfo &info, bool &lines) const noexcept;
 
   /// @brief The Corintho game board, stored as a bitset.
   /// @details 4x4 board with 4 bits per space (3 for pieces, 1 for frozenness)
